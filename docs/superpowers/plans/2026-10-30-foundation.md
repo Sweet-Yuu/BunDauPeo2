@@ -180,7 +180,7 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 - Consumes: `PlayerSave` (Task 1).
 - Produces: `sealed class SaveService { SaveService(string path); PlayerSave Load(); bool Save(PlayerSave save); }`. `Load` trả `null` khi không có save đọc được. File phụ: `path + ".tmp"`, `".bak"`, `".corrupt"`.
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 `SetUp` tạo thư mục `Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())`, `_path` là `save.json` trong đó, `_service = new SaveService(_path)`. `TearDown` xoá thư mục. `Make(coin)` tạo `PlayerSave` có một dòng `Balances`.
 
@@ -232,16 +232,16 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `SaveService`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `SaveService`.
 
-- [ ] **Step 3: Viết `SaveService`**
+- [x] **Step 3: Viết `SaveService`**
 
 - `Save`: tạo thư mục nếu thiếu, ghi `path.tmp`, rồi `File.Replace(tmp, path, path + ".bak")` nếu file chính đã có, không thì `File.Move(tmp, path)`. Bắt `IOException` và `UnauthorizedAccessException`, `Debug.LogError("Save failed: ...")`, trả `false`.
 - `Load`: đọc `path` rồi đến `.bak`. `JsonUtility.FromJson` ném `ArgumentException` khi JSON hỏng và trả `null` khi rỗng, cả hai đều là không đọc được. Dùng `.bak` thì `LogWarning`. Cả hai hỏng và file chính có tồn tại thì `File.Copy(path, path + ".corrupt", true)` và `LogWarning`.
 
-- [ ] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="16"`.
+- [x] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="16"`.
 
-- [ ] **Step 5: Commit** `feat: add SaveService with atomic write and backup recovery`
+- [x] **Step 5: Commit** `feat: add SaveService with atomic write and backup recovery`
 
 ---
 
