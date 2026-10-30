@@ -1,0 +1,6 @@
+{
+  "name": "BunDauPeo.Characters",
+  "rootNamespace": "BunDauPeo.Characters",
+  "references": ["BunDauPeo.Core"],
+  "autoReferenced": true
+}

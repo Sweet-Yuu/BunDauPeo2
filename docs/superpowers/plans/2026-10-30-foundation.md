@@ -271,7 +271,7 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
   - `CharacterCatalog Catalog(params CharacterDefinition[] items)`
   - `void SetRef(UnityEngine.Object target, string property, UnityEngine.Object value)`
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 ```csharp
 // CharacterDefinitionTests
@@ -305,15 +305,15 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
 
-- [ ] **Step 3: Viết các class**
+- [x] **Step 3: Viết các class**
 
 `Validate` của `CharacterDefinition` trả chuỗi bắt đầu bằng tên ô (`"BasicAttack: ..."`). `OnValidate` của nhân vật và catalog chỉ gọi `Validate()` và `Debug.LogWarning` từng dòng, kèm `this` làm context. `TryGet` quét mảng tuyến tính.
 
-- [ ] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="25"`.
+- [x] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="25"`.
 
-- [ ] **Step 5: Commit** `feat: add character ScriptableObjects and Catalog`
+- [x] **Step 5: Commit** `feat: add character ScriptableObjects and Catalog`
 
 ---
 
