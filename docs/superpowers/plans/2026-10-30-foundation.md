@@ -442,7 +442,7 @@ Thao tác trực tiếp trên `PlayerSave`, cùng cách với `Wallet`. `AddToTe
   - `BunDauPeo.Boot.GameBootstrap : MonoBehaviour`, field `_catalog`, `_newGameConfig`.
   - `TestData.Config(CurrencyAmount[] currency, params CharacterDefinition[] starters)`.
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 ```csharp
 // ServiceLocatorTests: TearDown gọi ServiceLocator.Clear()
@@ -485,19 +485,19 @@ Thao tác trực tiếp trên `PlayerSave`, cùng cách với `Wallet`. `AddToTe
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
 
-- [ ] **Step 3: Viết `ServiceLocator`, `NewGameConfig`, `GameSession`**
+- [x] **Step 3: Viết `ServiceLocator`, `NewGameConfig`, `GameSession`**
 
 `GameSession`: `Load()` trả `null` thì là game mới. Tạo `Wallet`, `Roster`. Nếu game mới: cộng các dòng tiền có `Amount > 0`, `Roster.Add` các nhân vật khác `null`, rồi `Persist()`.
 
-- [ ] **Step 4: Viết `GameBootstrap`**
+- [x] **Step 4: Viết `GameBootstrap`**
 
 `Awake`: `_catalog` hoặc `_newGameConfig` null thì `Debug.LogError` kèm tên field và `return`. Nếu đủ: `DontDestroyOnLoad(gameObject)`, tạo `GameSession` với `Path.Combine(Application.persistentDataPath, "save.json")`, `ServiceLocator.Clear()`, `Register(session.Wallet)`, `Register(session.Roster)`. `OnApplicationPause(true)` và `OnApplicationQuit` gọi `Persist()`, bỏ qua nếu session null.
 
-- [ ] **Step 5: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="43"`.
+- [x] **Step 5: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="43"`.
 
-- [ ] **Step 6: Commit** `feat: add GameSession and GameBootstrap`
+- [x] **Step 6: Commit** `feat: add GameSession and GameBootstrap`
 
 ---
 

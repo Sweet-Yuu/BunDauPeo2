@@ -1,4 +1,6 @@
+using BunDauPeo.Boot;
 using BunDauPeo.Characters;
+using BunDauPeo.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -38,6 +40,27 @@ namespace BunDauPeo.Tests
                 array.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
             so.ApplyModifiedPropertiesWithoutUndo();
             return catalog;
+        }
+
+        public static NewGameConfig Config(CurrencyAmount[] currency, params CharacterDefinition[] starters)
+        {
+            var config = ScriptableObject.CreateInstance<NewGameConfig>();
+            var so = new SerializedObject(config);
+            var money = so.FindProperty("_startingCurrency");
+            money.arraySize = currency.Length;
+            for (var i = 0; i < currency.Length; i++)
+            {
+                var element = money.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("Type").enumValueIndex = (int)currency[i].Type;
+                element.FindPropertyRelative("Amount").longValue = currency[i].Amount;
+            }
+
+            var list = so.FindProperty("_starterCharacters");
+            list.arraySize = starters.Length;
+            for (var i = 0; i < starters.Length; i++)
+                list.GetArrayElementAtIndex(i).objectReferenceValue = starters[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return config;
         }
 
         public static void SetRef(Object target, string property, Object value)
