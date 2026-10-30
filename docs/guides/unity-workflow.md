@@ -56,8 +56,8 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 
 ## Git
 
-- Chưa có commit nào ở thời điểm ghi nhận (2026-10-30). Không commit/push khi user chưa yêu cầu; quyền commit của từng đợt ghi trong kế hoạch của đợt đó.
-- `.gitattributes`/`.gitignore` đã có sẵn; kiểm tra lại trước commit đầu tiên.
+- Không commit/push khi user chưa yêu cầu; quyền commit của từng đợt ghi trong kế hoạch của đợt đó.
+- `.gitignore` đã chặn `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. `git add` theo đường dẫn cụ thể, không `git add -A`.
 
 ## Kiểm tra sau thay đổi
 

@@ -15,6 +15,12 @@
 
 ## Danh sách
 
+### D-004 — Company `Sweet-Yuu`, product `BunDauPeo` (2026-10-30)
+- Bối cảnh: template đặt `DefaultCompany` / `My project (1)`; `Application.persistentDataPath` (nơi lưu `save.json`) suy ra từ hai tên này.
+- Quyết định: `companyName = Sweet-Yuu`, `productName = BunDauPeo`. Save nằm ở `%USERPROFILE%\AppData\LocalLow\Sweet-Yuu\BunDauPeo\` trên Windows. Không đổi Bundle Identifier.
+- Lý do / đánh đổi: đổi sau khi có save thật thì save cũ bị bỏ lại ở thư mục cũ, nên chốt trước khi có người chơi. `Setup Project` đặt lại hai giá trị này mỗi lần chạy.
+- Trạng thái: Accepted
+
 ### D-003 — Offline, mobile màn ngang, không nạp tiền thật (2026-10-30)
 - Bối cảnh: game gacha thường cần server để chống gian lận; template đang cho phép xoay cả màn dọc.
 - Quyết định: chơi offline, save JSON cục bộ, roll gacha trên máy, không IAP. Player Settings chỉ cho phép màn ngang.

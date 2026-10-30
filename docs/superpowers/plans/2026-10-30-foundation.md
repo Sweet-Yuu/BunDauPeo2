@@ -537,7 +537,7 @@ Mọi nhân vật dùng `BasicStrike` và `Finisher`. Portrait dùng `AssetDatab
 
 `NewGameConfig`: 500 Coin, 1500 Gem; starter là `char_nem_chua`, `char_cha_com`, `char_dau_phu`.
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 ```csharp
 private const string TempAsset = "Assets/_Project/Tests/_TempSetupTest.asset";
@@ -592,23 +592,23 @@ private const string TempAsset = "Assets/_Project/Tests/_TempSetupTest.asset";
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `ProjectSetup`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `ProjectSetup`.
 
-- [ ] **Step 3: Viết `ProjectSetup`**
+- [x] **Step 3: Viết `ProjectSetup`**
 
 - `GetOrCreateAsset`: có asset thì trả về, không gọi `init`. Không có thì `CreateInstance`, `init`, đặt tên, `AssetDatabase.CreateAsset`.
 - Thư mục đích đã có từ Task 1; `Skills/` và `Characters/` tạo mới bằng `AssetDatabase.CreateFolder`.
 - Gán field riêng tư qua `SerializedObject`, giống `TestData`.
-- Scene: chỉ tạo khi chưa có. Dùng `EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive)`, thêm GameObject `GameBootstrap`, gán hai tham chiếu, `SaveScene`, `CloseScene(scene, true)`. Additive để không đụng scene đang mở.
+- Scene: chỉ tạo khi chưa có. Dùng `EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive)`, thêm GameObject `GameBootstrap`, gán hai tham chiếu, `SaveScene`, `CloseScene(scene, true)`. Additive để không đụng scene đang mở. **Sửa khi triển khai:** batch mode chỉ có scene "Untitled" chưa lưu và Unity từ chối Additive, nên khi `Application.isBatchMode` dùng `Single` (và không `CloseScene`). Hai tham chiếu phải nạp bằng `AssetDatabase.LoadAssetAtPath` **sau** `NewScene`, vì `Single` dỡ asset không được scene nào dùng và biến giữ từ trước thành null (xem L-002).
 - Build Settings: đưa Boot lên đầu, giữ scene còn lại, không tạo trùng.
 - Player Settings theo test `PlayerSettings_LandscapeOnly` và `PlayerSettings_Identity` (`companyName = "Sweet-Yuu"`, `productName = "BunDauPeo"`, user chốt 2026-10-30). Không đụng Bundle Identifier.
 - Kết thúc bằng `AssetDatabase.SaveAssets()`.
 
-- [ ] **Step 4: Viết `BootScenePlayMode`**
+- [x] **Step 4: Viết `BootScenePlayMode`**
 
 `[InitializeOnLoadMethod]`, qua `EditorApplication.delayCall` (tránh load asset trong lúc import), đặt `EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.BootScenePath)`. Chưa có scene thì giá trị là `null`, Play vẫn bình thường.
 
-- [ ] **Step 5: Chạy Setup ở batch mode**
+- [x] **Step 5: Chạy Setup ở batch mode**
 
 ```bash
 unity run . --timeout 600 -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.Run -logFile ../bdp-setup.log
@@ -616,13 +616,13 @@ unity run . --timeout 600 -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.R
 
 Kỳ vọng: exit `0`. Editor đang mở thì dùng menu `Tools/BunDauPeo/Setup Project`.
 
-- [ ] **Step 6: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="49"`.
+- [x] **Step 6: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="49"`.
 
-- [ ] **Step 7: Chạy lại Setup, xác nhận không phá gì**
+- [x] **Step 7: Chạy lại Setup, xác nhận không phá gì**
 
 Chạy lại lệnh Step 5 rồi lệnh test. Kỳ vọng: vẫn `failed="0"`, và `git status` không có thay đổi mới ở `Characters/Data` (nếu đã commit trước đó).
 
-- [ ] **Step 8: Thử trong Editor**
+- [ ] **Step 8: Thử trong Editor** (chưa kiểm tra, chờ user)
 
 ```bash
 unity open .
@@ -630,13 +630,13 @@ unity open .
 
 Bấm Play từ `SampleScene`. Kỳ vọng: scene `Boot` chạy, Console không có lỗi từ code dự án, `Application.persistentDataPath/save.json` xuất hiện. Dừng và Play lại: số tiền không tăng. Tìm đường dẫn bằng cách đọc `Application.persistentDataPath` trong Console hoặc `unity command eval` nếu Editor kết nối được. Không tự kiểm tra được thì nhờ user và ghi rõ trong báo cáo.
 
-- [ ] **Step 9: Cập nhật docs**
+- [x] **Step 9: Cập nhật docs**
 
 - `docs/project/structure.md`, mục "Hiện tại": ghi cây thư mục đã dựng.
 - `docs/roadmap.md`: chuyển mục "Nền móng" sang "Đã xong" kèm ngày; "Đang làm" để trống.
 - Lesson mới nếu có lỗi phát sinh trong đợt này.
 
-- [ ] **Step 10: Commit** `feat: add ProjectSetup, sample data and Boot scene`
+- [x] **Step 10: Commit** `feat: add ProjectSetup, sample data and Boot scene`
 
 ---
 
