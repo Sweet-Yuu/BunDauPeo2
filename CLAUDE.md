@@ -11,6 +11,11 @@ Game Unity 6 (2D, URP). Mọi thông tin chi tiết nằm trong `docs/` — file
 5. Khi task làm thay đổi sự thật đã ghi trong docs: sửa đúng file đó (xem [docs/guides/doc-maintenance.md](docs/guides/doc-maintenance.md)).
 6. Khi gọi subagent: chọn model và effort theo [docs/guides/agent-routing.md](docs/guides/agent-routing.md).
 
+## Công cụ (luôn áp dụng)
+
+- Làm việc với Unity bằng **Unity CLI (`unity`)** là chính; chưa chắc lệnh thì đọc `unity -h` và `unity <lệnh> -h`, không đoán cờ. Bảng lệnh và quy tắc: [docs/guides/unity-workflow.md](docs/guides/unity-workflow.md).
+- Việc có skill trong plugin Unity (Editor, UI, sprite, package…) thì nạp skill đó và làm theo; bảng chọn skill ở cùng file. Khi skill mâu thuẫn với docs dự án thì docs thắng, và báo user.
+
 ## Luật cứng (luôn áp dụng)
 
 - Không sửa/xoá tay file `.meta`; không đụng `Library/`, `Logs/`, `UserSettings/`, `Temp/`.

@@ -20,4 +20,4 @@
 - Package `com.unity.ai.assistant` và `com.unity.pipeline` là bản pre/experimental — đừng dựa vào chúng cho code game.
 - Active Input Handling: Input System only (`activeInputHandler: 1` trong `ProjectSettings.asset`).
 - Nền tảng build mục tiêu: mobile màn ngang ([D-003](../decisions/decisions.md)). TODO(user): Android, iOS hay cả hai.
-- CLI: `unity` 1.0.0-beta.15. Chạy test: `unity test . --mode EditMode --output <file>`. Lệnh batch không chạy được khi project đang mở trong Editor.
+- CLI: `unity` 1.0.0-beta.15 là công cụ chính. Lệnh và quy tắc dùng ở [unity-workflow.md](../guides/unity-workflow.md).
