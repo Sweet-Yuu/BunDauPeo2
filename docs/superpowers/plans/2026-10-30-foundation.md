@@ -63,8 +63,8 @@ Quy tắc chung ở [agent-routing.md](../../guides/agent-routing.md).
 
 ## Trước khi bắt đầu
 
-- [ ] Repo chưa có commit nào. User đã đồng ý (2026-10-30): commit nền hiện tại lên `main` (`chore: initial project and docs`), rồi tạo nhánh `feature/foundation` từ đó trước Task 1, để reviewer so `main..feature/foundation`. Xem `git status` trước khi `git add`: chỉ đưa file nguồn (`Assets/`, `Packages/`, `ProjectSettings/`, `Mota/`, `docs/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`, `.vsconfig`), không đưa `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. Không push.
-- [ ] Đọc `docs/guides/code-style.md` và `docs/guides/unity-workflow.md`.
+- [x] Repo chưa có commit nào. User đã đồng ý (2026-10-30): commit nền hiện tại lên `main` (`chore: initial project and docs`), rồi tạo nhánh `feature/foundation` từ đó trước Task 1, để reviewer so `main..feature/foundation`. Xem `git status` trước khi `git add`: chỉ đưa file nguồn (`Assets/`, `Packages/`, `ProjectSettings/`, `Mota/`, `docs/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`, `.vsconfig`), không đưa `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. Không push.
+- [x] Đọc `docs/guides/code-style.md` và `docs/guides/unity-workflow.md`.
 
 ---
 
@@ -86,7 +86,7 @@ Quy tắc chung ở [agent-routing.md](../../guides/agent-routing.md).
   - `[Serializable] class PlayerSave { public int Version = 1; public List<CurrencyAmount> Balances = new(); public List<string> OwnedCharacterIds = new(); public List<string> BattleTeam = new(); public List<StaffAssignment> Staff = new(); }`
   - `sealed class Wallet { Wallet(PlayerSave save); long Get(CurrencyType type); void Add(CurrencyType type, long amount); bool TrySpend(params CurrencyAmount[] costs); event Action Changed; }`
 
-- [ ] **Step 1: Tạo cây thư mục và hai asmdef**
+- [x] **Step 1: Tạo cây thư mục và hai asmdef**
 
 `BunDauPeo.Core.asmdef`: `{"name": "BunDauPeo.Core", "rootNamespace": "BunDauPeo.Core", "autoReferenced": true}`
 
@@ -104,7 +104,7 @@ Quy tắc chung ở [agent-routing.md](../../guides/agent-routing.md).
 }
 ```
 
-- [ ] **Step 2: Viết test đỏ `WalletTests.cs`**
+- [x] **Step 2: Viết test đỏ `WalletTests.cs`**
 
 ```csharp
 private PlayerSave _save; private Wallet _wallet;
@@ -154,19 +154,19 @@ private PlayerSave _save; private Wallet _wallet;
 }
 ```
 
-- [ ] **Step 3: Chạy test, kỳ vọng đỏ**
+- [x] **Step 3: Chạy test, kỳ vọng đỏ**
 
 Chạy lệnh test chung. Kỳ vọng: exit `6`, log có `error CS0246` với `PlayerSave` hoặc `Wallet`.
 
-- [ ] **Step 4: Viết các kiểu dữ liệu và `Wallet`**
+- [x] **Step 4: Viết các kiểu dữ liệu và `Wallet`**
 
 `Wallet` đọc và ghi trực tiếp `save.Balances`, không giữ bản sao, để lưu game luôn thấy số mới nhất. `TrySpend` kiểm tra hết các dòng trước (số âm thì `false`, cộng gộp theo loại) rồi mới trừ. `Add(type, 0)` không phát `Changed`.
 
-- [ ] **Step 5: Chạy test, kỳ vọng xanh**
+- [x] **Step 5: Chạy test, kỳ vọng xanh**
 
 Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 
-- [ ] **Step 6: Commit** `feat: add project skeleton, Core data types and Wallet`
+- [x] **Step 6: Commit** `feat: add project skeleton, Core data types and Wallet`
 
 ---
 
