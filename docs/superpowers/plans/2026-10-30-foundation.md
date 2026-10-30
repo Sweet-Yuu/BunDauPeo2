@@ -341,7 +341,7 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
   public IReadOnlyList<CharacterDefinition> GetStaff(StaffRole role);
   ```
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 `SetUp` tạo catalog 7 nhân vật `"c0"`..`"c6"`, `_save`, `_roster`, và `Add` tất cả.
 
@@ -412,15 +412,15 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `Roster`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `Roster`.
 
-- [ ] **Step 3: Viết `Roster`**
+- [x] **Step 3: Viết `Roster`**
 
 Thao tác trực tiếp trên `PlayerSave`, cùng cách với `Wallet`. `AddToTeam` kiểm tra sở hữu, có trong catalog, chưa trong đội, đội chưa đủ, **rồi mới** gỡ khỏi `Staff`. Constructor `LogWarning` một lần cho mỗi Id không có trong catalog, kể cả ở `BattleTeam` và `Staff`. Các getter tạo danh sách mới và bỏ qua Id lạ mà không log.
 
-- [ ] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="37"`.
+- [x] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="37"`.
 
-- [ ] **Step 5: Commit** `feat: add Roster with team and staff exclusion`
+- [x] **Step 5: Commit** `feat: add Roster with team and staff exclusion`
 
 ---
 
