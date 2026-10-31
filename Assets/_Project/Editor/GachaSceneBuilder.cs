@@ -48,10 +48,11 @@ namespace BunDauPeo.EditorTools
             Place(pity.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-40, -100), new Vector2(700, 50));
 
             var results = NewRect("Results", canvas);
-            Place(results, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(1760, 560));
+            // Neo ở trên và gọn vừa 866 đơn vị cao (Game view rộng ~2.8:1) mà không đè dòng pity hay hai nút.
+            Place(results, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -180), new Vector2(1760, 460));
             AddImage(results, sprite, Panel, raycast: false);
             var grid = results.gameObject.AddComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(330, 260);
+            grid.cellSize = new Vector2(330, 210);
             grid.spacing = new Vector2(20, 20);
             grid.padding = new RectOffset(15, 15, 10, 10);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
@@ -70,10 +71,10 @@ namespace BunDauPeo.EditorTools
             }
 
             var message = NewText("MessageText", canvas, font, "", 32, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.4f));
-            Place(message.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 220), new Vector2(1400, 60));
+            Place(message.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 150), new Vector2(1400, 50));
 
-            var single = NewButton("SingleButton", canvas, sprite, font, GachaViewText.PullLabel(1, banner.SingleCost), new Vector2(-260, 80));
-            var ten = NewButton("TenButton", canvas, sprite, font, GachaViewText.PullLabel(10, banner.TenCost), new Vector2(260, 80));
+            var single = NewButton("SingleButton", canvas, sprite, font, GachaViewText.PullLabel(1, banner.SingleCost), new Vector2(-260, 40));
+            var ten = NewButton("TenButton", canvas, sprite, font, GachaViewText.PullLabel(10, banner.TenCost), new Vector2(260, 40));
 
             var viewObject = NewRect("GachaView", canvas);
             var view = viewObject.gameObject.AddComponent<GachaView>();
@@ -134,7 +135,7 @@ namespace BunDauPeo.EditorTools
         private static Button NewButton(string name, RectTransform parent, Sprite sprite, Font font, string text, Vector2 position)
         {
             var rect = NewRect(name, parent);
-            Place(rect, new Vector2(0.5f, 0), new Vector2(0.5f, 0), position, new Vector2(440, 120));
+            Place(rect, new Vector2(0.5f, 0), new Vector2(0.5f, 0), position, new Vector2(440, 100));
             var image = AddImage(rect, sprite, ButtonColor, raycast: true);
             var button = rect.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
