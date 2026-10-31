@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
@@ -7,29 +8,32 @@ using UnityEngine.UI;
 
 namespace BunDauPeo.UI
 {
-    // Màn tối thiểu để thử vòng quay; hub thật ở spec UI hub. Giữ mỏng: chọn chữ/màu nằm ở GachaViewText.
+    // Điều phối: bấm quay, giao kết quả cho reveal, trang tổng, popup quay tiếp và lịch sử. Không giữ luật nào.
     public class GachaView : MonoBehaviour
     {
-        [Serializable]
-        private struct Slot
-        {
-            public Image Background;
-            public Text Label;
-        }
-
         [SerializeField] private GachaBannerDefinition _banner;
+        [SerializeField] private CharacterCatalog _characters;
         [SerializeField] private Text _gemText;
         [SerializeField] private Text _bannerNameText;
         [SerializeField] private Text _pityText;
         [SerializeField] private Text _messageText;
         [SerializeField] private Button _singleButton;
         [SerializeField] private Button _tenButton;
-        [SerializeField] private Slot[] _slots;
+        [SerializeField] private Button _skipButton;
+        [SerializeField] private Button _historyButton;
+        [SerializeField] private GachaRevealView _revealView;
+        [SerializeField] private GachaTotalView _totalView;
+        [SerializeField] private GachaRollAgainPopup _rollAgainPopup;
+        [SerializeField] private GachaHistoryPopup _historyPopup;
 
         private Wallet _wallet;
         private Roster _roster;
         private GachaService _gacha;
-        private bool _active;
+        private bool _subscribed;
+        // Từ lúc bấm quay đến lúc bấm Thôi: khoá nút quay trên trang roll.
+        private bool _busy;
+        private bool _lastIsTen;
+        private IReadOnlyList<GachaPullEntry> _entries;
 
         private void OnEnable()
         {
@@ -51,60 +55,112 @@ namespace BunDauPeo.UI
             _roster.Changed += Redraw;
             _singleButton.onClick.AddListener(PullSingle);
             _tenButton.onClick.AddListener(PullTen);
-            _active = true;
+            _skipButton.onClick.AddListener(_revealView.SkipToSsrOrTotal);
+            _historyButton.onClick.AddListener(OpenHistory);
+            _revealView.Finished += ShowTotal;
+            _totalView.OkClicked += OpenRollAgain;
+            _rollAgainPopup.RollAgainClicked += RollAgain;
+            _rollAgainPopup.DismissClicked += Dismiss;
+            _historyPopup.CloseClicked += CloseHistory;
+            _subscribed = true;
             Redraw();
         }
 
         private void OnDisable()
         {
-            if (!_active) return;
-            _active = false;
+            if (!_subscribed) return;
+            _subscribed = false;
             _wallet.Changed -= Redraw;
             _roster.Changed -= Redraw;
             _singleButton.onClick.RemoveListener(PullSingle);
             _tenButton.onClick.RemoveListener(PullTen);
+            _skipButton.onClick.RemoveListener(_revealView.SkipToSsrOrTotal);
+            _historyButton.onClick.RemoveListener(OpenHistory);
+            _revealView.Finished -= ShowTotal;
+            _totalView.OkClicked -= OpenRollAgain;
+            _rollAgainPopup.RollAgainClicked -= RollAgain;
+            _rollAgainPopup.DismissClicked -= Dismiss;
+            _historyPopup.CloseClicked -= CloseHistory;
+        }
+
+        // Nút Bỏ qua chỉ hiện khi reveal cho phép (Quay 10, không ở cutscene SSR).
+        private void Update()
+        {
+            if (_subscribed) _skipButton.gameObject.SetActive(_busy && _revealView.CanSkipAll);
         }
 
         private bool HasAllReferences()
         {
-            var ok = _banner != null && _gemText != null && _bannerNameText != null && _pityText != null
-                     && _messageText != null && _singleButton != null && _tenButton != null && _slots != null;
-            if (ok)
-            {
-                foreach (var slot in _slots)
-                    if (slot.Background == null || slot.Label == null) ok = false;
-            }
-
+            var ok = _banner != null && _characters != null && _gemText != null && _bannerNameText != null
+                     && _pityText != null && _messageText != null && _singleButton != null && _tenButton != null
+                     && _skipButton != null && _historyButton != null && _revealView != null && _totalView != null
+                     && _rollAgainPopup != null && _historyPopup != null;
             if (!ok) Debug.LogError($"{nameof(GachaView)}: a serialized reference is not assigned.", this);
             return ok;
         }
 
-        private void PullSingle() => Show(_gacha.PullSingle(_banner.Id));
+        private void PullSingle() => StartPull(_gacha.PullSingle(_banner.Id), isTen: false);
 
-        private void PullTen() => Show(_gacha.PullTen(_banner.Id));
+        private void PullTen() => StartPull(_gacha.PullTen(_banner.Id), isTen: true);
 
-        private void Show(GachaPullResult result)
+        private void StartPull(GachaPullResult result, bool isTen)
         {
             _messageText.text = GachaViewText.StatusMessage(result.Status, result.Saved);
-            if (result.Status == GachaPullStatus.Success)
+            if (result.Status != GachaPullStatus.Success)
             {
-                for (var i = 0; i < _slots.Length; i++)
-                {
-                    var used = i < result.Entries.Count;
-                    _slots[i].Background.gameObject.SetActive(used);
-                    if (!used) continue;
-
-                    var entry = result.Entries[i];
-                    var character = entry.Character;
-                    var name = string.IsNullOrEmpty(character.DisplayName) ? character.Id : character.DisplayName;
-                    _slots[i].Background.color = GachaViewText.RarityColor(character.Rarity);
-                    _slots[i].Label.text = $"{character.Rarity}  {name}\n{GachaViewText.Describe(entry)}";
-                }
+                // Lỗi (thiếu Gem, banner lỗi) thì không có lượt nào để xem: mở lại nút.
+                _busy = false;
+                Redraw();
+                return;
             }
 
-            // Vẽ lại từ trạng thái sau khi lượt quay trả về: sự kiện giữa chừng thấy ví đã trừ nhưng pity chưa ghi.
+            _lastIsTen = isTen;
+            _entries = result.Entries;
+            _busy = true;
+            _revealView.Play(result.Entries, isTen);
             Redraw();
         }
+
+        private void ShowTotal() => _totalView.Show(_entries);
+
+        private void OpenRollAgain()
+        {
+            _totalView.Hide();
+            var cost = CurrentCost();
+            _rollAgainPopup.Open(GachaViewText.RollAgainLabel(cost), GachaViewText.CanRollAgain(_wallet, cost), TotalGem(cost));
+        }
+
+        private void RollAgain()
+        {
+            _rollAgainPopup.Close();
+            if (_lastIsTen) PullTen();
+            else PullSingle();
+        }
+
+        private void Dismiss()
+        {
+            _rollAgainPopup.Close();
+            _busy = false;
+            _messageText.text = "";
+            Redraw();
+        }
+
+        private void OpenHistory() => _historyPopup.Open(_gacha.History, NameOf);
+
+        private void CloseHistory() => _historyPopup.Close();
+
+        private CurrencyAmount[] CurrentCost() => _lastIsTen ? _banner.TenCost : _banner.SingleCost;
+
+        private static long TotalGem(IReadOnlyList<CurrencyAmount> cost)
+        {
+            long total = 0;
+            foreach (var line in cost)
+                if (line.Type == CurrencyType.Gem) total += line.Amount;
+            return total;
+        }
+
+        private string NameOf(string id) =>
+            _characters.TryGet(id, out var character) && !string.IsNullOrEmpty(character.DisplayName) ? character.DisplayName : id;
 
         private void Redraw()
         {
@@ -113,11 +169,12 @@ namespace BunDauPeo.UI
             _pityText.text = GachaViewText.PityLine(_banner.SsrPityThreshold, _gacha.GetPity(_banner.Id));
             SetButton(_singleButton, 1, _banner.SingleCost);
             SetButton(_tenButton, 10, _banner.TenCost);
+            _historyButton.interactable = !_busy;
         }
 
         private void SetButton(Button button, int count, CurrencyAmount[] cost)
         {
-            button.interactable = _wallet.CanAfford(cost);
+            button.interactable = !_busy && _wallet.CanAfford(cost);
             var label = button.GetComponentInChildren<Text>();
             if (label != null) label.text = GachaViewText.PullLabel(count, cost);
         }

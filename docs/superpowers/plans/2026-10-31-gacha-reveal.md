@@ -136,7 +136,7 @@ Quyết định: `GetOrCreateAsset` không ghi lại asset đã có. Nên `Proje
 - Consumes: `GachaService` đã có `Pull(bannerId, ten)`. Thứ tự: áp kết quả → ghi pity → **thêm lịch sử** → `persist()` một lần.
 - `Utc` lấy bằng `DateTimeOffset.UtcNow.ToUnixTimeSeconds()` trong `GachaService`; test không kiểm giá trị thời gian, chỉ kiểm số mục và Id.
 
-- [ ] **Step 1: Viết test đỏ.**
+- [x] **Step 1: Viết test đỏ.**
   - `SaveCompatibilityTests`:
     - `OldSave_WithoutGachaHistory_LoadsWithEmptyList`: JSON cũ không có `GachaHistory` cho `GachaHistory` khác `null` và rỗng.
     - `GachaHistory_RoundTripsThroughSaveService`: một mục có `CharacterIds = {"a", "b"}` đọc lại đúng.
@@ -148,10 +148,10 @@ Quyết định: `GetOrCreateAsset` không ghi lại asset đã có. Nên `Proje
   - `GameSessionTests`:
     - Thêm assert vào `ResetToDefaults_ClearsEveryFieldOfTheSave`: thêm một mục vào `session.Save.GachaHistory` trước reset và kiểm rỗng sau reset.
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement.** Thêm struct, field, hằng và đoạn ghi lịch sử trong `Pull`. Cắt đầu danh sách khi vượt `MaxHistoryEntries`.
-- [ ] **Step 4: Chạy test, kỳ vọng xanh.** `total` tăng đúng số test mới.
-- [ ] **Step 5: Commit và push.**
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement.** Thêm struct, field, hằng và đoạn ghi lịch sử trong `Pull`. Cắt đầu danh sách khi vượt `MaxHistoryEntries`.
+- [x] **Step 4: Chạy test, kỳ vọng xanh.** `total` tăng đúng số test mới.
+- [x] **Step 5: Commit và push.**
 
 ---
 
@@ -190,7 +190,7 @@ Thứ tự bước khi dựng: `CommonCutscene`, `Reveal` cho từng nhân vật
 
 Quay 1 cũng có `Total`. Nếu `isTen` là false, `SkipToSsrOrTotal` không làm gì và `CanSkipAll` là false.
 
-- [ ] **Step 1: Viết test đỏ** (mỗi test dựng entries bằng `TestData.Character` với độ hiếm, và `GachaPullEntry`):
+- [x] **Step 1: Viết test đỏ** (mỗi test dựng entries bằng `TestData.Character` với độ hiếm, và `GachaPullEntry`):
   - `Steps_NormalsInRollOrder_SsrLast`: entries R, SSR, R, SR → thứ tự `Common, Reveal(0), Reveal(2), Reveal(3), Legendary(1), Reveal(1), Total`. Lưu ý SR là thường.
   - `Steps_MultipleSsrInRollOrder`: entries SSR(0), R(1), SSR(2) → `Common, Reveal(1), Legendary(0), Reveal(0), Legendary(2), Reveal(2), Total`.
   - `Tap_OnCommonCutscene_GoesToFirstReveal`.
@@ -204,10 +204,10 @@ Quay 1 cũng có `Total`. Nếu `isTen` là false, `SkipToSsrOrTotal` không là
   - `Tap_OnTotal_DoesNothing`.
   - `ClipFinished_OnReveal_DoesNothing`.
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ:** `CS0246` về `GachaRevealSequence`.
-- [ ] **Step 3: Implement** theo Interfaces. Dựng danh sách bước một lần trong constructor, `_index` trỏ vào bước hiện tại.
-- [ ] **Step 4: Chạy test, kỳ vọng xanh.**
-- [ ] **Step 5: Commit và push.**
+- [x] **Step 2: Chạy test, kỳ vọng đỏ:** `CS0246` về `GachaRevealSequence`.
+- [x] **Step 3: Implement** theo Interfaces. Dựng danh sách bước một lần trong constructor, `_index` trỏ vào bước hiện tại.
+- [x] **Step 4: Chạy test, kỳ vọng xanh.**
+- [x] **Step 5: Commit và push.**
 
 ---
 
@@ -225,17 +225,17 @@ Quay 1 cũng có `Total`. Nếu `isTen` là false, `SkipToSsrOrTotal` không là
   - `string GachaViewText.HistoryLine(GachaHistoryEntry entry, Func<string, string> nameOf) -> "HH:mm dd/MM · Quay 10 · Tên, Tên, ..."`, `Utc` đổi bằng `DateTimeOffset.FromUnixTimeSeconds(...).ToLocalTime()`. `nameOf` trả tên nhân vật hoặc Id.
 - Consumes: `Wallet.CanAfford` (Core), `GachaHistoryEntry` (Task 3).
 
-- [ ] **Step 1: Viết test đỏ:**
+- [x] **Step 1: Viết test đỏ:**
   - `InsufficientGemText_ContainsNeededAmount`: chứa `"900"`.
   - `RollAgainLabel_ShowsCountAndCost`: `RollAgainLabel(10, [Gem 900])` chứa `"Quay tiếp"` và `"900"`.
   - `CanRollAgain_FalseWhenShort_TrueWhenEnough`: ví có Gem 899: `CanRollAgain([Gem 900])` là false; Gem 900 là true.
   - `HistoryLine_ListsNamesAndCount`: entry Count 10 với 2 Id, `nameOf` trả tên cố định. Dòng chứa "Quay 10" và cả hai tên.
   - `HistoryLine_Count1_SaysQuay1`.
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy test, kỳ vọng xanh.**
-- [ ] **Step 5: Commit và push.**
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Chạy test, kỳ vọng xanh.**
+- [x] **Step 5: Commit và push.**
 
 ---
 
@@ -253,10 +253,10 @@ Quay 1 cũng có `Total`. Nếu `isTen` là false, `SkipToSsrOrTotal` không là
 
 Tất cả hình là `Image` và chữ là `Text`. Không có logic thứ tự hay logic Gem trong view.
 
-- [ ] **Step 1: Test không viết ở task này cho hành vi Animator/tween.** Thay bằng test kiểm tra tham chiếu trong scene ở Task 8 (`GachaSceneTests`), và kiểm bằng Play Mode ở Task 9. Trước khi viết code, đọc `Assets/_Project/Tests/GachaSceneTests.cs` để thấy hàm kiểm scene.
-- [ ] **Step 2: Implement** bốn MonoBehaviour theo Interfaces. Giữ mỗi view dưới khoảng 120 dòng.
-- [ ] **Step 3: Chạy test (chưa có test mới), kỳ vọng xanh và không có lỗi compile.**
-- [ ] **Step 4: Commit và push.**
+- [x] **Step 1: Test không viết ở task này cho hành vi Animator/tween.** Thay bằng test kiểm tra tham chiếu trong scene ở Task 8 (`GachaSceneTests`), và kiểm bằng Play Mode ở Task 9. Trước khi viết code, đọc `Assets/_Project/Tests/GachaSceneTests.cs` để thấy hàm kiểm scene.
+- [x] **Step 2: Implement** bốn MonoBehaviour theo Interfaces. Giữ mỗi view dưới khoảng 120 dòng.
+- [x] **Step 3: Chạy test (chưa có test mới), kỳ vọng xanh và không có lỗi compile.**
+- [x] **Step 4: Commit và push.**
 
 ---
 
@@ -270,10 +270,10 @@ Tất cả hình là `Image` và chữ là `Text`. Không có logic thứ tự h
 - Luồng: bấm quay → khoá nút → `GachaRevealView.Play(seq)` → khi `Finished` → `GachaTotalView.Show(entries)` → OK → `GachaRollAgainPopup.Open(label, canRollAgain, missingGem)` → Quay tiếp gọi lại đúng hàm quay với cùng số lượt (`_lastCount`), Thôi đóng popup và mở nút quay. Nút Lịch sử mở `GachaHistoryPopup` với `GachaService` lấy lịch sử từ save (qua `ServiceLocator.Get<PlayerSave>()`, hoặc thêm `GachaService.History` read-only, chọn một và ghi trong commit).
 - Bỏ vẽ lưới kết quả trên banner (`_slots`, `Show`, `Slot` cũ) vì kết quả chuyển sang `GachaTotalView`.
 
-- [ ] **Step 1: Viết test.** Logic điều phối không có test riêng (đã nằm trong `GachaRevealSequence` và `GachaViewText`). Viết test ở Task 8 cho scene. Đọc trước code hiện tại của `GachaView` (đã có `OnEnable`, `Redraw`, `SetButton`).
-- [ ] **Step 2: Implement.** Ghi lại `_lastCount` và `_lastBanner` khi bấm quay để Quay tiếp dùng đúng số lượt.
-- [ ] **Step 3: Chạy test, kỳ vọng xanh. Xác nhận không có chỗ nào gọi pull khi popup mở với Quay tiếp bị mờ.**
-- [ ] **Step 4: Commit và push.**
+- [x] **Step 1: Viết test.** Logic điều phối không có test riêng (đã nằm trong `GachaRevealSequence` và `GachaViewText`). Viết test ở Task 8 cho scene. Đọc trước code hiện tại của `GachaView` (đã có `OnEnable`, `Redraw`, `SetButton`).
+- [x] **Step 2: Implement.** Ghi lại `_lastCount` và `_lastBanner` khi bấm quay để Quay tiếp dùng đúng số lượt.
+- [x] **Step 3: Chạy test, kỳ vọng xanh. Xác nhận không có chỗ nào gọi pull khi popup mở với Quay tiếp bị mờ.**
+- [x] **Step 4: Commit và push.**
 
 ---
 
@@ -288,16 +288,16 @@ Tất cả hình là `Image` và chữ là `Text`. Không có logic thứ tự h
 - Scene có: `Camera`, `EventSystem` (`InputSystemUIInputModule`), `Canvas`, trang roll (Gem, tên banner, pity, nút Quay 1, Quay 10, nút Lịch sử, dòng thông báo), `GachaRevealView` với hai `Animator` (instance của `CommonSummon.prefab` và `LegendarySummon.prefab` từ `Prefabs/Cutscenes`), `GachaTotalView` (lưới 5 cột), `GachaRollAgainPopup`, `GachaHistoryPopup` (ẩn mặc định).
 - `GachaView` gán toàn bộ tham chiếu mới bằng `SerializedObject`.
 
-- [ ] **Step 1: Viết test đỏ** trong `GachaSceneTests`:
+- [x] **Step 1: Viết test đỏ** trong `GachaSceneTests`:
   - `GachaScene_HasRevealTotalAndPopups`: có đúng một `GachaRevealView`, `GachaTotalView`, `GachaRollAgainPopup`, `GachaHistoryPopup`; các trường tham chiếu khác `null`.
   - `GachaScene_CutscenePrefabsAreInstanced`: có hai instance tham chiếu `Animator` với controller đúng (`CommonSummon`, `LegendarySummon`).
   - `GachaScene_TotalGridIsFiveColumns`: `GridLayoutGroup.constraintCount == 5`.
   - `GachaScene_StillNoRawImage`, `GachaScene_StillNoStandaloneInputModule`: giữ nguyên các test cũ.
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ:** `CS` hoặc assert "null" trên tham chiếu mới.
-- [ ] **Step 3: Implement builder.** Dùng `PrefabUtility.InstantiatePrefab` cho hai cutscene. Ẩn trang tổng và popup mặc định. Sau khi dựng, `ProjectSetup.Run` (không phải builder riêng) sinh lại scene, để `GachaSceneBuilder` giữ một nguồn duy nhất.
-- [ ] **Step 4: Chạy Setup, chạy lại Setup lần hai, chạy test, kỳ vọng xanh.**
-- [ ] **Step 5: Commit và push.**
+- [x] **Step 2: Chạy test, kỳ vọng đỏ:** `CS` hoặc assert "null" trên tham chiếu mới.
+- [x] **Step 3: Implement builder.** Dùng `PrefabUtility.InstantiatePrefab` cho hai cutscene. Ẩn trang tổng và popup mặc định. Sau khi dựng, `ProjectSetup.Run` (không phải builder riêng) sinh lại scene, để `GachaSceneBuilder` giữ một nguồn duy nhất.
+- [x] **Step 4: Chạy Setup, chạy lại Setup lần hai, chạy test, kỳ vọng xanh.**
+- [x] **Step 5: Commit và push.**
 
 ---
 

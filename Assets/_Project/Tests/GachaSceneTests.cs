@@ -52,13 +52,58 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(1, All<Canvas>(scene).Length);
                 var view = All<GachaView>(scene).Single();
                 var so = new SerializedObject(view);
-                foreach (var field in new[] { "_banner", "_singleButton", "_tenButton", "_gemText", "_pityText", "_messageText" })
+                foreach (var field in new[]
+                         {
+                             "_banner", "_characters", "_singleButton", "_tenButton", "_skipButton", "_historyButton", "_gemText",
+                             "_bannerNameText", "_pityText", "_messageText", "_revealView", "_totalView", "_rollAgainPopup", "_historyPopup",
+                         })
                     Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, field);
-                Assert.AreEqual(10, so.FindProperty("_slots").arraySize);
 
                 var banner = (GachaBannerDefinition)so.FindProperty("_banner").objectReferenceValue;
                 Assert.AreEqual(AssetDatabase.LoadAssetAtPath<GachaBannerDefinition>(ProjectSetup.BannerPath).Id, banner.Id);
                 Assert.AreEqual(0, All<RawImage>(scene).Length);
+            });
+
+        [Test]
+        public void GachaScene_HasRevealTotalAndPopupsWired() =>
+            WithScene(ProjectSetup.GachaScenePath, scene =>
+            {
+                var reveal = new SerializedObject(All<GachaRevealView>(scene).Single());
+                foreach (var field in new[] { "_root", "_commonAnimator", "_legendaryAnimator", "_revealPanel", "_flash", "_portrait", "_nameText", "_starsText" })
+                    Assert.IsNotNull(reveal.FindProperty(field).objectReferenceValue, "reveal " + field);
+
+                var total = new SerializedObject(All<GachaTotalView>(scene).Single());
+                foreach (var field in new[] { "_root", "_grid", "_iconTemplate", "_okButton" })
+                    Assert.IsNotNull(total.FindProperty(field).objectReferenceValue, "total " + field);
+
+                var again = new SerializedObject(All<GachaRollAgainPopup>(scene).Single());
+                foreach (var field in new[] { "_root", "_warningText", "_rollAgainLabel", "_rollAgainButton", "_dismissButton" })
+                    Assert.IsNotNull(again.FindProperty(field).objectReferenceValue, "popup " + field);
+
+                var history = new SerializedObject(All<GachaHistoryPopup>(scene).Single());
+                foreach (var field in new[] { "_root", "_listText", "_closeButton" })
+                    Assert.IsNotNull(history.FindProperty(field).objectReferenceValue, "history " + field);
+            });
+
+        [Test]
+        public void GachaScene_CutscenePrefabsAreInstanced_WithTheirControllers() =>
+            WithScene(ProjectSetup.GachaScenePath, scene =>
+            {
+                var reveal = new SerializedObject(All<GachaRevealView>(scene).Single());
+                var common = (Animator)reveal.FindProperty("_commonAnimator").objectReferenceValue;
+                var legendary = (Animator)reveal.FindProperty("_legendaryAnimator").objectReferenceValue;
+                Assert.AreEqual("Assets/_Project/Gacha/Animations/Summoning/CommonSummon.controller", AssetDatabase.GetAssetPath(common.runtimeAnimatorController));
+                Assert.AreEqual("Assets/_Project/Gacha/Animations/Summoning/LegendarySummon.controller", AssetDatabase.GetAssetPath(legendary.runtimeAnimatorController));
+            });
+
+        [Test]
+        public void GachaScene_TotalGridIsFiveColumns() =>
+            WithScene(ProjectSetup.GachaScenePath, scene =>
+            {
+                var total = new SerializedObject(All<GachaTotalView>(scene).Single());
+                var grid = ((RectTransform)total.FindProperty("_grid").objectReferenceValue).GetComponent<GridLayoutGroup>();
+                Assert.AreEqual(GridLayoutGroup.Constraint.FixedColumnCount, grid.constraint);
+                Assert.AreEqual(5, grid.constraintCount);
             });
 
         [Test]
