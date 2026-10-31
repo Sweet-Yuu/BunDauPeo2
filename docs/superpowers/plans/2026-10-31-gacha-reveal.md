@@ -306,10 +306,10 @@ Tất cả hình là `Image` và chữ là `Text`. Không có logic thứ tự h
 **Files:**
 - Modify: `docs/project/structure.md`, `docs/roadmap.md`, `docs/design/game-design.md`, `docs/superpowers/specs/2026-10-31-gacha-design.md` (mục 8), `docs/lessons/lesson.md` khi có lỗi.
 
-- [ ] **Step 1: Cập nhật docs** theo spec mục 8: thêm `Gacha/Prefabs/Cutscenes`, `Gacha/Art/Summoning`, số test mới; game-design thêm luật SSR cuối, không bỏ qua, OK và popup quay tiếp, lịch sử 50 mục.
-- [ ] **Step 2: Chạy test toàn bộ, kỳ vọng xanh.**
-- [ ] **Step 3: Kiểm trong Play Mode (`unity command editor.playmode start`, chụp `capture game_view`).** Kiểm: cutscene Common chạm để bỏ qua; SSR không bỏ qua; Quay 10 có nút Bỏ qua; OK mở popup; thiếu Gem thì Quay tiếp mờ và có cảnh báo; Lịch sử hiện mục mới. Sao lưu `save.json*` trước và khôi phục sau.
-- [ ] **Step 4: Commit và push.** Ghi "chưa kiểm" cho bất kỳ phần Play nào không tự kiểm được.
+- [x] **Step 1: Cập nhật docs** theo spec mục 8: thêm `Gacha/Prefabs/Cutscenes`, `Gacha/Art/Summoning`, số test mới; game-design thêm luật SSR cuối, không bỏ qua, OK và popup quay tiếp, lịch sử 50 mục.
+- [x] **Step 2: Chạy test toàn bộ, kỳ vọng xanh.**
+- [x] **Step 3: Kiểm trong Play Mode (`unity command editor.playmode start`, chụp `capture game_view`).** Kiểm: cutscene Common chạm để bỏ qua; SSR không bỏ qua; Quay 10 có nút Bỏ qua; OK mở popup; thiếu Gem thì Quay tiếp mờ và có cảnh báo; Lịch sử hiện mục mới. Sao lưu `save.json*` trước và khôi phục sau.
+- [x] **Step 4: Commit và push.** Ghi "chưa kiểm" cho bất kỳ phần Play nào không tự kiểm được.
 
 ---
 

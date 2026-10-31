@@ -113,9 +113,9 @@ namespace BunDauPeo.EditorTools
             Stretch(totalRoot);
             AddImage(totalRoot, sprite, Background, raycast: true);
             var grid = NewRect("Grid", totalRoot);
-            Place(grid, Center, Center, new Vector2(0, 60), new Vector2(1770, 730));
+            Place(grid, TopCenter, TopCenter, new Vector2(0, -30), new Vector2(1770, 630));
             var layout = grid.gameObject.AddComponent<GridLayoutGroup>();
-            layout.cellSize = new Vector2(330, 350);
+            layout.cellSize = new Vector2(330, 300);
             layout.spacing = new Vector2(30, 30);
             layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             layout.constraintCount = 5;
@@ -123,13 +123,13 @@ namespace BunDauPeo.EditorTools
             var icon = NewRect("IconTemplate", grid);
             AddImage(icon, sprite, Color.white, raycast: false);
             var iconPortrait = NewRect("Portrait", icon);
-            Place(iconPortrait, Center, Center, new Vector2(0, 30), new Vector2(270, 270));
+            Place(iconPortrait, TopCenter, TopCenter, new Vector2(0, -15), new Vector2(240, 210));
             AddImage(iconPortrait, sprite, Color.white, raycast: false);
             var iconLabel = NewRect("Label", icon);
-            Place(iconLabel, BottomCenter, BottomCenter, new Vector2(0, 30), new Vector2(310, 70));
+            Place(iconLabel, BottomCenter, BottomCenter, new Vector2(0, 12), new Vector2(310, 60));
             AddText(iconLabel, font, "", 28, TextAnchor.MiddleCenter, Color.white);
             icon.gameObject.SetActive(false);
-            var ok = NewButton("OkButton", totalRoot, sprite, font, "OK", ButtonColor, BottomCenter, new Vector2(0, 90), new Vector2(360, 100));
+            var ok = NewButton("OkButton", totalRoot, sprite, font, "OK", ButtonColor, BottomCenter, new Vector2(0, 60), new Vector2(360, 90));
             var totalView = totalRoot.gameObject.AddComponent<GachaTotalView>();
             var totalSo = new SerializedObject(totalView);
             totalSo.FindProperty("_root").objectReferenceValue = totalRoot.gameObject;
@@ -171,12 +171,13 @@ namespace BunDauPeo.EditorTools
             Stretch(historyRoot);
             AddImage(historyRoot, sprite, Dim, raycast: true);
             var historyBox = NewRect("Box", historyRoot);
-            Place(historyBox, Center, Center, Vector2.zero, new Vector2(1200, 900));
+            // Vừa với canvas cao 866 (Game view rộng) lẫn 1080.
+            Place(historyBox, Center, Center, Vector2.zero, new Vector2(1100, 780));
             AddImage(historyBox, sprite, Panel, raycast: false);
             var historyTitle = NewText("TitleText", historyBox, font, "Lịch sử quay", 48, TextAnchor.MiddleCenter, Color.white);
-            Place(historyTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -30), new Vector2(1000, 70));
+            Place(historyTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(1000, 70));
             var scrollRect = NewRect("ScrollView", historyBox);
-            Place(scrollRect, Center, Center, new Vector2(0, -10), new Vector2(1100, 640));
+            Place(scrollRect, Center, Center, new Vector2(0, -10), new Vector2(1000, 520));
             var viewport = NewRect("Viewport", scrollRect);
             Stretch(viewport);
             viewport.gameObject.AddComponent<RectMask2D>();
@@ -195,7 +196,7 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
-            var close = NewButton("CloseButton", historyBox, sprite, font, "Đóng", GreyButton, BottomCenter, new Vector2(0, 40), new Vector2(360, 90));
+            var close = NewButton("CloseButton", historyBox, sprite, font, "Đóng", GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(320, 80));
             var historyPopup = historyRoot.gameObject.AddComponent<GachaHistoryPopup>();
             var historySo = new SerializedObject(historyPopup);
             historySo.FindProperty("_root").objectReferenceValue = historyRoot.gameObject;

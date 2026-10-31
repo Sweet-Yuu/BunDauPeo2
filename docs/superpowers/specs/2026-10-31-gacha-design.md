@@ -200,8 +200,8 @@ Chi tiết từng task, model/effort và lệnh ở [kế hoạch](../plans/2026
 ## 8. Ngoài phạm vi
 
 - Nâng sao, dùng mảnh, chỉ số theo sao (spec "Phát triển nhân vật", sau Combat). Cho đến lúc đó mảnh chỉ được cộng và hiển thị.
-- Màn hình kho đầy đủ; chọn banner; banner giới hạn thời gian; banner có nhân vật nổi bật (kèm **trọng số từng nhân vật**); soft pity; hoàn Gem khi trùng; hiệu ứng, âm thanh, animation quay.
-- Nhật ký lịch sử quay.
+- Màn hình kho đầy đủ; chọn banner; banner giới hạn thời gian; banner có nhân vật nổi bật (kèm **trọng số từng nhân vật**); soft pity; hoàn Gem khi trùng; âm thanh.
+- Hiệu ứng, animation quay và nhật ký lịch sử quay: đã đưa vào [spec reveal](2026-10-31-gacha-reveal-design.md) (2026-10-31). Animation nhân vật thật vẫn ngoài phạm vi.
 
 ## 9. Câu hỏi còn mở
 

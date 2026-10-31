@@ -13,15 +13,15 @@ Assets/
     Core/          BunDauPeo.Core        Wallet, SaveService, PlayerSave, Catalog<T>, ServiceLocator, EventExtensions, kiểu tiền/vai trò
     Characters/    BunDauPeo.Characters  CharacterDefinition, SkillDefinition, CharacterCatalog, Roster (kèm mảnh nhân vật)
     Gacha/         BunDauPeo.Gacha       GachaBannerDefinition, GachaBannerCatalog, GachaRoller, GachaService, GachaPullResult
-    UI/            BunDauPeo.UI          GachaView, GachaViewText (màn thử Gacha; hub thật làm ở spec UI hub)
+    UI/            BunDauPeo.UI          GachaView (điều phối), GachaRevealSequence (thứ tự và luật bỏ qua), GachaRevealView, GachaTotalView, GachaRollAgainPopup, GachaHistoryPopup, GachaViewText (màn Gacha; hub thật làm ở spec UI hub)
     Boot/          BunDauPeo.Boot        GameBootstrap (nối GachaService, nạp scene khởi đầu), GameSession, NewGameConfig
     Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode, GachaSceneBuilder
-    Tests/         BunDauPeo.Tests       EditMode (148 test)
+    Tests/         BunDauPeo.Tests       EditMode (184 test)
     Scenes/        Boot.unity (đầu Build Settings), Gacha.unity (thứ hai; Boot nạp nó qua `_startScene`)
     Restaurant/ Combat/                  mới có folder con rỗng (.gitkeep), chưa có asmdef
 ```
 
-Asset mẫu (6 nhân vật, 4 skill, `CharacterCatalog`, `NewGameConfig`, banner `banner_standard`, `GachaBannerCatalog`) nằm ở `Characters/Data/`, `Boot/Data/` và `Gacha/Data/`, do `Setup Project` sinh; chạy lại không ghi đè số đã chỉnh. Scene `Gacha.unity` cũng do `Setup Project` sinh (một lần, có rồi thì giữ nguyên); `Boot.unity` được vá chứ không tạo lại.
+Asset mẫu (6 nhân vật, 4 skill, `CharacterCatalog`, `NewGameConfig`, banner `banner_standard`, `GachaBannerCatalog`) nằm ở `Characters/Data/`, `Boot/Data/` và `Gacha/Data/`, do `Setup Project` sinh; chạy lại không ghi đè số đã chỉnh. Scene `Gacha.unity` cũng do `Setup Project` sinh (một lần, có rồi thì giữ nguyên); `Boot.unity` được vá chứ không tạo lại. Cutscene Gacha (2 clip + controller ở `Gacha/Animations/Summoning/`, 2 prefab ở `Gacha/Prefabs/Cutscenes/`, 3 PNG Spark/Ring/Glow ở `Gacha/Art/Summoning/`) do user cung cấp, copy nguyên từ Project_04 kèm `.meta`; GUID phải giữ nguyên (test `GachaRevealAssetTests`).
 Save: `Application.persistentDataPath/save.json` (kèm `.bak`, `.tmp`, `.corrupt`), xem [D-004](../decisions/decisions.md).
 
 ## Quy ước (đã duyệt, áp dụng khi thêm nội dung)

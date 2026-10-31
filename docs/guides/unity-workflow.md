@@ -32,6 +32,10 @@ Quy tắc:
 - Điều khiển Play qua `unity command` (Editor mở): `editor.playmode start|stop`, `capture game_view --save_path`, `console get --level error`, `eval '<câu lệnh C#>;'` (phải là câu lệnh, ví dụ `Debug.Log(...)`; đọc kết quả ở `console get`).
   - `capture --save_path` chỉ nhận đường dẫn trong thư mục project và đường dẫn dạng `D:/.../x.png` lại ghi vào `Assets/`, sinh thêm `.meta`: xoá cả hai khi xong, đừng commit.
   - `runtime simulate_pointer` báo thành công nhưng không đổi `Mouse.current` (vẫn 0,0), nên không bấm được UI. Kiểm nút bằng `EventSystem.RaycastAll` tại tâm nút rồi `ExecuteEvents.Execute(nút, new PointerEventData(es), ExecuteEvents.pointerClickHandler)`.
+  - `unity command test run` báo kết quả **cũ** khi project đang lỗi compile (vẫn "N/N passed"): kiểm `unity command console status` có `"compilationFailed":false` trước khi tin con số.
+  - Mỗi lệnh CLI tốn ~3 giây. Muốn đo thời gian trong Play, ghi `Time.realtimeSinceStartup` trong chính lệnh `eval` (`Debug.Log`), đừng dựa vào `sleep`.
+  - Bơm chạm chuột: `InputSystem.EnableDevice(Mouse.current)` (thiết bị bị tắt khi Editor không focus), rồi `QueueStateEvent(Mouse.current, new MouseState { buttons = 1 })` ở một lệnh và `buttons = 0` ở lệnh sau.
+  - `editor.playmode set_run_in_background` và `editor set_auto_tick` giúp Play chạy khi Editor không focus, nhưng cái đầu **ghi `runInBackground` vào `ProjectSettings.asset`**: sau khi xong, `git checkout -- ProjectSettings/ProjectSettings.asset`.
   - Lượt thử Play ghi vào save thật: sao lưu `save.json*` trước, chép lại sau khi đóng Editor (`unity close .`).
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 

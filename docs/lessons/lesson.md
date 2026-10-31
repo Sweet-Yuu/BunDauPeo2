@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-007 — Tưởng lỗi vì độ trễ lệnh, và để lại thay đổi ngoài ý muốn (2026-11-01)  #process #unity-files
+- Triệu chứng: ảnh chụp 1 giây sau khi bấm Quay đã ở bước reveal, tôi tưởng cutscene bị bỏ; thực ra mỗi lệnh CLI tốn ~3 giây. Lệnh bật chạy nền còn ghi `runInBackground: 1` vào `ProjectSettings.asset`.
+- Nguyên nhân gốc: kết luận từ ảnh chụp mà chưa đo thời gian thật; bật tuỳ chọn Editor mà không kiểm `git status`.
+- Luật từ nay: đo bằng `Time.realtimeSinceStartup` trong chính lệnh trước khi nghi lỗi; sau mỗi lượt thử Play chạy `git status` và hoàn tác file ProjectSettings bị đổi.
+
 ### L-006 — Test đặt tên theo tính chất nhưng vẫn xanh khi tính chất sai (2026-10-31)  #process #script
 - Triệu chứng: reviewer chỉ ra test "lượt 10 nâng SR có thể ra SSR" dùng 0.99 (ra SSR dù không nâng) và test "dòng chi phí âm" chỉ có một dòng âm (lỗi "tổng bằng 0" khớp thay).
 - Nguyên nhân gốc: chọn đầu vào theo ví dụ trong kế hoạch mà không hỏi "cài đặt sai nào vẫn qua test này?".
