@@ -22,7 +22,7 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 
 ## Phong cách
 
-- Hình ảnh: 2D, UI hub và màn hình tham khảo Princess Connect Re:Dive, chiến đấu turn-based tham khảo Epic Seven (ảnh trong `Mota/`). Hiện dùng sprite có sẵn của Unity làm placeholder. TODO(user): phong cách art cuối cùng.
+- Hình ảnh: 2D, UI hub và màn hình tham khảo Princess Connect Re:Dive. Chiến đấu turn-based: bố trí theo Princess Connect, chọn chiêu theo Fate/Grand Order, kết quả trận theo Epic Seven (ảnh trong `Mota/`, mục lục ở [ui-screens.md](../references/ui-screens.md)). Hiện dùng sprite có sẵn của Unity làm placeholder. TODO(user): phong cách art cuối cùng.
 - Âm thanh / tone: TODO(user)
 
 ## Trong phạm vi (MVP)
@@ -39,6 +39,7 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - Nạp tiền thật, tính năng online, server.
 - Hệ nguyên tố, trang bị.
 - Chỉ số nhân vật theo sao và cấp nhân vật (chưa thiết kế).
+- Cốt truyện và hội thoại (sẽ làm sau MVP).
 
 ## Tiêu chí "xong" của MVP
 

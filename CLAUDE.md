@@ -15,6 +15,7 @@ Game Unity 6 (2D, URP). Mọi thông tin chi tiết nằm trong `docs/` — file
 
 - Làm việc với Unity bằng **Unity CLI (`unity`)** là chính; chưa chắc lệnh thì đọc `unity -h` và `unity <lệnh> -h`, không đoán cờ. Bảng lệnh và quy tắc: [docs/guides/unity-workflow.md](docs/guides/unity-workflow.md).
 - Việc có skill trong plugin Unity (Editor, UI, sprite, package…) thì nạp skill đó và làm theo; bảng chọn skill ở cùng file. Khi skill mâu thuẫn với docs dự án thì docs thắng, và báo user.
+- Làm màn hình hoặc layout UI: tra ảnh tham khảo qua [docs/references/ui-screens.md](docs/references/ui-screens.md). Thiếu ảnh thì nói rõ cần ảnh gì để user gửi; ảnh mới để trong `Mota/`, đặt tên theo quy tắc ở file đó.
 
 ## Luật cứng (luôn áp dụng)
 

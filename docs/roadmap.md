@@ -16,6 +16,7 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
 - [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game, gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
 - [ ] Kiểm save trên Android thật (`File.Replace`, lưu khi vào nền): chờ user nối điện thoại, rồi hỏi lại.
+- [ ] Cốt truyện và hội thoại (sau MVP, user chốt 2026-11-01). Chưa có spec; ảnh tham khảo ở [ui-screens.md](references/ui-screens.md).
 
 ## Đã xong
 

@@ -15,6 +15,7 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 | Chạy Unity: test, build, mở/đóng Editor, lệnh CLI | [guides/unity-workflow.md](guides/unity-workflow.md) (Unity CLI) |
 | Sửa scene / prefab / asset / ProjectSettings, chọn skill của plugin Unity | [guides/unity-workflow.md](guides/unity-workflow.md) |
 | Thêm package, đổi render pipeline, đổi input | [project/tech-stack.md](project/tech-stack.md) → [decisions/decisions.md](decisions/decisions.md) |
+| Làm màn hình, layout UI, viết spec có màn hình | [references/ui-screens.md](references/ui-screens.md) (mục lục ảnh trong `Mota/`) |
 | Tra tài liệu / link bên ngoài (API, art, âm thanh…) | [references/README.md](references/README.md) |
 | Chọn hướng làm, hỏi "sao lại làm vậy?" | [decisions/decisions.md](decisions/decisions.md) |
 | Chuyện gì đang làm / làm tiếp gì | [roadmap.md](roadmap.md) |
@@ -41,6 +42,7 @@ docs/
     agent-routing.md       chọn model, effort, subagent hay native
   decisions/decisions.md   quyết định kỹ thuật + lý do (ADR gọn)
   references/README.md     mục lục nguồn tham khảo ngoài
+  references/ui-screens.md mục lục ảnh tham khảo UI trong Mota/
   lessons/lesson.md        sổ bài học: lỗi agent đã mắc, đừng lặp lại
 ```
 

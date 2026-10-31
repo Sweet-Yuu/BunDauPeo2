@@ -34,6 +34,7 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - Tự chạy: khách đến ngẫu nhiên, nhân vật làm việc theo chỉ số ở vị trí được xếp (nấu, phục vụ, thu ngân). Người chơi xếp nhân sự và mua nâng cấp.
 - Có hình: khách và nhân vật đi lại trong quán. Logic tách khỏi hình.
 - Vẫn chạy khi người chơi đang đánh trận.
+- **Phòng bán** (user chốt 2026-11-01): tạm thời theo phòng isometric trong `Mota/restaurant-room-isometric-en.jpg`. Các phần khác của quán không theo ảnh nào: agent đề xuất phương án tối ưu trong spec Restaurant, user duyệt.
 
 ## AFK
 
@@ -55,6 +56,7 @@ Save cần lưu: thời điểm hoạt động cuối, thu nhập mỗi giây l�
 - Turn-based, xếp lượt theo tốc độ.
 - Mỗi nhân vật có đúng 3 hành động: đánh thường, skill (có hồi chiêu), ultimate (cần năng lượng).
 - Đội đánh nhiều quái theo wave trong từng màn. Thắng màn được Material và Gem, mở màn tiếp theo.
+- **Màn hình** (user chốt 2026-11-01): phe ta đứng bên trái. Nhân vật giữ khoảng cách, **không đứng chồng lên nhau**. Vì đội có 5 người nên bố trí theo kiểu Princess Connect; chọn chiêu theo kiểu Fate/Grand Order. Chỉ lấy giao diện chọn chiêu; luật giữ nguyên, từng nhân vật đánh theo tốc độ. Ảnh: [ui-screens.md](../references/ui-screens.md).
 
 ## Gacha
 
