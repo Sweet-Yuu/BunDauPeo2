@@ -1,7 +1,9 @@
 using System.IO;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
+using BunDauPeo.Gacha;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace BunDauPeo.Boot
 {
@@ -9,6 +11,8 @@ namespace BunDauPeo.Boot
     {
         [SerializeField] private CharacterCatalog _catalog;
         [SerializeField] private NewGameConfig _newGameConfig;
+        [SerializeField] private GachaBannerCatalog _bannerCatalog;
+        [SerializeField] private string _startScene;
 
         // Chỉ bản khởi động thành công mới là "active"; nạp lại scene Boot sẽ sinh bản thứ hai và hai session cùng ghi đè save của nhau.
         private static GameBootstrap _active;
@@ -38,6 +42,12 @@ namespace BunDauPeo.Boot
                 return;
             }
 
+            if (_bannerCatalog == null)
+            {
+                Debug.LogError($"{nameof(GameBootstrap)}: field {nameof(_bannerCatalog)} is not assigned.", this);
+                return;
+            }
+
             if (_active != null && _active != this)
             {
                 Destroy(gameObject);
@@ -62,6 +72,11 @@ namespace BunDauPeo.Boot
             DontDestroyOnLoad(gameObject);
             ServiceLocator.Register(_session.Wallet);
             ServiceLocator.Register(_session.Roster);
+            ServiceLocator.Register(new GachaService(_session.Save, _session.Wallet, _session.Roster, _catalog,
+                _bannerCatalog, new System.Random(), _session.Persist));
+
+            // Scene khởi đầu do dữ liệu quyết định để spec hub sau này đổi scene mà không sửa code.
+            if (!string.IsNullOrEmpty(_startScene)) SceneManager.LoadScene(_startScene);
         }
 
         private void OnApplicationPause(bool paused)
