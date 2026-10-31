@@ -1,6 +1,6 @@
 # Spec: Hiển thị kết quả quay Gacha (cutscene, reveal, trang tổng, quay tiếp)
 
-> Ngày: 2026-10-31 · Trạng thái: **chờ user duyệt** · Phạm vi: luồng hiển thị sau khi bấm Quay, không đổi cách roll.
+> Ngày: 2026-10-31 · Trạng thái: **đã triển khai (2026-11-01)** · Phạm vi: luồng hiển thị sau khi bấm Quay, không đổi cách roll.
 > Nền: [spec Gacha](2026-10-31-gacha-design.md) (mục 8 loại trừ "hiệu ứng, animation quay"; spec này đưa một phần vào phạm vi). Luật chơi: [game-design.md](../../design/game-design.md#gacha).
 
 ## 1. Mục tiêu

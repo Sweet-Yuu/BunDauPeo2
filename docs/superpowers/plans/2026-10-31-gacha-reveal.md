@@ -105,7 +105,7 @@ GUID gốc (đọc từ `.meta` của Project_04):
 
 Quyết định: `GetOrCreateAsset` không ghi lại asset đã có. Nên `ProjectSetup` có một bước riêng điền `_stars` cho các sample character đang có `_stars == 0`, không ghi đè giá trị user đã chỉnh.
 
-- [ ] **Step 1: Viết test đỏ.**
+- [x] **Step 1: Viết test đỏ.**
   - `CharacterDefinitionTests`:
     - `Validate_StarsOutOfRange_Reported`: `Stars = 0` và `Stars = 6` đều có lỗi chứa `"Stars"`.
     - `Validate_StarsInRange_NoStarError`: `Stars` 1 và 5 không có lỗi `Stars`.
@@ -113,11 +113,11 @@ Quyết định: `GetOrCreateAsset` không ghi lại asset đã có. Nên `Proje
     - `SampleCharacters_StarsMatchRarity`: mọi nhân vật trong `CharacterCatalog` mẫu có `Stars == StarsFor(Rarity)`. Test gọi `ProjectSetup.StarsFor` qua `internal`/`public` hoặc kiểm giá trị trực tiếp (1, 2, 3).
     - `SampleCharacters_StarsFilledWhenZero`: đặt `_stars = 0` trên một sample (dùng `SerializedObject`), gọi `ProjectSetup.Run`, rồi `_stars` là giá trị theo độ hiếm. Restore sau test.
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ:** lỗi `CS1061` về `Stars`.
-- [ ] **Step 3: Implement.** Thêm field, property, lỗi trong `Validate`. Trong `ProjectSetup.Run` thêm `FillMissingStars(characters)`: với mỗi asset có `_stars == 0` thì đặt `StarsFor(rarity)`. Dùng `SerializedObject` như các hàm `Apply` hiện có.
-- [ ] **Step 4: Chạy test, kỳ vọng xanh.**
-- [ ] **Step 5: Chạy Setup (batch hoặc `unity command`), chạy lại Setup lần hai và kiểm `git status` không đổi thêm.**
-- [ ] **Step 6: Commit và push.**
+- [x] **Step 2: Chạy test, kỳ vọng đỏ:** lỗi `CS1061` về `Stars`.
+- [x] **Step 3: Implement.** Thêm field, property, lỗi trong `Validate`. Trong `ProjectSetup.Run` thêm `FillMissingStars(characters)`: với mỗi asset có `_stars == 0` thì đặt `StarsFor(rarity)`. Dùng `SerializedObject` như các hàm `Apply` hiện có.
+- [x] **Step 4: Chạy test, kỳ vọng xanh.**
+- [x] **Step 5: Chạy Setup (batch hoặc `unity command`), chạy lại Setup lần hai và kiểm `git status` không đổi thêm.**
+- [x] **Step 6: Commit và push.**
 
 ---
 

@@ -71,6 +71,7 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 
 - UI và mọi hình cần tạm chỉ dùng hình có sẵn của Unity: sprite hình học (vuông, tròn, tam giác… trong `Assets > Create > 2D > Sprites`) và sprite mặc định `UI/Skin/UISprite.psd`, `Knob.psd`. Không thêm file ảnh; phân biệt thành phần bằng màu, kích thước và chữ.
 - Việc liên quan đến Canvas (nút, panel, thanh, biểu tượng…): dùng component `Image` (uGUI) và gán các sprite có sẵn ở trên vào `Image`; không dùng `Raw Image` hay ảnh import.
+- Ngoại lệ đã được user cho phép: 3 PNG cutscene Gacha (`Gacha/Art/Summoning/`), xem mục 6 của [spec reveal](../superpowers/specs/2026-10-31-gacha-reveal-design.md).
 - Tạo bằng `unity command` hoặc script Editor, không import ảnh ngoài. Khi có art thật thì đổi tham chiếu sprite, không đổi cấu trúc UI.
 
 ## Git
