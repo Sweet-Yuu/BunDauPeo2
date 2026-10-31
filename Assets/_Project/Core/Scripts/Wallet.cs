@@ -37,27 +37,38 @@ namespace BunDauPeo.Core
             Changed.SafeInvoke();
         }
 
+        // Không ghi gì, không phát Changed; luôn khớp với TrySpend vì cả hai dùng chung Plan.
+        public bool CanAfford(params CurrencyAmount[] costs) => Plan(costs) != null;
+
         public bool TrySpend(params CurrencyAmount[] costs)
         {
-            if (costs == null || costs.Length == 0) return true;
-
-            // Trừ dần vào số dư còn lại của từng loại thay vì cộng gộp chi phí, để các dòng cực lớn không tràn long.
-            var remaining = new Dictionary<CurrencyType, long>();
-            foreach (var cost in costs)
-            {
-                if (cost.Amount < 0) return false;
-                if (cost.Amount == 0) continue;
-
-                if (!remaining.TryGetValue(cost.Type, out var left)) left = Get(cost.Type);
-                if (cost.Amount > left) return false;
-                remaining[cost.Type] = left - cost.Amount;
-            }
-
+            var remaining = Plan(costs);
+            if (remaining == null) return false;
             if (remaining.Count == 0) return true;
 
             foreach (var pair in remaining) Set(pair.Key, pair.Value);
             Changed.SafeInvoke();
             return true;
+        }
+
+        // Trả null nếu không đủ, ngược lại là số dư còn lại của từng loại bị trừ (rỗng khi không có dòng nào > 0).
+        private Dictionary<CurrencyType, long> Plan(CurrencyAmount[] costs)
+        {
+            var remaining = new Dictionary<CurrencyType, long>();
+            if (costs == null) return remaining;
+
+            // Trừ dần vào số dư còn lại của từng loại thay vì cộng gộp chi phí, để các dòng cực lớn không tràn long.
+            foreach (var cost in costs)
+            {
+                if (cost.Amount < 0) return null;
+                if (cost.Amount == 0) continue;
+
+                if (!remaining.TryGetValue(cost.Type, out var left)) left = Get(cost.Type);
+                if (cost.Amount > left) return null;
+                remaining[cost.Type] = left - cost.Amount;
+            }
+
+            return remaining;
         }
 
         private int IndexOf(CurrencyType type)
