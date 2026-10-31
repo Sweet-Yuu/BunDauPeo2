@@ -21,12 +21,18 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _nameText;
         [SerializeField] private Text _starsText;
 
-        private const float FlashSeconds = 0.35f;
-        private const float FlashPeak = 0.8f;
+        // Chỉnh trong Inspector: lóe sáng và khoảng chờ trước khi chạm có tác dụng, để không lướt qua nhân vật khi bấm nhanh.
+        [SerializeField] private float _flashSeconds = 1.0f;
+        [SerializeField] private float _tapDelaySeconds = 0.7f;
+
+        private const float FlashPeak = 0.85f;
+        private const float PopSeconds = 0.35f;
+        private const float PopFromScale = 0.88f;
 
         private IReadOnlyList<GachaPullEntry> _entries;
         private GachaRevealSequence _sequence;
         private Coroutine _flashRoutine;
+        private float _tapReadyAt;
 
         public event Action Finished;
 
@@ -68,7 +74,7 @@ namespace BunDauPeo.UI
                 }
             }
 
-            if (WasTapped() && _sequence.Tap()) Enter();
+            if (Time.unscaledTime >= _tapReadyAt && WasTapped() && _sequence.Tap()) Enter();
         }
 
         private static bool WasTapped() =>
@@ -78,6 +84,7 @@ namespace BunDauPeo.UI
         private void Enter()
         {
             var step = _sequence.Current;
+            _tapReadyAt = Time.unscaledTime + _tapDelaySeconds;
             // Lóe sáng dở dang không được kéo sang cutscene hay lượt quay sau.
             if (step.Kind != RevealStepKind.Reveal) ClearFlash();
             _commonAnimator.gameObject.SetActive(step.Kind == RevealStepKind.CommonCutscene);
@@ -110,6 +117,7 @@ namespace BunDauPeo.UI
         {
             if (_flashRoutine != null) StopCoroutine(_flashRoutine);
             _flashRoutine = null;
+            _revealPanel.transform.localScale = Vector3.one;
             var clear = _flash.color;
             clear.a = 0f;
             _flash.color = clear;
@@ -119,13 +127,18 @@ namespace BunDauPeo.UI
         {
             color.a = 0f;
             _flash.color = color;
-            for (var t = 0f; t < FlashSeconds; t += Time.unscaledDeltaTime)
+            var panel = _revealPanel.transform;
+            for (var t = 0f; t < _flashSeconds; t += Time.unscaledDeltaTime)
             {
-                color.a = Mathf.Sin(t / FlashSeconds * Mathf.PI) * FlashPeak;
+                // Thẻ phóng nhẹ vào trong lúc lóe, rồi lóe sáng mờ dần.
+                var pop = Mathf.Clamp01(t / PopSeconds);
+                panel.localScale = Vector3.one * Mathf.Lerp(PopFromScale, 1f, 1f - (1f - pop) * (1f - pop));
+                color.a = Mathf.Sin(t / _flashSeconds * Mathf.PI) * FlashPeak;
                 _flash.color = color;
                 yield return null;
             }
 
+            panel.localScale = Vector3.one;
             color.a = 0f;
             _flash.color = color;
         }
