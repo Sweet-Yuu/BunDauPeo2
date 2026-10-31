@@ -95,6 +95,17 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Add_WhenAlreadyAtMax_DoesNotRaiseChanged()
+        {
+            _wallet.Add(CurrencyType.Coin, long.MaxValue);
+            var raised = 0;
+            _wallet.Changed += () => raised++;
+            _wallet.Add(CurrencyType.Coin, 1);
+            Assert.AreEqual(long.MaxValue, _wallet.Get(CurrencyType.Coin));
+            Assert.AreEqual(0, raised);
+        }
+
+        [Test]
         public void Balance_IsStoredInSave()
         {
             _wallet.Add(CurrencyType.Gem, 5);

@@ -46,6 +46,29 @@ namespace BunDauPeo.Core
             }
         }
 
+        // Xoá mọi file có tên save.json.* (.bak, .tmp, .corrupt…) rồi mới xoá file chính. Thiếu .bak thì Load sẽ
+        // hồi sinh dữ liệu cũ; file chính xoá sau cùng để lỗi giữa chừng không để lại .bak mà mất file chính.
+        public bool DeleteAll()
+        {
+            try
+            {
+                var directory = Path.GetDirectoryName(_path);
+                if (Directory.Exists(directory))
+                {
+                    foreach (var file in Directory.GetFiles(directory, Path.GetFileName(_path) + ".*"))
+                        File.Delete(file);
+                }
+
+                File.Delete(_path);
+                return true;
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                Debug.LogError($"Reset failed: {e.Message}");
+                return false;
+            }
+        }
+
         public PlayerSave Load()
         {
             var main = TryRead(_path);
@@ -58,21 +81,25 @@ namespace BunDauPeo.Core
                 return backup;
             }
 
-            // Game mới sẽ ghi đè file chính, nên giữ lại một bản để còn cứu được bằng tay.
-            if (File.Exists(_path))
-            {
-                try
-                {
-                    File.Copy(_path, CorruptPath, true);
-                    Debug.LogWarning($"Save unreadable, copy kept at: {CorruptPath}");
-                }
-                catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
-                {
-                    Debug.LogWarning($"Save unreadable and could not keep a copy: {e.Message}");
-                }
-            }
-
+            // Game mới sẽ ghi đè file chính và lần lưu kế tiếp ghi đè .bak, nên giữ riêng một bản của cả hai để còn cứu được bằng tay.
+            KeepCopy(_path, CorruptPath);
+            KeepCopy(BackupPath, BackupPath + ".corrupt");
             return null;
+        }
+
+        private static void KeepCopy(string from, string to)
+        {
+            if (!File.Exists(from)) return;
+
+            try
+            {
+                File.Copy(from, to, true);
+                Debug.LogWarning($"Save unreadable, copy kept at: {to}");
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                Debug.LogWarning($"Save unreadable and could not keep a copy of {from}: {e.Message}");
+            }
         }
 
         // JsonUtility ném ArgumentException khi JSON hỏng và trả null khi rỗng; cả hai đều là "hỏng".

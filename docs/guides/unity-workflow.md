@@ -24,7 +24,11 @@ Quy tắc:
 
 - Lệnh batch (`test`, `run`, `build`) không chạy được khi project đang mở trong Editor; lệnh nối vào Editor (`command`, `recompile`) cần Editor đang mở. Chạy `unity status` trước khi chọn. Không kill process Unity; nhờ user đóng Editor.
 - Mã thoát (theo `unity -h`): `0` thành công, `8` test chạy xong nhưng có test đỏ, `6` lệnh hỏng vì lý do khác (kể cả lỗi compile), `12` không có Editor nào trả lời, `10`/`14` quá thời gian. Luôn **đọc file kết quả và log thật**, không dựa mỗi mã thoát.
-- Điều khiển Editor qua MCP (`Unity_RunCommand`): mỗi lệnh biên dịch một assembly động nên có thể làm Unity dừng Play và nạp lại domain; bắn `EnterPlaymode`, chờ cổng `unity status` quay lại, kiểm `EditorApplication.isPlaying` rồi mới thao tác. Không dùng `System.Reflection` trong lệnh (bị chặn).
+- Điều khiển Editor qua MCP (`Unity_RunCommand`):
+  - Vào Play mất 10–25 giây vì nạp lại domain, và cổng MCP rớt trong lúc đó; `isPlaying` báo `False` suốt quãng này. Bắn `EnterPlaymode` ở lệnh riêng, chờ, rồi kiểm `isPlaying` trước khi làm gì.
+  - Công cụ đọc mã lệnh: nếu có `ExitPlaymode()` hoặc `isPlaying = false` thì nó **thoát Play trước khi chạy lệnh**, nên việc khác trong cùng lệnh chạy trên session đã chết. Dừng Play bằng một lệnh riêng, chỉ chứa việc dừng.
+  - Không dùng `System.Reflection` trong lệnh (bị chặn). Lớp lồng trong lệnh bị kéo ra ngoài, nên đừng để nó dùng hằng của lớp bao.
+  - Chạy test ngay trong Editor đang mở: `TestRunnerApi.Execute` với `ICallbacks` ghi kết quả ra file (không cần đóng Editor). Sửa `.cs` làm Editor biên dịch và rớt cổng MCP vài chục giây; chờ rồi mới gọi lại.
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 
 ## Skills của plugin Unity

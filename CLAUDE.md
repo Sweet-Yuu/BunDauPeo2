@@ -21,4 +21,5 @@ Game Unity 6 (2D, URP). Mọi thông tin chi tiết nằm trong `docs/` — file
 - Không sửa/xoá tay file `.meta`; không đụng `Library/`, `Logs/`, `UserSettings/`, `Temp/`.
 - Không tự đổi hướng game so với [docs/vision/vision.md](docs/vision/vision.md); muốn đổi thì hỏi user trước.
 - Tài liệu viết tiếng Việt; tên class/biến/file code viết tiếng Anh.
+- Nút Reset Save Data phải xoá **toàn bộ** dữ liệu đã lưu và luôn hỏi xác nhận. Dữ liệu lưu mới chỉ đi qua `PlayerSave`/`SaveService`; luật đầy đủ ở [D-005](docs/decisions/decisions.md).
 - Không commit/push khi user chưa yêu cầu.

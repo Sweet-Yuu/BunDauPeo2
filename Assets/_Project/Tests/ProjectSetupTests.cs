@@ -7,6 +7,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace BunDauPeo.Tests
 {
@@ -57,6 +58,8 @@ namespace BunDauPeo.Tests
         public void BootScene_IsFirstInBuild_AndBootstrapIsWired()
         {
             Assert.AreEqual(ProjectSetup.BootScenePath, EditorBuildSettings.scenes[0].path);
+            // Scene đang mở sẵn trong Editor thì không được đóng nó khi test xong.
+            var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
             var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
             try
             {
@@ -67,8 +70,34 @@ namespace BunDauPeo.Tests
             }
             finally
             {
-                EditorSceneManager.CloseScene(scene, true);
+                if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
             }
+        }
+
+        [Test]
+        public void Run_AfterSampleIdWasRenamed_DoesNotThrow()
+        {
+            const string path = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
+            var asset = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(path);
+            var original = asset.Id;
+            SetId(asset, "renamed_by_test");
+            try
+            {
+                Assert.DoesNotThrow(ProjectSetup.Run);
+            }
+            finally
+            {
+                SetId(asset, original);
+                EditorUtility.SetDirty(asset);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetId(UnityEngine.Object asset, string id)
+        {
+            var so = new SerializedObject(asset);
+            so.FindProperty("_id").stringValue = id;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         [Test]

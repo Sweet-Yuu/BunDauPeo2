@@ -15,6 +15,9 @@ namespace BunDauPeo.Core
             _save = save ?? throw new ArgumentNullException(nameof(save));
         }
 
+        // Gọi khi save bị thay từ bên ngoài (reset), để view nghe Changed vẽ lại.
+        public void NotifyChanged() => Changed.SafeInvoke();
+
         public long Get(CurrencyType type)
         {
             var index = IndexOf(type);
@@ -27,7 +30,10 @@ namespace BunDauPeo.Core
             if (amount == 0) return;
 
             var balance = Get(type);
-            Set(type, balance > long.MaxValue - amount ? long.MaxValue : balance + amount);
+            var updated = balance > long.MaxValue - amount ? long.MaxValue : balance + amount;
+            if (updated == balance) return;
+
+            Set(type, updated);
             Changed.SafeInvoke();
         }
 

@@ -58,9 +58,10 @@ namespace BunDauPeo.EditorTools
             GetOrCreateAsset<CharacterCatalog>(CatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), characters)));
 
-            var starters = StarterIds.Select(id => characters.Single(c => c.Id == id)).ToArray();
             GetOrCreateAsset<NewGameConfig>(NewGameConfigPath, asset => Apply(asset, so =>
             {
+                // Tính trong init để asset đã có không bị ảnh hưởng khi Id nhân vật mẫu đã được đổi.
+                var starters = StarterIds.Select(id => characters.Single(c => c.Id == id)).ToArray();
                 var money = so.FindProperty("_startingCurrency");
                 var lines = new[] { new CurrencyAmount(CurrencyType.Coin, 500), new CurrencyAmount(CurrencyType.Gem, 1500) };
                 money.arraySize = lines.Length;

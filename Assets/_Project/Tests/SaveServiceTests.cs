@@ -88,6 +88,16 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Load_BothCorrupt_KeepsCopyOfBackupToo()
+        {
+            // Lần lưu của game mới ghi đè .bak, nên bản hỏng của nó phải được giữ riêng.
+            File.WriteAllText(_path, "{broken");
+            File.WriteAllText(_path + ".bak", "{bak-broken");
+            Assert.IsNull(_service.Load());
+            Assert.AreEqual("{bak-broken", File.ReadAllText(_path + ".bak.corrupt"));
+        }
+
+        [Test]
         public void LeftoverTmp_DoesNotAffectLoadOrSave()
         {
             _service.Save(Make(1));
@@ -115,6 +125,34 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(3, _service.Load().Balances[0].Amount);
             File.Delete(_path);
             Assert.AreEqual(2, _service.Load().Balances[0].Amount);
+        }
+
+        [Test]
+        public void DeleteAll_RemovesMainAndEverySidecar_AndLeavesOtherFiles()
+        {
+            _service.Save(Make(1));
+            _service.Save(Make(2));
+            foreach (var extension in new[] { ".tmp", ".corrupt", ".bak.corrupt" })
+                File.WriteAllText(_path + extension, "x");
+            var other = Path.Combine(_dir, "other.json");
+            File.WriteAllText(other, "keep");
+
+            Assert.IsTrue(_service.DeleteAll());
+            CollectionAssert.AreEqual(new[] { other }, Directory.GetFiles(_dir));
+            Assert.IsNull(_service.Load());
+        }
+
+        [Test]
+        public void DeleteAll_NothingToDelete_ReturnsTrue() => Assert.IsTrue(_service.DeleteAll());
+
+        [Test]
+        public void DeleteAll_FileLocked_ReturnsFalse_AndKeepsMainSave()
+        {
+            _service.Save(Make(1));
+            LogAssert.Expect(LogType.Error, new Regex("Reset failed"));
+            using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+                Assert.IsFalse(_service.DeleteAll());
+            Assert.AreEqual(1, _service.Load().Balances[0].Amount);
         }
 
         [Test]

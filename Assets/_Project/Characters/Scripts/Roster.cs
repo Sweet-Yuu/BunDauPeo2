@@ -27,6 +27,9 @@ namespace BunDauPeo.Characters
             foreach (var staff in _save.Staff) WarnIfUnknown(staff.CharacterId, warned);
         }
 
+        // Gọi khi save bị thay từ bên ngoài (reset), để view nghe Changed vẽ lại.
+        public void NotifyChanged() => Changed.SafeInvoke();
+
         public bool IsOwned(string id) => id != null && _save.OwnedCharacterIds.Contains(id);
 
         public bool Add(string id)

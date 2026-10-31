@@ -13,8 +13,8 @@ Assets/
     Core/          BunDauPeo.Core        Wallet, SaveService, PlayerSave, Catalog<T>, ServiceLocator, EventExtensions, kiểu tiền/vai trò
     Characters/    BunDauPeo.Characters  CharacterDefinition, SkillDefinition, CharacterCatalog, Roster
     Boot/          BunDauPeo.Boot        GameBootstrap, GameSession, NewGameConfig
-    Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, BootScenePlayMode
-    Tests/         BunDauPeo.Tests       EditMode (53 test)
+    Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode
+    Tests/         BunDauPeo.Tests       EditMode (69 test)
     Scenes/        Boot.unity (đầu Build Settings; Play ở scene nào cũng khởi động từ đây)
     Gacha/ Restaurant/ Combat/ UI/       mới có folder con rỗng (.gitkeep), chưa có asmdef
 ```

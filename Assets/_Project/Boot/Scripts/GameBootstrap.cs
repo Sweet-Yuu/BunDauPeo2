@@ -10,7 +10,19 @@ namespace BunDauPeo.Boot
         [SerializeField] private CharacterCatalog _catalog;
         [SerializeField] private NewGameConfig _newGameConfig;
 
+        // Chỉ bản khởi động thành công mới là "active"; nạp lại scene Boot sẽ sinh bản thứ hai và hai session cùng ghi đè save của nhau.
+        private static GameBootstrap _active;
+
         private GameSession _session;
+
+        // Dùng chung cho game và công cụ Editor để cả hai luôn trỏ tới cùng một file save.
+        public static string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
+
+        public GameSession Session => _session;
+
+        // Tắt domain reload thì static còn nguyên sang lần Play sau.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => _active = null;
 
         private void Awake()
         {
@@ -26,8 +38,15 @@ namespace BunDauPeo.Boot
                 return;
             }
 
-            DontDestroyOnLoad(gameObject);
-            var saveService = new SaveService(Path.Combine(Application.persistentDataPath, "save.json"));
+            if (_active != null && _active != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            // Xoá trước khi tạo session: nếu bước sau lỗi thì không để service của lần Play trước còn đó.
+            ServiceLocator.Clear();
+            var saveService = new SaveService(SavePath);
             try
             {
                 _session = new GameSession(saveService, _catalog, _newGameConfig);
@@ -39,7 +58,8 @@ namespace BunDauPeo.Boot
                 return;
             }
 
-            ServiceLocator.Clear();
+            _active = this;
+            DontDestroyOnLoad(gameObject);
             ServiceLocator.Register(_session.Wallet);
             ServiceLocator.Register(_session.Roster);
         }
