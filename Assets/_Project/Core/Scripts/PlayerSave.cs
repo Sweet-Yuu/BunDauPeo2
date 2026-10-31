@@ -21,5 +21,6 @@ namespace BunDauPeo.Core
         public List<StaffAssignment> Staff = new();
         public List<FragmentCount> Fragments = new();
         public List<PityEntry> GachaPity = new();
+        public List<GachaHistoryEntry> GachaHistory = new();
     }
 }

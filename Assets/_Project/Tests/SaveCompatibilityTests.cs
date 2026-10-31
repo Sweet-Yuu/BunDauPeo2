@@ -59,5 +59,34 @@ namespace BunDauPeo.Tests
                 Directory.Delete(dir, true);
             }
         }
+
+        [Test]
+        public void OldSave_WithoutGachaHistory_LoadsWithEmptyList()
+        {
+            var loaded = JsonUtility.FromJson<PlayerSave>("{\"Version\":1,\"Balances\":[],\"OwnedCharacterIds\":[]}");
+            Assert.IsNotNull(loaded.GachaHistory);
+            Assert.IsEmpty(loaded.GachaHistory);
+        }
+
+        [Test]
+        public void GachaHistory_RoundTripsThroughSaveService()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            try
+            {
+                var service = new SaveService(Path.Combine(dir, "save.json"));
+                var save = new PlayerSave();
+                save.GachaHistory.Add(new GachaHistoryEntry { Utc = 1, BannerId = "b", Count = 2, CharacterIds = new[] { "a", "b" } });
+                Assert.IsTrue(service.Save(save));
+                var loaded = service.Load();
+                Assert.AreEqual(2, loaded.GachaHistory[0].Count);
+                Assert.AreEqual("b", loaded.GachaHistory[0].CharacterIds[1]);
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        }
     }
 }

@@ -96,6 +96,7 @@ namespace BunDauPeo.Tests
             session.Save.Staff.Add(new StaffAssignment { CharacterId = "ghost", Role = StaffRole.Cook });
             session.Save.Fragments.Add(new FragmentCount { CharacterId = "a", Count = 3 });
             session.Save.GachaPity.Add(new PityEntry { BannerId = "b", Pulls = 7 });
+            session.Save.GachaHistory.Add(new GachaHistoryEntry { BannerId = "b", Count = 1, CharacterIds = new[] { "a" } });
 
             Assert.IsTrue(session.ResetToDefaults());
 
@@ -105,6 +106,7 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, session.Save.Staff.Count);
             Assert.AreEqual(0, session.Save.Fragments.Count);
             Assert.AreEqual(0, session.Save.GachaPity.Count);
+            Assert.AreEqual(0, session.Save.GachaHistory.Count);
             Assert.AreEqual(0, session.Roster.GetFragments("a"));
         }
 

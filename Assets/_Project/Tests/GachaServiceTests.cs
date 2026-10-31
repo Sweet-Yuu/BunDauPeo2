@@ -272,5 +272,58 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(1900, Gem);
             Assert.IsTrue(_roster.IsOwned("r0"));
         }
+
+        [Test]
+        public void PullSingle_AppendsOneHistoryEntry()
+        {
+            Make(new ScriptedRandom()).PullSingle("b");
+
+            Assert.AreEqual(1, _save.GachaHistory.Count);
+            var entry = _save.GachaHistory[0];
+            Assert.AreEqual("b", entry.BannerId);
+            Assert.AreEqual(1, entry.Count);
+            CollectionAssert.AreEqual(new[] { "r0" }, entry.CharacterIds);
+        }
+
+        [Test]
+        public void PullTen_AppendsOneEntryWithTenIdsInRollOrder()
+        {
+            Make(new ScriptedRandom()).PullTen("b");
+
+            Assert.AreEqual(1, _save.GachaHistory.Count);
+            var entry = _save.GachaHistory[0];
+            Assert.AreEqual(10, entry.Count);
+            Assert.AreEqual(10, entry.CharacterIds.Length);
+            Assert.AreEqual("s0", entry.CharacterIds[9]);
+        }
+
+        [Test]
+        public void RejectedPull_AddsNoHistory()
+        {
+            Make(new ScriptedRandom()).PullSingle("nope");
+            Assert.IsEmpty(_save.GachaHistory);
+
+            Assert.IsTrue(_wallet.TrySpend(new CurrencyAmount(CurrencyType.Gem, 1950)));
+            Make(new ScriptedRandom()).PullSingle("b");
+            Assert.IsEmpty(_save.GachaHistory);
+
+            _wallet.Add(CurrencyType.Gem, 1950);
+            Assert.Throws<InvalidOperationException>(() => Make(new ThrowingRandom()).PullSingle("b"));
+            Assert.IsEmpty(_save.GachaHistory);
+        }
+
+        [Test]
+        public void History_KeepsLast50()
+        {
+            _wallet.Add(CurrencyType.Gem, 5000);
+            var service = Make(new ScriptedRandom());
+            for (var i = 0; i < 51; i++) service.PullSingle("b");
+
+            // Lượt thứ 50 ép SSR (x0). Nếu không bỏ mục cũ nhất thì x0 nằm ở chỉ số 49, không phải 48.
+            Assert.AreEqual(GachaService.MaxHistoryEntries, _save.GachaHistory.Count);
+            Assert.AreEqual(50, GachaService.MaxHistoryEntries);
+            Assert.AreEqual("x0", _save.GachaHistory[48].CharacterIds[0]);
+            Assert.AreEqual(1, service.History[49].Count);
+        }
     }
 }

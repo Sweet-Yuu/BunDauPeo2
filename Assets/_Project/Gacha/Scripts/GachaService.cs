@@ -27,6 +27,10 @@ namespace BunDauPeo.Gacha
             _persist = persist ?? throw new ArgumentNullException(nameof(persist));
         }
 
+        public const int MaxHistoryEntries = 50;
+
+        public IReadOnlyList<GachaHistoryEntry> History => _save.GachaHistory;
+
         public GachaPullResult PullSingle(string bannerId) => Pull(bannerId, ten: false);
 
         public GachaPullResult PullTen(string bannerId) => Pull(bannerId, ten: true);
@@ -64,6 +68,7 @@ namespace BunDauPeo.Gacha
             var entries = new List<GachaPullEntry>(drawn.Count);
             foreach (var character in drawn) entries.Add(Apply(banner, character));
             SetPity(banner.Id, pulls);
+            AppendHistory(banner.Id, drawn);
 
             return new GachaPullResult { Status = GachaPullStatus.Success, Saved = _persist(), Entries = entries };
         }
@@ -94,6 +99,22 @@ namespace BunDauPeo.Gacha
             var index = PityIndex(bannerId);
             if (index < 0) _save.GachaPity.Add(entry);
             else _save.GachaPity[index] = entry;
+        }
+
+        // Ghi trước persist() để lượt quay và lịch sử nằm trong cùng một lần lưu.
+        private void AppendHistory(string bannerId, IReadOnlyList<CharacterDefinition> drawn)
+        {
+            var ids = new string[drawn.Count];
+            for (var i = 0; i < ids.Length; i++) ids[i] = drawn[i].Id;
+            _save.GachaHistory.Add(new GachaHistoryEntry
+            {
+                Utc = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                BannerId = bannerId,
+                Count = ids.Length,
+                CharacterIds = ids,
+            });
+            if (_save.GachaHistory.Count > MaxHistoryEntries)
+                _save.GachaHistory.RemoveRange(0, _save.GachaHistory.Count - MaxHistoryEntries);
         }
 
         private static GachaPullResult Failure(GachaPullStatus status) =>
