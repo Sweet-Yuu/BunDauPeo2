@@ -29,6 +29,14 @@ Quy tắc:
   - Công cụ đọc mã lệnh: nếu có `ExitPlaymode()` hoặc `isPlaying = false` thì nó **thoát Play trước khi chạy lệnh**, nên việc khác trong cùng lệnh chạy trên session đã chết. Dừng Play bằng một lệnh riêng, chỉ chứa việc dừng.
   - Không dùng `System.Reflection` trong lệnh (bị chặn). Lớp lồng trong lệnh bị kéo ra ngoài, nên đừng để nó dùng hằng của lớp bao.
   - Chạy test ngay trong Editor đang mở: `TestRunnerApi.Execute` với `ICallbacks` ghi kết quả ra file (không cần đóng Editor). Sửa `.cs` làm Editor biên dịch và rớt cổng MCP vài chục giây; chờ rồi mới gọi lại.
+- Điều khiển Play qua `unity command` (Editor mở): `editor.playmode start|stop`, `capture game_view --save_path`, `console get --level error`, `eval '<câu lệnh C#>;'` (phải là câu lệnh, ví dụ `Debug.Log(...)`; đọc kết quả ở `console get`).
+  - `capture --save_path` chỉ nhận đường dẫn trong thư mục project và đường dẫn dạng `D:/.../x.png` lại ghi vào `Assets/`, sinh thêm `.meta`: xoá cả hai khi xong, đừng commit.
+  - `runtime simulate_pointer` báo thành công nhưng không đổi `Mouse.current` (vẫn 0,0), nên không bấm được UI. Kiểm nút bằng `EventSystem.RaycastAll` tại tâm nút rồi `ExecuteEvents.Execute(nút, new PointerEventData(es), ExecuteEvents.pointerClickHandler)`.
+  - `unity command test run` báo kết quả **cũ** khi project đang lỗi compile (vẫn "N/N passed"): kiểm `unity command console status` có `"compilationFailed":false` trước khi tin con số.
+  - Mỗi lệnh CLI tốn ~3 giây. Muốn đo thời gian trong Play, ghi `Time.realtimeSinceStartup` trong chính lệnh `eval` (`Debug.Log`), đừng dựa vào `sleep`.
+  - Bơm chạm chuột: `InputSystem.EnableDevice(Mouse.current)` (thiết bị bị tắt khi Editor không focus), rồi `QueueStateEvent(Mouse.current, new MouseState { buttons = 1 })` ở một lệnh và `buttons = 0` ở lệnh sau.
+  - `editor.playmode set_run_in_background` và `editor set_auto_tick` giúp Play chạy khi Editor không focus, nhưng cái đầu **ghi `runInBackground` vào `ProjectSettings.asset`**: sau khi xong, `git checkout -- ProjectSettings/ProjectSettings.asset`.
+  - Lượt thử Play ghi vào save thật: sao lưu `save.json*` trước, chép lại sau khi đóng Editor (`unity close .`).
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 
 ## Skills của plugin Unity
@@ -63,6 +71,7 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 
 - UI và mọi hình cần tạm chỉ dùng hình có sẵn của Unity: sprite hình học (vuông, tròn, tam giác… trong `Assets > Create > 2D > Sprites`) và sprite mặc định `UI/Skin/UISprite.psd`, `Knob.psd`. Không thêm file ảnh; phân biệt thành phần bằng màu, kích thước và chữ.
 - Việc liên quan đến Canvas (nút, panel, thanh, biểu tượng…): dùng component `Image` (uGUI) và gán các sprite có sẵn ở trên vào `Image`; không dùng `Raw Image` hay ảnh import.
+- Ngoại lệ đã được user cho phép: 3 PNG cutscene Gacha (`Gacha/Art/Summoning/`), xem mục 6 của [spec reveal](../superpowers/specs/2026-10-31-gacha-reveal-design.md).
 - Tạo bằng `unity command` hoặc script Editor, không import ảnh ngoài. Khi có art thật thì đổi tham chiếu sprite, không đổi cấu trúc UI.
 
 ## Git

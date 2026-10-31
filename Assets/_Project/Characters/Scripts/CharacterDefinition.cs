@@ -9,6 +9,8 @@ namespace BunDauPeo.Characters
     {
         [SerializeField] private string _displayName;
         [SerializeField] private Rarity _rarity;
+        // Số sao khởi điểm, không phải luật nâng sao. 0 = chưa đặt: Unity điền 0 cho asset cũ thiếu field, ProjectSetup dựa vào đó để điền theo độ hiếm.
+        [SerializeField] private int _stars;
         [SerializeField] private Sprite _portrait;
         [SerializeField] private Sprite _battleSprite;
         [SerializeField] private CombatStats _combatStats;
@@ -19,6 +21,7 @@ namespace BunDauPeo.Characters
 
         public string DisplayName => _displayName;
         public Rarity Rarity => _rarity;
+        public int Stars => _stars;
         public Sprite Portrait => _portrait;
         public Sprite BattleSprite => _battleSprite;
         public CombatStats CombatStats => _combatStats;
@@ -33,6 +36,7 @@ namespace BunDauPeo.Characters
             CheckSkill(errors, "BasicAttack", _basicAttack, SkillKind.Basic);
             CheckSkill(errors, "Skill", _skill, SkillKind.Skill);
             CheckSkill(errors, "Ultimate", _ultimate, SkillKind.Ultimate);
+            if (_stars < 1 || _stars > 5) errors.Add($"Stars: must be 1..5, found {_stars}");
             return errors;
         }
 

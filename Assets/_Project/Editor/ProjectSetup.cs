@@ -5,6 +5,7 @@ using System.Linq;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
+using BunDauPeo.Gacha;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -19,6 +20,9 @@ namespace BunDauPeo.EditorTools
         public const string BootScenePath = "Assets/_Project/Scenes/Boot.unity";
         public const string CatalogPath = "Assets/_Project/Characters/Data/CharacterCatalog.asset";
         public const string NewGameConfigPath = "Assets/_Project/Boot/Data/NewGameConfig.asset";
+        public const string GachaScenePath = "Assets/_Project/Scenes/Gacha.unity";
+        public const string BannerPath = "Assets/_Project/Gacha/Data/banner_standard.asset";
+        public const string BannerCatalogPath = "Assets/_Project/Gacha/Data/GachaBannerCatalog.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
         private const string SkillsFolder = CharacterData + "/Skills";
@@ -54,6 +58,8 @@ namespace BunDauPeo.EditorTools
 
             var skills = SkillTable.ToDictionary(row => row.File, CreateSkill);
             var characters = CharacterTable.Select(row => CreateCharacter(row, skills)).ToArray();
+            // Asset đã có từ trước field _stars không được init lại, nên điền riêng; số user đã chỉnh (khác 0) giữ nguyên.
+            FillMissingStars(characters);
 
             GetOrCreateAsset<CharacterCatalog>(CatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), characters)));
@@ -75,8 +81,15 @@ namespace BunDauPeo.EditorTools
                 SetObjects(so.FindProperty("_starterCharacters"), starters);
             }));
 
+            EnsureFolder("Assets/_Project/Gacha", "Data");
+            var banner = GetOrCreateBanner(BannerPath, characters);
+            GetOrCreateAsset<GachaBannerCatalog>(BannerCatalogPath, asset =>
+                Apply(asset, so => SetObjects(so.FindProperty("_items"), new Object[] { banner })));
+
             CreateBootScene();
-            PutBootSceneFirst();
+            CreateGachaScene();
+            WireBootScene();
+            PutScenesInBuildOrder();
             ApplyPlayerSettings();
             AssetDatabase.SaveAssets();
             Debug.Log("ProjectSetup: done.");
@@ -92,6 +105,57 @@ namespace BunDauPeo.EditorTools
             asset.name = Path.GetFileNameWithoutExtension(path);
             AssetDatabase.CreateAsset(asset, path);
             return asset;
+        }
+
+        // Số khởi điểm (chi phí, tỉ lệ, pity, mảnh) nằm ở field initializer của GachaBannerDefinition; ở đây chỉ gán Id và nhân vật.
+        public static GachaBannerDefinition GetOrCreateBanner(string path, CharacterDefinition[] characters) =>
+            GetOrCreateAsset<GachaBannerDefinition>(path, asset => Apply(asset, so =>
+            {
+                so.FindProperty("_id").stringValue = "banner_standard";
+                SetObjects(so.FindProperty("_characters"), characters);
+            }));
+
+        // Boot.unity đã có sẵn nên phải vá chứ không tạo lại: chỉ gán field còn trống, không ghi đè lựa chọn của user.
+        public static void WireBootScene()
+        {
+            var wasOpen = SceneManager.GetSceneByPath(BootScenePath).isLoaded;
+            var scene = EditorSceneManager.OpenScene(BootScenePath, OpenSceneMode.Additive);
+            try
+            {
+                var bootstrap = scene.GetRootGameObjects().Select(g => g.GetComponent<GameBootstrap>()).FirstOrDefault(b => b != null);
+                if (bootstrap == null)
+                {
+                    Debug.LogWarning($"ProjectSetup: no {nameof(GameBootstrap)} in {BootScenePath}; scene not wired.");
+                    return;
+                }
+
+                var changed = false;
+                Apply(bootstrap, so =>
+                {
+                    // Nạp sau khi mở scene (L-002): không giữ tham chiếu asset từ trước khi đổi scene.
+                    var banners = so.FindProperty("_bannerCatalog");
+                    if (banners.objectReferenceValue == null)
+                    {
+                        banners.objectReferenceValue = AssetDatabase.LoadAssetAtPath<GachaBannerCatalog>(BannerCatalogPath);
+                        changed = true;
+                    }
+
+                    var start = so.FindProperty("_startScene");
+                    if (string.IsNullOrEmpty(start.stringValue))
+                    {
+                        start.stringValue = Path.GetFileNameWithoutExtension(GachaScenePath);
+                        changed = true;
+                    }
+                });
+
+                if (!changed) return;
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+            finally
+            {
+                if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         private static SkillDefinition CreateSkill(
@@ -117,6 +181,7 @@ namespace BunDauPeo.EditorTools
                 so.FindProperty("_id").stringValue = row.Id;
                 so.FindProperty("_displayName").stringValue = row.Name;
                 so.FindProperty("_rarity").enumValueIndex = (int)row.Rarity;
+                so.FindProperty("_stars").intValue = StarsFor(row.Rarity);
                 so.FindProperty("_portrait").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(PortraitSprite);
                 so.FindProperty("_battleSprite").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(IconSprite);
 
@@ -159,13 +224,23 @@ namespace BunDauPeo.EditorTools
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
         }
 
-        private static void PutBootSceneFirst()
+        private static void CreateGachaScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(GachaScenePath) == null) GachaSceneBuilder.Create(GachaScenePath);
+        }
+
+        // Boot luôn đầu tiên (nạp trước mọi scene), Gacha ngay sau.
+        private static void PutScenesInBuildOrder()
         {
             var scenes = EditorBuildSettings.scenes;
-            if (scenes.Length > 0 && scenes[0].path == BootScenePath && scenes[0].enabled) return;
+            if (scenes.Length > 1 && scenes[0].path == BootScenePath && scenes[0].enabled
+                && scenes[1].path == GachaScenePath && scenes[1].enabled) return;
 
-            var rest = scenes.Where(s => s.path != BootScenePath);
-            EditorBuildSettings.scenes = rest.Prepend(new EditorBuildSettingsScene(BootScenePath, true)).ToArray();
+            var rest = scenes.Where(s => s.path != BootScenePath && s.path != GachaScenePath);
+            EditorBuildSettings.scenes = rest
+                .Prepend(new EditorBuildSettingsScene(GachaScenePath, true))
+                .Prepend(new EditorBuildSettingsScene(BootScenePath, true))
+                .ToArray();
         }
 
         private static void ApplyPlayerSettings()
@@ -179,6 +254,21 @@ namespace BunDauPeo.EditorTools
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
             PlayerSettings.allowedAutorotateToLandscapeLeft = true;
             PlayerSettings.allowedAutorotateToLandscapeRight = true;
+        }
+
+        // Số sao khởi điểm: R = 1, SR = 2, SSR = 3. Chỉ là giá trị mẫu, user chỉnh riêng từng nhân vật.
+        private static int StarsFor(Rarity rarity) => (int)rarity + 1;
+
+        private static void FillMissingStars(CharacterDefinition[] characters)
+        {
+            foreach (var character in characters)
+            {
+                var so = new SerializedObject(character);
+                var stars = so.FindProperty("_stars");
+                if (stars.intValue != 0) continue;
+                stars.intValue = StarsFor(character.Rarity);
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private static void EnsureFolder(string parent, string name)

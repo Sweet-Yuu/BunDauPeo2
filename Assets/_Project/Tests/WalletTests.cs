@@ -111,5 +111,70 @@ namespace BunDauPeo.Tests
             _wallet.Add(CurrencyType.Gem, 5);
             Assert.AreEqual(5, new Wallet(_save).Get(CurrencyType.Gem));
         }
+
+        private static CurrencyAmount Coin(long amount) => new(CurrencyType.Coin, amount);
+
+        [Test]
+        public void CanAfford_Enough_ReturnsTrue_WithoutChangingBalanceOrRaisingChanged()
+        {
+            _wallet.Add(CurrencyType.Coin, 100);
+            var raised = 0;
+            _wallet.Changed += () => raised++;
+            Assert.IsTrue(_wallet.CanAfford(Coin(30)));
+            Assert.AreEqual(100, _wallet.Get(CurrencyType.Coin));
+            Assert.AreEqual(0, raised);
+        }
+
+        [Test]
+        public void CanAfford_MissingOneCurrency_ReturnsFalse()
+        {
+            _wallet.Add(CurrencyType.Coin, 100);
+            Assert.IsFalse(_wallet.CanAfford(Coin(50), new CurrencyAmount(CurrencyType.Material, 1)));
+        }
+
+        [Test]
+        public void CanAfford_SameCurrencyLines_AreSummed()
+        {
+            _wallet.Add(CurrencyType.Coin, 100);
+            Assert.IsFalse(_wallet.CanAfford(Coin(60), Coin(60)));
+            Assert.IsTrue(_wallet.CanAfford(Coin(40), Coin(60)));
+        }
+
+        [Test]
+        public void CanAfford_NegativeLine_ReturnsFalse() => Assert.IsFalse(_wallet.CanAfford(Coin(-1)));
+
+        [Test]
+        public void CanAfford_NoCosts_ReturnsTrue() => Assert.IsTrue(_wallet.CanAfford());
+
+        [Test]
+        public void CanAfford_HugeLines_DoNotOverflow()
+        {
+            _wallet.Add(CurrencyType.Coin, long.MaxValue);
+            Assert.IsTrue(_wallet.CanAfford(Coin(long.MaxValue)));
+            Assert.IsFalse(_wallet.CanAfford(Coin(long.MaxValue), Coin(long.MaxValue)));
+        }
+
+        [Test]
+        public void CanAfford_AgreesWithTrySpend()
+        {
+            var cases = new[]
+            {
+                new CurrencyAmount[0],
+                new[] { Coin(100) },
+                new[] { Coin(101) },
+                new[] { Coin(60), Coin(60) },
+                new[] { Coin(-5) },
+                new[] { Coin(50), new CurrencyAmount(CurrencyType.Gem, 1) },
+            };
+            foreach (var costs in cases)
+            {
+                var first = new PlayerSave();
+                var second = new PlayerSave();
+                new Wallet(first).Add(CurrencyType.Coin, 100);
+                new Wallet(second).Add(CurrencyType.Coin, 100);
+                Assert.AreEqual(new Wallet(second).TrySpend(costs), new Wallet(first).CanAfford(costs),
+                    $"costs: {string.Join(", ", costs)}");
+            }
+        }
     }
 }

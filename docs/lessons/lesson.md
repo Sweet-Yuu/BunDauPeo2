@@ -25,6 +25,21 @@
 
 ## Danh sách
 
+### L-007 — Tưởng lỗi vì độ trễ lệnh, và để lại thay đổi ngoài ý muốn (2026-11-01)  #process #unity-files
+- Triệu chứng: ảnh chụp 1 giây sau khi bấm Quay đã ở bước reveal, tôi tưởng cutscene bị bỏ; thực ra mỗi lệnh CLI tốn ~3 giây. Lệnh bật chạy nền còn ghi `runInBackground: 1` vào `ProjectSettings.asset`.
+- Nguyên nhân gốc: kết luận từ ảnh chụp mà chưa đo thời gian thật; bật tuỳ chọn Editor mà không kiểm `git status`.
+- Luật từ nay: đo bằng `Time.realtimeSinceStartup` trong chính lệnh trước khi nghi lỗi; sau mỗi lượt thử Play chạy `git status` và hoàn tác file ProjectSettings bị đổi.
+
+### L-006 — Test đặt tên theo tính chất nhưng vẫn xanh khi tính chất sai (2026-10-31)  #process #script
+- Triệu chứng: reviewer chỉ ra test "lượt 10 nâng SR có thể ra SSR" dùng 0.99 (ra SSR dù không nâng) và test "dòng chi phí âm" chỉ có một dòng âm (lỗi "tổng bằng 0" khớp thay).
+- Nguyên nhân gốc: chọn đầu vào theo ví dụ trong kế hoạch mà không hỏi "cài đặt sai nào vẫn qua test này?".
+- Luật từ nay: mỗi test logic tiền/gacha phải có đầu vào mà cài đặt sai sẽ cho kết quả khác; test RNG hỏng và lỗi phải có ca giữa chừng chứ không chỉ ở lần gọi đầu.
+
+### L-005 — `git add` theo từng file `.cs` bỏ sót `.meta` (2026-10-31)  #git #unity-files
+- Triệu chứng: commit Task 3 và 4 của Gacha đẩy lên `origin` các file `.cs` mới mà thiếu `.meta` đi kèm; `git status` vẫn còn `?? *.cs.meta`.
+- Nguyên nhân gốc: lệnh add liệt kê từng `.cs`, mà Unity sinh `.meta` thành file riêng; tôi không đọc lại `git status` sau khi add.
+- Luật từ nay: khi tạo file mới trong `Assets/`, add theo thư mục hoặc add cả `<file>.meta`; trước mỗi commit chạy `git status --short` và không để `?? *.meta` nào còn lại.
+
 ### L-004 — Kết luận cơ chế khi chưa tách biến (2026-10-31)  #process #unity-files
 - Triệu chứng: sau vài lần Play qua MCP, file save lệch số so với bộ nhớ; tôi báo "biên dịch lệnh làm dừng Play", rồi "dừng Play không lưu", cả hai đều sai.
 - Nguyên nhân gốc: công cụ `RunCommand` tự thoát Play khi mã lệnh chứa `ExitPlaymode`/`isPlaying = false`, nên phép thử "trừ tiền rồi dừng" chạy trên session đã chết; tôi kết luận trước khi đọc mã của công cụ.

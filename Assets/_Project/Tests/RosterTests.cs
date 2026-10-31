@@ -135,5 +135,79 @@ namespace BunDauPeo.Tests
             _roster.RemoveFromTeam("c0");
             Assert.AreEqual(2, raised);
         }
+
+        [Test]
+        public void AddFragments_Owned_AddsAndRaisesChanged()
+        {
+            var raised = 0;
+            _roster.Changed += () => raised++;
+            Assert.IsTrue(_roster.AddFragments("c0", 2));
+            Assert.AreEqual(2, _roster.GetFragments("c0"));
+            Assert.AreEqual(1, raised);
+        }
+
+        [Test]
+        public void AddFragments_Accumulates()
+        {
+            _roster.AddFragments("c0", 2);
+            _roster.AddFragments("c0", 3);
+            Assert.AreEqual(5, _roster.GetFragments("c0"));
+            Assert.AreEqual(1, _save.Fragments.Count);
+        }
+
+        [Test]
+        public void AddFragments_NotOwned_ReturnsFalse_AndChangesNothing()
+        {
+            var roster = new Roster(new PlayerSave(), _catalog);
+            var raised = 0;
+            roster.Changed += () => raised++;
+            Assert.IsFalse(roster.AddFragments("c0", 1));
+            Assert.AreEqual(0, roster.GetFragments("c0"));
+            Assert.AreEqual(0, raised);
+        }
+
+        [Test]
+        public void AddFragments_UnknownId_ReturnsFalse()
+        {
+            var save = new PlayerSave();
+            save.OwnedCharacterIds.Add("ghost");
+            LogAssert.Expect(LogType.Warning, new Regex("ghost"));
+            var roster = new Roster(save, _catalog);
+            Assert.IsFalse(roster.AddFragments("ghost", 1));
+            Assert.IsEmpty(save.Fragments);
+        }
+
+        [Test]
+        public void AddFragments_NonPositive_ReturnsFalse_WithoutChanged()
+        {
+            var raised = 0;
+            _roster.Changed += () => raised++;
+            Assert.IsFalse(_roster.AddFragments("c0", 0));
+            Assert.IsFalse(_roster.AddFragments("c0", -1));
+            Assert.AreEqual(0, _roster.GetFragments("c0"));
+            Assert.AreEqual(0, raised);
+        }
+
+        [Test]
+        public void AddFragments_Overflow_ClampsAtMax()
+        {
+            _roster.AddFragments("c0", long.MaxValue);
+            _roster.AddFragments("c0", 5);
+            Assert.AreEqual(long.MaxValue, _roster.GetFragments("c0"));
+        }
+
+        [Test]
+        public void GetFragments_NoEntry_ReturnsZero()
+        {
+            Assert.AreEqual(0, _roster.GetFragments("c0"));
+            Assert.AreEqual(0, _roster.GetFragments(null));
+        }
+
+        [Test]
+        public void Fragments_AreStoredInSave()
+        {
+            _roster.AddFragments("c0", 4);
+            Assert.AreEqual(4, new Roster(_save, _catalog).GetFragments("c0"));
+        }
     }
 }

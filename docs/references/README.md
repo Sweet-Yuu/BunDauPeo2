@@ -12,8 +12,9 @@
 
 ## Game / ý tưởng tham khảo
 
-- Princess Connect Re:Dive: UI hub, bản đồ màn, chọn đội, gacha. Ảnh chụp ở `Mota/`.
-- Epic Seven: màn chiến đấu turn-based, thanh thứ tự lượt.
+- Princess Connect Re:Dive: UI hub, bản đồ màn, chọn đội, gacha. Mục lục ảnh chụp: [ui-screens.md](ui-screens.md).
+- Epic Seven: màn kết quả trận, hội thoại.
+- Fate/Grand Order: cách chọn chiêu trong trận.
 
 ## Art & Audio
 

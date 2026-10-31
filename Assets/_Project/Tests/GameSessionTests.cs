@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
+using BunDauPeo.Gacha;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -93,6 +94,9 @@ namespace BunDauPeo.Tests
             session.Save.OwnedCharacterIds.Add("ghost");
             session.Save.BattleTeam.Add("ghost");
             session.Save.Staff.Add(new StaffAssignment { CharacterId = "ghost", Role = StaffRole.Cook });
+            session.Save.Fragments.Add(new FragmentCount { CharacterId = "a", Count = 3 });
+            session.Save.GachaPity.Add(new PityEntry { BannerId = "b", Pulls = 7 });
+            session.Save.GachaHistory.Add(new GachaHistoryEntry { BannerId = "b", Count = 1, CharacterIds = new[] { "a" } });
 
             Assert.IsTrue(session.ResetToDefaults());
 
@@ -100,6 +104,44 @@ namespace BunDauPeo.Tests
             Assert.IsFalse(session.Roster.IsOwned("ghost"));
             Assert.AreEqual(0, session.Save.BattleTeam.Count);
             Assert.AreEqual(0, session.Save.Staff.Count);
+            Assert.AreEqual(0, session.Save.Fragments.Count);
+            Assert.AreEqual(0, session.Save.GachaPity.Count);
+            Assert.AreEqual(0, session.Save.GachaHistory.Count);
+            Assert.AreEqual(0, session.Roster.GetFragments("a"));
+        }
+
+        [Test]
+        public void GachaService_AfterReset_SeesClearedPityAndFragments()
+        {
+            // Nhân vật khởi đầu `a` là R duy nhất của banner, nên mọi lượt quay đều là mảnh của `a`.
+            var session = new GameSession(_service, _catalog, _config);
+            _catalog.TryGet("a", out var a);
+            var banner = TestData.Banner("b", a);
+            TestData.Edit(banner, so =>
+            {
+                var weights = so.FindProperty("_rarityWeights");
+                weights.FindPropertyRelative("R").floatValue = 100;
+                weights.FindPropertyRelative("SR").floatValue = 0;
+                weights.FindPropertyRelative("SSR").floatValue = 0;
+                so.FindProperty("_ssrPityThreshold").intValue = 0;
+                so.FindProperty("_guaranteeSrInTen").boolValue = false;
+            });
+            session.Wallet.Add(CurrencyType.Gem, 1000);
+            var gacha = new GachaService(session.Save, session.Wallet, session.Roster, _catalog,
+                TestData.GachaCatalog(banner), new ScriptedRandom(), session.Persist);
+
+            gacha.PullSingle("b");
+            gacha.PullSingle("b");
+            Assert.AreEqual(2, gacha.GetPity("b"));
+            Assert.AreEqual(2, session.Roster.GetFragments("a"));
+
+            var rosterChanged = 0;
+            session.Roster.Changed += () => rosterChanged++;
+            Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.AreEqual(0, gacha.GetPity("b"));
+            Assert.AreEqual(0, session.Roster.GetFragments("a"));
+            Assert.GreaterOrEqual(rosterChanged, 1);
         }
 
         [Test]
