@@ -40,6 +40,33 @@ namespace BunDauPeo.Characters
             return true;
         }
 
+        public bool AddFragments(string id, long count)
+        {
+            if (count <= 0 || !IsOwned(id) || !_catalog.TryGet(id, out _)) return false;
+
+            var index = _save.Fragments.FindIndex(f => f.CharacterId == id);
+            if (index < 0)
+            {
+                _save.Fragments.Add(new FragmentCount { CharacterId = id, Count = count });
+            }
+            else
+            {
+                var current = _save.Fragments[index].Count;
+                var updated = current > long.MaxValue - count ? long.MaxValue : current + count;
+                _save.Fragments[index] = new FragmentCount { CharacterId = id, Count = updated };
+            }
+
+            Changed.SafeInvoke();
+            return true;
+        }
+
+        public long GetFragments(string id)
+        {
+            if (id == null) return 0;
+            var index = _save.Fragments.FindIndex(f => f.CharacterId == id);
+            return index < 0 ? 0 : _save.Fragments[index].Count;
+        }
+
         public bool AddToTeam(string id)
         {
             // Kiểm hết điều kiện trước khi gỡ khỏi Staff, để bị từ chối thì nhân vật vẫn ở quán.
