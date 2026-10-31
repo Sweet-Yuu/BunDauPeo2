@@ -1,7 +1,7 @@
 {
   "name": "BunDauPeo.Editor",
   "rootNamespace": "BunDauPeo.EditorTools",
-  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Boot"],
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Gacha", "BunDauPeo.Boot"],
   "includePlatforms": ["Editor"],
   "autoReferenced": false
 }

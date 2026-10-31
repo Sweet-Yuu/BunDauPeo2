@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93a3364c2eaacf444a02f779a1a260b5, type: 3}
+  m_Name: banner_standard
+  m_EditorClassIdentifier: BunDauPeo.Gacha::BunDauPeo.Gacha.GachaBannerDefinition
+  _id: banner_standard
+  _displayName: "Banner Th\u01B0\u1EDDng"
+  _singleCost:
+  - Type: 1
+    Amount: 100
+  _tenCost:
+  - Type: 1
+    Amount: 900
+  _rarityWeights:
+    R: 70
+    SR: 25
+    SSR: 5
+  _ssrPityThreshold: 50
+  _guaranteeSrInTen: 1
+  _duplicateFragments:
+    R: 1
+    SR: 1
+    SSR: 1
+  _characters:
+  - {fileID: 11400000, guid: 2dd86ebcfe5bb154c9eb0a455b597ff8, type: 2}
+  - {fileID: 11400000, guid: c665a94f80d02c04a816d3d2bf9f1e0e, type: 2}
+  - {fileID: 11400000, guid: e43fd4f2422248445a4e850fa2c56dae, type: 2}
+  - {fileID: 11400000, guid: 45f72ea9db89ca147bcffff5a7eecaab, type: 2}
+  - {fileID: 11400000, guid: 3c4fc4b71d7c4b34685f3a163f6a8327, type: 2}
+  - {fileID: 11400000, guid: 6908880e21dbf47419d455d1d9de2dd7, type: 2}

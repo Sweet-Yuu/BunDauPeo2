@@ -2,21 +2,29 @@ using System;
 using System.Linq;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
+using BunDauPeo.Core;
 using BunDauPeo.EditorTools;
+using BunDauPeo.Gacha;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace BunDauPeo.Tests
 {
     public class ProjectSetupTests
     {
         private const string TempAsset = "Assets/_Project/Tests/_TempSetupTest.asset";
+        private const string TempBanner = "Assets/_Project/Tests/_TempBanner.asset";
 
         [TearDown]
-        public void TearDown() => AssetDatabase.DeleteAsset(TempAsset);
+        public void TearDown()
+        {
+            AssetDatabase.DeleteAsset(TempAsset);
+            AssetDatabase.DeleteAsset(TempBanner);
+        }
 
         [Test]
         public void GetOrCreateAsset_Existing_KeepsItAndSkipsInit()
@@ -67,12 +75,106 @@ namespace BunDauPeo.Tests
                 var so = new SerializedObject(bootstrap);
                 Assert.IsNotNull(so.FindProperty("_catalog").objectReferenceValue);
                 Assert.IsNotNull(so.FindProperty("_newGameConfig").objectReferenceValue);
+                Assert.IsNotNull(so.FindProperty("_bannerCatalog").objectReferenceValue);
             }
             finally
             {
                 if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
             }
         }
+
+        [Test]
+        public void SampleBanner_IsValid_AndInSampleCharacterCatalog()
+        {
+            var banner = AssetDatabase.LoadAssetAtPath<GachaBannerDefinition>(ProjectSetup.BannerPath);
+            var catalog = AssetDatabase.LoadAssetAtPath<CharacterCatalog>(ProjectSetup.CatalogPath);
+            Assert.IsNotNull(banner);
+            CollectionAssert.IsEmpty(banner.Validate());
+            Assert.IsNotEmpty(banner.Id);
+            foreach (var c in banner.Characters) Assert.IsTrue(catalog.TryGet(c.Id, out _), c.Id);
+            foreach (Rarity r in Enum.GetValues(typeof(Rarity)))
+                Assert.IsTrue(banner.Characters.Any(c => c.Rarity == r), r.ToString());
+        }
+
+        [Test]
+        public void GetOrCreateBanner_NewAsset_HasSpecDefaults()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<CharacterCatalog>(ProjectSetup.CatalogPath);
+            var banner = ProjectSetup.GetOrCreateBanner(TempBanner, catalog.Items.ToArray());
+            Assert.AreEqual("banner_standard", banner.Id);
+            Assert.AreEqual(new CurrencyAmount(CurrencyType.Gem, 100), banner.SingleCost.Single());
+            Assert.AreEqual(new CurrencyAmount(CurrencyType.Gem, 900), banner.TenCost.Single());
+            Assert.AreEqual(70f, banner.RarityWeights.R);
+            Assert.AreEqual(25f, banner.RarityWeights.SR);
+            Assert.AreEqual(5f, banner.RarityWeights.SSR);
+            Assert.AreEqual(50, banner.SsrPityThreshold);
+            Assert.IsTrue(banner.GuaranteeSrInTen);
+            Assert.AreEqual(1, banner.DuplicateFragments.R);
+            Assert.AreEqual(1, banner.DuplicateFragments.SR);
+            Assert.AreEqual(1, banner.DuplicateFragments.SSR);
+        }
+
+        [Test]
+        public void BannerCatalog_ContainsSampleBanner()
+        {
+            var banner = AssetDatabase.LoadAssetAtPath<GachaBannerDefinition>(ProjectSetup.BannerPath);
+            var catalog = AssetDatabase.LoadAssetAtPath<GachaBannerCatalog>(ProjectSetup.BannerCatalogPath);
+            Assert.IsNotNull(catalog);
+            CollectionAssert.IsEmpty(catalog.Validate());
+            Assert.IsTrue(catalog.TryGet(banner.Id, out var found));
+            Assert.AreSame(banner, found);
+        }
+
+        [Test]
+        public void WireBootScene_FillsMissingBannerCatalog()
+        {
+            try
+            {
+                SetBootBannerCatalog(null);
+                ProjectSetup.WireBootScene();
+                Assert.IsNotNull(ReadBootBannerCatalog());
+            }
+            finally
+            {
+                ProjectSetup.WireBootScene();
+            }
+        }
+
+        // Mở scene từ đĩa (L-002): nếu scene chưa mở thì giá trị đọc ra là giá trị đã lưu trong file.
+        private static void SetBootBannerCatalog(Object value)
+        {
+            var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
+            var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
+            try
+            {
+                var so = new SerializedObject(BootstrapIn(scene));
+                so.FindProperty("_bannerCatalog").objectReferenceValue = value;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+            finally
+            {
+                if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        private static Object ReadBootBannerCatalog()
+        {
+            var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
+            var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
+            try
+            {
+                return new SerializedObject(BootstrapIn(scene)).FindProperty("_bannerCatalog").objectReferenceValue;
+            }
+            finally
+            {
+                if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        private static GameBootstrap BootstrapIn(Scene scene) =>
+            scene.GetRootGameObjects().Select(g => g.GetComponent<GameBootstrap>()).Single(b => b != null);
 
         [Test]
         public void Run_AfterSampleIdWasRenamed_DoesNotThrow()
