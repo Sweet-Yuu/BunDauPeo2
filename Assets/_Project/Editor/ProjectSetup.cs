@@ -20,6 +20,7 @@ namespace BunDauPeo.EditorTools
         public const string BootScenePath = "Assets/_Project/Scenes/Boot.unity";
         public const string CatalogPath = "Assets/_Project/Characters/Data/CharacterCatalog.asset";
         public const string NewGameConfigPath = "Assets/_Project/Boot/Data/NewGameConfig.asset";
+        public const string GachaScenePath = "Assets/_Project/Scenes/Gacha.unity";
         public const string BannerPath = "Assets/_Project/Gacha/Data/banner_standard.asset";
         public const string BannerCatalogPath = "Assets/_Project/Gacha/Data/GachaBannerCatalog.asset";
 
@@ -84,8 +85,9 @@ namespace BunDauPeo.EditorTools
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), new Object[] { banner })));
 
             CreateBootScene();
+            CreateGachaScene();
             WireBootScene();
-            PutBootSceneFirst();
+            PutScenesInBuildOrder();
             ApplyPlayerSettings();
             AssetDatabase.SaveAssets();
             Debug.Log("ProjectSetup: done.");
@@ -130,9 +132,18 @@ namespace BunDauPeo.EditorTools
                 {
                     // Nạp sau khi mở scene (L-002): không giữ tham chiếu asset từ trước khi đổi scene.
                     var banners = so.FindProperty("_bannerCatalog");
-                    if (banners.objectReferenceValue != null) return;
-                    banners.objectReferenceValue = AssetDatabase.LoadAssetAtPath<GachaBannerCatalog>(BannerCatalogPath);
-                    changed = true;
+                    if (banners.objectReferenceValue == null)
+                    {
+                        banners.objectReferenceValue = AssetDatabase.LoadAssetAtPath<GachaBannerCatalog>(BannerCatalogPath);
+                        changed = true;
+                    }
+
+                    var start = so.FindProperty("_startScene");
+                    if (string.IsNullOrEmpty(start.stringValue))
+                    {
+                        start.stringValue = Path.GetFileNameWithoutExtension(GachaScenePath);
+                        changed = true;
+                    }
                 });
 
                 if (!changed) return;
@@ -210,13 +221,23 @@ namespace BunDauPeo.EditorTools
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
         }
 
-        private static void PutBootSceneFirst()
+        private static void CreateGachaScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(GachaScenePath) == null) GachaSceneBuilder.Create(GachaScenePath);
+        }
+
+        // Boot luôn đầu tiên (nạp trước mọi scene), Gacha ngay sau.
+        private static void PutScenesInBuildOrder()
         {
             var scenes = EditorBuildSettings.scenes;
-            if (scenes.Length > 0 && scenes[0].path == BootScenePath && scenes[0].enabled) return;
+            if (scenes.Length > 1 && scenes[0].path == BootScenePath && scenes[0].enabled
+                && scenes[1].path == GachaScenePath && scenes[1].enabled) return;
 
-            var rest = scenes.Where(s => s.path != BootScenePath);
-            EditorBuildSettings.scenes = rest.Prepend(new EditorBuildSettingsScene(BootScenePath, true)).ToArray();
+            var rest = scenes.Where(s => s.path != BootScenePath && s.path != GachaScenePath);
+            EditorBuildSettings.scenes = rest
+                .Prepend(new EditorBuildSettingsScene(GachaScenePath, true))
+                .Prepend(new EditorBuildSettingsScene(BootScenePath, true))
+                .ToArray();
         }
 
         private static void ApplyPlayerSettings()
