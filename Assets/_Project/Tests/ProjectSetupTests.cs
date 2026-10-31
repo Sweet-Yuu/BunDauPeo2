@@ -177,6 +177,42 @@ namespace BunDauPeo.Tests
             scene.GetRootGameObjects().Select(g => g.GetComponent<GameBootstrap>()).Single(b => b != null);
 
         [Test]
+        public void SampleCharacters_StarsMatchRarity()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<CharacterCatalog>(ProjectSetup.CatalogPath);
+            foreach (var c in catalog.Items) Assert.AreEqual((int)c.Rarity + 1, c.Stars, c.Id);
+        }
+
+        [Test]
+        public void Run_FillsZeroStars_AndKeepsUserValues()
+        {
+            const string zeroPath = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
+            const string keepPath = "Assets/_Project/Characters/Data/Characters/char_bun_la.asset";
+            var zero = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(zeroPath);
+            var keep = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(keepPath);
+            SetStars(zero, 0);
+            SetStars(keep, 4);
+            try
+            {
+                ProjectSetup.Run();
+                Assert.AreEqual(1, zero.Stars, "zero stars is filled from rarity");
+                Assert.AreEqual(4, keep.Stars, "a user-set value is never overwritten");
+            }
+            finally
+            {
+                SetStars(zero, 1);
+                SetStars(keep, 3);
+            }
+        }
+
+        private static void SetStars(CharacterDefinition c, int stars)
+        {
+            var so = new SerializedObject(c);
+            so.FindProperty("_stars").intValue = stars;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        [Test]
         public void Run_AfterSampleIdWasRenamed_DoesNotThrow()
         {
             const string path = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";

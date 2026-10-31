@@ -68,7 +68,7 @@ Tests/                 GachaRevealAssetTests.cs, GachaRevealSequenceTests.cs (m�
 **Interfaces:**
 - Produces: các đường dẫn `CommonSummonClipPath`, `LegendarySummonClipPath`, `CommonSummonPrefabPath`, `LegendarySummonPrefabPath` (hằng `const string` trong `GachaRevealAssetTests`, chỉ để test).
 
-- [ ] **Step 1: Viết test đỏ.** Với mỗi file cần copy, test kiểm: file tồn tại, `AssetDatabase.AssetPathToGUID(path)` bằng GUID gốc, và mọi `guid:` trong hai prefab đều có `AssetDatabase.GUIDToAssetPath` khác rỗng.
+- [x] **Step 1: Viết test đỏ.** Với mỗi file cần copy, test kiểm: file tồn tại, `AssetDatabase.AssetPathToGUID(path)` bằng GUID gốc, và mọi `guid:` trong hai prefab đều có `AssetDatabase.GUIDToAssetPath` khác rỗng.
 
 GUID gốc (đọc từ `.meta` của Project_04):
 
@@ -84,10 +84,10 @@ GUID gốc (đọc từ `.meta` của Project_04):
 
 `fe87c0e1cc204ed48ad3b37840f39efc` là component `Image` của uGUI, nằm trong package, nên test chỉ kiểm nó resolve được.
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ:** `failed` lớn hơn 0, lỗi là file không tồn tại.
-- [ ] **Step 3: Copy file.** Copy đúng bảng spec, giữ nguyên `.meta`. Không sửa nội dung file nào.
-- [ ] **Step 4: Mở Editor (hoặc `unity recompile`), kiểm Console không có lỗi "Missing" hoặc "Failed to import".** Chạy test, kỳ vọng xanh.
-- [ ] **Step 5: Commit và push.** `git add` theo đường dẫn các thư mục đã copy và file test.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ:** `failed` lớn hơn 0, lỗi là file không tồn tại.
+- [x] **Step 3: Copy file.** Copy đúng bảng spec, giữ nguyên `.meta`. Không sửa nội dung file nào.
+- [x] **Step 4: Mở Editor (hoặc `unity recompile`), kiểm Console không có lỗi "Missing" hoặc "Failed to import".** Chạy test, kỳ vọng xanh.
+- [x] **Step 5: Commit và push.** `git add` theo đường dẫn các thư mục đã copy và file test.
 
 ---
 

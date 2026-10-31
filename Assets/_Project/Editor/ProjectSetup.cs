@@ -58,6 +58,8 @@ namespace BunDauPeo.EditorTools
 
             var skills = SkillTable.ToDictionary(row => row.File, CreateSkill);
             var characters = CharacterTable.Select(row => CreateCharacter(row, skills)).ToArray();
+            // Asset đã có từ trước field _stars không được init lại, nên điền riêng; số user đã chỉnh (khác 0) giữ nguyên.
+            FillMissingStars(characters);
 
             GetOrCreateAsset<CharacterCatalog>(CatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), characters)));
@@ -179,6 +181,7 @@ namespace BunDauPeo.EditorTools
                 so.FindProperty("_id").stringValue = row.Id;
                 so.FindProperty("_displayName").stringValue = row.Name;
                 so.FindProperty("_rarity").enumValueIndex = (int)row.Rarity;
+                so.FindProperty("_stars").intValue = StarsFor(row.Rarity);
                 so.FindProperty("_portrait").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(PortraitSprite);
                 so.FindProperty("_battleSprite").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(IconSprite);
 
@@ -251,6 +254,21 @@ namespace BunDauPeo.EditorTools
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
             PlayerSettings.allowedAutorotateToLandscapeLeft = true;
             PlayerSettings.allowedAutorotateToLandscapeRight = true;
+        }
+
+        // Số sao khởi điểm: R = 1, SR = 2, SSR = 3. Chỉ là giá trị mẫu, user chỉnh riêng từng nhân vật.
+        private static int StarsFor(Rarity rarity) => (int)rarity + 1;
+
+        private static void FillMissingStars(CharacterDefinition[] characters)
+        {
+            foreach (var character in characters)
+            {
+                var so = new SerializedObject(character);
+                var stars = so.FindProperty("_stars");
+                if (stars.intValue != 0) continue;
+                stars.intValue = StarsFor(character.Rarity);
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private static void EnsureFolder(string parent, string name)
