@@ -153,7 +153,8 @@ namespace BunDauPeo.Tests
         [Test]
         public void RollTen_UpgradedTenthCanBeSsr()
         {
-            var values = Enumerable.Repeat(0.0, 18).Append(0.99).ToArray();
+            // 0.9 là SR theo bảng đầy đủ (u = 90) nhưng SSR khi lượt 10 bị nâng (u = 27 trên SR+SSR): chỉ đúng khi có nâng.
+            var values = Enumerable.Repeat(0.0, 18).Append(0.9).ToArray();
             var pulls = 0;
             var results = new GachaRoller(new ScriptedRandom(0.0, values)).RollTen(_banner, ref pulls);
             Assert.IsTrue(results.Take(9).All(c => c.Rarity == Rarity.R));
@@ -169,6 +170,15 @@ namespace BunDauPeo.Tests
             var results = new GachaRoller(rng).RollTen(_banner, ref pulls);
             Assert.AreEqual("s0", results[2].Id);
             Assert.AreEqual(Rarity.R, results[9].Rarity);
+        }
+
+        [Test]
+        public void RollOne_TenSingles_HaveNoSrGuarantee()
+        {
+            var roller = new GachaRoller(new ScriptedRandom());
+            var pulls = 0;
+            for (var i = 0; i < 10; i++) Assert.AreEqual(Rarity.R, roller.RollOne(_banner, ref pulls).Rarity);
+            Assert.AreEqual(10, pulls);
         }
 
         [Test]

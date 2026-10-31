@@ -24,8 +24,15 @@ namespace BunDauPeo.Tests
         }
     }
 
+    // Trả 0.0 cho đến lần gọi thứ throwOnCall (tính từ 1) thì ném, để thử RNG hỏng giữa chừng một lần quay 10.
     internal sealed class ThrowingRandom : Random
     {
-        public override double NextDouble() => throw new InvalidOperationException("scripted RNG failure");
+        private readonly int _throwOnCall;
+        private int _calls;
+
+        public ThrowingRandom(int throwOnCall = 1) => _throwOnCall = throwOnCall;
+
+        public override double NextDouble() =>
+            ++_calls >= _throwOnCall ? throw new InvalidOperationException("scripted RNG failure") : 0.0;
     }
 }

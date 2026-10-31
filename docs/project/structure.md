@@ -16,7 +16,7 @@ Assets/
     UI/            BunDauPeo.UI          GachaView, GachaViewText (màn thử Gacha; hub thật làm ở spec UI hub)
     Boot/          BunDauPeo.Boot        GameBootstrap (nối GachaService, nạp scene khởi đầu), GameSession, NewGameConfig
     Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode, GachaSceneBuilder
-    Tests/         BunDauPeo.Tests       EditMode (145 test)
+    Tests/         BunDauPeo.Tests       EditMode (148 test)
     Scenes/        Boot.unity (đầu Build Settings), Gacha.unity (thứ hai; Boot nạp nó qua `_startScene`)
     Restaurant/ Combat/                  mới có folder con rỗng (.gitkeep), chưa có asmdef
 ```

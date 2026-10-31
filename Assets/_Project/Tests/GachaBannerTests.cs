@@ -59,7 +59,9 @@ namespace BunDauPeo.Tests
 
         [Test]
         public void Validate_NegativeCostLine_Reported() =>
-            AssertReports(Edited(so => SetCost(so, "_singleCost", new CurrencyAmount(CurrencyType.Gem, -1))).Validate(), "SingleCost");
+            // Có một dòng dương để lỗi "tổng bằng 0" không che việc kiểm dòng âm.
+            AssertReports(Edited(so => SetCost(so, "_singleCost",
+                new CurrencyAmount(CurrencyType.Gem, 100), new CurrencyAmount(CurrencyType.Coin, -1))).Validate(), "negative");
 
         [Test]
         public void Validate_NegativeRarityWeight_Reported() =>

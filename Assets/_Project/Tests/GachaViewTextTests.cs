@@ -40,6 +40,15 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void PityLine_CounterPastThreshold_ShowsOneNotZero()
+        {
+            // Hạ ngưỡng trong Inspector khi save đang cao hơn: lượt tới vẫn là lượt ép SSR, nên là "1" chứ không phải "0".
+            var text = GachaViewText.PityLine(30, 40);
+            StringAssert.Contains(" 1 ", text);
+            StringAssert.DoesNotContain(" 0 ", text);
+        }
+
+        [Test]
         public void PityLine_ThresholdZero_ShowsOff() =>
             StringAssert.Contains("tắt", GachaViewText.PityLine(0, 0));
 

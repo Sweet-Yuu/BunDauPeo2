@@ -1,9 +1,13 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using Random = System.Random;
 
 namespace BunDauPeo.Tests
 {
@@ -223,14 +227,37 @@ namespace BunDauPeo.Tests
         [Test]
         public void RngThrows_ChangesNothing()
         {
-            var service = Make(new ThrowingRandom());
+            // Lần gọi RNG thứ 7 là giữa lượt 4 của PullTen: các lượt trước đã roll xong mà chưa được phép đổi gì.
+            var service = Make(new ThrowingRandom(throwOnCall: 7));
+            var walletChanged = 0;
+            var rosterChanged = 0;
+            _wallet.Changed += () => walletChanged++;
+            _roster.Changed += () => rosterChanged++;
 
-            Assert.Throws<InvalidOperationException>(() => service.PullSingle("b"));
+            Assert.Throws<InvalidOperationException>(() => service.PullTen("b"));
 
             Assert.AreEqual(2000, Gem);
             Assert.IsEmpty(_roster.GetOwned());
+            Assert.IsEmpty(_save.Fragments);
             Assert.IsEmpty(_save.GachaPity);
             Assert.AreEqual(0, _persistCalls);
+            Assert.AreEqual(0, walletChanged);
+            Assert.AreEqual(0, rosterChanged);
+        }
+
+        [Test]
+        public void ChangedHandlerThrows_PullStillCompletes()
+        {
+            _wallet.Changed += () => throw new InvalidOperationException("boom");
+            LogAssert.Expect(LogType.Exception, new Regex("boom"));
+
+            var result = Make(new ScriptedRandom()).PullSingle("b");
+
+            Assert.AreEqual(GachaPullStatus.Success, result.Status);
+            Assert.AreEqual(1900, Gem);
+            Assert.IsTrue(_roster.IsOwned("r0"));
+            Assert.AreEqual(1, Make(new ScriptedRandom()).GetPity("b"));
+            Assert.AreEqual(1, _persistCalls);
         }
 
         [Test]

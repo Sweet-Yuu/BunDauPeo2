@@ -21,8 +21,9 @@ namespace BunDauPeo.UI
             _ => throw new ArgumentOutOfRangeException(nameof(rarity), rarity, null),
         };
 
+        // Tối thiểu 1: bộ đếm đã chạm hoặc vượt ngưỡng (hạ ngưỡng sau khi đã quay) thì lượt tới vẫn là lượt ép SSR.
         public static string PityLine(int threshold, int pulls) =>
-            threshold <= 0 ? "Đảm bảo SSR: tắt" : $"SSR đảm bảo sau: {Math.Max(0, threshold - pulls)} lượt";
+            threshold <= 0 ? "Đảm bảo SSR: tắt" : $"SSR đảm bảo sau: {Math.Max(1, threshold - pulls)} lượt";
 
         public static string StatusMessage(GachaPullStatus status, bool saved) => status switch
         {
