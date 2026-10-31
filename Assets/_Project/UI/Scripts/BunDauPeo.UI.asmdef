@@ -1,6 +1,6 @@
 {
   "name": "BunDauPeo.UI",
   "rootNamespace": "BunDauPeo.UI",
-  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Gacha", "UnityEngine.UI"],
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Gacha", "UnityEngine.UI", "Unity.InputSystem"],
   "autoReferenced": true
 }
