@@ -20,7 +20,10 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - Có được từ gacha. Mỗi nhân vật có chỉ số chiến đấu (HP, tấn công, thủ, tốc độ) và chỉ số quán (nấu, phục vụ, thu ngân).
 - Độ hiếm: R, SR, SSR.
 - Một nhân vật chỉ ở một nơi: **trong đội chiến đấu thì không làm quán, dù đang đánh hay không.** Đưa vào đội thì tự rời quán, và ngược lại.
-- Đội chiến đấu tối đa 5 người.
+- Đội chiến đấu tối đa 5 người (user chốt 2026-10-31).
+- **Vị trí:** đội hình có 3 vị trí là front, mid và back.
+- **Class:** 5 class chính là đỡ đòn, đấu sĩ, hỗ trợ, xạ thủ, pháp sư. Mỗi nhân vật thuộc một class.
+- `TODO(user)`: mỗi class đứng vị trí nào, mỗi vị trí có mấy ô trong 5 ô, và vị trí là cố định theo nhân vật hay người chơi tự xếp. Chốt trong spec Combat. `CharacterDefinition` và `Roster` hiện chưa có class hay vị trí; `Roster` đang giữ đội là một danh sách phẳng.
 - Game mới được cấp sẵn một ít tiền và vài nhân vật, chỉ một lần.
 - Chưa thiết kế: cấp nhân vật, xử lý nhân vật trùng.
 

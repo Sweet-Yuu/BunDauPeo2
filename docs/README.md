@@ -12,7 +12,8 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 | Triển khai theo spec / kế hoạch | `superpowers/specs/`, `superpowers/plans/` (xem link trong [roadmap.md](roadmap.md)) |
 | Chọn model, effort, subagent hay native | [guides/agent-routing.md](guides/agent-routing.md) |
 | Viết hoặc sửa script C# | [guides/code-style.md](guides/code-style.md) → [project/structure.md](project/structure.md) |
-| Sửa scene / prefab / asset / ProjectSettings | [guides/unity-workflow.md](guides/unity-workflow.md) |
+| Chạy Unity: test, build, mở/đóng Editor, lệnh CLI | [guides/unity-workflow.md](guides/unity-workflow.md) (Unity CLI) |
+| Sửa scene / prefab / asset / ProjectSettings, chọn skill của plugin Unity | [guides/unity-workflow.md](guides/unity-workflow.md) |
 | Thêm package, đổi render pipeline, đổi input | [project/tech-stack.md](project/tech-stack.md) → [decisions/decisions.md](decisions/decisions.md) |
 | Tra tài liệu / link bên ngoài (API, art, âm thanh…) | [references/README.md](references/README.md) |
 | Chọn hướng làm, hỏi "sao lại làm vậy?" | [decisions/decisions.md](decisions/decisions.md) |
@@ -35,7 +36,7 @@ docs/
     structure.md           cấu trúc thư mục Assets/, quy ước đặt tên
   guides/
     code-style.md          quy ước viết C#
-    unity-workflow.md      cách thao tác an toàn với file Unity
+    unity-workflow.md      Unity CLI, skills plugin Unity, thao tác an toàn với file Unity
     doc-maintenance.md     khi nào đọc / sửa doc nào
     agent-routing.md       chọn model, effort, subagent hay native
   decisions/decisions.md   quyết định kỹ thuật + lý do (ADR gọn)

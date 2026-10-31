@@ -7,9 +7,20 @@
 
 ```
 Assets/
-  Scenes/      SampleScene.unity (scene mẫu)
+  Scenes/      SampleScene.unity (scene mẫu của template)
   Settings/    URP, Renderer2D, Input actions (do template sinh ra)
+  _Project/
+    Core/          BunDauPeo.Core        Wallet, SaveService, PlayerSave, Catalog<T>, ServiceLocator, EventExtensions, kiểu tiền/vai trò
+    Characters/    BunDauPeo.Characters  CharacterDefinition, SkillDefinition, CharacterCatalog, Roster
+    Boot/          BunDauPeo.Boot        GameBootstrap, GameSession, NewGameConfig
+    Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode
+    Tests/         BunDauPeo.Tests       EditMode (69 test)
+    Scenes/        Boot.unity (đầu Build Settings; Play ở scene nào cũng khởi động từ đây)
+    Gacha/ Restaurant/ Combat/ UI/       mới có folder con rỗng (.gitkeep), chưa có asmdef
 ```
+
+Asset mẫu (6 nhân vật, 4 skill, `CharacterCatalog`, `NewGameConfig`) nằm ở `Characters/Data/` và `Boot/Data/`, do `Setup Project` sinh; chạy lại không ghi đè số đã chỉnh.
+Save: `Application.persistentDataPath/save.json` (kèm `.bak`, `.tmp`, `.corrupt`), xem [D-004](../decisions/decisions.md).
 
 ## Quy ước (đã duyệt, áp dụng khi thêm nội dung)
 

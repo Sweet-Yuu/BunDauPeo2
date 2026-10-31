@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Nền móng kiến trúc + SO nhân vật: [spec](superpowers/specs/2026-10-30-foundation-architecture-design.md), [kế hoạch](superpowers/plans/2026-10-30-foundation.md). Chưa bắt đầu code.
+(trống)
 
 ## Tiếp theo
 
@@ -13,10 +13,12 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 
 - [ ] Gacha: banner, roll, trừ Gem, thêm vào kho.
 - [ ] Restaurant: simulation, khách và món, xếp nhân viên, nâng cấp, AFK.
-- [ ] Combat: lượt, 3 hành động, quái, wave, màn chơi, phần thưởng.
-- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng.
+- [ ] Combat: lượt, 3 hành động, quái, wave, màn chơi, phần thưởng; class và đội hình 3 vị trí (front, mid, back), xem [game-design](design/game-design.md#nhân-vật).
+- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game, gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
+- [ ] Kiểm save trên Android thật (`File.Replace`, lưu khi vào nền): chờ user nối điện thoại, rồi hỏi lại.
 
 ## Đã xong
 
+- 2026-10-30 — Nền móng kiến trúc + SO nhân vật (Core, Wallet, SaveService, Roster, Boot, asset mẫu): [spec](superpowers/specs/2026-10-30-foundation-architecture-design.md), [kế hoạch](superpowers/plans/2026-10-30-foundation.md).
 - 2026-10-30 — Chốt vision, luật chơi, kiến trúc và spec nền móng.
 - 2026-10-30 — Dựng project Unity 6 (2D URP) + bộ docs.

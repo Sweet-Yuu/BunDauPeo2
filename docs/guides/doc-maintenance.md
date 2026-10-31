@@ -11,6 +11,7 @@
 | Thêm thư mục/quy ước đặt tên | `project/structure.md` |
 | Chốt quy ước code mới | `guides/code-style.md` |
 | Bắt đầu / xong một task | `roadmap.md` |
+| Phát hiện lệnh Unity CLI mới/sai, skill Unity cần thêm vào bảng chọn | `guides/unity-workflow.md` |
 | Thêm nguồn tham khảo | `references/README.md` |
 | User đổi ý tưởng/phạm vi | `vision/vision.md` — **chỉ khi user yêu cầu** |
 | User chốt hoặc đổi luật chơi | `design/game-design.md` |

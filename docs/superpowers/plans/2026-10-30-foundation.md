@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Không sửa/xoá tay `.meta`; không đụng `Library/`, `Logs/`, `UserSettings/`, `Temp/`. Không sửa tay `.unity`, `.asset`, `.prefab`.
-- **Commit:** user đã cho phép (2026-10-30): commit sau mỗi task trên nhánh `feature/foundation`, **không push**. Chỉ `git add` file của task đó, không dùng `git add -A` sau commit nền.
+- **Commit:** user đã cho phép (2026-10-30): commit sau mỗi task trên nhánh `feature/foundation`. Từ 2026-10-31 user cho phép và yêu cầu push sau mỗi nhiệm vụ nhỏ và mỗi task lớn (xem mục Git của [unity-workflow.md](../../guides/unity-workflow.md)). Chỉ `git add` file của task đó, không dùng `git add -A` sau commit nền.
 - Code: `PascalCase` cho class/method/property; field private `_camelCase`; field chỉnh trong Inspector dùng `[SerializeField] private`. Struct và class thuần dữ liệu được lưu JSON (`CurrencyAmount`, `PlayerSave`, `CombatStats`…) dùng field `public`.
 - Comment chỉ giải thích vì sao. Tên code tiếng Anh, docs tiếng Việt.
 - Không thêm package. Không dùng `Resources`.
@@ -63,8 +63,8 @@ Quy tắc chung ở [agent-routing.md](../../guides/agent-routing.md).
 
 ## Trước khi bắt đầu
 
-- [ ] Repo chưa có commit nào. User đã đồng ý (2026-10-30): commit nền hiện tại lên `main` (`chore: initial project and docs`), rồi tạo nhánh `feature/foundation` từ đó trước Task 1, để reviewer so `main..feature/foundation`. Xem `git status` trước khi `git add`: chỉ đưa file nguồn (`Assets/`, `Packages/`, `ProjectSettings/`, `Mota/`, `docs/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`, `.vsconfig`), không đưa `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. Không push.
-- [ ] Đọc `docs/guides/code-style.md` và `docs/guides/unity-workflow.md`.
+- [x] Repo chưa có commit nào. User đã đồng ý (2026-10-30): commit nền hiện tại lên `main` (`chore: initial project and docs`), rồi tạo nhánh `feature/foundation` từ đó trước Task 1, để reviewer so `main..feature/foundation`. Xem `git status` trước khi `git add`: chỉ đưa file nguồn (`Assets/`, `Packages/`, `ProjectSettings/`, `Mota/`, `docs/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`, `.vsconfig`), không đưa `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`.
+- [x] Đọc `docs/guides/code-style.md` và `docs/guides/unity-workflow.md`.
 
 ---
 
@@ -86,7 +86,7 @@ Quy tắc chung ở [agent-routing.md](../../guides/agent-routing.md).
   - `[Serializable] class PlayerSave { public int Version = 1; public List<CurrencyAmount> Balances = new(); public List<string> OwnedCharacterIds = new(); public List<string> BattleTeam = new(); public List<StaffAssignment> Staff = new(); }`
   - `sealed class Wallet { Wallet(PlayerSave save); long Get(CurrencyType type); void Add(CurrencyType type, long amount); bool TrySpend(params CurrencyAmount[] costs); event Action Changed; }`
 
-- [ ] **Step 1: Tạo cây thư mục và hai asmdef**
+- [x] **Step 1: Tạo cây thư mục và hai asmdef**
 
 `BunDauPeo.Core.asmdef`: `{"name": "BunDauPeo.Core", "rootNamespace": "BunDauPeo.Core", "autoReferenced": true}`
 
@@ -104,7 +104,7 @@ Quy tắc chung ở [agent-routing.md](../../guides/agent-routing.md).
 }
 ```
 
-- [ ] **Step 2: Viết test đỏ `WalletTests.cs`**
+- [x] **Step 2: Viết test đỏ `WalletTests.cs`**
 
 ```csharp
 private PlayerSave _save; private Wallet _wallet;
@@ -154,19 +154,19 @@ private PlayerSave _save; private Wallet _wallet;
 }
 ```
 
-- [ ] **Step 3: Chạy test, kỳ vọng đỏ**
+- [x] **Step 3: Chạy test, kỳ vọng đỏ**
 
 Chạy lệnh test chung. Kỳ vọng: exit `6`, log có `error CS0246` với `PlayerSave` hoặc `Wallet`.
 
-- [ ] **Step 4: Viết các kiểu dữ liệu và `Wallet`**
+- [x] **Step 4: Viết các kiểu dữ liệu và `Wallet`**
 
 `Wallet` đọc và ghi trực tiếp `save.Balances`, không giữ bản sao, để lưu game luôn thấy số mới nhất. `TrySpend` kiểm tra hết các dòng trước (số âm thì `false`, cộng gộp theo loại) rồi mới trừ. `Add(type, 0)` không phát `Changed`.
 
-- [ ] **Step 5: Chạy test, kỳ vọng xanh**
+- [x] **Step 5: Chạy test, kỳ vọng xanh**
 
 Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 
-- [ ] **Step 6: Commit** `feat: add project skeleton, Core data types and Wallet`
+- [x] **Step 6: Commit** `feat: add project skeleton, Core data types and Wallet`
 
 ---
 
@@ -180,7 +180,7 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 - Consumes: `PlayerSave` (Task 1).
 - Produces: `sealed class SaveService { SaveService(string path); PlayerSave Load(); bool Save(PlayerSave save); }`. `Load` trả `null` khi không có save đọc được. File phụ: `path + ".tmp"`, `".bak"`, `".corrupt"`.
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 `SetUp` tạo thư mục `Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())`, `_path` là `save.json` trong đó, `_service = new SaveService(_path)`. `TearDown` xoá thư mục. `Make(coin)` tạo `PlayerSave` có một dòng `Balances`.
 
@@ -232,16 +232,16 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `SaveService`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `SaveService`.
 
-- [ ] **Step 3: Viết `SaveService`**
+- [x] **Step 3: Viết `SaveService`**
 
 - `Save`: tạo thư mục nếu thiếu, ghi `path.tmp`, rồi `File.Replace(tmp, path, path + ".bak")` nếu file chính đã có, không thì `File.Move(tmp, path)`. Bắt `IOException` và `UnauthorizedAccessException`, `Debug.LogError("Save failed: ...")`, trả `false`.
 - `Load`: đọc `path` rồi đến `.bak`. `JsonUtility.FromJson` ném `ArgumentException` khi JSON hỏng và trả `null` khi rỗng, cả hai đều là không đọc được. Dùng `.bak` thì `LogWarning`. Cả hai hỏng và file chính có tồn tại thì `File.Copy(path, path + ".corrupt", true)` và `LogWarning`.
 
-- [ ] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="16"`.
+- [x] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="16"`.
 
-- [ ] **Step 5: Commit** `feat: add SaveService with atomic write and backup recovery`
+- [x] **Step 5: Commit** `feat: add SaveService with atomic write and backup recovery`
 
 ---
 
@@ -271,7 +271,7 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
   - `CharacterCatalog Catalog(params CharacterDefinition[] items)`
   - `void SetRef(UnityEngine.Object target, string property, UnityEngine.Object value)`
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 ```csharp
 // CharacterDefinitionTests
@@ -305,15 +305,15 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
 
-- [ ] **Step 3: Viết các class**
+- [x] **Step 3: Viết các class**
 
 `Validate` của `CharacterDefinition` trả chuỗi bắt đầu bằng tên ô (`"BasicAttack: ..."`). `OnValidate` của nhân vật và catalog chỉ gọi `Validate()` và `Debug.LogWarning` từng dòng, kèm `this` làm context. `TryGet` quét mảng tuyến tính.
 
-- [ ] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="25"`.
+- [x] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="25"`.
 
-- [ ] **Step 5: Commit** `feat: add character ScriptableObjects and Catalog`
+- [x] **Step 5: Commit** `feat: add character ScriptableObjects and Catalog`
 
 ---
 
@@ -341,7 +341,7 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
   public IReadOnlyList<CharacterDefinition> GetStaff(StaffRole role);
   ```
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 `SetUp` tạo catalog 7 nhân vật `"c0"`..`"c6"`, `_save`, `_roster`, và `Add` tất cả.
 
@@ -412,15 +412,15 @@ Kỳ vọng: exit `0`, `../bdp-tests.xml` có `failed="0"` và `total="8"`.
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `Roster`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `Roster`.
 
-- [ ] **Step 3: Viết `Roster`**
+- [x] **Step 3: Viết `Roster`**
 
 Thao tác trực tiếp trên `PlayerSave`, cùng cách với `Wallet`. `AddToTeam` kiểm tra sở hữu, có trong catalog, chưa trong đội, đội chưa đủ, **rồi mới** gỡ khỏi `Staff`. Constructor `LogWarning` một lần cho mỗi Id không có trong catalog, kể cả ở `BattleTeam` và `Staff`. Các getter tạo danh sách mới và bỏ qua Id lạ mà không log.
 
-- [ ] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="37"`.
+- [x] **Step 4: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="37"`.
 
-- [ ] **Step 5: Commit** `feat: add Roster with team and staff exclusion`
+- [x] **Step 5: Commit** `feat: add Roster with team and staff exclusion`
 
 ---
 
@@ -442,7 +442,7 @@ Thao tác trực tiếp trên `PlayerSave`, cùng cách với `Wallet`. `AddToTe
   - `BunDauPeo.Boot.GameBootstrap : MonoBehaviour`, field `_catalog`, `_newGameConfig`.
   - `TestData.Config(CurrencyAmount[] currency, params CharacterDefinition[] starters)`.
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 ```csharp
 // ServiceLocatorTests: TearDown gọi ServiceLocator.Clear()
@@ -485,19 +485,19 @@ Thao tác trực tiếp trên `PlayerSave`, cùng cách với `Wallet`. `AddToTe
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246`.
 
-- [ ] **Step 3: Viết `ServiceLocator`, `NewGameConfig`, `GameSession`**
+- [x] **Step 3: Viết `ServiceLocator`, `NewGameConfig`, `GameSession`**
 
 `GameSession`: `Load()` trả `null` thì là game mới. Tạo `Wallet`, `Roster`. Nếu game mới: cộng các dòng tiền có `Amount > 0`, `Roster.Add` các nhân vật khác `null`, rồi `Persist()`.
 
-- [ ] **Step 4: Viết `GameBootstrap`**
+- [x] **Step 4: Viết `GameBootstrap`**
 
 `Awake`: `_catalog` hoặc `_newGameConfig` null thì `Debug.LogError` kèm tên field và `return`. Nếu đủ: `DontDestroyOnLoad(gameObject)`, tạo `GameSession` với `Path.Combine(Application.persistentDataPath, "save.json")`, `ServiceLocator.Clear()`, `Register(session.Wallet)`, `Register(session.Roster)`. `OnApplicationPause(true)` và `OnApplicationQuit` gọi `Persist()`, bỏ qua nếu session null.
 
-- [ ] **Step 5: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="43"`.
+- [x] **Step 5: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="43"`.
 
-- [ ] **Step 6: Commit** `feat: add GameSession and GameBootstrap`
+- [x] **Step 6: Commit** `feat: add GameSession and GameBootstrap`
 
 ---
 
@@ -537,7 +537,7 @@ Mọi nhân vật dùng `BasicStrike` và `Finisher`. Portrait dùng `AssetDatab
 
 `NewGameConfig`: 500 Coin, 1500 Gem; starter là `char_nem_chua`, `char_cha_com`, `char_dau_phu`.
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 ```csharp
 private const string TempAsset = "Assets/_Project/Tests/_TempSetupTest.asset";
@@ -592,23 +592,23 @@ private const string TempAsset = "Assets/_Project/Tests/_TempSetupTest.asset";
 }
 ```
 
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `ProjectSetup`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** với `error CS0246` về `ProjectSetup`.
 
-- [ ] **Step 3: Viết `ProjectSetup`**
+- [x] **Step 3: Viết `ProjectSetup`**
 
 - `GetOrCreateAsset`: có asset thì trả về, không gọi `init`. Không có thì `CreateInstance`, `init`, đặt tên, `AssetDatabase.CreateAsset`.
 - Thư mục đích đã có từ Task 1; `Skills/` và `Characters/` tạo mới bằng `AssetDatabase.CreateFolder`.
 - Gán field riêng tư qua `SerializedObject`, giống `TestData`.
-- Scene: chỉ tạo khi chưa có. Dùng `EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive)`, thêm GameObject `GameBootstrap`, gán hai tham chiếu, `SaveScene`, `CloseScene(scene, true)`. Additive để không đụng scene đang mở.
+- Scene: chỉ tạo khi chưa có. Dùng `EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive)`, thêm GameObject `GameBootstrap`, gán hai tham chiếu, `SaveScene`, `CloseScene(scene, true)`. Additive để không đụng scene đang mở. **Sửa khi triển khai:** batch mode chỉ có scene "Untitled" chưa lưu và Unity từ chối Additive, nên khi `Application.isBatchMode` dùng `Single` (và không `CloseScene`). Hai tham chiếu phải nạp bằng `AssetDatabase.LoadAssetAtPath` **sau** `NewScene`, vì `Single` dỡ asset không được scene nào dùng và biến giữ từ trước thành null (xem L-002).
 - Build Settings: đưa Boot lên đầu, giữ scene còn lại, không tạo trùng.
 - Player Settings theo test `PlayerSettings_LandscapeOnly` và `PlayerSettings_Identity` (`companyName = "Sweet-Yuu"`, `productName = "BunDauPeo"`, user chốt 2026-10-30). Không đụng Bundle Identifier.
 - Kết thúc bằng `AssetDatabase.SaveAssets()`.
 
-- [ ] **Step 4: Viết `BootScenePlayMode`**
+- [x] **Step 4: Viết `BootScenePlayMode`**
 
 `[InitializeOnLoadMethod]`, qua `EditorApplication.delayCall` (tránh load asset trong lúc import), đặt `EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.BootScenePath)`. Chưa có scene thì giá trị là `null`, Play vẫn bình thường.
 
-- [ ] **Step 5: Chạy Setup ở batch mode**
+- [x] **Step 5: Chạy Setup ở batch mode**
 
 ```bash
 unity run . --timeout 600 -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.Run -logFile ../bdp-setup.log
@@ -616,13 +616,13 @@ unity run . --timeout 600 -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.R
 
 Kỳ vọng: exit `0`. Editor đang mở thì dùng menu `Tools/BunDauPeo/Setup Project`.
 
-- [ ] **Step 6: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="49"`.
+- [x] **Step 6: Chạy test, kỳ vọng xanh** với `failed="0"`, `total="49"`.
 
-- [ ] **Step 7: Chạy lại Setup, xác nhận không phá gì**
+- [x] **Step 7: Chạy lại Setup, xác nhận không phá gì**
 
 Chạy lại lệnh Step 5 rồi lệnh test. Kỳ vọng: vẫn `failed="0"`, và `git status` không có thay đổi mới ở `Characters/Data` (nếu đã commit trước đó).
 
-- [ ] **Step 8: Thử trong Editor**
+- [x] **Step 8: Thử trong Editor** (2026-10-31, kiểm qua Unity MCP: Play từ SampleScene chạy Boot, `save.json` có 500 Coin, 1500 Gem, 3 nhân vật; mở lại không cấp lại; dừng Play thì lưu số mới)
 
 ```bash
 unity open .
@@ -630,18 +630,18 @@ unity open .
 
 Bấm Play từ `SampleScene`. Kỳ vọng: scene `Boot` chạy, Console không có lỗi từ code dự án, `Application.persistentDataPath/save.json` xuất hiện. Dừng và Play lại: số tiền không tăng. Tìm đường dẫn bằng cách đọc `Application.persistentDataPath` trong Console hoặc `unity command eval` nếu Editor kết nối được. Không tự kiểm tra được thì nhờ user và ghi rõ trong báo cáo.
 
-- [ ] **Step 9: Cập nhật docs**
+- [x] **Step 9: Cập nhật docs**
 
 - `docs/project/structure.md`, mục "Hiện tại": ghi cây thư mục đã dựng.
 - `docs/roadmap.md`: chuyển mục "Nền móng" sang "Đã xong" kèm ngày; "Đang làm" để trống.
 - Lesson mới nếu có lỗi phát sinh trong đợt này.
 
-- [ ] **Step 10: Commit** `feat: add ProjectSetup, sample data and Boot scene`
+- [x] **Step 10: Commit** `feat: add ProjectSetup, sample data and Boot scene`
 
 ---
 
 ## Hoàn tất đợt
 
-- [ ] Xoá `../bdp-tests.*` và `../bdp-setup.log`.
-- [ ] Gọi một subagent mới (Opus 5.5, effort xhigh, theo `docs/guides/agent-routing.md`) review toàn nhánh theo spec, tập trung `Wallet`, `SaveService`, `Roster`, và mục Review Focus.
-- [ ] Sửa các lỗi review tìm ra, chạy lại test, báo cáo user.
+- [x] Xoá `../bdp-tests.*` và `../bdp-setup.log`.
+- [x] Gọi một subagent mới (Opus 5.5, effort xhigh, theo `docs/guides/agent-routing.md`) review toàn nhánh theo spec, tập trung `Wallet`, `SaveService`, `Roster`, và mục Review Focus.
+- [x] Sửa các lỗi review tìm ra, chạy lại test, báo cáo user.
