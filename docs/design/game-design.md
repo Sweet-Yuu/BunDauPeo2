@@ -25,7 +25,8 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - **Class:** 5 class chính là đỡ đòn, đấu sĩ, hỗ trợ, xạ thủ, pháp sư. Mỗi nhân vật thuộc một class.
 - `TODO(user)`: mỗi class đứng vị trí nào, mỗi vị trí có mấy ô trong 5 ô, và vị trí là cố định theo nhân vật hay người chơi tự xếp. Chốt trong spec Combat. `CharacterDefinition` và `Roster` hiện chưa có class hay vị trí; `Roster` đang giữ đội là một danh sách phẳng.
 - Game mới được cấp sẵn một ít tiền và vài nhân vật, chỉ một lần.
-- Chưa thiết kế: cấp nhân vật, xử lý nhân vật trùng.
+- **Nhân vật trùng** (user chốt 2026-10-31): quay ra nhân vật đã có thì nhận **mảnh** của nhân vật đó, không đổi kho nhân vật. Số mảnh theo độ hiếm, *khởi điểm* R/SR/SSR đều **1**, đặt trong banner SO. Mảnh nằm trong save (qua `Roster`) và bị Reset Save Data xoá. Mảnh dùng để nâng sao (tối đa 5★, mảnh dư vào kho) ở spec riêng sau Combat; cho đến lúc đó mảnh chỉ được cộng và hiển thị.
+- Chưa thiết kế: cấp nhân vật, nâng sao (giá mảnh, ảnh hưởng chỉ số, số sao ban đầu).
 
 ## Quán
 
@@ -56,5 +57,9 @@ Save cần lưu: thời điểm hoạt động cuối, thu nhập mỗi giây l�
 
 ## Gacha
 
-- Banner có chi phí Gem cho 1 lượt và 10 lượt, tỉ lệ theo độ hiếm, ngưỡng đảm bảo.
-- Roll trên máy, vì game offline.
+- Banner có chi phí Gem cho 1 lượt và 10 lượt, tỉ lệ theo độ hiếm, ngưỡng đảm bảo. MVP có **1 banner**; bộ đếm đảm bảo lưu theo Id banner nên thêm banner sau không đổi save.
+- Roll trên máy, vì game offline. Thiếu Gem thì không quay và không đổi gì.
+- Số *khởi điểm* (user chốt 2026-10-31), đặt trong banner SO: tỉ lệ **R 70 / SR 25 / SSR 5**; **100 Gem** một lượt, **900 Gem** mười lượt. Trong cùng độ hiếm, mọi nhân vật của banner có xác suất như nhau.
+- **Đảm bảo SSR:** lượt thứ **50** kể từ SSR gần nhất chắc chắn ra SSR. Đếm theo từng banner, quay lẻ hay quay 10 đều tính từng lượt, về 0 khi ra SSR (kể cả trúng tỉ lệ thường), lưu trong save. Không soft pity. Ngưỡng 0 là tắt.
+- **Đảm bảo quay 10:** lượt thứ 10 mà chưa có SR trở lên thì ra SR hoặc SSR (theo tỉ lệ SR:SSR). Bật/tắt trong banner.
+- Nhân vật trùng thành mảnh: xem mục [Nhân vật](#nhân-vật). Thiết kế đầy đủ: [spec Gacha](../superpowers/specs/2026-10-31-gacha-design.md).
