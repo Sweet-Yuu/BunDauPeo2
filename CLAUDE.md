@@ -22,4 +22,5 @@ Game Unity 6 (2D, URP). Mọi thông tin chi tiết nằm trong `docs/` — file
 - Không tự đổi hướng game so với [docs/vision/vision.md](docs/vision/vision.md); muốn đổi thì hỏi user trước.
 - Tài liệu viết tiếng Việt; tên class/biến/file code viết tiếng Anh.
 - Nút Reset Save Data phải xoá **toàn bộ** dữ liệu đã lưu và luôn hỏi xác nhận. Dữ liệu lưu mới chỉ đi qua `PlayerSave`/`SaveService`; luật đầy đủ ở [D-005](docs/decisions/decisions.md).
-- Không commit/push khi user chưa yêu cầu.
+- UI và hình tạm chỉ dùng hình có sẵn của Unity (vuông, tròn, tam giác…), không thêm file ảnh. Việc liên quan đến Canvas thì dùng component `Image`; chi tiết ở [docs/guides/unity-workflow.md](docs/guides/unity-workflow.md).
+- Session code: commit và **push** sau mỗi nhiệm vụ nhỏ đã xong và sau mỗi task lớn. Không force push. Session điều phối và việc không phải code chỉ commit/push khi user yêu cầu. Chi tiết: mục Git trong [docs/guides/unity-workflow.md](docs/guides/unity-workflow.md).

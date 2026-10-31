@@ -59,9 +59,17 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 - Script mới: tạo file `.cs` rồi để Unity import/sinh `.meta`; không tự tạo `.meta`.
 - Đổi ProjectSettings (Player, Physics, Tags/Layers…) → ghi lý do vào [decisions.md](../decisions/decisions.md).
 
+## UI và hình tạm
+
+- UI và mọi hình cần tạm chỉ dùng hình có sẵn của Unity: sprite hình học (vuông, tròn, tam giác… trong `Assets > Create > 2D > Sprites`) và sprite mặc định `UI/Skin/UISprite.psd`, `Knob.psd`. Không thêm file ảnh; phân biệt thành phần bằng màu, kích thước và chữ.
+- Việc liên quan đến Canvas (nút, panel, thanh, biểu tượng…): dùng component `Image` (uGUI) và gán các sprite có sẵn ở trên vào `Image`; không dùng `Raw Image` hay ảnh import.
+- Tạo bằng `unity command` hoặc script Editor, không import ảnh ngoài. Khi có art thật thì đổi tham chiếu sprite, không đổi cấu trúc UI.
+
 ## Git
 
-- Không commit/push khi user chưa yêu cầu; quyền commit của từng đợt ghi trong kế hoạch của đợt đó.
+- **Session code:** commit và **push** sau mỗi nhiệm vụ nhỏ đã xong (một cụm bước có test xanh) và sau mỗi task lớn của kế hoạch. Push lên `origin` (`https://github.com/Sweet-Yuu/BunDauPeo2.git`); nhánh chưa có upstream thì `git push -u origin <nhánh>`. Không force push, không sửa lịch sử đã push. Chỉ push khi test của phần đó đã xanh; test đỏ thì sửa trước.
+- **Session điều phối và việc không phải code:** chỉ commit/push khi user yêu cầu.
+- Cuối ngày làm việc, user tự kiểm tra và push các commit còn sót; không có lịch tự động.
 - `.gitignore` đã chặn `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. `git add` theo đường dẫn cụ thể, không `git add -A`.
 
 ## Kiểm tra sau thay đổi

@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Không sửa/xoá tay `.meta`; không đụng `Library/`, `Logs/`, `UserSettings/`, `Temp/`. Không sửa tay `.unity`, `.asset`, `.prefab`.
-- **Commit:** user đã cho phép (2026-10-30): commit sau mỗi task trên nhánh `feature/foundation`, **không push**. Chỉ `git add` file của task đó, không dùng `git add -A` sau commit nền.
+- **Commit:** user đã cho phép (2026-10-30): commit sau mỗi task trên nhánh `feature/foundation`. Từ 2026-10-31 user cho phép và yêu cầu push sau mỗi nhiệm vụ nhỏ và mỗi task lớn (xem mục Git của [unity-workflow.md](../../guides/unity-workflow.md)). Chỉ `git add` file của task đó, không dùng `git add -A` sau commit nền.
 - Code: `PascalCase` cho class/method/property; field private `_camelCase`; field chỉnh trong Inspector dùng `[SerializeField] private`. Struct và class thuần dữ liệu được lưu JSON (`CurrencyAmount`, `PlayerSave`, `CombatStats`…) dùng field `public`.
 - Comment chỉ giải thích vì sao. Tên code tiếng Anh, docs tiếng Việt.
 - Không thêm package. Không dùng `Resources`.
@@ -63,7 +63,7 @@ Quy tắc chung ở [agent-routing.md](../../guides/agent-routing.md).
 
 ## Trước khi bắt đầu
 
-- [x] Repo chưa có commit nào. User đã đồng ý (2026-10-30): commit nền hiện tại lên `main` (`chore: initial project and docs`), rồi tạo nhánh `feature/foundation` từ đó trước Task 1, để reviewer so `main..feature/foundation`. Xem `git status` trước khi `git add`: chỉ đưa file nguồn (`Assets/`, `Packages/`, `ProjectSettings/`, `Mota/`, `docs/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`, `.vsconfig`), không đưa `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. Không push.
+- [x] Repo chưa có commit nào. User đã đồng ý (2026-10-30): commit nền hiện tại lên `main` (`chore: initial project and docs`), rồi tạo nhánh `feature/foundation` từ đó trước Task 1, để reviewer so `main..feature/foundation`. Xem `git status` trước khi `git add`: chỉ đưa file nguồn (`Assets/`, `Packages/`, `ProjectSettings/`, `Mota/`, `docs/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`, `.vsconfig`), không đưa `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`.
 - [x] Đọc `docs/guides/code-style.md` và `docs/guides/unity-workflow.md`.
 
 ---
