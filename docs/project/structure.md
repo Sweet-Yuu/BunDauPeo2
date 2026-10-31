@@ -11,15 +11,17 @@ Assets/
   Settings/    URP, Renderer2D, Input actions (do template sinh ra)
   _Project/
     Core/          BunDauPeo.Core        Wallet, SaveService, PlayerSave, Catalog<T>, ServiceLocator, EventExtensions, kiểu tiền/vai trò
-    Characters/    BunDauPeo.Characters  CharacterDefinition, SkillDefinition, CharacterCatalog, Roster
-    Boot/          BunDauPeo.Boot        GameBootstrap, GameSession, NewGameConfig
-    Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode
-    Tests/         BunDauPeo.Tests       EditMode (69 test)
-    Scenes/        Boot.unity (đầu Build Settings; Play ở scene nào cũng khởi động từ đây)
-    Gacha/ Restaurant/ Combat/ UI/       mới có folder con rỗng (.gitkeep), chưa có asmdef
+    Characters/    BunDauPeo.Characters  CharacterDefinition, SkillDefinition, CharacterCatalog, Roster (kèm mảnh nhân vật)
+    Gacha/         BunDauPeo.Gacha       GachaBannerDefinition, GachaBannerCatalog, GachaRoller, GachaService, GachaPullResult
+    UI/            BunDauPeo.UI          GachaView, GachaViewText (màn thử Gacha; hub thật làm ở spec UI hub)
+    Boot/          BunDauPeo.Boot        GameBootstrap (nối GachaService, nạp scene khởi đầu), GameSession, NewGameConfig
+    Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode, GachaSceneBuilder
+    Tests/         BunDauPeo.Tests       EditMode (145 test)
+    Scenes/        Boot.unity (đầu Build Settings), Gacha.unity (thứ hai; Boot nạp nó qua `_startScene`)
+    Restaurant/ Combat/                  mới có folder con rỗng (.gitkeep), chưa có asmdef
 ```
 
-Asset mẫu (6 nhân vật, 4 skill, `CharacterCatalog`, `NewGameConfig`) nằm ở `Characters/Data/` và `Boot/Data/`, do `Setup Project` sinh; chạy lại không ghi đè số đã chỉnh.
+Asset mẫu (6 nhân vật, 4 skill, `CharacterCatalog`, `NewGameConfig`, banner `banner_standard`, `GachaBannerCatalog`) nằm ở `Characters/Data/`, `Boot/Data/` và `Gacha/Data/`, do `Setup Project` sinh; chạy lại không ghi đè số đã chỉnh. Scene `Gacha.unity` cũng do `Setup Project` sinh (một lần, có rồi thì giữ nguyên); `Boot.unity` được vá chứ không tạo lại.
 Save: `Application.persistentDataPath/save.json` (kèm `.bak`, `.tmp`, `.corrupt`), xem [D-004](../decisions/decisions.md).
 
 ## Quy ước (đã duyệt, áp dụng khi thêm nội dung)

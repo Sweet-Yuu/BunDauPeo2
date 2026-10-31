@@ -29,6 +29,10 @@ Quy tắc:
   - Công cụ đọc mã lệnh: nếu có `ExitPlaymode()` hoặc `isPlaying = false` thì nó **thoát Play trước khi chạy lệnh**, nên việc khác trong cùng lệnh chạy trên session đã chết. Dừng Play bằng một lệnh riêng, chỉ chứa việc dừng.
   - Không dùng `System.Reflection` trong lệnh (bị chặn). Lớp lồng trong lệnh bị kéo ra ngoài, nên đừng để nó dùng hằng của lớp bao.
   - Chạy test ngay trong Editor đang mở: `TestRunnerApi.Execute` với `ICallbacks` ghi kết quả ra file (không cần đóng Editor). Sửa `.cs` làm Editor biên dịch và rớt cổng MCP vài chục giây; chờ rồi mới gọi lại.
+- Điều khiển Play qua `unity command` (Editor mở): `editor.playmode start|stop`, `capture game_view --save_path`, `console get --level error`, `eval '<câu lệnh C#>;'` (phải là câu lệnh, ví dụ `Debug.Log(...)`; đọc kết quả ở `console get`).
+  - `capture --save_path` chỉ nhận đường dẫn trong thư mục project và đường dẫn dạng `D:/.../x.png` lại ghi vào `Assets/`, sinh thêm `.meta`: xoá cả hai khi xong, đừng commit.
+  - `runtime simulate_pointer` báo thành công nhưng không đổi `Mouse.current` (vẫn 0,0), nên không bấm được UI. Kiểm nút bằng `EventSystem.RaycastAll` tại tâm nút rồi `ExecuteEvents.Execute(nút, new PointerEventData(es), ExecuteEvents.pointerClickHandler)`.
+  - Lượt thử Play ghi vào save thật: sao lưu `save.json*` trước, chép lại sau khi đóng Editor (`unity close .`).
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 
 ## Skills của plugin Unity
