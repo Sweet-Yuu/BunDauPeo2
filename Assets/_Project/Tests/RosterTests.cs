@@ -1,7 +1,11 @@
+using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace BunDauPeo.Tests
 {
@@ -107,6 +111,18 @@ namespace BunDauPeo.Tests
             var save = new PlayerSave();
             save.OwnedCharacterIds.Add("ghost");
             Assert.IsFalse(new Roster(save, _catalog).AddToTeam("ghost"));
+        }
+
+        [Test]
+        public void Changed_HandlerThrows_ChangeStillApplies_AndLaterHandlersRun()
+        {
+            var raised = 0;
+            _roster.Changed += () => throw new InvalidOperationException("boom");
+            _roster.Changed += () => raised++;
+            LogAssert.Expect(LogType.Exception, new Regex("boom"));
+            Assert.IsTrue(_roster.AddToTeam("c0"));
+            Assert.AreEqual(1, _roster.GetBattleTeam().Count);
+            Assert.AreEqual(1, raised);
         }
 
         [Test]

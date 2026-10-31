@@ -642,6 +642,6 @@ Bấm Play từ `SampleScene`. Kỳ vọng: scene `Boot` chạy, Console không 
 
 ## Hoàn tất đợt
 
-- [ ] Xoá `../bdp-tests.*` và `../bdp-setup.log`.
-- [ ] Gọi một subagent mới (Opus 5.5, effort xhigh, theo `docs/guides/agent-routing.md`) review toàn nhánh theo spec, tập trung `Wallet`, `SaveService`, `Roster`, và mục Review Focus.
-- [ ] Sửa các lỗi review tìm ra, chạy lại test, báo cáo user.
+- [x] Xoá `../bdp-tests.*` và `../bdp-setup.log`.
+- [x] Gọi một subagent mới (Opus 5.5, effort xhigh, theo `docs/guides/agent-routing.md`) review toàn nhánh theo spec, tập trung `Wallet`, `SaveService`, `Roster`, và mục Review Focus.
+- [x] Sửa các lỗi review tìm ra, chạy lại test, báo cáo user.

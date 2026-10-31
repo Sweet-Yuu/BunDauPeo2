@@ -28,7 +28,7 @@ namespace BunDauPeo.Core
 
             var balance = Get(type);
             Set(type, balance > long.MaxValue - amount ? long.MaxValue : balance + amount);
-            Changed?.Invoke();
+            Changed.SafeInvoke();
         }
 
         public bool TrySpend(params CurrencyAmount[] costs)
@@ -50,7 +50,7 @@ namespace BunDauPeo.Core
             if (remaining.Count == 0) return true;
 
             foreach (var pair in remaining) Set(pair.Key, pair.Value);
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return true;
         }
 

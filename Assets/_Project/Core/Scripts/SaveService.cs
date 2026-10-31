@@ -75,14 +75,15 @@ namespace BunDauPeo.Core
             return null;
         }
 
-        // JsonUtility ném ArgumentException khi JSON hỏng và trả null khi rỗng; cả hai đều là "không đọc được".
+        // JsonUtility ném ArgumentException khi JSON hỏng và trả null khi rỗng; cả hai đều là "hỏng".
+        // Lỗi IO (file đang bị khoá) cố ý không bị nuốt: coi nó là "hỏng" sẽ làm game mới ghi đè save thật.
         private static PlayerSave TryRead(string path)
         {
             try
             {
                 return File.Exists(path) ? JsonUtility.FromJson<PlayerSave>(File.ReadAllText(path)) : null;
             }
-            catch (Exception e) when (e is ArgumentException || e is IOException || e is UnauthorizedAccessException)
+            catch (ArgumentException)
             {
                 return null;
             }

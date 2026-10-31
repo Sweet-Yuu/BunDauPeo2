@@ -33,7 +33,7 @@ namespace BunDauPeo.Characters
         {
             if (!_catalog.TryGet(id, out _) || IsOwned(id)) return false;
             _save.OwnedCharacterIds.Add(id);
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return true;
         }
 
@@ -45,14 +45,14 @@ namespace BunDauPeo.Characters
 
             _save.Staff.RemoveAll(s => s.CharacterId == id);
             _save.BattleTeam.Add(id);
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return true;
         }
 
         public bool RemoveFromTeam(string id)
         {
             if (_save.BattleTeam.RemoveAll(x => x == id) == 0) return false;
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return true;
         }
 
@@ -64,14 +64,14 @@ namespace BunDauPeo.Characters
             _save.BattleTeam.RemoveAll(x => x == id);
             _save.Staff.RemoveAll(s => s.CharacterId == id);
             _save.Staff.Add(new StaffAssignment { CharacterId = id, Role = role });
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return true;
         }
 
         public bool RemoveStaff(string id)
         {
             if (_save.Staff.RemoveAll(s => s.CharacterId == id) == 0) return false;
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return true;
         }
 

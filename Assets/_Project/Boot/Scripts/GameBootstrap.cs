@@ -28,7 +28,16 @@ namespace BunDauPeo.Boot
 
             DontDestroyOnLoad(gameObject);
             var saveService = new SaveService(Path.Combine(Application.persistentDataPath, "save.json"));
-            _session = new GameSession(saveService, _catalog, _newGameConfig);
+            try
+            {
+                _session = new GameSession(saveService, _catalog, _newGameConfig);
+            }
+            catch (System.Exception e) when (e is IOException || e is System.UnauthorizedAccessException)
+            {
+                // Không có session thì không đăng ký service và không ghi gì, để save thật còn nguyên cho lần mở sau.
+                Debug.LogError($"{nameof(GameBootstrap)}: cannot read save, game not started: {e.Message}", this);
+                return;
+            }
 
             ServiceLocator.Clear();
             ServiceLocator.Register(_session.Wallet);

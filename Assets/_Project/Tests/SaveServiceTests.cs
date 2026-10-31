@@ -98,6 +98,26 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Load_FileLockedByOtherProcess_Throws_InsteadOfLookingLikeNoSave()
+        {
+            // Trả null ở đây sẽ làm GameSession bắt đầu game mới rồi ghi đè save thật khi khoá nhả.
+            _service.Save(Make(1));
+            using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+                Assert.Throws<IOException>(() => _service.Load());
+        }
+
+        [Test]
+        public void Save_ThirdTime_ReplacesExistingBackup()
+        {
+            _service.Save(Make(1));
+            _service.Save(Make(2));
+            Assert.IsTrue(_service.Save(Make(3)));
+            Assert.AreEqual(3, _service.Load().Balances[0].Amount);
+            File.Delete(_path);
+            Assert.AreEqual(2, _service.Load().Balances[0].Amount);
+        }
+
+        [Test]
         public void Save_WhenTargetUnwritable_ReturnsFalse()
         {
             Directory.CreateDirectory(_path); // đường dẫn file là một thư mục

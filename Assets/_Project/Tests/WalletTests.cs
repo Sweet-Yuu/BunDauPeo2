@@ -1,6 +1,9 @@
 using System;
 using BunDauPeo.Core;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace BunDauPeo.Tests
 {
@@ -76,6 +79,19 @@ namespace BunDauPeo.Tests
             _wallet.Changed += () => raised++;
             Assert.IsTrue(_wallet.TrySpend());
             Assert.AreEqual(0, raised);
+        }
+
+        [Test]
+        public void Changed_HandlerThrows_SpendStillSucceeds_AndLaterHandlersRun()
+        {
+            _wallet.Add(CurrencyType.Coin, 100);
+            var raised = 0;
+            _wallet.Changed += () => throw new InvalidOperationException("boom");
+            _wallet.Changed += () => raised++;
+            LogAssert.Expect(LogType.Exception, new Regex("boom"));
+            Assert.IsTrue(_wallet.TrySpend(new CurrencyAmount(CurrencyType.Coin, 30)));
+            Assert.AreEqual(70, _wallet.Get(CurrencyType.Coin));
+            Assert.AreEqual(1, raised);
         }
 
         [Test]
