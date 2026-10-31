@@ -622,7 +622,7 @@ Kỳ vọng: exit `0`. Editor đang mở thì dùng menu `Tools/BunDauPeo/Setup 
 
 Chạy lại lệnh Step 5 rồi lệnh test. Kỳ vọng: vẫn `failed="0"`, và `git status` không có thay đổi mới ở `Characters/Data` (nếu đã commit trước đó).
 
-- [ ] **Step 8: Thử trong Editor** (chưa kiểm tra, chờ user)
+- [x] **Step 8: Thử trong Editor** (2026-10-31, kiểm qua Unity MCP: Play từ SampleScene chạy Boot, `save.json` có 500 Coin, 1500 Gem, 3 nhân vật; mở lại không cấp lại; dừng Play thì lưu số mới)
 
 ```bash
 unity open .

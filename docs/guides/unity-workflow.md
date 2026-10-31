@@ -24,6 +24,7 @@ Quy tắc:
 
 - Lệnh batch (`test`, `run`, `build`) không chạy được khi project đang mở trong Editor; lệnh nối vào Editor (`command`, `recompile`) cần Editor đang mở. Chạy `unity status` trước khi chọn. Không kill process Unity; nhờ user đóng Editor.
 - Mã thoát (theo `unity -h`): `0` thành công, `8` test chạy xong nhưng có test đỏ, `6` lệnh hỏng vì lý do khác (kể cả lỗi compile), `12` không có Editor nào trả lời, `10`/`14` quá thời gian. Luôn **đọc file kết quả và log thật**, không dựa mỗi mã thoát.
+- Điều khiển Editor qua MCP (`Unity_RunCommand`): mỗi lệnh biên dịch một assembly động nên có thể làm Unity dừng Play và nạp lại domain; bắn `EnterPlaymode`, chờ cổng `unity status` quay lại, kiểm `EditorApplication.isPlaying` rồi mới thao tác. Không dùng `System.Reflection` trong lệnh (bị chặn).
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 
 ## Skills của plugin Unity
