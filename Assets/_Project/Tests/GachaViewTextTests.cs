@@ -1,3 +1,4 @@
+using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using BunDauPeo.Characters;
 using BunDauPeo.UI;
@@ -69,5 +70,48 @@ namespace BunDauPeo.Tests
             Assert.AreNotEqual(unknown, poor);
             Assert.AreNotEqual(invalid, poor);
         }
+
+        private static CurrencyAmount[] Gem(long amount) => new[] { new CurrencyAmount(CurrencyType.Gem, amount) };
+
+        [Test]
+        public void InsufficientGemText_ContainsNeededAmount() => StringAssert.Contains("900", GachaViewText.InsufficientGemText(900));
+
+        [Test]
+        public void RollAgainLabel_ShowsCost()
+        {
+            var label = GachaViewText.RollAgainLabel(Gem(900));
+            StringAssert.Contains("Quay tiếp", label);
+            StringAssert.Contains("900", label);
+        }
+
+        [Test]
+        public void CanRollAgain_FalseWhenShort_TrueWhenEnough()
+        {
+            var wallet = new Wallet(new PlayerSave());
+            wallet.Add(CurrencyType.Gem, 899);
+            Assert.IsFalse(GachaViewText.CanRollAgain(wallet, Gem(900)));
+            wallet.Add(CurrencyType.Gem, 1);
+            Assert.IsTrue(GachaViewText.CanRollAgain(wallet, Gem(900)));
+        }
+
+        [Test]
+        public void HistoryLine_ListsCountAndNames()
+        {
+            var entry = new GachaHistoryEntry { Utc = 0, BannerId = "b", Count = 10, CharacterIds = new[] { "a", "b" } };
+            var line = GachaViewText.HistoryLine(entry, id => "N" + id);
+            StringAssert.Contains("Quay 10", line);
+            StringAssert.Contains("Na", line);
+            StringAssert.Contains("Nb", line);
+        }
+
+        [Test]
+        public void HistoryLine_SingleRoll_SaysQuay1()
+        {
+            var entry = new GachaHistoryEntry { Utc = 0, BannerId = "b", Count = 1, CharacterIds = new[] { "a" } };
+            StringAssert.Contains("Quay 1 ", GachaViewText.HistoryLine(entry, id => id) + " ");
+        }
+
+        [Test]
+        public void StarsText_ShowsCount() => StringAssert.Contains("3 sao", GachaViewText.StarsText(3));
     }
 }

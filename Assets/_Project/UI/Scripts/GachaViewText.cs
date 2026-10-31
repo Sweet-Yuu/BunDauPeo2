@@ -35,11 +35,31 @@ namespace BunDauPeo.UI
         };
 
         // Số lấy từ banner để chỉnh chi phí trong Inspector thì nút không ghi sai giá.
-        public static string PullLabel(int count, IReadOnlyList<CurrencyAmount> cost)
+        public static string PullLabel(int count, IReadOnlyList<CurrencyAmount> cost) => $"Quay {count} ({CostText(cost)})";
+
+        public static string RollAgainLabel(IReadOnlyList<CurrencyAmount> cost) => $"Quay tiếp ({CostText(cost)})";
+
+        public static string InsufficientGemText(long needed) => $"Không đủ Gem (cần {needed})";
+
+        // Điều kiện duy nhất để bật nút Quay tiếp: đủ tiền cho đúng lượt vừa quay.
+        public static bool CanRollAgain(Wallet wallet, CurrencyAmount[] cost) => wallet.CanAfford(cost);
+
+        public static string StarsText(int stars) => $"{stars} sao";
+
+        // Ví dụ: "14:02 31/10 · Quay 10 · Nem Chua, Lòng Dồi, ..."
+        public static string HistoryLine(GachaHistoryEntry entry, Func<string, string> nameOf)
+        {
+            var time = DateTimeOffset.FromUnixTimeSeconds(entry.Utc).ToLocalTime().ToString("HH:mm dd/MM");
+            var names = new List<string>(entry.CharacterIds.Length);
+            foreach (var id in entry.CharacterIds) names.Add(nameOf(id));
+            return $"{time} · Quay {entry.Count} · {string.Join(", ", names)}";
+        }
+
+        private static string CostText(IReadOnlyList<CurrencyAmount> cost)
         {
             var lines = new string[cost.Count];
             for (var i = 0; i < lines.Length; i++) lines[i] = $"{cost[i].Amount} {cost[i].Type}";
-            return $"Quay {count} ({string.Join(" + ", lines)})";
+            return string.Join(" + ", lines);
         }
     }
 }
