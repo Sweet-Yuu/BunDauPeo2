@@ -20,6 +20,8 @@ Roll, trừ Gem, pity và lưu không đổi ([spec Gacha 4.3](2026-10-31-gacha-
 | Quay 1 | **Có trang tổng**, không có nút Bỏ qua |
 | Thoát trang tổng | Không có nút Đóng riêng. Người chơi chuyển trang bằng tab bên dưới (hub, ngoài phạm vi spec này). Trong spec này, nút OK là đường thoát khỏi trang |
 | Quay tiếp | Bấm OK hiện popup: **Quay tiếp** (cùng số lượt vừa quay) hoặc **Thôi** (về banner). Không đủ Gem cho lượt đó thì hiện cảnh báo và nút Quay tiếp mờ |
+| Thôi | Về trang roll (banner), không hiện lại kết quả cũ |
+| Lịch sử quay | Lưu trong save, 50 mục gần nhất, Reset xoá. Trang roll có nút Lịch sử mở popup chỉ đọc |
 | Art và animation | Copy cả bộ cutscene từ `Project_04_BunDauPeo/Assets/__Vu/Gacha` (mục 6). File do user gửi và yêu cầu copy được phép dùng |
 
 ## 3. Luồng
@@ -48,10 +50,17 @@ Roll, trừ Gem, pity và lưu không đổi ([spec Gacha 4.3](2026-10-31-gacha-
 **Popup quay tiếp**
 - Nội dung: "Quay tiếp?" kèm số lượt và giá, ví dụ "Quay tiếp (900 Gem)".
 - Nút **Quay tiếp**: chạy lại đúng luồng với cùng số lượt vừa quay. Nếu không đủ Gem cho lượt đó, nút này mờ và popup hiện cảnh báo "Không đủ Gem" kèm số Gem cần.
-- Nút **Thôi**: đóng popup, về màn banner. Banner không hiện lại kết quả cũ (không còn ô kết quả trên banner).
+- Nút **Thôi**: đóng popup, về trang roll (banner). Trang roll không hiện lại kết quả cũ.
+
+**Lịch sử quay**
+- Mỗi lần bấm Quay 1 hoặc Quay 10 (đã roll thành công) ghi một mục vào lịch sử: thời điểm, banner, số lượt (1 hoặc 10), và danh sách Id nhân vật theo thứ tự quay.
+- Lịch sử lưu trong save (`PlayerSave.GachaHistory`), giữ **50 mục gần nhất**; mục cũ nhất bị bỏ khi đủ 50. Reset Save Data xoá sạch.
+- Ghi lịch sử nằm trong cùng bước lưu của lượt quay (một lần `persist`), để không có lượt nào lưu thiếu lịch sử hoặc ngược lại.
+- Trang roll có nút **Lịch sử**. Bấm mở popup liệt kê các mục, mới nhất trên cùng. Mỗi dòng: thời điểm, "Quay 1" hoặc "Quay 10", và tên các nhân vật (tên từ `CharacterCatalog`; Id không còn trong catalog thì hiện Id).
+- Popup lịch sử chỉ đọc, có nút Đóng.
 
 **Trạng thái nút quay trên banner**
-- Khoá trong suốt cutscene, reveal và trang tổng. Mở lại khi về banner (sau Thôi), hoặc khi popup đóng.
+- Khoá trong suốt cutscene, reveal và trang tổng. Mở lại khi về trang roll (sau Thôi), hoặc khi popup đóng.
 - Nút Quay 1 và Quay 10 mờ khi không đủ Gem, như hiện nay.
 
 ## 4. Kiến trúc
@@ -60,6 +69,8 @@ Roll, trừ Gem, pity và lưu không đổi ([spec Gacha 4.3](2026-10-31-gacha-
 - `GachaRevealView` (MonoBehaviour, assembly `UI`): đọc bước hiện tại từ sequence, chạy cutscene bằng `Animator`, tween lóe sáng bằng coroutine, và chuyển bước khi clip kết thúc hoặc khi chạm. Không chứa logic thứ tự.
 - `GachaTotalView` (MonoBehaviour): dựng lưới icon, hiện lần lượt, nút OK. Không chứa logic quay.
 - `GachaRollAgainPopup` (MonoBehaviour): hiện popup, cảnh báo, nút Quay tiếp và Thôi. Quyết định bật/tắt nút Quay tiếp dựa trên `Wallet.CanAfford` và giá của lượt vừa quay, qua hàm tĩnh trong `GachaViewText` để test được.
+- `GachaHistoryPopup` (MonoBehaviour): đọc `PlayerSave.GachaHistory` qua hàm tĩnh trong `GachaViewText` để định dạng từng dòng, hiện danh sách, nút Đóng.
+- `GachaService` (assembly `Gacha`) thêm mục lịch sử vào `save.GachaHistory` trong bước áp kết quả, trước `persist()` (mục 5).
 - `GachaView` giữ vai trò điều phối: bấm nút quay, gọi `GachaService`, giao kết quả cho `GachaRevealView`, rồi `GachaTotalView`. Không còn vẽ lưới kết quả trên banner.
 - `CharacterDefinition` thêm `[SerializeField] private int _stars` và property `Stars`. Đây là thay đổi interface của assembly `Characters`. `ProjectSetup` đặt giá trị mẫu theo độ hiếm.
 - Cutscene dựng bằng `Animator` của clip copy sang. Controller có một state `Summon`, không lặp. Thời lượng do clip quyết định, không có trường thời lượng riêng.
@@ -68,8 +79,10 @@ Clip và prefab dùng `unscaled time` (theo ghi chú `NativeCutscenes.md` của 
 
 ## 5. Dữ liệu và lưu
 
-- Không đổi `PlayerSave`. Số sao là dữ liệu định nghĩa của nhân vật (`CharacterDefinition`), không lưu trong save.
-- Không đổi roll, pity, mảnh. Nút Quay tiếp gọi lại `GachaService.PullSingle` hoặc `PullTen` như một lượt quay mới.
+- `PlayerSave` thêm `public List<GachaHistoryEntry> GachaHistory = new();` (giá trị khởi tạo, `Version` giữ 1). `GachaHistoryEntry` là struct `[Serializable]` với `public long Utc`, `public string BannerId`, `public int Count`, `public List<string> CharacterIds`. Struct này nằm trong `Core` cùng `PityEntry`, vì `PlayerSave` ở `Core`.
+- Số sao là dữ liệu định nghĩa của nhân vật (`CharacterDefinition`), không lưu trong save.
+- Không đổi roll, pity, mảnh. Nút Quay tiếp gọi lại `GachaService.PullSingle` hoặc `PullTen` như một lượt quay mới, và ghi thêm một mục lịch sử.
+- Field mới phải được Reset xoá: `ResetToDefaults` ghi đè cả `PlayerSave` (D-005), test phải có assert `GachaHistory` rỗng sau reset.
 - Trình tự hiển thị chỉ tồn tại trong bộ nhớ. Thoát game giữa chừng không để lại trạng thái nào, vì kết quả đã lưu từ lúc roll.
 
 ## 6. Tài sản copy từ Project_04
@@ -97,6 +110,7 @@ EditMode, cùng assembly `BunDauPeo.Tests`:
 - Quay 1: không có nút Bỏ qua, vẫn có trang tổng với 1 icon.
 - Quay 10 có 2 SSR: cả hai đều có cutscene, theo thứ tự.
 - Popup: đủ Gem thì nút Quay tiếp bật; thiếu Gem thì nút Quay tiếp mờ và có cảnh báo. Thôi luôn bật.
+- Lịch sử: mỗi lượt quay thành công thêm đúng một mục; lượt bị từ chối (thiếu Gem, banner lỗi) không thêm mục; mục thứ 51 đẩy mục cũ nhất đi; mục lưu qua round-trip `SaveService`; Reset xoá sạch; định dạng dòng lịch sử (tên hoặc Id khi thiếu trong catalog).
 - Số sao mặc định theo độ hiếm trong `ProjectSetup` (R = 1, SR = 2, SSR = 3).
 - Tài sản copy: các clip, controller, prefab, PNG có mặt; prefab tham chiếu được clip và PNG qua GUID (đọc lại từ file, như L-002).
 
@@ -104,20 +118,19 @@ Kiểm trong Editor (Play Mode, bằng tay với user): thời lượng cutscene
 
 ## 8. Tài liệu cần sửa khi làm
 
-- `docs/superpowers/specs/2026-10-31-gacha-design.md` mục 8: bỏ "hiệu ứng ... animation quay" khỏi danh sách ngoài phạm vi, ghi rõ spec này làm phần reveal và trang tổng. Animation nhân vật thật và âm thanh vẫn ngoài phạm vi.
+- `docs/superpowers/specs/2026-10-31-gacha-design.md` mục 8: bỏ "hiệu ứng ... animation quay" và "Nhật ký lịch sử quay" khỏi danh sách ngoài phạm vi; ghi rõ spec này làm phần reveal, trang tổng và lịch sử. Animation nhân vật thật và âm thanh vẫn ngoài phạm vi.
 - `docs/design/game-design.md` mục Gacha: thêm luật SSR đứng cuối và không bỏ qua; quay 10 có nút bỏ qua tới SSR hoặc trang tổng; mọi lượt quay kết thúc ở trang tổng có OK và popup quay tiếp.
 - `docs/project/structure.md`: thêm `Gacha/Prefabs/Cutscenes` và `Gacha/Art/Summoning`.
 - `docs/lessons/lesson.md` khi có lỗi.
 
 ## 9. Chưa chốt
 
-- **Bố cục trang tổng chi tiết:** theo ảnh tham chiếu user gửi (lưới 5 + 5, khung màu độ hiếm, nhãn MỚI / TRÙNG, nút OK). Ảnh tham chiếu có thanh "Char. Exchange Pts" và dòng chú thích "trùng sẽ đổi thành ...": bản này **chưa có** hai thứ đó. User cần chốt có thêm dòng chú thích "Nhân vật trùng thành mảnh" không.
-- **Banner sau Thôi:** mặc định không hiện lại kết quả cũ. User xác nhận hay muốn giữ ô kết quả trên banner.
-- **Trang tổng khi Quay 1:** mặc định 1 icon đặt ở vị trí đầu lưới, căn giữa. Cần xác nhận khi có ảnh.
+- **Không có mục mở về luật.** Đã chốt: không có thanh "Char. Exchange Pts" và không có dòng chú thích trùng; Thôi về trang roll; lịch sử lưu trong save 50 mục; Quay 1 có trang tổng 1 icon căn giữa.
+- **Bố cục chi tiết:** theo ảnh tham chiếu user gửi (lưới 5 + 5, khung màu độ hiếm, nhãn MỚI / TRÙNG, nút OK). Kích thước và màu cụ thể chờ kế hoạch.
 
 ## 10. Ngoài phạm vi
 
 - Nâng sao và luật số sao theo cấp (spec nâng sao).
 - Âm thanh, animation nhân vật thật, art thật cho `Portrait`. Hiện `Portrait` vẫn là placeholder.
 - Thanh điểm đổi và thanh chuyển trang dưới (hub, spec UI hub).
-- Lịch sử quay, banner chọn được (theo spec Gacha mục 8).
+- Banner chọn được và lọc lịch sử theo banner (theo spec Gacha mục 8).
