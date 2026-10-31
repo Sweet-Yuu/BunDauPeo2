@@ -32,12 +32,13 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - Chiến đấu turn-based theo màn chơi: mỗi nhân vật có 1 đánh thường, 1 skill, 1 ultimate.
 - UI hub có thanh điều hướng dưới.
 - Lưu game cục bộ.
+- Nhân vật trùng thành mảnh để nâng sao (tối đa 5★, spec riêng sau Combat).
 
 ## Ngoài phạm vi (chưa làm)
 
 - Nạp tiền thật, tính năng online, server.
 - Hệ nguyên tố, trang bị.
-- Cấp nhân vật và đổi nhân vật trùng thành tài nguyên (chưa thiết kế).
+- Chỉ số nhân vật theo sao và cấp nhân vật (chưa thiết kế).
 
 ## Tiêu chí "xong" của MVP
 

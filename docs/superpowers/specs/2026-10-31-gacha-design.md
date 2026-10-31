@@ -23,9 +23,9 @@ Người chơi tiêu Gem để quay 1 hoặc 10 lượt trên một banner, nh�
 
 Mọi con số ở bảng trên là **số khởi điểm đặt trong ScriptableObject**, chỉnh trong Inspector không cần sửa code.
 
-### Vision cần cập nhật (user tự sửa)
+### Vision đã cập nhật
 
-[vision.md](../../vision/vision.md) mục "Ngoài phạm vi" ghi "Cấp nhân vật và đổi nhân vật trùng thành tài nguyên (chưa thiết kế)". Quyết định trên (trùng → mảnh → nâng sao) đi ngược mục đó. User đã chốt **tự sửa** `vision.md`; agent không đụng file đó. Đoạn đề xuất nằm ở [mục 9](#9-câu-hỏi-còn-mở).
+Luật trùng → mảnh → nâng sao trước đây đi ngược mục "Ngoài phạm vi" của [vision.md](../../vision/vision.md). User cho phép sửa vision theo đề xuất, và file đó đã cập nhật ngày 2026-10-31.
 
 ## 2. Cấu trúc và ranh giới asmdef
 
@@ -205,7 +205,7 @@ Chi tiết từng task, model/effort và lệnh ở [kế hoạch](../plans/2026
 
 ## 9. Câu hỏi còn mở
 
-- `TODO(user)`: **user tự sửa** [vision.md](../../vision/vision.md) (user chốt 2026-10-31; agent không đụng file này). Đoạn đề xuất: thay dòng "Cấp nhân vật và đổi nhân vật trùng thành tài nguyên (chưa thiết kế)" ở "Ngoài phạm vi" bằng "Chỉ số nhân vật theo sao và cấp nhân vật (chưa thiết kế)", và thêm vào "Trong phạm vi (MVP)" dòng "Nhân vật trùng thành mảnh để nâng sao (tối đa 5★, spec riêng sau Combat)".
+- Đã xong (2026-10-31): [vision.md](../../vision/vision.md) đã sửa theo đề xuất, với sự cho phép của user. "Ngoài phạm vi" nay ghi "Chỉ số nhân vật theo sao và cấp nhân vật (chưa thiết kế)"; "Trong phạm vi (MVP)" thêm "Nhân vật trùng thành mảnh để nâng sao (tối đa 5★, spec riêng sau Combat)".
 - Đã chốt (2026-10-31): nâng sao làm **sau Combat**, vì sao ảnh hưởng chỉ số mà Restaurant và Combat đọc, và tiêu chí "xong" của MVP không cần đến sao. Roadmap ghi theo thứ tự này.
 - `TODO(user)`: sao ảnh hưởng chỉ số chiến đấu và quán thế nào, giá mảnh mỗi sao, nhân vật mới có mấy sao, mảnh dư tại 5★ dùng làm gì. Chốt trong spec nâng sao.
 
