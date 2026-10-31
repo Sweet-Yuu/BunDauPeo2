@@ -310,6 +310,15 @@ namespace BunDauPeo.Tests
             _wallet.Add(CurrencyType.Gem, 1950);
             Assert.Throws<InvalidOperationException>(() => Make(new ThrowingRandom()).PullSingle("b"));
             Assert.IsEmpty(_save.GachaHistory);
+
+            TestData.Edit(_banner, so =>
+            {
+                var cost = so.FindProperty("_singleCost");
+                cost.arraySize = 1;
+                cost.GetArrayElementAtIndex(0).FindPropertyRelative("Amount").longValue = 0;
+            });
+            Assert.AreEqual(GachaPullStatus.InvalidBanner, Make(new ScriptedRandom()).PullSingle("b").Status);
+            Assert.IsEmpty(_save.GachaHistory);
         }
 
         [Test]

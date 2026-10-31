@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,7 +25,7 @@ namespace BunDauPeo.UI
         private void Awake()
         {
             _iconTemplate.SetActive(false);
-            _okButton.onClick.AddListener(() => OkClicked?.Invoke());
+            _okButton.onClick.AddListener(() => OkClicked.SafeInvoke());
         }
 
         private void OnDestroy() => _okButton.onClick.RemoveAllListeners();

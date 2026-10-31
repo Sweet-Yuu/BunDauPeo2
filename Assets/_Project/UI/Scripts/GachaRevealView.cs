@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -49,8 +50,7 @@ namespace BunDauPeo.UI
         public void SkipToSsrOrTotal()
         {
             if (_sequence == null) return;
-            _sequence.SkipToSsrOrTotal();
-            Enter();
+            if (_sequence.SkipToSsrOrTotal()) Enter();
         }
 
         private void Update()
@@ -63,17 +63,12 @@ namespace BunDauPeo.UI
                 var animator = kind == RevealStepKind.CommonCutscene ? _commonAnimator : _legendaryAnimator;
                 if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f && !animator.IsInTransition(0))
                 {
-                    _sequence.ClipFinished();
-                    Enter();
+                    if (_sequence.ClipFinished()) Enter();
                     return;
                 }
             }
 
-            if (WasTapped())
-            {
-                _sequence.Tap();
-                Enter();
-            }
+            if (WasTapped() && _sequence.Tap()) Enter();
         }
 
         private static bool WasTapped() =>
@@ -83,6 +78,8 @@ namespace BunDauPeo.UI
         private void Enter()
         {
             var step = _sequence.Current;
+            // Lóe sáng dở dang không được kéo sang cutscene hay lượt quay sau.
+            if (step.Kind != RevealStepKind.Reveal) ClearFlash();
             _commonAnimator.gameObject.SetActive(step.Kind == RevealStepKind.CommonCutscene);
             _legendaryAnimator.gameObject.SetActive(step.Kind == RevealStepKind.LegendaryCutscene);
             _revealPanel.SetActive(step.Kind == RevealStepKind.Reveal);
@@ -94,7 +91,7 @@ namespace BunDauPeo.UI
             {
                 _root.SetActive(false);
                 _sequence = null;
-                Finished?.Invoke();
+                Finished.SafeInvoke();
             }
         }
 
@@ -107,6 +104,15 @@ namespace BunDauPeo.UI
             // Chạm nhanh liên tiếp: dừng lóe sáng cũ để hai lần không chồng lên nhau.
             if (_flashRoutine != null) StopCoroutine(_flashRoutine);
             _flashRoutine = StartCoroutine(Flash(GachaViewText.RarityColor(character.Rarity)));
+        }
+
+        private void ClearFlash()
+        {
+            if (_flashRoutine != null) StopCoroutine(_flashRoutine);
+            _flashRoutine = null;
+            var clear = _flash.color;
+            clear.a = 0f;
+            _flash.color = clear;
         }
 
         private IEnumerator Flash(Color color)

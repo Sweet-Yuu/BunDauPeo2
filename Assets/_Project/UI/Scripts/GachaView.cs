@@ -33,6 +33,7 @@ namespace BunDauPeo.UI
         // Từ lúc bấm quay đến lúc bấm Thôi: khoá nút quay trên trang roll.
         private bool _busy;
         private bool _lastIsTen;
+        private bool _lastSaved = true;
         private IReadOnlyList<GachaPullEntry> _entries;
 
         private void OnEnable()
@@ -99,9 +100,28 @@ namespace BunDauPeo.UI
             return ok;
         }
 
-        private void PullSingle() => StartPull(_gacha.PullSingle(_banner.Id), isTen: false);
+        private void PullSingle() => TryPull(() => _gacha.PullSingle(_banner.Id), isTen: false);
 
-        private void PullTen() => StartPull(_gacha.PullTen(_banner.Id), isTen: true);
+        private void PullTen() => TryPull(() => _gacha.PullTen(_banner.Id), isTen: true);
+
+        private void TryPull(Func<GachaPullResult> pull, bool isTen)
+        {
+            GachaPullResult result;
+            try
+            {
+                result = pull();
+            }
+            catch (Exception e)
+            {
+                // Roll chạy trước khi trừ tiền nên chưa có gì đổi; mở lại nút thay vì khoá vĩnh viễn.
+                Debug.LogException(e, this);
+                _busy = false;
+                Redraw();
+                return;
+            }
+
+            StartPull(result, isTen);
+        }
 
         private void StartPull(GachaPullResult result, bool isTen)
         {
@@ -115,6 +135,7 @@ namespace BunDauPeo.UI
             }
 
             _lastIsTen = isTen;
+            _lastSaved = result.Saved;
             _entries = result.Entries;
             _busy = true;
             _revealView.Play(result.Entries, isTen);
@@ -141,7 +162,8 @@ namespace BunDauPeo.UI
         {
             _rollAgainPopup.Close();
             _busy = false;
-            _messageText.text = "";
+            // Cảnh báo chưa lưu được nằm trên trang roll, bị reveal che; giữ lại tới lúc người chơi về trang này.
+            _messageText.text = GachaViewText.StatusMessage(GachaPullStatus.Success, _lastSaved);
             Redraw();
         }
 

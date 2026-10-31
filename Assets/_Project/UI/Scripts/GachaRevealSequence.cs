@@ -48,28 +48,29 @@ namespace BunDauPeo.UI
         // Nút Bỏ qua chỉ có ở Quay 10 và không hoạt động trong cutscene SSR hoặc trang tổng.
         public bool CanSkipAll => _isTen && Current.Kind != RevealStepKind.LegendaryCutscene && Current.Kind != RevealStepKind.Total;
 
-        public void Tap()
-        {
-            if (Current.Kind is RevealStepKind.CommonCutscene or RevealStepKind.Reveal) Advance();
-        }
+        // Các hàm dưới trả true khi bước hiện tại đã đổi. View chỉ vào bước mới khi true: chạm vào cutscene SSR
+        // (không đổi bước) mà view vẫn phát lại clip thì cutscene bị chạy lại từ đầu.
+        public bool Tap() => Current.Kind is RevealStepKind.CommonCutscene or RevealStepKind.Reveal && Advance();
 
-        public void ClipFinished()
-        {
-            if (Current.Kind is RevealStepKind.CommonCutscene or RevealStepKind.LegendaryCutscene) Advance();
-        }
+        public bool ClipFinished() => Current.Kind is RevealStepKind.CommonCutscene or RevealStepKind.LegendaryCutscene && Advance();
 
-        public void SkipToSsrOrTotal()
+        public bool SkipToSsrOrTotal()
         {
-            if (!_isTen || Current.Kind == RevealStepKind.LegendaryCutscene) return;
+            if (!_isTen || Current.Kind == RevealStepKind.LegendaryCutscene) return false;
 
             // Tìm SSR phía sau; không có thì tới trang tổng. Không bao giờ lùi về SSR đã xem.
             var next = _steps.FindIndex(_index + 1, s => s.Kind == RevealStepKind.LegendaryCutscene);
-            _index = next >= 0 ? next : _steps.Count - 1;
+            var target = next >= 0 ? next : _steps.Count - 1;
+            var moved = target != _index;
+            _index = target;
+            return moved;
         }
 
-        private void Advance()
+        private bool Advance()
         {
-            if (_index < _steps.Count - 1) _index++;
+            if (_index >= _steps.Count - 1) return false;
+            _index++;
+            return true;
         }
     }
 }

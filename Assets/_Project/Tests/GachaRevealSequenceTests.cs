@@ -76,7 +76,8 @@ namespace BunDauPeo.Tests
             var seq = new GachaRevealSequence(new[] { E("a", Rarity.SSR) }, isTen: true);
             seq.ClipFinished();
             Assert.AreEqual("L0", Label(seq.Current));
-            seq.Tap();
+            // false = không đổi bước: view dựa vào đây để không phát lại cutscene khi chạm.
+            Assert.IsFalse(seq.Tap());
             Assert.AreEqual("L0", Label(seq.Current));
         }
 
@@ -85,8 +86,24 @@ namespace BunDauPeo.Tests
         {
             var seq = new GachaRevealSequence(new[] { E("a", Rarity.R), E("b", Rarity.SSR), E("c", Rarity.SSR) }, isTen: true);
             seq.Tap();
-            seq.SkipToSsrOrTotal();
+            Assert.IsTrue(seq.SkipToSsrOrTotal());
             Assert.AreEqual("L1", Label(seq.Current));
+        }
+
+        [Test]
+        public void AfterSkip_EveryLaterSsrStillPlaysItsCutscene()
+        {
+            var seq = new GachaRevealSequence(new[] { E("a", Rarity.R), E("b", Rarity.SSR), E("c", Rarity.SSR) }, isTen: true);
+            seq.Tap();
+            seq.SkipToSsrOrTotal();
+            var labels = new List<string> { Label(seq.Current) };
+            while (seq.Current.Kind != RevealStepKind.Total)
+            {
+                if (seq.Current.Kind == RevealStepKind.LegendaryCutscene) seq.ClipFinished();
+                else seq.Tap();
+                labels.Add(Label(seq.Current));
+            }
+            CollectionAssert.AreEqual(new[] { "L1", "R1", "L2", "R2", "T" }, labels);
         }
 
         [Test]
@@ -114,7 +131,7 @@ namespace BunDauPeo.Tests
         {
             var seq = new GachaRevealSequence(new[] { E("a", Rarity.SSR), E("b", Rarity.SSR) }, isTen: true);
             seq.ClipFinished();
-            seq.SkipToSsrOrTotal();
+            Assert.IsFalse(seq.SkipToSsrOrTotal());
             Assert.AreEqual("L0", Label(seq.Current));
         }
 
@@ -124,7 +141,7 @@ namespace BunDauPeo.Tests
             var seq = new GachaRevealSequence(new[] { E("a", Rarity.SSR) }, isTen: false);
             seq.ClipFinished();
             Assert.AreEqual("L0", Label(seq.Current));
-            seq.SkipToSsrOrTotal();
+            Assert.IsFalse(seq.SkipToSsrOrTotal());
             Assert.AreEqual("L0", Label(seq.Current), "single roll never skips, even onto a legendary step");
 
             var single = new GachaRevealSequence(new[] { E("a", Rarity.R) }, isTen: false);
@@ -142,6 +159,11 @@ namespace BunDauPeo.Tests
             Assert.IsTrue(ten.CanSkipAll, "reveal");
             ten.Tap();
             Assert.IsFalse(ten.CanSkipAll, "legendary cutscene");
+            ten.ClipFinished();
+            Assert.IsTrue(ten.CanSkipAll, "ssr reveal");
+            ten.Tap();
+            Assert.AreEqual("T", Label(ten.Current));
+            Assert.IsFalse(ten.CanSkipAll, "total");
 
             var single = new GachaRevealSequence(new[] { E("a", Rarity.R) }, isTen: false);
             Assert.IsFalse(single.CanSkipAll);
@@ -152,7 +174,7 @@ namespace BunDauPeo.Tests
         {
             var seq = new GachaRevealSequence(new[] { E("a", Rarity.R) }, isTen: false);
             Walk(seq);
-            seq.Tap();
+            Assert.IsFalse(seq.Tap());
             Assert.AreEqual("T", Label(seq.Current));
         }
 
@@ -161,7 +183,7 @@ namespace BunDauPeo.Tests
         {
             var seq = new GachaRevealSequence(new[] { E("a", Rarity.R) }, isTen: false);
             seq.Tap();
-            seq.ClipFinished();
+            Assert.IsFalse(seq.ClipFinished());
             Assert.AreEqual("R0", Label(seq.Current));
         }
     }

@@ -16,7 +16,7 @@ namespace BunDauPeo.UI
 
         public event Action CloseClicked;
 
-        private void Awake() => _closeButton.onClick.AddListener(() => CloseClicked?.Invoke());
+        private void Awake() => _closeButton.onClick.AddListener(() => CloseClicked.SafeInvoke());
 
         private void OnDestroy() => _closeButton.onClick.RemoveAllListeners();
 

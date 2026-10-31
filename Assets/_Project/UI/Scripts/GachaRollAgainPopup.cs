@@ -1,4 +1,5 @@
 using System;
+using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,8 +20,8 @@ namespace BunDauPeo.UI
 
         private void Awake()
         {
-            _rollAgainButton.onClick.AddListener(() => RollAgainClicked?.Invoke());
-            _dismissButton.onClick.AddListener(() => DismissClicked?.Invoke());
+            _rollAgainButton.onClick.AddListener(() => RollAgainClicked.SafeInvoke());
+            _dismissButton.onClick.AddListener(() => DismissClicked.SafeInvoke());
         }
 
         private void OnDestroy()

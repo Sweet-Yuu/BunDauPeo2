@@ -180,7 +180,17 @@ namespace BunDauPeo.Tests
         public void SampleCharacters_StarsMatchRarity()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<CharacterCatalog>(ProjectSetup.CatalogPath);
-            foreach (var c in catalog.Items) Assert.AreEqual((int)c.Rarity + 1, c.Stars, c.Id);
+            // Giá trị cụ thể theo Id, không dùng lại công thức của ProjectSetup nên đổi thứ tự enum sẽ bị bắt.
+            var expected = new System.Collections.Generic.Dictionary<string, int>
+            {
+                ["char_nem_chua"] = 1, ["char_cha_com"] = 1, ["char_dau_phu"] = 1,
+                ["char_mam_tom"] = 2, ["char_long_doi"] = 2, ["char_bun_la"] = 3,
+            };
+            foreach (var pair in expected)
+            {
+                Assert.IsTrue(catalog.TryGet(pair.Key, out var c), pair.Key);
+                Assert.AreEqual(pair.Value, c.Stars, pair.Key);
+            }
         }
 
         [Test]
@@ -202,6 +212,7 @@ namespace BunDauPeo.Tests
             {
                 SetStars(zero, 1);
                 SetStars(keep, 3);
+                AssetDatabase.SaveAssets();
             }
         }
 
