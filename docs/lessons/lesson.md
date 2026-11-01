@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-010 — Ảnh chụp Game view bị bóp về 16:9 nên kết luận sai về bố cục (2026-11-02)  #ui #process
+- Triệu chứng: `capture game_view` luôn trả ảnh 1280×720 dù Game view thật là 2658×960, nên hình tròn thành bầu dục và phòng trông méo; kèm theo, với `matchWidthOrHeight = 0,5` canvas chỉ cao 865 và cắt phía dưới bố cục cao 1080.
+- Nguyên nhân gốc: tin kích thước ảnh chụp thay vì đọc `Screen.width/height` và `Canvas.scaleFactor` của lượt chạy.
+- Luật từ nay: khi thử màn UI, đọc `Screen.width/height` rồi chụp bằng `ScreenCapture.CaptureScreenshot("D:/…/x.png")` (đúng tỉ lệ thật, ghi ngoài repo); màn có bố cục cố định theo chiều cao thì scaler khớp theo chiều cao.
+
 ### L-009 — Play đứng im khi Editor không focus, dễ nhầm với lỗi mô phỏng (2026-11-01)  #process #unity-files
 - Triệu chứng: thử quán qua `unity command`, Coin đứng ở 583 hơn 50 giây dù đủ ba nhân viên; chưa kiểm đã định kết luận khách không đến nữa.
 - Nguyên nhân gốc: Editor không focus thì vòng lặp Play không chạy (`Time.frameCount` đứng yên), không phải lỗi `RestaurantSimulation`. Cờ của hai lệnh bật chạy nền là `--enable true` (không phải `--enabled`).

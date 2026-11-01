@@ -123,7 +123,8 @@ namespace BunDauPeo.UI
             var text = _floatTexts[i];
             text.text = "+" + coins.ToString(CultureInfo.InvariantCulture);
             text.rectTransform.position = _floatStart[i];
-            text.color = new Color(1f, 0.85f, 0.4f, 1f);
+            // Nền phòng sáng nên dùng màu cam đậm.
+            text.color = new Color(0.92f, 0.50f, 0.05f, 1f);
             text.gameObject.SetActive(true);
         }
 

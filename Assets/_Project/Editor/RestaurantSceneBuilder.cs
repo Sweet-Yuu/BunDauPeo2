@@ -11,22 +11,32 @@ using Object = UnityEngine.Object;
 
 namespace BunDauPeo.EditorTools
 {
-    // Dựng scene Restaurant bằng code, cùng khuôn GachaSceneBuilder. Hình trong Canvas đều là Image: sàn và đồ vật là hình vuông đặc
-    // (không gán sprite), người là Knob, nút là UISprite. Chữ là Text của uGUI (docs dự án thắng skill ui-ugui, xem GachaSceneBuilder).
-    // Bản đầu không có tường: ghép hình bình hành rườm rà so với giá trị khi thử (spec 5.1 cho phép bỏ).
+    // Dựng scene Restaurant bằng code theo spec Restaurant 5.1 (bố cục từ ba ảnh Mota/restaurant-layout-*), cùng khuôn GachaSceneBuilder.
+    // Hình trong Canvas đều là Image: sàn, tường, đồ vật là hình vuông đặc (không gán sprite) cùng một góc xoay; người và cây là Knob;
+    // thẻ và nút là UISprite/Knob. Chữ là Text của uGUI (docs dự án thắng skill ui-ugui, xem GachaSceneBuilder).
     internal static class RestaurantSceneBuilder
     {
-        // Cạnh ô lưới trước khi xoay 45° và nén y một nửa: 60 × √2, để ô trên màn hình đúng 120×60.
-        private const float CellSide = 84.8528f;
-        private const int GridSize = 8;
-        private const float RoomScale = 1.5f;
+        // Gốc của phòng (góc sau-trái của sàn) tính từ góc trái trên của Canvas 1920×1080; sàn chiếm khoảng 1184 × 736, lệch trái để chừa cột nút.
+        private static readonly Vector2 RoomOrigin = new(310, 220);
+        private const float ReferenceWidth = 1920f;
+        private const int GridColumns = 12;
+        private const int GridRows = 8;
 
-        private static readonly Color Background = new(0.10f, 0.11f, 0.15f);
-        private static readonly Color FloorRed = new(0.85f, 0.42f, 0.45f);
-        private static readonly Color FloorBlue = new(0.36f, 0.55f, 0.80f);
-        private static readonly Color BarColor = new(0f, 0f, 0f, 0.55f);
+        private static readonly Color Background = new(0.74f, 0.89f, 0.66f);
+        private static readonly Color FloorColor = new(1f, 0.93f, 0.78f);
+        private static readonly Color WallFace = new(0.46f, 0.64f, 0.52f);
+        private static readonly Color WallTop = new(0.68f, 0.84f, 0.74f);
+        private static readonly Color Wood = new(0.66f, 0.46f, 0.30f);
+        private static readonly Color WoodDark = new(0.52f, 0.34f, 0.22f);
+        private static readonly Color TableWood = new(0.83f, 0.66f, 0.42f);
+        private static readonly Color Carpet = new(0.78f, 0.35f, 0.33f);
+        private static readonly Color CardColor = new(1f, 1f, 1f, 0.95f);
+        private static readonly Color BarColor = new(1f, 1f, 1f, 0.78f);
+        private static readonly Color DarkText = new(0.20f, 0.22f, 0.30f);
+        private static readonly Color StarOn = new(1f, 0.74f, 0.15f);
+        private static readonly Color StarOff = new(0.78f, 0.79f, 0.84f);
+        private static readonly Color FloatText = new(0.92f, 0.50f, 0.05f);
         private static readonly Color TextColor = Color.white;
-        private static readonly Color PaleText = new(0.85f, 0.88f, 0.95f);
         private static readonly Color Gold = new(1f, 0.85f, 0.4f);
         private static readonly Color PanelColor = new(0.18f, 0.20f, 0.27f);
         private static readonly Color Dim = new(0f, 0f, 0f, 0.65f);
@@ -40,16 +50,17 @@ namespace BunDauPeo.EditorTools
         private static readonly Vector2 TopCenter = new(0.5f, 1);
         private static readonly Vector2 BottomCenter = new(0.5f, 0);
 
-        // Ô lưới (gx, gy) của điểm mốc; gx đi xuống bên phải, gy đi xuống bên trái.
+        // Điểm mốc theo ô lưới (gx, gy). Bàn: hai hàng bốn, hàng gần bếp trước. Điểm mốc của người đứng giữa các lối đi.
         private static readonly Vector2[] TableCells =
         {
-            new(3, 2), new(3, 4), new(3, 6), new(5, 2), new(5, 4), new(5, 6), new(7, 2), new(7, 4),
+            new(5.2f, 3.4f), new(7.0f, 3.4f), new(8.8f, 3.4f), new(10.6f, 3.4f),
+            new(5.2f, 5.8f), new(7.0f, 5.8f), new(8.8f, 5.8f), new(10.6f, 5.8f),
         };
 
-        private static readonly Vector2[] CookCells = { new(1, 2), new(1, 3), new(1, 4) };
-        private static readonly Vector2[] ServerCells = { new(1, 5), new(1, 6), new(1, 7) };
-        private static readonly Vector2[] CashierCells = { new(2, 1), new(3, 1), new(4, 1) };
-        private static readonly Vector2 DoorCell = new(7, 7);
+        private static readonly Vector2[] CookCells = { new(6.5f, 2.3f), new(8.5f, 2.3f), new(10.5f, 2.3f) };
+        private static readonly Vector2[] ServerCells = { new(4.4f, 1.6f), new(4.4f, 2.3f), new(3.6f, 1.9f) };
+        private static readonly Vector2[] CashierCells = { new(1.0f, 2.4f), new(2.0f, 2.4f), new(3.0f, 2.4f) };
+        private static readonly Vector2 DoorCell = new(3.0f, 8.0f);
 
         public static void Create(string scenePath)
         {
@@ -65,15 +76,31 @@ namespace BunDauPeo.EditorTools
             CreateCamera(scene);
             CreateEventSystem(scene);
             var canvas = CreateCanvas(scene);
+            // Bố cục cao đúng 1080 nên khớp theo chiều cao: Game view rộng (vd. 2658×960) không cắt phía dưới như match 0,5.
+            canvas.GetComponent<CanvasScaler>().matchWidthOrHeight = 1f;
 
             var back = NewRect("Background", canvas);
             Stretch(back);
             AddImage(back, null, Background, raycast: false);
+            BuildGarden(canvas, knob);
 
+            // Phòng: RectTransform không kích thước đặt ở gốc lưới; con của nó đặt bằng IsoProjection.CellToLocal.
             var room = NewRect("Room", canvas);
-            Place(room, Center, Center, new Vector2(0, 235), Vector2.zero);
-            room.localScale = Vector3.one * RoomScale;
-            BuildFloor(room);
+            // Neo ở giữa-trên: màn rộng hơn 16:9 thì phòng và vườn ở lại gần giữa, không trôi sát mép trái.
+            Place(room, TopCenter, TopLeft, new Vector2(RoomOrigin.x - ReferenceWidth / 2f, -RoomOrigin.y), Vector2.zero);
+            BuildCrops(room, knob);
+
+            // Sàn: một chữ nhật một màu, pivot ở góc sau-trái nên xoay quanh gốc lưới.
+            var floor = NewRect("Floor", room);
+            Place(floor, Center, TopLeft, Vector2.zero, new Vector2(GridColumns * IsoProjection.CellWidth, GridRows * IsoProjection.CellHeight));
+            floor.localRotation = Rotation();
+            AddImage(floor, null, FloorColor, raycast: false);
+
+            // Tường thấp ở cạnh sau và cạnh trái: mặt tường và một dải sáng nhích lên làm "mép trên".
+            Wall(room, "WallBackTop", -0.5f, GridColumns + 0.3f, -0.55f, 0f, WallTop, lift: 26);
+            Wall(room, "WallBack", -0.5f, GridColumns + 0.3f, -0.55f, 0f, WallFace, lift: 0);
+            Wall(room, "WallLeftTop", -0.55f, 0f, -0.55f, GridRows + 0.1f, WallTop, lift: 26);
+            Wall(room, "WallLeft", -0.55f, 0f, -0.55f, GridRows + 0.1f, WallFace, lift: 0);
 
             // Đồ vật vẽ theo độ sâu: gần người xem hơn thì vẽ sau.
             var furniture = NewRect("Furniture", room);
@@ -82,39 +109,41 @@ namespace BunDauPeo.EditorTools
             RectTransform counter = null;
             var pieces = new List<(float Depth, Action Build)>
             {
-                (IsoProjection.DepthKey(0, 3), () => Box("Kitchen", furniture, new Vector2(0, 3), new Vector2(200, 60), new Color(0.55f, 0.35f, 0.25f))),
-                (IsoProjection.DepthKey(3, 0), () => counter = Box("Counter", furniture, new Vector2(3, 0), new Vector2(200, 60), new Color(0.45f, 0.30f, 0.50f))),
+                (IsoProjection.DepthKey(8.5f, 0.75f), () => Block("Kitchen", furniture, 5.5f, 11.5f, 0.15f, 1.35f, WoodDark)),
+                (IsoProjection.DepthKey(1.9f, 3.5f), () => counter = Block("Counter", furniture, 0.6f, 3.2f, 3.0f, 4.0f, Wood)),
             };
             for (var i = 0; i < TableCells.Length; i++)
             {
                 var index = i;
-                pieces.Add((IsoProjection.DepthKey(TableCells[i].x, TableCells[i].y),
-                    () => tables[index] = Box($"Table{index}", furniture, TableCells[index], new Vector2(110, 60), new Color(0.80f, 0.65f, 0.40f))));
+                var cell = TableCells[i];
+                pieces.Add((IsoProjection.DepthKey(cell.x, cell.y),
+                    () => tables[index] = Block($"Table{index}", furniture, cell.x - 0.6f, cell.x + 0.6f, cell.y - 0.5f, cell.y + 0.5f, TableWood)));
             }
 
             pieces.Sort((a, b) => a.Depth.CompareTo(b.Depth));
             foreach (var piece in pieces) piece.Build();
 
-            var door = Box("Door", furniture, DoorCell, new Vector2(120, 30), new Color(0.25f, 0.20f, 0.18f));
+            // Cửa: thảm ở cạnh trước, phía trái, gần quầy. Điểm mốc nằm đúng trên cạnh trước.
+            var door = Block("Door", furniture, DoorCell.x - 1f, DoorCell.x + 1f, DoorCell.y - 0.3f, DoorCell.y + 0.3f, Carpet);
             var landmarks = NewRect("Landmarks", room);
             Place(landmarks, Center, Center, Vector2.zero, Vector2.zero);
             var cookSpots = Spots("Cook", landmarks, CookCells);
             var serverSpots = Spots("Server", landmarks, ServerCells);
             var cashierSpots = Spots("Cashier", landmarks, CashierCells);
 
-            // Mẫu để RestaurantView nhân bản; nằm dưới đối tượng tắt nên không hiện.
+            // Mẫu để RestaurantView nhân bản; nằm dưới đối tượng tắt nên không hiện. Người đứng thẳng, không xoay theo sàn.
             var templates = NewRect("Templates", room);
             Place(templates, Center, Center, Vector2.zero, Vector2.zero);
             var customerTemplate = NewRect("CustomerTemplate", templates);
-            Place(customerTemplate, Center, Center, Vector2.zero, new Vector2(44, 44));
+            Place(customerTemplate, Center, Center, Vector2.zero, new Vector2(54, 54));
             var customerImage = AddImage(customerTemplate, knob, Color.white, raycast: false);
             customerImage.type = Image.Type.Simple;
             var workerTemplate = NewRect("WorkerTemplate", templates);
-            Place(workerTemplate, Center, Center, Vector2.zero, new Vector2(56, 56));
+            Place(workerTemplate, Center, Center, Vector2.zero, new Vector2(64, 64));
             var workerImage = AddImage(workerTemplate, knob, Color.white, raycast: false);
             workerImage.type = Image.Type.Simple;
-            var workerLabel = NewText("NameText", workerTemplate, font, "", 22, TextAnchor.MiddleCenter, TextColor);
-            Place(workerLabel.rectTransform, Center, Center, new Vector2(0, 46), new Vector2(200, 30));
+            var workerLabel = NewText("NameText", workerTemplate, font, "", 24, TextAnchor.MiddleCenter, DarkText);
+            Place(workerLabel.rectTransform, Center, Center, new Vector2(0, 52), new Vector2(200, 30));
             templates.gameObject.SetActive(false);
 
             var actors = NewRect("Actors", room);
@@ -133,80 +162,125 @@ namespace BunDauPeo.EditorTools
             viewSo.FindProperty("_workerTemplate").objectReferenceValue = workerImage;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
-            BuildHud(canvas, font, knob, counter);
-            BuildStaffPanel(canvas, font, sprite);
+            BuildHud(canvas, font, sprite, knob, counter);
+
+            // Cột nút phải: dải trắng bo góc sát mép phải, ba ô; ô chưa có nút để trống (Nâng cấp: Task 10, Thu AFK: Task 13).
+            var column = NewRect("RightColumn", canvas);
+            Place(column, TopRight, TopRight, new Vector2(-20, -110), new Vector2(170, 520));
+            AddImage(column, sprite, CardColor, raycast: false);
+            BuildStaffPanel(canvas, column, font, sprite, knob);
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
         }
 
-        // Cha nén y 0,5 chứa cha xoay 45° chứa 64 ô vuông: không phải tính vị trí từng ô theo phép chiếu.
-        private static void BuildFloor(RectTransform room)
-        {
-            var squash = NewRect("FloorSquash", room);
-            Place(squash, Center, Center, Vector2.zero, Vector2.zero);
-            squash.localScale = new Vector3(1f, 0.5f, 1f);
-            var rotated = NewRect("FloorRotation", squash);
-            Place(rotated, Center, Center, Vector2.zero, Vector2.zero);
-            rotated.localRotation = Quaternion.Euler(0f, 0f, 45f);
+        private static Quaternion Rotation() => Quaternion.Euler(0f, 0f, IsoProjection.RotationDegrees);
 
-            for (var gx = 0; gx < GridSize; gx++)
+        // Chữ nhật theo ô lưới [gx0, gx1] × [gy0, gy1], cùng góc xoay với sàn.
+        private static RectTransform Block(string name, RectTransform parent, float gx0, float gx1, float gy0, float gy1, Color color, float lift = 0f)
+        {
+            var rect = NewRect(name, parent);
+            var center = IsoProjection.CellToLocal((gx0 + gx1) / 2f, (gy0 + gy1) / 2f);
+            Place(rect, Center, Center, center + Vector2.up * lift, new Vector2((gx1 - gx0) * IsoProjection.CellWidth, (gy1 - gy0) * IsoProjection.CellHeight));
+            rect.localRotation = Rotation();
+            AddImage(rect, null, color, raycast: false);
+            return rect;
+        }
+
+        private static void Wall(RectTransform room, string name, float gx0, float gx1, float gy0, float gy1, Color color, float lift) =>
+            Block(name, room, gx0, gx1, gy0, gy1, color, lift);
+
+        // Cảnh quanh phòng, chỉ để nhìn (raycast tắt, không có luật): cây phía sau và bụi hoa bên phải, tọa độ Canvas từ góc trái trên.
+        private static void BuildGarden(RectTransform canvas, Sprite knob)
+        {
+            var garden = NewRect("Garden", canvas);
+            Place(garden, TopCenter, TopLeft, new Vector2(-ReferenceWidth / 2f, 0), Vector2.zero);
+            var trees = new (float X, float Y, float Size, Color Color)[]
             {
-                for (var gy = 0; gy < GridSize; gy++)
+                (110, 360, 210, new Color(0.30f, 0.55f, 0.35f)), (170, 520, 150, new Color(0.40f, 0.66f, 0.42f)),
+                (1500, 330, 240, new Color(0.30f, 0.55f, 0.35f)), (1610, 500, 160, new Color(0.40f, 0.66f, 0.42f)),
+                (1510, 660, 120, new Color(0.55f, 0.65f, 0.95f)), (1630, 720, 120, new Color(0.75f, 0.60f, 0.90f)),
+                (1530, 850, 130, new Color(0.95f, 0.65f, 0.80f)), (1650, 920, 120, new Color(0.55f, 0.65f, 0.95f)),
+            };
+            for (var i = 0; i < trees.Length; i++)
+            {
+                var rect = NewRect($"Plant{i}", garden);
+                Place(rect, TopLeft, Center, new Vector2(trees[i].X, -trees[i].Y), new Vector2(trees[i].Size, trees[i].Size));
+                AddImage(rect, knob, trees[i].Color, raycast: false).type = Image.Type.Simple;
+            }
+        }
+
+        // Lối từ cửa và hai hàng luống phía trước phòng, cùng góc xoay với sàn (nằm trong hệ lưới nên đặt bằng ô lưới).
+        private static void BuildCrops(RectTransform room, Sprite knob)
+        {
+            var crops = NewRect("Crops", room);
+            Place(crops, Center, Center, Vector2.zero, Vector2.zero);
+            Block("Path", crops, DoorCell.x - 1f, DoorCell.x + 1f, 8.3f, 11f, new Color(0.93f, 0.85f, 0.62f));
+            foreach (var (gy0, gy1, row) in new[] { (8.5f, 9.1f, 0), (9.6f, 10.2f, 1) })
+            {
+                foreach (var (gx0, gx1) in new[] { (0.2f, 1.8f), (4.3f, 6.5f), (7.0f, 9.2f) })
                 {
-                    var cell = NewRect($"Cell_{gx}_{gy}", rotated);
-                    // Xoay +45° rồi nén y một nửa đưa (-gy, -gx) × cạnh ô về đúng IsoProjection.CellToLocal(gx, gy).
-                    Place(cell, Center, Center, new Vector2(-CellSide * gy, -CellSide * gx), new Vector2(CellSide, CellSide));
-                    AddImage(cell, null, (gx + gy) % 2 == 0 ? FloorRed : FloorBlue, raycast: false);
+                    Block($"Soil{row}_{gx0}", crops, gx0, gx1, gy0, gy1, new Color(0.62f, 0.45f, 0.30f));
+                    if (row != 0) continue;
+                    var sprout = NewRect($"Sprout{gx0}", crops);
+                    Place(sprout, Center, Center, IsoProjection.CellToLocal((gx0 + gx1) / 2f, (gy0 + gy1) / 2f), new Vector2(34, 34));
+                    AddImage(sprout, knob, new Color(0.35f, 0.70f, 0.38f), raycast: false).type = Image.Type.Simple;
                 }
             }
         }
 
-        private static void BuildHud(RectTransform canvas, Font font, Sprite knob, RectTransform counter)
+        private static Text Card(RectTransform canvas, Font font, Sprite sprite, string name, string textName, string text, Vector2 position)
         {
-            var bar = NewRect("TopBar", canvas);
-            Place(bar, new Vector2(0.5f, 1), new Vector2(0.5f, 1), Vector2.zero, new Vector2(0, 150));
-            bar.anchorMin = new Vector2(0, 1);
-            bar.anchorMax = new Vector2(1, 1);
-            bar.sizeDelta = new Vector2(0, 150);
-            AddImage(bar, null, BarColor, raycast: false);
+            var card = NewRect(name, canvas);
+            Place(card, TopLeft, TopLeft, position, new Vector2(340, 76));
+            AddImage(card, sprite, CardColor, raycast: false);
+            var label = NewText(textName, card, font, text, 40, TextAnchor.MiddleLeft, DarkText);
+            Stretch(label.rectTransform);
+            label.rectTransform.offsetMin = new Vector2(26, 0);
+            label.rectTransform.offsetMax = new Vector2(-12, 0);
+            return label;
+        }
 
-            var coin = NewText("CoinText", canvas, font, "Coin 0", 44, TextAnchor.MiddleLeft, Gold);
-            Place(coin.rectTransform, TopLeft, TopLeft, new Vector2(40, -15), new Vector2(420, 60));
-            var material = NewText("MaterialText", canvas, font, "Material 0", 44, TextAnchor.MiddleLeft, TextColor);
-            Place(material.rectTransform, TopLeft, TopLeft, new Vector2(480, -15), new Vector2(420, 60));
-            var gem = NewText("GemText", canvas, font, "Gem 0", 44, TextAnchor.MiddleLeft, TextColor);
-            Place(gem.rectTransform, TopLeft, TopLeft, new Vector2(920, -15), new Vector2(420, 60));
+        private static void BuildHud(RectTransform canvas, Font font, Sprite sprite, Sprite knob, RectTransform counter)
+        {
+            // Ba thẻ tiền trên-trái.
+            var coin = Card(canvas, font, sprite, "CoinCard", "CoinText", "Coin 0", new Vector2(30, -20));
+            var material = Card(canvas, font, sprite, "MaterialCard", "MaterialText", "Material 0", new Vector2(390, -20));
+            var gem = Card(canvas, font, sprite, "GemCard", "GemText", "Gem 0", new Vector2(750, -20));
 
-            var warning = NewRect("WarningIcon", canvas);
-            Place(warning, TopLeft, TopLeft, new Vector2(40, -90), new Vector2(36, 36));
-            var warningImage = AddImage(warning, null, new Color(1f, 0.45f, 0.35f), raycast: false);
-            var income = NewText("IncomeText", canvas, font, "", 36, TextAnchor.MiddleLeft, PaleText);
-            Place(income.rectTransform, TopLeft, TopLeft, new Vector2(92, -82), new Vector2(1000, 50));
-            var counterText = NewText("CounterText", canvas, font, "", 36, TextAnchor.MiddleRight, PaleText);
-            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-40, -82), new Vector2(700, 50));
+            // Thanh giữa-trên dưới hàng thẻ: sao và bộ đếm ở hàng trên, cảnh báo và nhãn thu nhập ở hàng dưới; được phép đè lên tường sau.
+            var bar = NewRect("InfoBar", canvas);
+            Place(bar, TopCenter, TopLeft, new Vector2(240 - ReferenceWidth / 2f, -108), new Vector2(1120, 120));
+            AddImage(bar, sprite, BarColor, raycast: false);
 
             // Sao chất lượng: nền xám và lớp vàng Filled ngang chồng lên, vì font dựng sẵn có thể thiếu ký tự sao.
             var stars = new RectTransform[5];
             for (var i = 0; i < stars.Length; i++)
             {
-                var slot = NewRect($"Star{i}", canvas);
-                Place(slot, TopRight, TopRight, new Vector2(-40 - (4 - i) * 56, -20), new Vector2(48, 48));
-                var empty = AddImage(slot, knob, new Color(0.35f, 0.37f, 0.45f), raycast: false);
-                empty.type = Image.Type.Simple;
+                var slot = NewRect($"Star{i}", bar);
+                Place(slot, TopLeft, TopLeft, new Vector2(24 + i * 56, -10), new Vector2(48, 48));
+                AddImage(slot, knob, StarOff, raycast: false).type = Image.Type.Simple;
                 var fill = NewRect("Fill", slot);
                 Stretch(fill);
-                var fillImage = AddImage(fill, knob, Gold, raycast: false);
+                var fillImage = AddImage(fill, knob, StarOn, raycast: false);
                 fillImage.type = Image.Type.Filled;
                 fillImage.fillMethod = Image.FillMethod.Horizontal;
                 fillImage.fillAmount = 0f;
                 stars[i] = fill;
             }
 
+            var counterText = NewText("CounterText", bar, font, "", 34, TextAnchor.MiddleRight, DarkText);
+            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-24, -10), new Vector2(560, 48));
+            var warning = NewRect("WarningIcon", bar);
+            Place(warning, TopLeft, TopLeft, new Vector2(24, -70), new Vector2(36, 36));
+            var warningImage = AddImage(warning, null, new Color(0.95f, 0.40f, 0.30f), raycast: false);
+            var income = NewText("IncomeText", bar, font, "", 34, TextAnchor.MiddleLeft, DarkText);
+            Place(income.rectTransform, TopLeft, TopLeft, new Vector2(74, -64), new Vector2(1020, 48));
+
             var floats = new Text[8];
             for (var i = 0; i < floats.Length; i++)
             {
-                floats[i] = NewText($"FloatText{i}", canvas, font, "", 44, TextAnchor.MiddleCenter, Gold);
+                floats[i] = NewText($"FloatText{i}", canvas, font, "", 48, TextAnchor.MiddleCenter, FloatText);
                 Place(floats[i].rectTransform, Center, Center, Vector2.zero, new Vector2(200, 60));
                 floats[i].gameObject.SetActive(false);
             }
@@ -229,10 +303,13 @@ namespace BunDauPeo.EditorTools
         }
 
         // Theo mẫu quest-team-select-popup: hộp giữa màn, danh sách ở trên, ô hiện tại ở dưới; ở đây là ba cột ô và danh sách mở khi bấm ô.
-        private static void BuildStaffPanel(RectTransform canvas, Font font, Sprite sprite)
+        private static void BuildStaffPanel(RectTransform canvas, RectTransform column, Font font, Sprite sprite, Sprite knob)
         {
             const int slotsPerRole = 3;
-            var open = NewButton("StaffButton", canvas, sprite, font, "Nhân viên", ButtonColor, TopRight, new Vector2(-40, -165), new Vector2(300, 90));
+            // Nút tròn trong ô đầu của cột phải, cỡ chạm 130.
+            var open = NewButton("StaffButton", column, knob, font, "Nhân viên", ButtonColor, TopCenter, new Vector2(0, -20), new Vector2(130, 130));
+            ((Image)open.targetGraphic).type = Image.Type.Simple;
+            open.GetComponentInChildren<Text>().fontSize = 24;
 
             var root = NewRect("StaffPanelRoot", canvas);
             Stretch(root);
@@ -356,14 +433,6 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_confirmYesButton").objectReferenceValue = yes;
             so.FindProperty("_confirmNoButton").objectReferenceValue = no;
             so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        private static RectTransform Box(string name, RectTransform parent, Vector2 cell, Vector2 size, Color color)
-        {
-            var rect = NewRect(name, parent);
-            Place(rect, Center, Center, IsoProjection.CellToLocal(cell.x, cell.y), size);
-            AddImage(rect, null, color, raycast: false);
-            return rect;
         }
 
         private static RectTransform[] Spots(string prefix, RectTransform parent, Vector2[] cells)

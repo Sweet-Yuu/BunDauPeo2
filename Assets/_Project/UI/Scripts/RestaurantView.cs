@@ -159,7 +159,8 @@ namespace BunDauPeo.UI
                     return _door.position + Offset(-26f * place, 14f * place);
                 case CustomerState.WaitingForCashier:
                 case CustomerState.Paying:
-                    return Spot(_cashierSpots, 0) + Offset(0f, -36f);
+                    // Khách trả tiền đứng phía trước quầy; điểm mốc của thu ngân nằm sau quầy.
+                    return Spot(_cashierSpots, 0) + Offset(0f, -150f);
                 default:
                     return Spot(_tables, Mathf.Max(0, customer.TableIndex)) + Offset(0f, 18f);
             }

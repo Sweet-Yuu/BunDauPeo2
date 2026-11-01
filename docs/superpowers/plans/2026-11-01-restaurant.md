@@ -444,7 +444,7 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
 - [x] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="328"`.
 - [x] **Step 5: Thử trong Editor (Play Mode)** (theo [unity-workflow.md](../../guides/unity-workflow.md): `unity open .`, Play từ bất kỳ scene). Kiểm: Console không lỗi từ code dự án; thấy Coin 500, nhãn "≈ ... Coin/giây" (0 và "Thiếu ..." khi chưa xếp đủ ba vai); mở panel Nhân viên, xếp 3 nhân vật khởi đầu vào ba vai thì khách đến, ngồi, ăn, trả và "+N" bay lên, Coin tăng; rút người nấu thì quán đứng yên và nhãn đổi; xếp nhân vật khỏi đội chiến đấu hỏi xác nhận. Dải DEV chuyển được sang Gacha và về lại. **Lượt thử ghi vào save thật:** sao lưu `save.json*` trước, xong dùng `Tools/BunDauPeo/Reset Save Data...`; sau khi thử `git status` và hoàn tác file `ProjectSettings` bị đổi (L-007). Không tự thử được thì nhờ user và ghi rõ trong báo cáo.
 - [x] **Step 6: Commit và push** (`feat: add StaffPanel with income preview`).
-- [ ] **Step 7: Dừng.** Báo user quán đã chạy được và thử được (giai đoạn A xong); đợi user thử rồi mới sang giai đoạn B, vì nếu cần đổi mô phỏng thì Chất lượng, Sự cố, AFK chưa phải viết lại. (Từ 2026-11-01: làm sau Task 9b.)
+- [x] **Step 7: Dừng.** Báo user quán đã chạy được và thử được (giai đoạn A xong); đợi user thử rồi mới sang giai đoạn B, vì nếu cần đổi mô phỏng thì Chất lượng, Sự cố, AFK chưa phải viết lại. (Từ 2026-11-01: làm sau Task 9b.)
 
 ---
 
@@ -461,17 +461,17 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
 - `IsoProjection.CellToLocal(gx, gy)` = (90·gx − 13·gy, −18·gx − 65·gy); `DepthKey(gx, gy)` = 18·gx + 65·gy. Các field `[SerializeField]` của `RestaurantView`, `RestaurantHud`, `StaffPanel` giữ nguyên tên.
 - Từ task này, nút mới của màn quán đặt vào ô trống của cột phải: **Nâng cấp** ở Task 10, **Thu AFK** ở Task 13.
 
-- [ ] **Step 1: Viết test đỏ (3 test mới, sửa `IsoProjectionTests`)**
+- [x] **Step 1: Viết test đỏ (3 test mới, sửa `IsoProjectionTests`)**
   - `IsoProjectionTests`: đổi kỳ vọng thành (1,0) → (90, −18); (0,1) → (−13, −65); (2,3) → (141, −231); đổi tên hai test bước đi cho đúng hướng mới (`StepInX_GoesRightAndSlightlyDown`, `StepInY_GoesDownAndSlightlyLeft`); thêm assert hai trục vuông góc trong `CellToLocal_Combined`.
   - `RestaurantSceneTests.RestaurantScene_LandmarksAreInsideFloor`: bàn, ô bếp, ô phục vụ, ô thu ngân và cửa đều nằm trong chữ nhật sàn (đổi vị trí về hệ toạ độ của sàn rồi so với `rect`; cửa được phép nằm đúng trên cạnh trước).
   - `RestaurantSceneTests.RestaurantScene_FurnitureDoesNotOverlap`: 8 bàn, bếp, quầy không chữ nhật nào giao nhau, đo trong hệ toạ độ của sàn.
   - `RestaurantSceneTests.RestaurantScene_HudAndColumnInsideCanvas`: ba thẻ tiền và cột phải nằm trọn trong 1920×1080; `StaffButton` là con của cột phải, cạnh ngắn từ 110; sàn không đè cột phải.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement** theo spec 5.1. Sàn và đồ vật cùng một góc xoay; lớp `Actors` và điểm mốc giữ để người đứng thẳng. Sinh lại scene bằng builder, không sửa tay `.unity`.
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="331"`.
-- [ ] **Step 5: Thử trong Play Mode.** Chụp Game view (ảnh để ngoài repo, xoá bản trong `Assets/` cùng `.meta`), tự mở ảnh và đối chiếu với `Mota/restaurant-layout-garden-en.webp`: phòng chữ nhật nghiêng lấp gần hết màn, tường ở cạnh sau và trái, cảnh sáng quanh phòng, không còn nền tối; đồ và người không đè nhau đến mức khó nhìn; chữ HUD đọc rõ; dải DEV không đè nút nào. Xếp đủ ba vai: khách đi từ cửa tới bàn, tới quầy, về; "+N" bay từ quầy; nút Nhân viên mở được panel. Dọn save và `ProjectSettings` như Task 9 Step 5.
-- [ ] **Step 6: Cập nhật số test** của Task 10 trở đi trong kế hoạch này và số dự kiến trong `docs/roadmap.md` (+3).
-- [ ] **Step 7: Commit và push** (`feat: rebuild Restaurant screen layout from reference images`). Sau đó làm Step 7 của Task 9.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement** theo spec 5.1. Sàn và đồ vật cùng một góc xoay; lớp `Actors` và điểm mốc giữ để người đứng thẳng. Sinh lại scene bằng builder, không sửa tay `.unity`.
+- [x] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="331"`.
+- [x] **Step 5: Thử trong Play Mode.** Chụp Game view (ảnh để ngoài repo, xoá bản trong `Assets/` cùng `.meta`), tự mở ảnh và đối chiếu với `Mota/restaurant-layout-garden-en.webp`: phòng chữ nhật nghiêng lấp gần hết màn, tường ở cạnh sau và trái, cảnh sáng quanh phòng, không còn nền tối; đồ và người không đè nhau đến mức khó nhìn; chữ HUD đọc rõ; dải DEV không đè nút nào. Xếp đủ ba vai: khách đi từ cửa tới bàn, tới quầy, về; "+N" bay từ quầy; nút Nhân viên mở được panel. Dọn save và `ProjectSettings` như Task 9 Step 5.
+- [x] **Step 6: Cập nhật số test** của Task 10 trở đi trong kế hoạch này và số dự kiến trong `docs/roadmap.md` (+3).
+- [x] **Step 7: Commit và push** (`feat: rebuild Restaurant screen layout from reference images`). Sau đó làm Step 7 của Task 9.
 
 ---
 
@@ -506,7 +506,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   - `RestaurantSceneTests.RestaurantScene_UpgradePanelWired` (1).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="344"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="347"`.
 - [ ] **Step 5: Thử trong Play Mode:** bấm **+50 Material** vài lần, mua Bàn và ô; thấy ví trừ cả Coin lẫn Material, nút mờ khi thiếu; sau khi mua ô nấu thì xếp thêm người được. Dọn như Task 9 Step 5.
 - [ ] **Step 6: Commit và push** (`feat: add UpgradeService and test upgrade panel`).
 
@@ -557,7 +557,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   - `Presence_RespectsLocalMidnight`: `LocalNow` 23:59 rồi 00:01 ngày sau ghi vào hai ngày khác nhau (khác với `UtcNow`).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="358"`.
+- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="361"`.
 - [ ] **Step 5: Commit và push** (`feat: add IClock and RestaurantQuality`).
 
 ---
@@ -592,7 +592,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   - `RestaurantViewTextTests` (2): `IncidentLabel_NamesDefinition`; `IncidentHint_AsksForStaff_OnlyWhenRoleEmpty`.
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="379"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="382"`.
 - [ ] **Step 5: Commit và push** (`feat: add IncidentDirector with empty-role incidents`).
 
 ---
@@ -630,7 +630,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   - `RestaurantViewTextTests.AfkButton_ShowsPreviewCoins` (1).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="404"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="407"`.
 
 - [ ] **Step 5: Thử trong Play Mode:** xếp đủ ba vai, bấm **Tua AFK +1 giờ**, thấy nút "Thu AFK (X Coin)"; thu thì Coin vào ví, nút biến mất; Tua 13 giờ thì pending dừng ở trần 12 giờ. Dọn như Task 9 Step 5.
 - [ ] **Step 6: Commit và push** (`feat: add AfkService with heartbeat, catch-up and collect`).
@@ -653,7 +653,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   - `RestaurantSceneTests.RestaurantScene_PopupsWired` (1).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="411"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="414"`.
 - [ ] **Step 5: Thử trong Play Mode:** Tua AFK, mở lại màn quán từ Gacha thì popup hiện đúng một lần với số hợp lý; Quality popup khớp số liệu; trong lúc popup mở không sinh sự cố mới; xử lý sự cố bằng cách bấm "!"; vai trống thì "!" ghi cần xếp người. Dọn như Task 9 Step 5.
 - [ ] **Step 6: Commit và push** (`feat: add AFK and quality popups`).
 
@@ -665,7 +665,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
 - Modify: `docs/project/structure.md` ("Hiện tại": thêm `Restaurant/`, mục UI mới, số test thật thay chỗ ghi 184, asset mẫu mới), `docs/roadmap.md` (chuyển Restaurant sang "Đã xong" kèm ngày, link spec và kế hoạch, số test), `docs/design/game-design.md` (đối chiếu mục Quán, AFK, Chất lượng, Sự cố, Nhân vật với những gì đã làm; sửa chỗ lệch), `docs/guides/unity-workflow.md` (nếu có lệnh CLI mới hoặc cái bẫy mới)
 - Modify (nếu có lỗi phát sinh): `docs/lessons/lesson.md`
 
-- [ ] **Step 1:** Cập nhật các file trên cho khớp thực tế (số test lấy từ lần chạy cuối, `total="411"` nếu không đổi). Không sửa `docs/vision/vision.md`; không sửa `docs/decisions/decisions.md` trừ khi user yêu cầu.
+- [ ] **Step 1:** Cập nhật các file trên cho khớp thực tế (số test lấy từ lần chạy cuối, `total="414"` nếu không đổi). Không sửa `docs/vision/vision.md`; không sửa `docs/decisions/decisions.md` trừ khi user yêu cầu.
 - [ ] **Step 2:** Mỗi lỗi hoặc điều user sửa lại trong đợt này: một mục lesson ở đầu danh sách theo mẫu.
 - [ ] **Step 3: Commit và push** (`docs: record Restaurant in structure, roadmap and game design`).
 
