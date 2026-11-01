@@ -184,6 +184,16 @@ namespace BunDauPeo.Tests
                 Assert.IsFalse(upgradeRect.Overlaps(staffRect), "UpgradeButton overlaps StaffButton");
                 Assert.Less(upgradeRect.center.y, staffRect.center.y, "UpgradeButton is below StaffButton");
 
+                // Thu AFK ở ô thứ ba, dưới nút Nâng cấp.
+                var afk = Named(scene, "AfkButton");
+                Assert.AreSame(column, afk.parent, "AfkButton belongs to the right column");
+                var afkRect = InReferenceCanvas(afk);
+                Assert.GreaterOrEqual(Mathf.Min(afkRect.width, afkRect.height), 110f, "touch size");
+                Assert.IsTrue(InReferenceCanvas(column).Contains(afkRect.min) && InReferenceCanvas(column).Contains(afkRect.max - Vector2.one));
+                Assert.IsFalse(afkRect.Overlaps(upgradeRect), "AfkButton overlaps UpgradeButton");
+                Assert.IsFalse(afkRect.Overlaps(staffRect), "AfkButton overlaps StaffButton");
+                Assert.Less(afkRect.center.y, upgradeRect.center.y, "AfkButton is below UpgradeButton");
+
                 // Cạnh phải của sàn là góc (12, 0): gốc của phòng cộng 90 × 12.
                 var room = InReferenceCanvas(Named(scene, "Room"));
                 var floor = Named(scene, "Floor");

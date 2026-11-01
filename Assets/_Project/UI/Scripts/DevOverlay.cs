@@ -15,6 +15,7 @@ namespace BunDauPeo.UI
         public const string RestaurantScene = "Restaurant";
         public const string GachaScene = "Gacha";
         public const long MaterialGrant = 50;
+        public const int AfkRewindHours = 1;
 
         public static readonly string[] SceneNames = { RestaurantScene, GachaScene };
 
@@ -50,7 +51,7 @@ namespace BunDauPeo.UI
             scaler.matchWidthOrHeight = 0.5f;
 
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(608, 76));
+            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(946, 76));
             var stripImage = strip.gameObject.AddComponent<Image>();
             stripImage.color = new Color(0f, 0f, 0f, 0.6f);
             stripImage.raycastTarget = false;
@@ -59,6 +60,17 @@ namespace BunDauPeo.UI
             // Qua ví như mọi nguồn thu khác (không chạm file save), nên Changed bắn và Reset Save Data xoá sạch như thường.
             AddButton(strip, font, $"+{MaterialGrant} Material", new Vector2(360, 8), 240,
                 () => ServiceLocator.Get<Wallet>().Add(CurrencyType.Material, MaterialGrant));
+            AddButton(strip, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(608, 8), 330, RewindAfk);
+        }
+
+        // Heartbeat trước để chốt rate hiện tại (game mới chưa có Heartbeat nào thì rate là 0); sau Rewind phải CatchUp ngay,
+        // nếu không lần lưu định kỳ kế tiếp sẽ đè mốc.
+        private static void RewindAfk()
+        {
+            var afk = ServiceLocator.Get<RestaurantService>().Afk;
+            afk.Heartbeat();
+            afk.Rewind(TimeSpan.FromHours(AfkRewindHours));
+            afk.CatchUp();
         }
 
         private static RectTransform NewRect(string name, Transform parent, Vector2 position, Vector2 size)

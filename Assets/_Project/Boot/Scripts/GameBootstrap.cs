@@ -20,6 +20,7 @@ namespace BunDauPeo.Boot
         private static GameBootstrap _active;
 
         private GameSession _session;
+        private RestaurantService _restaurant;
 
         // Dùng chung cho game và công cụ Editor để cả hai luôn trỏ tới cùng một file save.
         public static string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
@@ -83,21 +84,34 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(new GachaService(_session.Save, _session.Wallet, _session.Roster, _catalog,
                 _bannerCatalog, new System.Random(), _session.Persist));
 
-            var restaurant = new RestaurantService(_restaurantConfig, _session.Save, _session.Wallet, _session.Roster,
+            _restaurant = new RestaurantService(_restaurantConfig, _session.Save, _session.Wallet, _session.Roster,
                 new System.Random(), new SystemClock(), _session.Persist);
-            gameObject.AddComponent<RestaurantRunner>().Init(restaurant);
-            ServiceLocator.Register(restaurant);
-            _session.ResetCompleted += restaurant.ResetRuntime;
+            gameObject.AddComponent<RestaurantRunner>().Init(_restaurant);
+            ServiceLocator.Register(_restaurant);
+            _session.ResetCompleted += _restaurant.ResetRuntime;
 
             // Scene khởi đầu do dữ liệu quyết định để spec hub sau này đổi scene mà không sửa code.
             if (!string.IsNullOrEmpty(_startScene)) SceneManager.LoadScene(_startScene);
         }
 
+        // Heartbeat TRƯỚC Persist, gọi tường minh vì Unity không đảm bảo thứ tự giữa các MonoBehaviour (spec 10).
         private void OnApplicationPause(bool paused)
         {
-            if (paused) _session?.Persist();
+            if (paused)
+            {
+                _restaurant?.OnAppPause();
+                _session?.Persist();
+            }
+            else
+            {
+                _restaurant?.OnAppResume();
+            }
         }
 
-        private void OnApplicationQuit() => _session?.Persist();
+        private void OnApplicationQuit()
+        {
+            _restaurant?.OnAppPause();
+            _session?.Persist();
+        }
     }
 }

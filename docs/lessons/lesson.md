@@ -25,6 +25,16 @@
 
 ## Danh sách
 
+### L-012 — Số test trong kế hoạch đếm theo method, `[TestCase]` làm tổng lệch (2026-11-02)  #process #script
+- Triệu chứng: viết test tham số hoá (`[TestCase]`) cho Task 12 thì tổng vượt số kế hoạch ghi (389 thay vì 382) dù đủ method.
+- Nguyên nhân gốc: NUnit đếm mỗi `[TestCase]` là một test trong XML; kế hoạch đếm method.
+- Luật từ nay: test cần nhiều đầu vào để bắt lỗi biên (L-006) thì lặp trong một method kèm thông báo có đầu vào (`$"u = {u}"`), không dùng `[TestCase]`, để tổng khớp kế hoạch.
+
+### L-011 — Game view hẹp thì chụp màn hình ra ảnh bé, và `unity close .` có thể quá 30 giây (2026-11-02)  #ui #process
+- Triệu chứng: `ScreenCapture.CaptureScreenshot` ra ảnh 401×664 dù `Screen.width/height` báo 2658×960 (cửa sổ Game bị thu hẹp); `unity close .` báo "did not close within 30s" nhưng Editor vẫn đóng sau đó.
+- Nguyên nhân gốc: Game view phụ thuộc bố cục cửa sổ Editor lúc mở; lệnh đóng chỉ chờ 30 giây.
+- Luật từ nay: khi thử màn UI, đổi Canvas sang `ScreenSpaceCamera` với camera có `targetTexture` 1920×1080, `Canvas.ForceUpdateCanvases()`, `cam.Render()`, `ReadPixels` rồi ghi PNG ngoài repo và trả Canvas về Overlay, ngay trong một lệnh `eval`. Sau `unity close .` lỗi 30 giây, chạy `unity status` lặp lại cho tới khi không còn Editor, không kill process.
+
 ### L-010 — Ảnh chụp Game view bị bóp về 16:9 nên kết luận sai về bố cục (2026-11-02)  #ui #process
 - Triệu chứng: `capture game_view` luôn trả ảnh 1280×720 dù Game view thật là 2658×960, nên hình tròn thành bầu dục và phòng trông méo; kèm theo, với `matchWidthOrHeight = 0,5` canvas chỉ cao 865 và cắt phía dưới bố cục cao 1080.
 - Nguyên nhân gốc: tin kích thước ảnh chụp thay vì đọc `Screen.width/height` và `Canvas.scaleFactor` của lượt chạy.

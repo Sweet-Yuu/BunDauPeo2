@@ -20,6 +20,9 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _counterText;
         [SerializeField] private Image _warningIcon;
         [SerializeField] private Image[] _stars;
+        // Nút Thu AFK ở ô thứ ba của cột phải; chỉ hiện khi có Coin AFK đang chờ.
+        [SerializeField] private Button _afkButton;
+        [SerializeField] private Text _afkText;
         [SerializeField] private RectTransform _floatOrigin;
         // Bể 8 đối tượng, dùng vòng tròn: chữ cũ nhất bị ghi đè khi có quá nhiều khoản thu cùng lúc.
         [SerializeField] private Text[] _floatTexts;
@@ -32,6 +35,7 @@ namespace BunDauPeo.UI
         private int _shownServed = -1;
         private int _shownAbandoned = -1;
         private double _shownTotal = -1;
+        private long _shownAfkCoins = -1;
 
         private void OnEnable()
         {
@@ -60,6 +64,8 @@ namespace BunDauPeo.UI
             _wallet.Changed += RedrawWallet;
             _service.ProfileChanged += RedrawIncome;
             _service.Simulation.CustomerPaid += OnCustomerPaid;
+            _afkButton.onClick.AddListener(CollectAfk);
+            _shownAfkCoins = -1;
             _shownServed = -1;
             _shownAbandoned = -1;
             _shownTotal = -1;
@@ -80,6 +86,7 @@ namespace BunDauPeo.UI
             _wallet.Changed -= RedrawWallet;
             _service.ProfileChanged -= RedrawIncome;
             _service.Simulation.CustomerPaid -= OnCustomerPaid;
+            _afkButton.onClick.RemoveListener(CollectAfk);
             _service = null;
         }
 
@@ -99,13 +106,36 @@ namespace BunDauPeo.UI
                 RedrawStars();
             }
 
+            RefreshAfkButton();
             AnimateFloats(Time.unscaledDeltaTime);
+        }
+
+        // Hệ số chất lượng đổi theo ngày và sự cố nên số Coin xem trước cũng đổi; so mỗi khung (rẻ).
+        private void RefreshAfkButton()
+        {
+            var afk = _service.Afk;
+            var show = afk.PendingTheoretical > 0;
+            if (_afkButton.gameObject.activeSelf != show) _afkButton.gameObject.SetActive(show);
+            if (!show) return;
+
+            var coins = afk.PreviewCollect();
+            if (coins == _shownAfkCoins) return;
+            _shownAfkCoins = coins;
+            _afkText.text = RestaurantViewText.AfkButton(coins);
+        }
+
+        private void CollectAfk()
+        {
+            var result = _service.Afk.Collect();
+            // Popup Thu AFK (Task 14) sẽ báo lỗi lưu cho người chơi; ở đây chỉ ghi log, lần lưu sau thử lại.
+            if (!result.Saved) Debug.LogWarning($"{nameof(RestaurantHud)}: AFK collect was not saved; it will be retried on the next save.", this);
         }
 
         private bool HasAllReferences()
         {
             var ok = _coinText != null && _materialText != null && _gemText != null && _incomeText != null
                      && _counterText != null && _warningIcon != null && _floatOrigin != null
+                     && _afkButton != null && _afkText != null
                      && _stars != null && _stars.Length > 0 && _floatTexts != null && _floatTexts.Length > 0;
             if (!ok) Debug.LogError($"{nameof(RestaurantHud)}: a serialized reference is not assigned.", this);
             return ok;

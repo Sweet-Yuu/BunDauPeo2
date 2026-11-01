@@ -20,6 +20,8 @@ namespace BunDauPeo.UI
 
         public static string CounterLine(int served, int abandoned) => $"Phục vụ {served} · Bỏ về {abandoned}";
 
+        public static string AfkButton(long coins) => $"Thu AFK\n({coins.ToString(CultureInfo.InvariantCulture)} Coin)";
+
         public static string QualityLine(double total) => $"Chất lượng {Math.Round(total).ToString(CultureInfo.InvariantCulture)}/100";
 
         public static string IncidentLabel(ActiveIncident incident) => incident.Definition.DisplayName;

@@ -13,6 +13,18 @@ namespace BunDauPeo.Tests
             new ActiveIncident(RestaurantTestData.Incident(role, 1, name), role, 0f, canResolve);
 
         [Test]
+        public void AfkButton_ShowsPreviewCoins()
+        {
+            var big = RestaurantViewText.AfkButton(10286);
+            var small = RestaurantViewText.AfkButton(5);
+
+            StringAssert.Contains("Thu AFK", big);
+            StringAssert.Contains("10286 Coin", big);
+            StringAssert.Contains("5 Coin", small);
+            Assert.AreNotEqual(big, small);
+        }
+
+        [Test]
         public void IncidentLabel_NamesDefinition()
         {
             Assert.AreEqual("Bếp tắc ga", RestaurantViewText.IncidentLabel(Incident(StaffRole.Cook, "Bếp tắc ga", true)));

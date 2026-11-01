@@ -20,13 +20,15 @@ namespace BunDauPeo.Tests
             public Wallet Wallet;
             public Roster Roster;
             public FakeClock Clock;
+            public Func<bool> Persist;
             public int Persists;
         }
 
         // Một chỗ dựng duy nhất: Task 10, 11, 13 chỉ phải sửa ở đây.
-        private static Fixture Make(System.Random random = null, RestaurantConfig config = null, bool staffed = true, Func<bool> persist = null)
+        private static Fixture Make(System.Random random = null, RestaurantConfig config = null, bool staffed = true, Func<bool> persist = null, Action<PlayerSave> seed = null)
         {
             var save = new PlayerSave();
+            seed?.Invoke(save);
             var catalog = TestData.Catalog(
                 RestaurantTestData.Worker("cook0", 0, 0, 0),
                 RestaurantTestData.Worker("serve0", 0, 0, 0),
@@ -41,8 +43,9 @@ namespace BunDauPeo.Tests
             }
 
             var fixture = new Fixture { Save = save, Wallet = new Wallet(save), Roster = roster, Clock = new FakeClock() };
+            fixture.Persist = persist ?? (() => { fixture.Persists++; return true; });
             fixture.Service = new RestaurantService(config ?? RestaurantTestData.Config(), save, fixture.Wallet, roster,
-                random ?? new ScriptedRandom(0.99, 0.0, 0.0, 0.0), fixture.Clock, persist ?? (() => { fixture.Persists++; return true; }));
+                random ?? new ScriptedRandom(0.99, 0.0, 0.0, 0.0), fixture.Clock, fixture.Persist);
             return fixture;
         }
 
@@ -53,7 +56,7 @@ namespace BunDauPeo.Tests
         }
 
         // Sự cố sinh đúng lúc 66 giây (bếp rảnh: khách ở t = 60 nấu xong lúc 65, khách kế đến lúc 67,5); chọn Cook vì RNG luôn trả 0.
-        private static Fixture MakeWithIncidentAt66()
+        private static Fixture MakeWithIncidentAt66(Func<bool> persist = null)
         {
             var config = RestaurantTestData.Config(null, RestaurantTestData.Incident(StaffRole.Cook));
             TestData.Edit(config, so =>
@@ -61,7 +64,106 @@ namespace BunDauPeo.Tests
                 so.FindProperty("_incidentSpawnMin").floatValue = 66f;
                 so.FindProperty("_incidentSpawnMax").floatValue = 66f;
             });
-            return Make(new ScriptedRandom(0.0), config);
+            return Make(new ScriptedRandom(0.0), config, persist: persist);
+        }
+
+        [Test]
+        public void OnAppPause_HeartbeatsBeforeAnyPersist()
+        {
+            var ticksAtPersist = new System.Collections.Generic.List<long>();
+            Fixture f = null;
+            f = MakeWithIncidentAt66(() => { ticksAtPersist.Add(f.Save.Afk.LastActiveUtcTicks); return true; });
+            f.Service.SetPresent(true);
+            Run(f.Service, 70f);
+            Assert.IsTrue(f.Service.Incidents.Active.HasValue);
+            // Lần lưu định kỳ lúc 60 giây đã chạy; chỉ xét lần persist sau OnAppPause.
+            ticksAtPersist.Clear();
+            var before = f.Save.Afk.LastActiveUtcTicks;
+            f.Clock.Advance(TimeSpan.FromMinutes(10));
+
+            // Thứ tự của GameBootstrap: OnAppPause rồi mới Persist.
+            f.Service.OnAppPause();
+            f.Persist();
+
+            Assert.IsFalse(f.Service.Incidents.Active.HasValue, "vào nền huỷ sự cố");
+            Assert.AreEqual(0, f.Save.IncidentScores.Count);
+            Assert.AreEqual(1, ticksAtPersist.Count);
+            Assert.AreEqual(f.Clock.UtcNow.Ticks, ticksAtPersist[0]);
+            Assert.AreNotEqual(before, ticksAtPersist[0]);
+            Assert.AreEqual(f.Service.Estimate.CoinsPerSecond, f.Save.Afk.RatePerSecond, 1e-9);
+            Assert.Greater(f.Save.Afk.RatePerSecond, 0);
+        }
+
+        [Test]
+        public void OnAppResume_CatchesUp()
+        {
+            var f = Make();
+            f.Service.OnAppPause();
+            f.Clock.Advance(TimeSpan.FromHours(1));
+
+            f.Service.OnAppResume();
+
+            Assert.AreEqual(f.Service.Estimate.CoinsPerSecond * 3600, f.Service.Afk.PendingTheoretical, 1e-6);
+            Assert.AreEqual(3600, f.Service.Afk.AccumulatedSeconds, 1e-6);
+            // Hai lần mở liên tiếp không cộng đôi.
+            f.Service.OnAppResume();
+            Assert.AreEqual(3600, f.Service.Afk.AccumulatedSeconds, 1e-6);
+        }
+
+        [Test]
+        public void ResetRuntime_ClearsPendingAbsence()
+        {
+            var f = Make();
+            f.Service.OnAppPause();
+            f.Clock.Advance(TimeSpan.FromHours(1));
+            f.Service.OnAppResume();
+
+            f.Service.ResetRuntime();
+
+            Assert.AreEqual(0, f.Service.Afk.TakePendingAbsence());
+        }
+
+        [Test]
+        public void Autosave_AlsoHeartbeats()
+        {
+            var ticksAtPersist = new System.Collections.Generic.List<long>();
+            Fixture f = null;
+            f = Make(persist: () => { ticksAtPersist.Add(f.Save.Afk.LastActiveUtcTicks); return true; });
+            f.Clock.Advance(TimeSpan.FromMinutes(1));
+
+            Run(f.Service, 60f);
+
+            Assert.AreEqual(1, ticksAtPersist.Count);
+            Assert.AreEqual(f.Clock.UtcNow.Ticks, ticksAtPersist[0], "Heartbeat phải chạy trước persist");
+            Assert.AreEqual(f.Service.Estimate.CoinsPerSecond, f.Save.Afk.RatePerSecond, 1e-9);
+        }
+
+        [Test]
+        public void InvalidConfig_AfkDoesNotAccumulate_AndKeepsExistingPending()
+        {
+            var config = RestaurantTestData.Config();
+            RestaurantTestData.SetList(config, "_dishes");
+            var clock = new FakeClock();
+            LogAssert.Expect(LogType.Error, new Regex("RestaurantService: invalid config"));
+            var f = Make(config: config, seed: save => save.Afk = new AfkState
+            {
+                LastActiveUtcTicks = clock.UtcNow.Ticks - TimeSpan.FromHours(1).Ticks,
+                RatePerSecond = 2,
+                AccumulatedSeconds = 3600,
+                PendingTheoretical = 7200,
+            });
+            var anchor = f.Save.Afk.LastActiveUtcTicks;
+
+            f.Service.OnAppPause();
+            f.Clock.Advance(TimeSpan.FromHours(5));
+            f.Service.OnAppResume();
+            Run(f.Service, 120f);
+
+            Assert.AreEqual(7200, f.Service.Afk.PendingTheoretical);
+            Assert.AreEqual(3600, f.Service.Afk.AccumulatedSeconds);
+            Assert.AreEqual(2, f.Save.Afk.RatePerSecond);
+            Assert.AreEqual(anchor, f.Save.Afk.LastActiveUtcTicks);
+            Assert.AreEqual(0, f.Service.Afk.TakePendingAbsence());
         }
 
         [Test]

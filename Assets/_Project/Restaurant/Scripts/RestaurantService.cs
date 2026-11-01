@@ -31,6 +31,7 @@ namespace BunDauPeo.Restaurant
             Simulation = new RestaurantSimulation(config, random);
             Quality = new RestaurantQuality(save, config, clock ?? throw new ArgumentNullException(nameof(clock)));
             Incidents = new IncidentDirector(config, random, Simulation, Quality, role => Profile.Workers(role).Count > 0);
+            Afk = new AfkService(save, wallet, config, clock, Quality, () => Estimate.CoinsPerSecond, persist);
             Staffing = new StaffingService(roster, () => Profile);
             // Catalog thiếu là lỗi cấu hình (đã báo ở trên): không có dịch vụ nâng cấp, view phải kiểm null.
             if (config.Upgrades != null) Upgrades = new UpgradeService(save, wallet, config.Upgrades, persist);
@@ -39,6 +40,9 @@ namespace BunDauPeo.Restaurant
             Simulation.CustomerPaid += OnCustomerPaid;
             roster.Changed += OnRosterChanged;
             if (Upgrades != null) Upgrades.Changed += OnRosterChanged;
+
+            // Cấu hình lỗi thì Estimate = 0 và AFK đứng yên, giữ nguyên số đã có trong save.
+            if (IsRunning) Afk.CatchUp();
         }
 
         public RestaurantConfig Config => _config;
@@ -48,6 +52,7 @@ namespace BunDauPeo.Restaurant
         public UpgradeService Upgrades { get; }
         public RestaurantQuality Quality { get; }
         public IncidentDirector Incidents { get; }
+        public AfkService Afk { get; }
         public RestaurantProfile Profile { get; private set; }
         public IncomeEstimate Estimate { get; private set; }
         public bool IsPresent { get; private set; }
@@ -72,6 +77,8 @@ namespace BunDauPeo.Restaurant
 
             // Lưu lỗi thì thử lại ở chu kỳ sau thay vì mỗi khung.
             _autosaveTimer -= _config.AutosaveSeconds;
+            // Heartbeat trước persist để file save luôn mang mốc mới: app bị kill chỉ lệch tối đa một chu kỳ.
+            Afk.Heartbeat();
             try
             {
                 if (!_persist()) Debug.LogWarning($"{nameof(RestaurantService)}: autosave did not complete.");
@@ -82,11 +89,24 @@ namespace BunDauPeo.Restaurant
             }
         }
 
+        // GameBootstrap gọi OnAppPause TRƯỚC Persist để file mang mốc Heartbeat mới.
+        public void OnAppPause()
+        {
+            Incidents.Cancel();
+            if (IsRunning) Afk.Heartbeat();
+        }
+
+        public void OnAppResume()
+        {
+            if (IsRunning) Afk.CatchUp();
+        }
+
         // Dữ liệu trong PlayerSave đã bị ghi đè trước khi gọi; ở đây chỉ xoá trạng thái chạy.
         public void ResetRuntime()
         {
             Simulation.Reset();
             Incidents.Reset();
+            Afk.TakePendingAbsence();
             _autosaveTimer = 0;
         }
 

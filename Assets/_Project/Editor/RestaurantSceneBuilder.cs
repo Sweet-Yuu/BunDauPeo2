@@ -43,6 +43,7 @@ namespace BunDauPeo.EditorTools
         private static readonly Color PanelColor = new(0.18f, 0.20f, 0.27f);
         private static readonly Color Dim = new(0f, 0f, 0f, 0.65f);
         private static readonly Color ButtonColor = new(0.30f, 0.50f, 0.90f);
+        private static readonly Color AfkGreen = new(0.20f, 0.60f, 0.35f);
         private static readonly Color GreyButton = new(0.45f, 0.47f, 0.55f);
         private static readonly Color Warning = new(1f, 0.55f, 0.45f);
 
@@ -157,10 +158,11 @@ namespace BunDauPeo.EditorTools
             var bubbleMark = bubble.GetComponentInChildren<Text>();
             bubbleMark.fontSize = 64;
             bubbleMark.fontStyle = FontStyle.Bold;
-            var incidentLabel = NewText("IncidentLabel", (RectTransform)bubble.transform, font, "", 28, TextAnchor.MiddleCenter, DarkText);
-            Place(incidentLabel.rectTransform, Center, Center, new Vector2(0, 75), new Vector2(420, 34));
-            var incidentHint = NewText("IncidentHint", (RectTransform)bubble.transform, font, "", 26, TextAnchor.MiddleCenter, IncidentHintText);
-            Place(incidentHint.rectTransform, Center, Center, new Vector2(0, 112), new Vector2(460, 34));
+            // Chữ nằm bên phải bong bóng: phía trên là thanh HUD, vẽ sau nên che chữ.
+            var incidentLabel = NewText("IncidentLabel", (RectTransform)bubble.transform, font, "", 28, TextAnchor.MiddleLeft, DarkText);
+            Place(incidentLabel.rectTransform, Center, new Vector2(0f, 0.5f), new Vector2(56, 20), new Vector2(460, 34));
+            var incidentHint = NewText("IncidentHint", (RectTransform)bubble.transform, font, "", 26, TextAnchor.MiddleLeft, IncidentHintText);
+            Place(incidentHint.rectTransform, Center, new Vector2(0f, 0.5f), new Vector2(56, -18), new Vector2(460, 34));
             bubble.gameObject.SetActive(false);
 
             var viewObject = NewRect("RestaurantView", canvas);
@@ -179,14 +181,15 @@ namespace BunDauPeo.EditorTools
             viewSo.FindProperty("_incidentHint").objectReferenceValue = incidentHint;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
-            BuildHud(canvas, font, sprite, knob, counter);
+            var hud = BuildHud(canvas, font, sprite, knob, counter);
 
-            // Cột nút phải: dải trắng bo góc sát mép phải, ba ô; ô chưa có nút để trống (Thu AFK: Task 13).
+            // Cột nút phải: dải trắng bo góc sát mép phải, ba ô; ô chưa có nút để trống (Thu AFK ở ô thứ ba).
             var column = NewRect("RightColumn", canvas);
             Place(column, TopRight, TopRight, new Vector2(-20, -110), new Vector2(170, 520));
             AddImage(column, sprite, CardColor, raycast: false);
             BuildStaffPanel(canvas, column, font, sprite, knob);
             BuildUpgradePanel(canvas, column, font, sprite, knob);
+            BuildAfkButton(column, font, knob, hud);
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
@@ -259,7 +262,7 @@ namespace BunDauPeo.EditorTools
             return label;
         }
 
-        private static void BuildHud(RectTransform canvas, Font font, Sprite sprite, Sprite knob, RectTransform counter)
+        private static RestaurantHud BuildHud(RectTransform canvas, Font font, Sprite sprite, Sprite knob, RectTransform counter)
         {
             // Ba thẻ tiền trên-trái.
             var coin = Card(canvas, font, sprite, "CoinCard", "CoinText", "Coin 0", new Vector2(30, -20));
@@ -288,7 +291,7 @@ namespace BunDauPeo.EditorTools
             }
 
             var counterText = NewText("CounterText", bar, font, "", 34, TextAnchor.MiddleRight, DarkText);
-            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-24, -10), new Vector2(560, 48));
+            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-24, -10), new Vector2(760, 48));
             var warning = NewRect("WarningIcon", bar);
             Place(warning, TopLeft, TopLeft, new Vector2(24, -70), new Vector2(36, 36));
             var warningImage = AddImage(warning, null, new Color(0.95f, 0.40f, 0.30f), raycast: false);
@@ -317,6 +320,28 @@ namespace BunDauPeo.EditorTools
             starProperty.arraySize = stars.Length;
             for (var i = 0; i < stars.Length; i++) starProperty.GetArrayElementAtIndex(i).objectReferenceValue = stars[i].GetComponent<Image>();
             SetRefs(so.FindProperty("_floatTexts"), floats);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return hud;
+        }
+
+        // Ô thứ ba của cột phải, cùng cỡ với hai nút trên; RestaurantHud ẩn/hiện theo Coin AFK đang chờ.
+        private static void BuildAfkButton(RectTransform column, Font font, Sprite knob, RestaurantHud hud)
+        {
+            var button = NewButton("AfkButton", column, knob, font, "Thu AFK", AfkGreen, TopCenter, new Vector2(0, -350), new Vector2(130, 130));
+            ((Image)button.targetGraphic).type = Image.Type.Simple;
+            var text = button.GetComponentInChildren<Text>();
+            text.fontSize = 22;
+            // Số Coin dài (5 chữ số trở lên) phải co lại cho vừa vòng tròn.
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 12;
+            text.resizeTextMaxSize = 22;
+            // Chừa lề trong vòng tròn để chữ co lại thay vì tràn ra ngoài.
+            text.rectTransform.offsetMin = new Vector2(16, 0);
+            text.rectTransform.offsetMax = new Vector2(-16, 0);
+
+            var so = new SerializedObject(hud);
+            so.FindProperty("_afkButton").objectReferenceValue = button;
+            so.FindProperty("_afkText").objectReferenceValue = text;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
