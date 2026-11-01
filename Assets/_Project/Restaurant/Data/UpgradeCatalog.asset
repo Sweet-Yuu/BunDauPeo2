@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18cae9bf8fd1e334690f749d60f72cc7, type: 3}
+  m_Name: UpgradeCatalog
+  m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.UpgradeCatalog
+  _items:
+  - {fileID: 11400000, guid: 70aad56b7a3499d449695fbf8a6c057d, type: 2}
+  - {fileID: 11400000, guid: 3bf7a948f3beedc4b82eeeb81c4353bf, type: 2}
+  - {fileID: 11400000, guid: ba2e2ed64de00cf4a90e0ae2c0b161fc, type: 2}
+  - {fileID: 11400000, guid: 259925a17bd3a9a44a84cd0100fff1f4, type: 2}
+  - {fileID: 11400000, guid: 491f0d5031bbe4443833c5e4ff71f461, type: 2}
+  - {fileID: 11400000, guid: 7a62f7a6e57ec7e4292d8e33e74b0790, type: 2}

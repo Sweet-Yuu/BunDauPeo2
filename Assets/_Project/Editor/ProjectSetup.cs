@@ -6,6 +6,7 @@ using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
+using BunDauPeo.Restaurant;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -23,6 +24,8 @@ namespace BunDauPeo.EditorTools
         public const string GachaScenePath = "Assets/_Project/Scenes/Gacha.unity";
         public const string BannerPath = "Assets/_Project/Gacha/Data/banner_standard.asset";
         public const string BannerCatalogPath = "Assets/_Project/Gacha/Data/GachaBannerCatalog.asset";
+        public const string RestaurantConfigPath = "Assets/_Project/Restaurant/Data/RestaurantConfig.asset";
+        public const string UpgradeCatalogPath = "Assets/_Project/Restaurant/Data/UpgradeCatalog.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
         private const string SkillsFolder = CharacterData + "/Skills";
@@ -46,6 +49,40 @@ namespace BunDauPeo.EditorTools
             ("char_mam_tom", "Mắm Tôm", Rarity.SR, 1000, 110, 50, 110, 50, 30, 20, "PowerStrike"),
             ("char_long_doi", "Lòng Dồi", Rarity.SR, 1200, 90, 70, 100, 30, 50, 20, "Heal"),
             ("char_bun_la", "Bún Lá", Rarity.SSR, 1400, 130, 80, 120, 60, 50, 50, "PowerStrike"),
+        };
+
+        private const string RestaurantData = "Assets/_Project/Restaurant/Data";
+
+        // Số mẫu của spec Restaurant 3.2 (món, khách, sự cố) và 3.4 (nâng cấp).
+        private static readonly (string File, string Name, long Price, float CookSeconds)[] DishTable =
+        {
+            ("Dish_BunDauMamTom", "Bún đậu mắm tôm", 20, 6f),
+            ("Dish_ChaCom", "Chả cốm", 15, 4f),
+            ("Dish_NemChuaRan", "Nem chua rán", 25, 5f),
+        };
+
+        private static readonly (string File, string Name, float Weight, float Patience, float Pay)[] CustomerTable =
+        {
+            ("Customer_Normal", "Khách thường", 6f, 40f, 1.0f),
+            ("Customer_Gourmet", "Khách sành ăn", 3f, 30f, 1.5f),
+            ("Customer_Hurry", "Khách vội", 1f, 20f, 1.2f),
+        };
+
+        private static readonly (string File, string Name, StaffRole Role)[] IncidentTable =
+        {
+            ("Incident_GasBlocked", "Bếp tắc ga", StaffRole.Cook),
+            ("Incident_SpilledFood", "Khách làm đổ đồ", StaffRole.Server),
+            ("Incident_RegisterFrozen", "Máy tính tiền treo", StaffRole.Cashier),
+        };
+
+        private static readonly (string Id, string Name, UpgradeEffect Effect, float[] Values, long[] Coins, long[] Materials)[] UpgradeTable =
+        {
+            ("up_tables", "Bàn", UpgradeEffect.Tables, new[] { 4f, 5f, 6f, 7f, 8f }, new[] { 300L, 600, 1200, 2400, 4800 }, new[] { 5L, 10, 15, 20, 25 }),
+            ("up_cook_slots", "Ô đầu bếp", UpgradeEffect.CookSlots, new[] { 2f, 3f }, new[] { 500L, 1500 }, new[] { 10L, 30 }),
+            ("up_serve_slots", "Ô phục vụ", UpgradeEffect.ServeSlots, new[] { 2f, 3f }, new[] { 500L, 1500 }, new[] { 10L, 30 }),
+            ("up_cashier_slots", "Ô thu ngân", UpgradeEffect.CashierSlots, new[] { 2f, 3f }, new[] { 500L, 1500 }, new[] { 10L, 30 }),
+            ("up_arrivals", "Biển hiệu", UpgradeEffect.ArrivalInterval, new[] { 0.9f, 0.81f, 0.73f, 0.66f, 0.59f }, new[] { 300L, 600, 1200, 2400, 4800 }, new[] { 5L, 10, 15, 20, 25 }),
+            ("up_prices", "Thực đơn", UpgradeEffect.DishPrice, new[] { 1.1f, 1.2f, 1.3f, 1.4f, 1.5f }, new[] { 400L, 800, 1600, 3200, 6400 }, new[] { 5L, 10, 15, 20, 25 }),
         };
 
         private static readonly string[] StarterIds = { "char_nem_chua", "char_cha_com", "char_dau_phu" };
@@ -85,6 +122,8 @@ namespace BunDauPeo.EditorTools
             var banner = GetOrCreateBanner(BannerPath, characters);
             GetOrCreateAsset<GachaBannerCatalog>(BannerCatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), new Object[] { banner })));
+
+            CreateRestaurantData();
 
             CreateBootScene();
             CreateGachaScene();
@@ -140,6 +179,13 @@ namespace BunDauPeo.EditorTools
                         changed = true;
                     }
 
+                    var restaurant = so.FindProperty("_restaurantConfig");
+                    if (restaurant.objectReferenceValue == null)
+                    {
+                        restaurant.objectReferenceValue = AssetDatabase.LoadAssetAtPath<RestaurantConfig>(RestaurantConfigPath);
+                        changed = true;
+                    }
+
                     var start = so.FindProperty("_startScene");
                     if (string.IsNullOrEmpty(start.stringValue))
                     {
@@ -156,6 +202,72 @@ namespace BunDauPeo.EditorTools
             {
                 if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
             }
+        }
+
+        // Chỉ tạo asset còn thiếu; số bạn đã chỉnh trong Inspector được giữ nguyên.
+        private static void CreateRestaurantData()
+        {
+            var icon = AssetDatabase.GetBuiltinExtraResource<Sprite>(IconSprite);
+
+            var dishes = DishTable.Select(row => GetOrCreateAsset<DishDefinition>($"{RestaurantData}/{row.File}.asset", asset => Apply(asset, so =>
+            {
+                so.FindProperty("_displayName").stringValue = row.Name;
+                so.FindProperty("_icon").objectReferenceValue = icon;
+                so.FindProperty("_basePrice").longValue = row.Price;
+                so.FindProperty("_cookSeconds").floatValue = row.CookSeconds;
+            }))).ToArray();
+
+            var customers = CustomerTable.Select(row => GetOrCreateAsset<CustomerDefinition>($"{RestaurantData}/{row.File}.asset", asset => Apply(asset, so =>
+            {
+                so.FindProperty("_displayName").stringValue = row.Name;
+                so.FindProperty("_sprite").objectReferenceValue = icon;
+                so.FindProperty("_spawnWeight").floatValue = row.Weight;
+                so.FindProperty("_patienceSeconds").floatValue = row.Patience;
+                so.FindProperty("_payMultiplier").floatValue = row.Pay;
+            }))).ToArray();
+
+            var incidents = IncidentTable.Select(row => GetOrCreateAsset<IncidentDefinition>($"{RestaurantData}/{row.File}.asset", asset => Apply(asset, so =>
+            {
+                so.FindProperty("_displayName").stringValue = row.Name;
+                so.FindProperty("_role").enumValueIndex = (int)row.Role;
+                so.FindProperty("_weight").floatValue = 1f;
+            }))).ToArray();
+
+            var upgrades = UpgradeTable.Select(row => GetOrCreateAsset<UpgradeDefinition>($"{RestaurantData}/Upgrade_{row.Id}.asset", asset => Apply(asset, so =>
+            {
+                so.FindProperty("_id").stringValue = row.Id;
+                so.FindProperty("_displayName").stringValue = row.Name;
+                so.FindProperty("_icon").objectReferenceValue = icon;
+                so.FindProperty("_effect").enumValueIndex = (int)row.Effect;
+                var levels = so.FindProperty("_levels");
+                levels.arraySize = row.Values.Length;
+                for (var i = 0; i < row.Values.Length; i++)
+                {
+                    var level = levels.GetArrayElementAtIndex(i);
+                    level.FindPropertyRelative("Value").floatValue = row.Values[i];
+                    var cost = level.FindPropertyRelative("Cost");
+                    cost.arraySize = 2;
+                    SetCost(cost.GetArrayElementAtIndex(0), CurrencyType.Coin, row.Coins[i]);
+                    SetCost(cost.GetArrayElementAtIndex(1), CurrencyType.Material, row.Materials[i]);
+                }
+            }))).ToArray();
+
+            var catalog = GetOrCreateAsset<UpgradeCatalog>(UpgradeCatalogPath, asset =>
+                Apply(asset, so => SetObjects(so.FindProperty("_items"), upgrades)));
+
+            GetOrCreateAsset<RestaurantConfig>(RestaurantConfigPath, asset => Apply(asset, so =>
+            {
+                SetObjects(so.FindProperty("_dishes"), dishes);
+                SetObjects(so.FindProperty("_customers"), customers);
+                SetObjects(so.FindProperty("_incidents"), incidents);
+                so.FindProperty("_upgrades").objectReferenceValue = catalog;
+            }));
+        }
+
+        private static void SetCost(SerializedProperty line, CurrencyType type, long amount)
+        {
+            line.FindPropertyRelative("Type").enumValueIndex = (int)type;
+            line.FindPropertyRelative("Amount").longValue = amount;
         }
 
         private static SkillDefinition CreateSkill(

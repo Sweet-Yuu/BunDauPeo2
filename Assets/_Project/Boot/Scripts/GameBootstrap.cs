@@ -2,6 +2,7 @@ using System.IO;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
+using BunDauPeo.Restaurant;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,6 +13,7 @@ namespace BunDauPeo.Boot
         [SerializeField] private CharacterCatalog _catalog;
         [SerializeField] private NewGameConfig _newGameConfig;
         [SerializeField] private GachaBannerCatalog _bannerCatalog;
+        [SerializeField] private RestaurantConfig _restaurantConfig;
         [SerializeField] private string _startScene;
 
         // Chỉ bản khởi động thành công mới là "active"; nạp lại scene Boot sẽ sinh bản thứ hai và hai session cùng ghi đè save của nhau.
@@ -48,6 +50,12 @@ namespace BunDauPeo.Boot
                 return;
             }
 
+            if (_restaurantConfig == null)
+            {
+                Debug.LogError($"{nameof(GameBootstrap)}: field {nameof(_restaurantConfig)} is not assigned.", this);
+                return;
+            }
+
             if (_active != null && _active != this)
             {
                 Destroy(gameObject);
@@ -74,6 +82,12 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(_session.Roster);
             ServiceLocator.Register(new GachaService(_session.Save, _session.Wallet, _session.Roster, _catalog,
                 _bannerCatalog, new System.Random(), _session.Persist));
+
+            var restaurant = new RestaurantService(_restaurantConfig, _session.Save, _session.Wallet, _session.Roster,
+                new System.Random(), _session.Persist);
+            gameObject.AddComponent<RestaurantRunner>().Init(restaurant);
+            ServiceLocator.Register(restaurant);
+            _session.ResetCompleted += restaurant.ResetRuntime;
 
             // Scene khởi đầu do dữ liệu quyết định để spec hub sau này đổi scene mà không sửa code.
             if (!string.IsNullOrEmpty(_startScene)) SceneManager.LoadScene(_startScene);

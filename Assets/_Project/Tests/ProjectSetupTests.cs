@@ -5,6 +5,7 @@ using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.EditorTools;
 using BunDauPeo.Gacha;
+using BunDauPeo.Restaurant;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -247,6 +248,98 @@ namespace BunDauPeo.Tests
             var so = new SerializedObject(asset);
             so.FindProperty("_id").stringValue = id;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        [Test]
+        public void SampleRestaurantConfig_IsValid()
+        {
+            var config = AssetDatabase.LoadAssetAtPath<RestaurantConfig>(ProjectSetup.RestaurantConfigPath);
+            Assert.IsNotNull(config);
+            CollectionAssert.IsEmpty(config.Validate());
+            Assert.AreEqual(3, config.Dishes.Count);
+            Assert.AreEqual(3, config.Customers.Count);
+            Assert.AreEqual(3, config.Incidents.Count);
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<UpgradeCatalog>(ProjectSetup.UpgradeCatalogPath), config.Upgrades);
+        }
+
+        // Bảng viết thẳng từ spec 3.4, không dùng lại dữ liệu của ProjectSetup nên sửa nhầm một con số sẽ bị bắt.
+        private static readonly (string Id, UpgradeEffect Effect, float[] Values, long[] Coins, long[] Materials)[] SpecUpgrades =
+        {
+            ("up_tables", UpgradeEffect.Tables, new[] { 4f, 5f, 6f, 7f, 8f }, new[] { 300L, 600, 1200, 2400, 4800 }, new[] { 5L, 10, 15, 20, 25 }),
+            ("up_cook_slots", UpgradeEffect.CookSlots, new[] { 2f, 3f }, new[] { 500L, 1500 }, new[] { 10L, 30 }),
+            ("up_serve_slots", UpgradeEffect.ServeSlots, new[] { 2f, 3f }, new[] { 500L, 1500 }, new[] { 10L, 30 }),
+            ("up_cashier_slots", UpgradeEffect.CashierSlots, new[] { 2f, 3f }, new[] { 500L, 1500 }, new[] { 10L, 30 }),
+            ("up_arrivals", UpgradeEffect.ArrivalInterval, new[] { 0.9f, 0.81f, 0.73f, 0.66f, 0.59f }, new[] { 300L, 600, 1200, 2400, 4800 }, new[] { 5L, 10, 15, 20, 25 }),
+            ("up_prices", UpgradeEffect.DishPrice, new[] { 1.1f, 1.2f, 1.3f, 1.4f, 1.5f }, new[] { 400L, 800, 1600, 3200, 6400 }, new[] { 5L, 10, 15, 20, 25 }),
+        };
+
+        [Test]
+        public void SampleUpgrades_MatchSpecTable()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<UpgradeCatalog>(ProjectSetup.UpgradeCatalogPath);
+            Assert.IsNotNull(catalog);
+            Assert.AreEqual(SpecUpgrades.Length, catalog.Items.Count);
+            foreach (var row in SpecUpgrades)
+            {
+                Assert.IsTrue(catalog.TryGet(row.Id, out var upgrade), row.Id);
+                Assert.AreEqual(row.Effect, upgrade.Effect, row.Id);
+                Assert.AreEqual(row.Values.Length, upgrade.MaxLevel, row.Id);
+                for (var i = 0; i < row.Values.Length; i++)
+                {
+                    Assert.AreEqual(row.Values[i], upgrade.Levels[i].Value, 1e-6f, $"{row.Id} level {i + 1} value");
+                    CollectionAssert.AreEqual(
+                        new[] { new CurrencyAmount(CurrencyType.Coin, row.Coins[i]), new CurrencyAmount(CurrencyType.Material, row.Materials[i]) },
+                        upgrade.Levels[i].Cost, $"{row.Id} level {i + 1} cost");
+                }
+            }
+        }
+
+        [Test]
+        public void BootScene_HasRestaurantConfig()
+        {
+            var config = ReadBootReference("_restaurantConfig");
+            Assert.IsNotNull(config);
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<RestaurantConfig>(ProjectSetup.RestaurantConfigPath), config);
+        }
+
+        [Test]
+        public void Setup_RerunKeepsEditedRestaurantValues()
+        {
+            var config = AssetDatabase.LoadAssetAtPath<RestaurantConfig>(ProjectSetup.RestaurantConfigPath);
+            var original = config.BaseTables;
+            SetBaseTables(config, 7);
+            try
+            {
+                ProjectSetup.Run();
+                Assert.AreEqual(7, config.BaseTables);
+            }
+            finally
+            {
+                SetBaseTables(config, original);
+                EditorUtility.SetDirty(config);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetBaseTables(RestaurantConfig config, int value)
+        {
+            var so = new SerializedObject(config);
+            so.FindProperty("_baseTables").intValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static Object ReadBootReference(string field)
+        {
+            var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
+            var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
+            try
+            {
+                return new SerializedObject(BootstrapIn(scene)).FindProperty(field).objectReferenceValue;
+            }
+            finally
+            {
+                if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         [Test]

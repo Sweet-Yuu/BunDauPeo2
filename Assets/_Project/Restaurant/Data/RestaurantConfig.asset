@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b42d625ef18912942ba652c8cb0cc750, type: 3}
+  m_Name: RestaurantConfig
+  m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.RestaurantConfig
+  _dishes:
+  - {fileID: 11400000, guid: 486a434ec7aa58943994daa87229ba63, type: 2}
+  - {fileID: 11400000, guid: 3aa170d88bfe24c41a4274c45613aab7, type: 2}
+  - {fileID: 11400000, guid: df33c733f135e844392190809ec9e725, type: 2}
+  _customers:
+  - {fileID: 11400000, guid: 78d80b6f79eb2d8468dc2fa8ea397531, type: 2}
+  - {fileID: 11400000, guid: ba49c07c6111b5349a1eb0836b37b18b, type: 2}
+  - {fileID: 11400000, guid: 16e7314fe700646428fc05fd783969e8, type: 2}
+  _incidents:
+  - {fileID: 11400000, guid: 6a98ba118543b1c4494459cb24be6267, type: 2}
+  - {fileID: 11400000, guid: 5094646042cadc140b41af531caea4f9, type: 2}
+  - {fileID: 11400000, guid: b5e74a5626773f144a270d53f3bf6e46, type: 2}
+  _upgrades: {fileID: 11400000, guid: b5f067b3cfeed2d4781cf102d2f260bf, type: 2}
+  _baseTables: 3
+  _baseCookSlots: 1
+  _baseServeSlots: 1
+  _baseCashierSlots: 1
+  _baseArrivalInterval: 15
+  _maxWaitingLine: 4
+  _serveSeconds: 4
+  _eatSeconds: 8
+  _cashierSeconds: 3
+  _attendanceMax: 50
+  _incidentMax: 50
+  _dailyGoalSeconds: 300
+  _incidentSpawnMin: 60
+  _incidentSpawnMax: 120
+  _incidentFastSeconds: 8
+  _incidentLateSeconds: 20
+  _afkMaxHours: 12
+  _afkFactorMin: 0.1
+  _afkFactorMax: 0.5
+  _afkPopupMinSeconds: 300
+  _autosaveSeconds: 60
