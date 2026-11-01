@@ -71,7 +71,7 @@ namespace BunDauPeo.EditorTools
             AddImage(back, null, Background, raycast: false);
 
             var room = NewRect("Room", canvas);
-            Place(room, Center, Center, new Vector2(0, 280), Vector2.zero);
+            Place(room, Center, Center, new Vector2(0, 235), Vector2.zero);
             room.localScale = Vector3.one * RoomScale;
             BuildFloor(room);
 
@@ -82,8 +82,8 @@ namespace BunDauPeo.EditorTools
             RectTransform counter = null;
             var pieces = new List<(float Depth, Action Build)>
             {
-                (IsoProjection.DepthKey(0, 3), () => Box("Kitchen", furniture, new Vector2(0, 3), new Vector2(260, 80), new Color(0.55f, 0.35f, 0.25f))),
-                (IsoProjection.DepthKey(3, 0), () => counter = Box("Counter", furniture, new Vector2(3, 0), new Vector2(260, 80), new Color(0.45f, 0.30f, 0.50f))),
+                (IsoProjection.DepthKey(0, 3), () => Box("Kitchen", furniture, new Vector2(0, 3), new Vector2(200, 60), new Color(0.55f, 0.35f, 0.25f))),
+                (IsoProjection.DepthKey(3, 0), () => counter = Box("Counter", furniture, new Vector2(3, 0), new Vector2(200, 60), new Color(0.45f, 0.30f, 0.50f))),
             };
             for (var i = 0; i < TableCells.Length; i++)
             {

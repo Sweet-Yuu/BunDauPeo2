@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-009 — Play đứng im khi Editor không focus, dễ nhầm với lỗi mô phỏng (2026-11-01)  #process #unity-files
+- Triệu chứng: thử quán qua `unity command`, Coin đứng ở 583 hơn 50 giây dù đủ ba nhân viên; chưa kiểm đã định kết luận khách không đến nữa.
+- Nguyên nhân gốc: Editor không focus thì vòng lặp Play không chạy (`Time.frameCount` đứng yên), không phải lỗi `RestaurantSimulation`. Cờ của hai lệnh bật chạy nền là `--enable true` (không phải `--enabled`).
+- Luật từ nay: vào Play xong là chạy ngay `unity command editor set_auto_tick --enable true` và `editor.playmode set_run_in_background --enable true`; trước khi tin số đo hay nghi lỗi, đọc `Time.frameCount` hai lần cách vài giây.
+
 ### L-008 — Dung sai của kế hoạch che lỗi lệch một bước trong mô phỏng thời gian (2026-11-01)  #process #script
 - Triệu chứng: `RestaurantSimulation` xanh 268/268 nhưng bữa ăn ngắn đi 0,1 giây (khách trả tiền ở 27,4 thay vì 27,5), vì bước "ăn" chạy sau bước "worker" nên bị trừ giờ ngay trong bước vừa chuyển trạng thái; kế hoạch cho dung sai ±0,2 giây nên test không bắt được.
 - Nguyên nhân gốc: dung sai của test rộng hơn đúng một bước cố định (0,1 giây), nên mọi lỗi lệch một bước đều lọt.

@@ -35,7 +35,7 @@ Quy tắc:
   - `unity command test run` báo kết quả **cũ** khi project đang lỗi compile (vẫn "N/N passed"): kiểm `unity command console status` có `"compilationFailed":false` trước khi tin con số.
   - Mỗi lệnh CLI tốn ~3 giây. Muốn đo thời gian trong Play, ghi `Time.realtimeSinceStartup` trong chính lệnh `eval` (`Debug.Log`), đừng dựa vào `sleep`.
   - Bơm chạm chuột: `InputSystem.EnableDevice(Mouse.current)` (thiết bị bị tắt khi Editor không focus), rồi `QueueStateEvent(Mouse.current, new MouseState { buttons = 1 })` ở một lệnh và `buttons = 0` ở lệnh sau.
-  - `editor.playmode set_run_in_background` và `editor set_auto_tick` giúp Play chạy khi Editor không focus, nhưng cái đầu **ghi `runInBackground` vào `ProjectSettings.asset`**: sau khi xong, `git checkout -- ProjectSettings/ProjectSettings.asset`.
+  - `editor.playmode set_run_in_background --enable true` và `editor set_auto_tick --enable true` giúp Play chạy khi Editor không focus (không bật thì `Time.frameCount` đứng yên, xem L-009), nhưng cái đầu **có thể ghi `runInBackground` vào `ProjectSettings.asset`**: sau khi xong, `git status` và `git checkout -- ProjectSettings/ProjectSettings.asset` nếu bị đổi.
   - Lượt thử Play ghi vào save thật: sao lưu `save.json*` trước, chép lại sau khi đóng Editor (`unity close .`).
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 
