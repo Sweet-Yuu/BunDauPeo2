@@ -268,6 +268,35 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(1, f.Service.Simulation.Workers.Count);
         }
 
+        // Review: cấu hình lỗi không được làm Awake của Boot ném lỗi (game kẹt ở Boot, Gacha cũng không vào được).
+        [Test]
+        public void InvalidConfig_NegativeBaseTables_DoesNotThrow_AndIsNotRunning()
+        {
+            var config = RestaurantTestData.Config();
+            TestData.Edit(config, so => so.FindProperty("_baseTables").intValue = -1);
+
+            LogAssert.Expect(LogType.Error, new Regex("RestaurantService: invalid config"));
+            Fixture f = null;
+            Assert.DoesNotThrow(() => f = Make(config: config));
+
+            Assert.IsFalse(f.Service.IsRunning);
+            Assert.DoesNotThrow(() => Run(f.Service, 5f));
+        }
+
+        [Test]
+        public void ResetRuntime_RaisesRuntimeResetOnce_EvenWhenAHandlerThrows()
+        {
+            var f = Make();
+            var calls = 0;
+            f.Service.RuntimeReset += () => throw new InvalidOperationException("boom");
+            f.Service.RuntimeReset += () => calls++;
+
+            LogAssert.Expect(LogType.Exception, new Regex("boom"));
+            f.Service.ResetRuntime();
+
+            Assert.AreEqual(1, calls);
+        }
+
         [Test]
         public void InvalidConfig_IsNotRunning_UpdateDoesNotThrow_EstimateZero()
         {

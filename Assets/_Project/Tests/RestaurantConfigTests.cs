@@ -75,6 +75,23 @@ namespace BunDauPeo.Tests
         public void Validate_NonPositiveBaseValue_Reported(string field) =>
             AssertReports(Edited(so => SetNumber(so, field, 0)).Validate(), $"{Pascal(field)}: must be > 0");
 
+        // Review: 0 ở các field này vẫn qua Validate cũ nhưng làm chất lượng NaN (daily goal), mọi khách bỏ về (hàng chờ) hoặc popup mất số giây vắng (ngưỡng popup).
+        [Test]
+        public void Validate_DailyGoalWaitingLineAndPopupMin_Reported()
+        {
+            foreach (var (field, bad, expected) in new[]
+                     {
+                         ("_dailyGoalSeconds", 0.0, "DailyGoalSeconds: must be > 0"),
+                         ("_dailyGoalSeconds", -5.0, "DailyGoalSeconds: must be > 0"),
+                         ("_afkPopupMinSeconds", 0.0, "AfkPopupMinSeconds: must be > 0"),
+                         ("_maxWaitingLine", 0.0, "MaxWaitingLine: must be >= 1"),
+                     })
+            {
+                var errors = Edited(so => SetNumber(so, field, bad)).Validate();
+                Assert.IsTrue(errors.Exists(e => e.Contains(expected)), $"{field} = {bad}: expected '{expected}', got: {string.Join(" | ", errors)}");
+            }
+        }
+
         [Test]
         public void Validate_QualityMaxNotSumTo100_Reported() =>
             AssertReports(Edited(so => SetNumber(so, "_incidentMax", 40)).Validate(), "AttendanceMax + IncidentMax");

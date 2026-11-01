@@ -25,6 +25,16 @@
 
 ## Danh sách
 
+### L-016 — `Validate()` thiếu một field thì config xấu hoặc làm NaN, hoặc làm Boot ném lỗi (2026-11-02)  #script #process
+- Triệu chứng: review độc lập tìm ra `_dailyGoalSeconds = 0` qua `Validate` làm chất lượng NaN (Thu AFK mất Coin chờ), `_maxWaitingLine = 0` làm mọi khách bỏ về, và `_baseTables = -1` làm `RestaurantService` ném lỗi trong `Awake` dù `IsRunning` đã là false.
+- Nguyên nhân gốc: `Validate()` chỉ liệt kê field của những task đã nghĩ tới; code chạy tiếp sau khi báo lỗi cấu hình (`RebuildProfile`) vẫn dùng giá trị xấu.
+- Luật từ nay: field nào xuất hiện trong mẫu số, chỉ số mảng hay ngưỡng thì phải có trong `Validate()` và test; khi `IsRunning = false`, mọi bước dựng còn lại của constructor không được dùng config.
+
+### L-015 — Một cờ bool dùng chung cho nhiều chủ làm panel này mở khoá panel kia (2026-11-02)  #script #ui
+- Triệu chứng: `SetSpawnAllowed(bool)` được panel Nhân viên, Nâng cấp, popup AFK và popup Chất lượng cùng gọi; popup AFK chồng lên panel rồi đóng thì sự cố sinh ra dưới panel đang che màn, quá 20 giây là bỏ lỡ oan.
+- Nguyên nhân gốc: trạng thái "bị chặn" là một bool ghi đè; plan và code chỉ nghĩ tới từng panel riêng lẻ, không tới panel chồng nhau.
+- Luật từ nay: trạng thái chặn dùng chung giữa nhiều view phải theo chủ (`SetSpawnBlocked(owner, bool)`, idempotent theo chủ), không phải bool hay bộ đếm tăng giảm; test phải có ca hai chủ gỡ lần lượt.
+
 ### L-014 — Lệnh thử đổi trạng thái rồi quên khôi phục, kịch bản sau cho kết quả 0 (2026-11-02)  #process
 - Triệu chứng: thử Tua AFK ở màn Gacha ra `pend=0`, tưởng AFK hỏng; thật ra một lệnh `eval` trước đó đã gỡ Thu ngân (lệnh sau của cùng cặp bị lỗi biên dịch nên không xếp lại).
 - Nguyên nhân gốc: không ghi lại trạng thái đã đổi và không đọc `Estimate.MissingRole` đầu mỗi kịch bản.

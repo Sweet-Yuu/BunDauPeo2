@@ -78,7 +78,7 @@ namespace BunDauPeo.UI
         private void OnDisable()
         {
             if (_service == null) return;
-            _service.Incidents.SetSpawnAllowed(true);
+            _service.Incidents.SetSpawnBlocked(this, false);
             _service.ProfileChanged -= Redraw;
             _openButton.onClick.RemoveListener(Open);
             _closeButton.onClick.RemoveListener(Close);
@@ -113,7 +113,7 @@ namespace BunDauPeo.UI
         private void Open()
         {
             // Panel che "!" nên không sinh sự cố mới; sự cố đang chạy vẫn đếm để xếp người xử lý được.
-            _service.Incidents.SetSpawnAllowed(false);
+            _service.Incidents.SetSpawnBlocked(this, true);
             _root.SetActive(true);
             _listRoot.SetActive(false);
             _confirmRoot.SetActive(false);
@@ -123,7 +123,7 @@ namespace BunDauPeo.UI
 
         private void Close()
         {
-            _service.Incidents.SetSpawnAllowed(true);
+            _service.Incidents.SetSpawnBlocked(this, false);
             _root.SetActive(false);
             _listRoot.SetActive(false);
             _confirmRoot.SetActive(false);

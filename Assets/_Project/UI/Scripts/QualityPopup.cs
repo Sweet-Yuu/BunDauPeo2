@@ -50,7 +50,7 @@ namespace BunDauPeo.UI
         private void OnDisable()
         {
             if (_service == null) return;
-            if (_root.activeSelf) _service.Incidents.SetSpawnAllowed(true);
+            _service.Incidents.SetSpawnBlocked(this, false);
             _openButton.onClick.RemoveListener(Open);
             _closeButton.onClick.RemoveListener(Close);
             _service = null;
@@ -74,14 +74,14 @@ namespace BunDauPeo.UI
 
         private void Open()
         {
-            _service.Incidents.SetSpawnAllowed(false);
+            _service.Incidents.SetSpawnBlocked(this, true);
             _root.SetActive(true);
             Refresh();
         }
 
         private void Close()
         {
-            _service.Incidents.SetSpawnAllowed(true);
+            _service.Incidents.SetSpawnBlocked(this, false);
             _root.SetActive(false);
         }
 

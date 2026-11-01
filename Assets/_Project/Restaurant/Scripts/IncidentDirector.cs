@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BunDauPeo.Core;
 
 namespace BunDauPeo.Restaurant
@@ -31,7 +32,8 @@ namespace BunDauPeo.Restaurant
         private readonly Func<StaffRole, bool> _roleHasStaff;
 
         private bool _present;
-        private bool _spawnAllowed = true;
+        // Mỗi panel/popup đang che màn là một chủ; chặn khi còn ít nhất một chủ (đóng cái này không mở khoá cái kia).
+        private readonly HashSet<object> _spawnBlockers = new();
         private IncidentDefinition _active;
         private double _elapsed;
         // null = chưa đặt. Đếm ngược chạy cả khi không được sinh và dừng ở 0 để sinh ngay khi được mở lại.
@@ -57,8 +59,13 @@ namespace BunDauPeo.Restaurant
             if (!present) Cancel();
         }
 
-        // Panel hoặc popup đang mở thì "!" bị che, bỏ lỡ là phạt oan.
-        public void SetSpawnAllowed(bool allowed) => _spawnAllowed = allowed;
+        // Panel hoặc popup đang mở thì "!" bị che, bỏ lỡ là phạt oan. Gọi lặp lại cùng chủ không làm lệch bộ đếm.
+        public void SetSpawnBlocked(object owner, bool blocked)
+        {
+            if (owner == null) throw new ArgumentNullException(nameof(owner));
+            if (blocked) _spawnBlockers.Add(owner);
+            else _spawnBlockers.Remove(owner);
+        }
 
         public void Update(float dt)
         {
@@ -76,7 +83,7 @@ namespace BunDauPeo.Restaurant
             if (_spawnTimer > 0) return;
 
             _spawnTimer = 0;
-            if (_spawnAllowed) Spawn();
+            if (_spawnBlockers.Count == 0) Spawn();
         }
 
         // Không đổi gì khi không có sự cố hoặc vai của sự cố không có nhân vật.

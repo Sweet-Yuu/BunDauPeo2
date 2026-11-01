@@ -17,7 +17,7 @@ Assets/
     UI/            BunDauPeo.UI          Gacha: GachaView (điều phối), GachaRevealSequence, GachaRevealView, GachaTotalView, GachaRollAgainPopup, GachaHistoryPopup, GachaViewText. Quán: RestaurantView (người đi lại, "!" sự cố, lấy số giây vắng), RestaurantHud (tiền, sao, thu nhập, nút Thu AFK), StaffPanel + StaffPanelRows, UpgradeTestPanel (bản thử), AfkPopup, QualityPopup, RestaurantViewText, IsoProjection, DevOverlay (chỉ Editor và Development Build). Hub thật làm ở spec UI hub
     Boot/          BunDauPeo.Boot        GameBootstrap (nối GachaService và RestaurantService, OnAppPause trước Persist, nạp scene khởi đầu), GameSession (có `ResetCompleted`), NewGameConfig
     Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode, GachaSceneBuilder, RestaurantSceneBuilder
-    Tests/         BunDauPeo.Tests       EditMode (420 test)
+    Tests/         BunDauPeo.Tests       EditMode (425 test)
     Scenes/        Boot.unity (đầu Build Settings), Gacha.unity, Restaurant.unity (thứ ba; Boot nạp nó qua `_startScene`, đổi từ Gacha một lần)
     Combat/                              mới có folder con rỗng (.gitkeep), chưa có asmdef
 ```

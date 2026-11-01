@@ -113,6 +113,10 @@ namespace BunDauPeo.Restaurant
             if (_incidentFastSeconds >= _incidentLateSeconds) errors.Add("IncidentFastSeconds: must be < IncidentLateSeconds");
 
             Positive(errors, "AutosaveSeconds", _autosaveSeconds);
+            // 0 ở ba field này lọt qua mà làm chất lượng NaN, mọi khách bỏ về, hoặc popup mất số giây vắng.
+            Positive(errors, "DailyGoalSeconds", _dailyGoalSeconds);
+            Positive(errors, "AfkPopupMinSeconds", _afkPopupMinSeconds);
+            if (_maxWaitingLine < 1) errors.Add("MaxWaitingLine: must be >= 1");
 
             CheckUpgrades(errors);
             return errors;

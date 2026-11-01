@@ -43,6 +43,7 @@ namespace BunDauPeo.UI
             }
 
             _collectButton.onClick.AddListener(Collect);
+            _service.RuntimeReset += OnRuntimeReset;
             _laterButton.onClick.AddListener(Close);
             _root.SetActive(false);
         }
@@ -50,7 +51,8 @@ namespace BunDauPeo.UI
         private void OnDisable()
         {
             if (_service == null) return;
-            if (IsOpen) _service.Incidents.SetSpawnAllowed(true);
+            _service.Incidents.SetSpawnBlocked(this, false);
+            _service.RuntimeReset -= OnRuntimeReset;
             _collectButton.onClick.RemoveListener(Collect);
             _laterButton.onClick.RemoveListener(Close);
             _service = null;
@@ -73,7 +75,7 @@ namespace BunDauPeo.UI
             _tipText.text = RestaurantViewText.TipLine(_service.Config.DailyGoalSeconds);
             // "Chưa lưu được" của lần mở trước không được dính sang lần này.
             _messageText.text = "";
-            _service.Incidents.SetSpawnAllowed(false);
+            _service.Incidents.SetSpawnBlocked(this, true);
             _root.SetActive(true);
             Refresh();
         }
@@ -120,9 +122,15 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
+        // Reset Save Data giữa lúc popup hiện "Đã nhận X Coin" thì số đó không còn đúng.
+        private void OnRuntimeReset()
+        {
+            if (IsOpen) Close();
+        }
+
         private void Close()
         {
-            _service.Incidents.SetSpawnAllowed(true);
+            _service.Incidents.SetSpawnBlocked(this, false);
             _root.SetActive(false);
         }
     }

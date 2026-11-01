@@ -100,17 +100,59 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(2, f.Random.Calls);
         }
 
+        private static readonly object Panel = new object();
+        private static readonly object Popup = new object();
+
+        // Review: panel Nhân viên mở, popup AFK chồng lên rồi đóng thì sự cố không được sinh khi panel còn che màn.
+        [Test]
+        public void SpawnBlocked_StaysBlockedUntilEveryOwnerReleases()
+        {
+            var f = Make();
+            f.Director.SetPresent(true);
+            f.Director.SetSpawnBlocked(Panel, true);
+            f.Director.SetSpawnBlocked(Popup, true);
+            f.Director.Update(200f);
+            Assert.IsFalse(f.Director.Active.HasValue);
+
+            f.Director.SetSpawnBlocked(Popup, false);
+            f.Director.Update(0.1f);
+            Assert.IsFalse(f.Director.Active.HasValue, "the panel still covers the bubble");
+
+            f.Director.SetSpawnBlocked(Panel, false);
+            f.Director.Update(0.1f);
+            Assert.IsTrue(f.Director.Active.HasValue);
+        }
+
+        [Test]
+        public void SpawnBlocked_SameOwnerTwice_OneReleaseIsEnough_AndNullOwnerThrows()
+        {
+            var f = Make();
+            f.Director.SetPresent(true);
+            f.Director.SetSpawnBlocked(Panel, true);
+            f.Director.SetSpawnBlocked(Panel, true);
+            f.Director.Update(200f);
+            Assert.IsFalse(f.Director.Active.HasValue);
+
+            // Gỡ một lần là hết (OnDisable gọi gỡ vô điều kiện, không được làm lệch bộ đếm).
+            f.Director.SetSpawnBlocked(Panel, false);
+            f.Director.SetSpawnBlocked(Popup, false);
+            f.Director.Update(0.1f);
+            Assert.IsTrue(f.Director.Active.HasValue);
+
+            Assert.Throws<System.ArgumentNullException>(() => f.Director.SetSpawnBlocked(null, true));
+        }
+
         [Test]
         public void SpawnNotAllowed_NoSpawn_ThenSpawnsImmediatelyWhenReallowed()
         {
             var f = Make();
             f.Director.SetPresent(true);
-            f.Director.SetSpawnAllowed(false);
+            f.Director.SetSpawnBlocked(Panel, true);
 
             f.Director.Update(200f);
             Assert.IsFalse(f.Director.Active.HasValue);
 
-            f.Director.SetSpawnAllowed(true);
+            f.Director.SetSpawnBlocked(Panel, false);
             f.Director.Update(0.1f);
             Assert.IsTrue(f.Director.Active.HasValue);
         }
@@ -119,7 +161,7 @@ namespace BunDauPeo.Tests
         public void ActiveIncident_KeepsCounting_WhenSpawnNotAllowed()
         {
             var f = Spawned();
-            f.Director.SetSpawnAllowed(false);
+            f.Director.SetSpawnBlocked(Panel, true);
 
             f.Director.Update(5f);
             Assert.AreEqual(5f, f.Director.Active.Value.Elapsed, 1e-4f);

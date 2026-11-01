@@ -566,7 +566,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
 
 **Files:**
 - Create: `Assets/_Project/Restaurant/Scripts/IncidentDirector.cs`
-- Modify: `RestaurantService.cs`, `RestaurantView.cs`, `RestaurantViewText.cs`, `StaffPanel.cs` (gọi `SetSpawnAllowed(false)` khi mở), `UpgradeTestPanel.cs` (cùng việc đó), `RestaurantSceneBuilder.cs`
+- Modify: `RestaurantService.cs`, `RestaurantView.cs`, `RestaurantViewText.cs`, `StaffPanel.cs` (gọi `SetSpawnBlocked(this, true)` khi mở), `UpgradeTestPanel.cs` (cùng việc đó), `RestaurantSceneBuilder.cs`
 - Test: `Assets/_Project/Tests/IncidentDirectorTests.cs`, `RestaurantServiceTests.cs`, `RestaurantViewTextTests.cs`
 
 **Interfaces:**
@@ -576,7 +576,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   public sealed class IncidentDirector {
       public IncidentDirector(RestaurantConfig config, System.Random random, RestaurantSimulation simulation, RestaurantQuality quality, Func<StaffRole, bool> roleHasStaff);
       public void SetPresent(bool present);          // false khi đang có sự cố thì Cancel()
-      public void SetSpawnAllowed(bool allowed);     // false: không sinh mới, đồng hồ giữ ở 0; sự cố đang chạy vẫn đếm
+      public void SetSpawnBlocked(object owner, bool blocked);   // blocked = true: không sinh mới, đồng hồ giữ ở 0; sự cố đang chạy vẫn đếm
       public void Update(float dt);
       public bool Resolve();                         // false và không đổi gì khi vai không có người hoặc không có sự cố
       public void Cancel();                          // huỷ không tính điểm, mở lại trạm
@@ -646,7 +646,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
 
 **Interfaces:**
 - Consumes: `RestaurantService.Afk/Quality/Estimate`, `AfkService.TakePendingAbsence/PreviewCollect/Collect/IsFull`, `RestaurantQuality.DayCredits/TodaySeconds/Attendance/IncidentPoints/Stars/AfkFactor`.
-- Produces: `RestaurantViewText.AbsenceText(double seconds)` ("5 giờ 12 phút"), `FullCapLine(bool isFull)` (rỗng khi chưa đầy), `AfkSummary(...)`, `DayCellFill(float credit)`, `TodayLine(double seconds, double goalSeconds)` ("Hôm nay: a/b phút (tính vào ngày mai)"), `IncidentBreakdown(IReadOnlyList<int> scores)` ("Kịp 5 · Trễ 1 · Bỏ lỡ 1 · Chưa có 3"). `RestaurantView` gọi `TakePendingAbsence()` ở `OnEnable` và mỗi khung; kết quả `> 0` và `PreviewCollect() > 0` thì hiện `AfkPopup` (thời gian vắng, Coin lý thuyết chờ, sao và điểm, hệ số, Coin nhận, mẹo, nút Thu thập / Để sau, dòng "Đã đầy, ..." khi `IsFull`). Bấm thẻ sao ở HUD mở `QualityPopup` (Chuyên cần x/50 với 7 ô ngày, dòng hôm nay, Xử lý sự cố y/50, hệ số AFK). Mở popup thì `SetSpawnAllowed(false)`, đóng thì `true`.
+- Produces: `RestaurantViewText.AbsenceText(double seconds)` ("5 giờ 12 phút"), `FullCapLine(bool isFull)` (rỗng khi chưa đầy), `AfkSummary(...)`, `DayCellFill(float credit)`, `TodayLine(double seconds, double goalSeconds)` ("Hôm nay: a/b phút (tính vào ngày mai)"), `IncidentBreakdown(IReadOnlyList<int> scores)` ("Kịp 5 · Trễ 1 · Bỏ lỡ 1 · Chưa có 3"). `RestaurantView` gọi `TakePendingAbsence()` ở `OnEnable` và mỗi khung; kết quả `> 0` và `PreviewCollect() > 0` thì hiện `AfkPopup` (thời gian vắng, Coin lý thuyết chờ, sao và điểm, hệ số, Coin nhận, mẹo, nút Thu thập / Để sau, dòng "Đã đầy, ..." khi `IsFull`). Bấm thẻ sao ở HUD mở `QualityPopup` (Chuyên cần x/50 với 7 ô ngày, dòng hôm nay, Xử lý sự cố y/50, hệ số AFK). Mở popup thì `SetSpawnBlocked(this, true)`, đóng thì `SetSpawnBlocked(this, false)`.
 
 - [x] **Step 1: Viết test đỏ (7 test)**
   - `RestaurantViewTextTests` (6): `AbsenceText_HoursAndMinutes` (18720 → chứa "5" và "12"); `AbsenceText_UnderAnHour_MinutesOnly`; `FullCapLine_OnlyWhenFull`; `DayCellFill_IsCredit`; `TodayLine_ShowsProgressAndNextDayNote`; `IncidentBreakdown_CountsKindLateMissedAndEmpty` (`[2,2,1,0]` → Kịp 2, Trễ 1, Bỏ lỡ 1, Chưa có 6).
@@ -673,6 +673,6 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
 
 ## Hoàn tất đợt
 
-- [ ] Xoá `../bdp-tests.*` và `../bdp-setup.log`.
-- [ ] Gọi một subagent mới (Opus 5.5, effort xhigh, theo [agent-routing.md](../../guides/agent-routing.md)) review toàn nhánh `feature/restaurant` theo spec, tập trung `UpgradeService`, `AfkService`, `RestaurantQuality`, `IncidentDirector`, `RestaurantSimulation`, Reset và mục Review Focus.
-- [ ] Sửa các lỗi review tìm ra, chạy lại test, báo cáo user.
+- [x] Xoá `../bdp-tests.*` và `../bdp-setup.log`.
+- [x] Gọi một subagent mới (Opus 5.5, effort xhigh, theo [agent-routing.md](../../guides/agent-routing.md)) review toàn nhánh `feature/restaurant` theo spec, tập trung `UpgradeService`, `AfkService`, `RestaurantQuality`, `IncidentDirector`, `RestaurantSimulation`, Reset và mục Review Focus.
+- [x] Sửa các lỗi review tìm ra, chạy lại test, báo cáo user. Kết quả: 2 lỗi Important (cờ chặn sự cố dùng chung, `Validate` thiếu `DailyGoalSeconds`) và 2 lỗi Minor (config xấu làm Awake ném lỗi, Validate thiếu hai field) đã sửa kèm test đỏ trước; 1 Minor (popup sau Reset) sửa bằng `RuntimeReset`; 1 Minor (`_startScene`) bác. 425 test xanh.

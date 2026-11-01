@@ -59,6 +59,9 @@ namespace BunDauPeo.Restaurant
 
         public event Action ProfileChanged;
 
+        // Sau khi ResetRuntime xoá trạng thái chạy: popup đang mở giữ số cũ (vd. "Đã nhận X Coin") phải tự đóng.
+        public event Action RuntimeReset;
+
         public void SetPresent(bool present)
         {
             IsPresent = present;
@@ -108,6 +111,7 @@ namespace BunDauPeo.Restaurant
             Incidents.Reset();
             Afk.TakePendingAbsence();
             _autosaveTimer = 0;
+            RuntimeReset.SafeInvoke();
         }
 
         private void OnRosterChanged()
@@ -119,7 +123,8 @@ namespace BunDauPeo.Restaurant
         private void RebuildProfile()
         {
             Profile = RestaurantProfile.Build(_config, _save, _roster);
-            Simulation.SetProfile(Profile);
+            // Cấu hình lỗi (vd. số bàn âm) làm SetProfile ném lỗi ngay trong Awake của Boot; mô phỏng không chạy nên không cần hồ sơ.
+            if (IsRunning) Simulation.SetProfile(Profile);
             // Cấu hình lỗi có thể làm công thức chia cho 0 hoặc duyệt danh sách rỗng.
             Estimate = IsRunning ? IncomeCalculator.Estimate(_config, Profile) : default;
         }
