@@ -34,7 +34,7 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - Tự chạy: khách đến ngẫu nhiên, nhân vật làm việc theo chỉ số ở vị trí được xếp (nấu, phục vụ, thu ngân). Người chơi xếp nhân sự và mua nâng cấp.
 - Có hình: khách và nhân vật đi lại trong quán. Logic tách khỏi hình.
 - Vẫn chạy khi người chơi đang đánh trận.
-- **Phòng bán** (user chốt 2026-11-01): tạm thời theo phòng isometric trong `Mota/restaurant-room-isometric-en.jpg`.
+- **Bố cục màn quán** (user chốt 2026-11-01, thay phòng isometric trước đó): theo ba ảnh `Mota/restaurant-layout-*`. Chỉ lấy bố cục; mô tả cụ thể và phần không lấy ở [spec Restaurant mục 5.1](../superpowers/specs/2026-11-01-restaurant-design.md#51-màn-quán-restaurantunity).
 - **Dây chuyền** (user chốt 2026-11-01): khách vào, ngồi bàn, **nấu**, **phục vụ** bưng ra, ăn (không cần ai), **thu ngân** thanh toán, về. Thời gian một việc = thời gian gốc × 100 / (100 + chỉ số), chỉ số chỉ làm nhanh hơn, không đổi giá món. Mỗi vai khởi điểm 1 ô, bàn khởi điểm 3 (nâng cấp tăng).
 - **Kiên nhẫn:** hai lần chờ có hạn (từ lúc đến tới khi có món; từ lúc ăn xong tới khi trả tiền xong). Quá hạn thì khách bỏ về **không trả tiền**.
 - **Thiếu người ở một vai** thì trạm đó đứng yên, quán không thu được gì. Không có "chủ quán làm thay". Với 3 nhân vật khởi đầu, chạy quán thì đội chiến đấu trống: đúng cân nhắc "đội mạnh hay quán đông".

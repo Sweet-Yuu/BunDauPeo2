@@ -24,7 +24,7 @@ Quán tự chạy: khách đến ngẫu nhiên, ăn và trả Coin, nhân viên 
 | Thử khi chưa có Combat | "Dải DEV" nổi trên mọi màn, chỉ có trong Editor và Development Build: chuyển Quán ↔ Gacha, +50 Material, Tua AFK +1 giờ. Luật "Material chỉ từ chiến đấu" và `NewGameConfig` (0 Material) giữ nguyên |
 | Chạy xuyên scene | `RestaurantRunner` (MonoBehaviour) thêm vào GameObject `DontDestroyOnLoad` của `GameBootstrap`, tick bằng `Time.unscaledDeltaTime` kẹp 0,5 giây mỗi khung |
 | Điều hướng | `_startScene` = `Restaurant`; Gacha vào được qua dải DEV. Hub là việc cuối, không làm trước |
-| Hình | Phòng isometric theo `Mota/restaurant-room-isometric-en.jpg`, dựng **trong Canvas bằng `Image`**; mô phỏng không biết tọa độ, view tự cho nhân vật đi giữa các điểm mốc |
+| Hình | Bố cục theo ba ảnh `Mota/restaurant-layout-*` (mục 5.1), dựng **trong Canvas bằng `Image`**; mô phỏng không biết tọa độ, view tự cho nhân vật đi giữa các điểm mốc |
 | Save | Mọi dữ liệu mới trong `PlayerSave` qua `SaveService`. Lưu ngay sau mua nâng cấp và thu AFK; lưu định kỳ mỗi 60 giây; tắt đột ngột mất tối đa 60 giây tiền khách trả, giây có mặt và kết quả sự cố |
 | Reset ([D-005](../../decisions/decisions.md)) | `GameSession.ResetCompleted` bắn sau khi ghi đè save; `GameBootstrap` nối sang `RestaurantService.ResetRuntime()` để xoá trạng thái chạy trong bộ nhớ |
 | Đồng hồ | Giờ hệ thống UTC qua `IClock` tiêm vào; mô hình `Heartbeat` / `CatchUp` (mục 4.6) |
@@ -296,17 +296,28 @@ Chỉ để thử; hub thật ở spec UI hub. Màn ngang, `CanvasScaler` tham c
 
 ### 5.1 Màn quán (`Restaurant.unity`)
 
+Bố cục theo ba ảnh `Mota/restaurant-layout-garden-en.webp`, `-farm-en`, `-sea-en` (user chốt 2026-11-01). Ảnh dùng art thật; game này dựng cùng bố cục bằng hình có sẵn.
+
 ```
- Coin 1.250 ▲   Material 35   Gem 1500     ★★★☆☆ 62 ◀bấm     ≈ 1,6 Coin/giây      [Thu AFK (X Coin)]
-                                                              Phục vụ 12 · Bỏ về 2   (khi = 0: ⚠ Thiếu đầu bếp...)
-   ┌ phòng isometric 8×8 ───────────────────────────────────┐
-   │   bếp (trái, sau)                      quầy thu ngân   │      [Nhân viên]
-   │        bàn · bàn · bàn          +24 ↑ (chữ bay từ quầy) │      [Nâng cấp]
-   │   cửa (trước)      khách · nhân viên · bong bóng "!"    │
-   └─────────────────────────────────────────────────────────┘
+ [Coin 1.250] [Material 35] [Gem 1500]                                       ┌───┐
+          ┌ ★★★☆☆  ≈ 1,6 Coin/giây  ·  Phục vụ 12 · Bỏ về 2 ┐                │(N)│ Nhân viên
+          └ (khi = 0: ⚠ Thiếu đầu bếp...) ─────────────────┘  ▂▂▂ tường sau  │   │
+      cây        ▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ dãy bếp ▀▀▀▀▀▀▀▀▀▀▀▄▄▄             │(N)│ Nâng cấp
+                ▌                    nhân viên      bàn   bàn    ▀▀▀▄▄       │   │
+     tường trái ▌  quầy thu ngân                                       ▀▄    │(N)│ Thu AFK
+               ▌   +24 ↑              bàn   bàn   bàn   bàn   bàn       ▌    └───┘
+               ▙▄▄▄▄▄[cửa]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▌
+ [dải DEV]         luống · luống · luống · luống · luống      (chỉ trang trí)
 ```
 
-- **Phòng:** sàn lưới 8×8 hình thoi, màu đỏ/xanh xen kẽ như ảnh, dựng từ `Image` không gán sprite (`UISprite` có góc bo và viền, ghép sàn sẽ lộ khe). Cả sàn là con của một `RectTransform` xoay 45°, nằm trong một `RectTransform` nén trục y còn 0,5, nên không cần tính vị trí từng ô (phép chiếu isometric 2:1, ô 120×60 pixel). Hai bức tường sau dựng từ hình bình hành ghép tương tự; nếu quá rườm rà thì giữ sàn và bỏ tường ở bản đầu. Đồ vật (bàn, bếp, quầy) là hộp màu; khách là hình tròn, nhân viên là `Knob` kèm tên, bong bóng sự cố là `Image` "!". Thứ tự vẽ sắp theo toạ độ y khi người di chuyển. Sàn tĩnh nằm trong Canvas con riêng để không bị dựng lại khi người di chuyển.
+- **Phòng:** một sàn lớn **một màu** kem sáng, không còn lưới ô màu xen kẽ. Sàn là **một `Image` chữ nhật không gán sprite, xoay khoảng −11,3°**, nên hai cạnh dài dốc nhẹ xuống bên phải, hai cạnh ngắn dốc mạnh xuống bên trái như trong ảnh; không cần cha nén trục y. Lưới 12 × 8 ô: `IsoProjection.CellToLocal(gx, gy)` = (90·gx − 13·gy, −18·gx − 65·gy), hai trục vuông góc nên khớp đúng phép xoay; `DepthKey` = 18·gx + 65·gy. Sàn chiếm khoảng 1180 × 740 trên Canvas 1920×1080, lệch sang trái để chừa cột nút.
+- **Tường:** có tường thấp ở cạnh sau và cạnh trái (`Image` thanh dài, cùng góc xoay với sàn). Cạnh trước và cạnh phải để mở.
+- **Đồ vật:** hộp màu gỗ cùng góc xoay với sàn, to và có lối đi giữa các hộp. Bếp là dãy dài sát tường sau, nửa bên phải (gx khoảng 5,5–11,5). Quầy thu ngân ở bên trái phòng (gx khoảng 0,6–3,2, gy khoảng 3–4). Tám bàn xếp hai hàng bốn ở giữa và bên phải phòng (gy khoảng 3,4 và 5,8; gx khoảng 4,6–10,6). Cửa là một khoảng thảm ở cạnh trước, phía trái (gx khoảng 2–4), gần quầy để khách trả tiền xong về nhanh. Đây là vị trí khởi điểm, chỉnh khi thử cho không đè nhau.
+- **Người:** khách là hình tròn, nhân viên là `Knob` kèm tên, to rõ so với đồ, bong bóng sự cố là `Image` "!". Người đứng thẳng, không xoay theo sàn: lớp `Actors` nằm ngoài phần xoay. Thứ tự vẽ sắp theo toạ độ y khi người di chuyển.
+- **Cảnh quanh phòng:** nền lấp kín màn bằng màu pastel (xanh lá nhạt, theo ảnh vườn), không còn nền tối. Trang trí tĩnh tối đa khoảng 20 `Image`: vài cây hình tròn phía sau, hàng luống hình vuông phía trước phòng, lối đi từ cửa. **Chỉ để nhìn**, tắt raycast, không có luật.
+- **HUD:** ba thẻ tiền trên-trái (nền trắng bo góc `UISprite`, chữ tối: Coin, Material, Gem). Giữa-trên, dưới hàng thẻ, là một thanh trắng nửa trong suốt chứa sao chất lượng, nhãn thu nhập và bộ đếm; thanh được phép đè lên tường sau như ảnh. Chữ phải đọc rõ trên nền sáng.
+- **Cột nút phải:** một dải dọc nền trắng bo góc sát mép phải, chứa nút tròn (`Knob`) có chữ, đủ 3 ô, cỡ chạm từ 110 pixel: **Nhân viên** (có sẵn), **Nâng cấp** (Task 10), **Thu AFK** (Task 13). Ô chưa có nút thì để trống, không tạo nút giả.
+- **Không lấy từ ảnh** (ngoài [vision](../../vision/vision.md) và luật game): thanh tiến độ màn và hộp quà, nút chân mèo và nhân vật người chơi điều khiển, trồng trọt, nhập hàng lên kệ, chồng đồ trên tay, bong bóng "0/4", nút SAVE, menu, túi quà. Panel Nhân viên giữ nguyên mục 5.2.
 - **Điểm mốc** (do builder đặt): cửa, bếp (đến 3 ô), bàn (đến 8), quầy thu ngân (đến 3 ô). `IsoProjection` là hàm tĩnh thuần quy đổi ô lưới sang vị trí trong Canvas, có test.
 - **Nhân vật đi lại:** mỗi khung view đọc `Simulation.Customers` và `Workers` rồi đối chiếu theo id: khách mới thì tạo ở cửa, khách biến mất thì gỡ, trạng thái đổi thì nội suy tới điểm mốc mới (khoảng 1,5 giây, nhảy thẳng tới đích nếu trạng thái đổi sớm hơn). Đi lại chỉ là hoạt hình, không ảnh hưởng thu nhập. Mở lại màn thì đặt thẳng mọi người vào điểm mốc của trạng thái hiện tại. Số bàn hoặc ô vượt số điểm mốc thì dùng chung điểm mốc cuối, chỉ ảnh hưởng hình.
 - **Kiếm tiền:** chữ "+N" bay lên từ quầy mỗi khi `CustomerPaid` (bể 8 đối tượng), số Coin trên thanh nhảy theo `Wallet.Changed`, nhãn "≈ X Coin/giây" từ `RestaurantService.Estimate`, bộ đếm "Phục vụ / Bỏ về" từ `Simulation`, và khi thu nhập bằng 0 thì thay nhãn bằng lý do từ `IncomeEstimate.MissingRole`. Sao và cảnh báo dựng bằng `Image` (hình vuông hay tròn tô màu, `Image.type = Filled` cho sao lẻ), vì font dựng sẵn có thể thiếu ★ và ⚠.
@@ -387,7 +398,7 @@ Chi tiết từng task, model/effort, lệnh và số test cộng dồn ở [k�
 - **Công thức nấu ăn, đồ trang trí:** ý tưởng đã có nhưng chưa thiết kế, `TODO(user)`: chúng làm gì (mở khoá món, cộng chỉ số, chỉ làm đẹp…). Spec chỉ chừa đường mở rộng ở mục 4.7.
 - **UI nâng cấp hoàn chỉnh** (bố cục, thu nhập trước/sau): người khác làm, `TODO(user)` gửi mô tả. Bản này chỉ có `UpgradeTestPanel`.
 - Sự cố loại B (bấm rồi chọn cách xử lý), kéo thả nhân viên vào trạm, "tự xếp tối ưu", biểu đồ thu nhập, chất lượng ảnh hưởng tiền khi chơi thật, nâng cấp cần có trước.
-- Hub, chấm báo AFK ở nút Quán, âm thanh, hoạt hình thật, tường isometric nếu quá phức tạp ở bản đầu.
+- Hub, chấm báo AFK ở nút Quán, âm thanh, hoạt hình thật.
 - Kiểm trên Android thật (đã hoãn ở [roadmap](../../roadmap.md)).
 - Luật vào trận của đội chiến đấu (tối thiểu 1 người, xác nhận khi dưới 5): thuộc spec Combat, đã ghi vào [game-design.md](../../design/game-design.md#nhân-vật) để Combat theo.
 
@@ -411,7 +422,6 @@ Chi tiết từng task, model/effort, lệnh và số test cộng dồn ở [k�
 - **`OnApplicationPause` chạy trước hay sau `Start`:** `CatchUp` ở constructor và `OnAppResume` đều idempotent nhờ mốc, nên thứ tự không gây cộng đôi.
 - **Hai Editor tranh project:** Play thử ghi vào save thật; sao lưu và Reset sau lượt thử (xem L-004, L-007).
 - **Ký hiệu trong font dựng sẵn:** ★ và ⚠ có thể hiện ô vuông; dùng `Image` thay vì ký tự.
-- **Phép chiếu isometric từ sprite vuông:** tường hình bình hành khó ghép; bỏ tường ở bản đầu nếu tốn công, giữ sàn.
 - **Tránh phạt bằng cách rời màn khi có sự cố** (mục 4.5): chấp nhận, vì không sinh ra điểm cộng.
 - **Chuyên cần dựa vào giờ máy:** đổi múi giờ hay chỉnh đồng hồ làm số ngày nhảy; chấp nhận vì offline ([D-003](../../decisions/decisions.md)), lịch sử không bị xoá vì một lần đổi giờ.
 - **Dải DEV lọt vào bản phát hành:** cả file chỉ biên dịch theo `UNITY_EDITOR || DEVELOPMENT_BUILD` và không có asset nào trỏ tới nó, nên bản phát hành không có gì để lọt.
