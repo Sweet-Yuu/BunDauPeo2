@@ -37,6 +37,12 @@ Quy tắc:
   - Bơm chạm chuột: `InputSystem.EnableDevice(Mouse.current)` (thiết bị bị tắt khi Editor không focus), rồi `QueueStateEvent(Mouse.current, new MouseState { buttons = 1 })` ở một lệnh và `buttons = 0` ở lệnh sau.
   - `editor.playmode set_run_in_background --enable true` và `editor set_auto_tick --enable true` giúp Play chạy khi Editor không focus (không bật thì `Time.frameCount` đứng yên, xem L-009), nhưng cái đầu **có thể ghi `runInBackground` vào `ProjectSettings.asset`**: sau khi xong, `git status` và `git checkout -- ProjectSettings/ProjectSettings.asset` nếu bị đổi.
   - Lượt thử Play ghi vào save thật: sao lưu `save.json*` trước, chép lại sau khi đóng Editor (`unity close .`).
+  - Chụp màn hình để kiểm UI (L-010, L-011): `capture game_view` luôn ra ảnh 16:9 (1280×720) dù Game view thật khác, nên hình méo và dễ kết luận sai bố cục; đọc `Screen.width/height` trước. Cách đáng tin: trong **một** lệnh `eval`, đổi Canvas sang `ScreenSpaceCamera` với camera có `targetTexture` 1920×1080, `Canvas.ForceUpdateCanvases()`, `cam.Render()`, `ReadPixels`, ghi PNG ngoài repo (`D:/Unity/bdp-shots/`), rồi trả Canvas về Overlay. Màn có bố cục cố định theo chiều cao thì `CanvasScaler` khớp theo chiều cao.
+  - `unity close .` có thể báo "did not close within 30s" dù Editor vẫn đóng: chạy `unity status` lặp lại tới khi hết dòng Editor, không kill process.
+  - `unity command eval '<mã>'`: mã chạy trong thân một hàm, nên không có `using` (dùng tên đầy đủ, ví dụ `System.Linq.Enumerable.First(...)`), và `return x;` trả giá trị về trường `result` (thêm `--result-only` cho gọn). Bấm nút UI trong Play: `EventSystem.RaycastAll` tại tâm nút, nếu hit đầu là nút thì `ExecuteEvents.Execute(..., pointerClickHandler)`; hit rỗng nghĩa là toạ độ sai (Canvas Overlay thì dùng camera null khi đổi sang điểm màn hình).
+  - `unity command console get` không lọc sẽ trả cả trăm cảnh báo shader và stack trace: luôn thêm `--level error` rồi `grep -o '"message":"[^"]*'`.
+  - Dựng lại scene bằng builder (`RestaurantSceneBuilder`, `GachaSceneBuilder`) chỉ chạy được ở batch mode với Editor đóng: `unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.RebuildRestaurantScene`. Trong Editor đang mở sẽ lỗi "Cannot create a new scene additively with an untitled scene unsaved".
+  - Dòng ".. is not a valid directory name" khi chạy `unity test`/`unity run` với đường dẫn `../…` là vô hại; xem file kết quả.
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 
 ## Skills của plugin Unity

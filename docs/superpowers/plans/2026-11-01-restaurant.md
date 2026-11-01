@@ -665,9 +665,9 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
 - Modify: `docs/project/structure.md` ("Hiện tại": thêm `Restaurant/`, mục UI mới, số test thật thay chỗ ghi 184, asset mẫu mới), `docs/roadmap.md` (chuyển Restaurant sang "Đã xong" kèm ngày, link spec và kế hoạch, số test), `docs/design/game-design.md` (đối chiếu mục Quán, AFK, Chất lượng, Sự cố, Nhân vật với những gì đã làm; sửa chỗ lệch), `docs/guides/unity-workflow.md` (nếu có lệnh CLI mới hoặc cái bẫy mới)
 - Modify (nếu có lỗi phát sinh): `docs/lessons/lesson.md`
 
-- [ ] **Step 1:** Cập nhật các file trên cho khớp thực tế (số test lấy từ lần chạy cuối, `total="414"` nếu không đổi). Không sửa `docs/vision/vision.md`; không sửa `docs/decisions/decisions.md` trừ khi user yêu cầu.
-- [ ] **Step 2:** Mỗi lỗi hoặc điều user sửa lại trong đợt này: một mục lesson ở đầu danh sách theo mẫu.
-- [ ] **Step 3: Commit và push** (`docs: record Restaurant in structure, roadmap and game design`).
+- [x] **Step 1:** Cập nhật các file trên cho khớp thực tế (số test lấy từ lần chạy cuối, `total="414"` nếu không đổi). Không sửa `docs/vision/vision.md`; không sửa `docs/decisions/decisions.md` trừ khi user yêu cầu.
+- [x] **Step 2:** Mỗi lỗi hoặc điều user sửa lại trong đợt này: một mục lesson ở đầu danh sách theo mẫu.
+- [x] **Step 3: Commit và push** (`docs: record Restaurant in structure, roadmap and game design`).
 
 ---
 

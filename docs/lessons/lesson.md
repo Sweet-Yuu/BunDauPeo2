@@ -25,6 +25,16 @@
 
 ## Danh sách
 
+### L-014 — Lệnh thử đổi trạng thái rồi quên khôi phục, kịch bản sau cho kết quả 0 (2026-11-02)  #process
+- Triệu chứng: thử Tua AFK ở màn Gacha ra `pend=0`, tưởng AFK hỏng; thật ra một lệnh `eval` trước đó đã gỡ Thu ngân (lệnh sau của cùng cặp bị lỗi biên dịch nên không xếp lại).
+- Nguyên nhân gốc: không ghi lại trạng thái đã đổi và không đọc `Estimate.MissingRole` đầu mỗi kịch bản.
+- Luật từ nay: mỗi lệnh thử Play đổi trạng thái thì ghi một dòng "đã đổi X" và đặt lại ngay trong lệnh kế; đầu mỗi kịch bản in `Estimate.CoinsPerSecond` và `MissingRole` trước khi tin con số nào.
+
+### L-013 — `GetComponentInParent` bỏ qua đối tượng đang tắt, test popup đóng sai (2026-11-02)  #script #unity-files
+- Triệu chứng: test độ tương phản chữ của popup đỏ vì chữ trắng trên nút bị tính là "chữ trên thẻ" (`Expected: greater than 0.45, but was 0`).
+- Nguyên nhân gốc: popup mở scene là đóng, mà `GetComponentInParent<Button>()` mặc định không tìm trong nhánh inactive nên trả null.
+- Luật từ nay: test duyệt scene có đối tượng tắt dùng `GetComponentInParent<T>(true)` / `GetComponentsInChildren<T>(true)`; kiểm test bằng một ca mà cài đặt sai sẽ đỏ (test này đỏ đúng chỗ nên bắt được).
+
 ### L-012 — Số test trong kế hoạch đếm theo method, `[TestCase]` làm tổng lệch (2026-11-02)  #process #script
 - Triệu chứng: viết test tham số hoá (`[TestCase]`) cho Task 12 thì tổng vượt số kế hoạch ghi (389 thay vì 382) dù đủ method.
 - Nguyên nhân gốc: NUnit đếm mỗi `[TestCase]` là một test trong XML; kế hoạch đếm method.

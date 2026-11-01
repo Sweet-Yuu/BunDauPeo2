@@ -42,7 +42,7 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - **Chất lượng quán** (user chốt 2026-11-01): thang 100 điểm, 20 điểm là 1 sao, chỉ ảnh hưởng AFK, không ảnh hưởng tiền khi chơi thật. Gồm hai phần, mỗi phần tối đa 50 điểm:
   - **Chuyên cần:** 50 × trung bình của **7 ngày trọn vẹn gần nhất** (hôm qua trở về trước) của min(1, thời gian ở màn quán trong ngày / 5 phút). **Hôm nay không được tính**, nên chơi hôm nay chỉ tăng chất lượng từ ngày mai. Vắng ngày thứ 2 mới bắt đầu giảm, tối đa sau 7 ngày. Kiểu quest tuần: quà AFK thấp là cái giá của việc không chăm.
   - **Xử lý sự cố:** 50 × trung bình điểm của 10 sự cố gần nhất (kịp 1, trễ 0,5, bỏ lỡ 0, chưa có 0).
-- **Sự cố** (user chốt 2026-11-01): chỉ xuất hiện khi người chơi đang ở màn quán, tối đa 1 sự cố cùng lúc, cách nhau khoảng 60–120 giây. Biểu tượng "!" trên một trạm, bấm một lần để xử lý: trong 8 giây là kịp, trong 20 giây là trễ, quá là bỏ lỡ. Chưa xử lý thì trạm đó đứng yên. **Vai không có người vẫn sinh sự cố nhưng không xử lý được nếu vai đó không có nhân vật.** Loại sự cố có lựa chọn xử lý để dành làm sau.
+- **Sự cố** (user chốt 2026-11-01): chỉ xuất hiện khi người chơi đang ở màn quán, tối đa 1 sự cố cùng lúc, cách nhau khoảng 60–120 giây. Biểu tượng "!" trên một trạm, bấm một lần để xử lý: trong 8 giây là kịp, trong 20 giây là trễ, quá là bỏ lỡ. Chưa xử lý thì trạm đó đứng yên. **Vai không có người vẫn sinh sự cố nhưng không xử lý được nếu vai đó không có nhân vật.** Mở panel hoặc popup thì không sinh sự cố mới. Rời màn quán hoặc app vào nền khi sự cố đang chạy thì sự cố bị huỷ, không tính điểm, trạm mở lại. Loại sự cố có lựa chọn xử lý để dành làm sau.
 
 ## AFK
 
@@ -55,7 +55,7 @@ Quán gần như tự động, nên AFK phải **kém hơn chơi thật**, để
 - **Tỉ lệ** (user chốt 2026-11-01, thay hệ số 0,3 cố định cũ): AFK/giây = **thu nhập lý thuyết** × **hệ số theo chất lượng**. Hệ số chạy liên tục từ **0,1** (0 điểm) đến **0,5** (100 điểm), *khởi điểm*, đặt trong `RestaurantConfig` cùng với số giờ tối đa. Hệ số tối đa luôn nhỏ hơn tỉ lệ thu nhập thật so với lý thuyết, nên AFK luôn thấp hơn chơi thật.
 - **Thu nhập lý thuyết** là cận trên của mô phỏng, tính bằng công thức nút cổ chai từ nhân viên và nâng cấp ([spec 4.2](../superpowers/specs/2026-11-01-restaurant-design.md#42-thu-nhập-lý-thuyết-incomecalculator-hàm-tĩnh-thuần)), không ngẫu nhiên. **Chốt lúc thoát game**, nên không lách được bằng cách xếp nhân viên giỏi ngay trước khi thu thập. Quán thiếu một vai thì bằng 0.
 - **Hệ số chất lượng tính lúc thu thập**, không phải lúc thoát. Nhờ vậy vắng nhiều ngày thì quà giảm (xem Chuyên cần ở mục Quán).
-- **Thu thập:** người chơi tự bấm, tiền vào ví và bộ đếm về 0. Mở lại màn quán sau khi vắng từ 5 phút thì hiện popup thu thập; nút "Thu AFK" còn trên màn quán khi có Coin chờ.
+- **Thu thập:** người chơi tự bấm, tiền vào ví và bộ đếm về 0. Mở lại màn quán sau khi vắng từ 5 phút thì hiện popup thu thập; nút "Thu AFK" còn trên màn quán khi có Coin chờ. Thu mà lưu không được thì Coin vẫn vào ví nhưng người chơi được báo "chưa lưu được dữ liệu" (ở popup lẫn nút), game thử lưu lại ở lần lưu sau. Bấm thẻ sao ở màn quán mở popup chất lượng (chuyên cần 7 ngày, hôm nay, sự cố, hệ số AFK).
 - **Đồng hồ máy:** thời gian âm (đồng hồ bị lùi) tính là 0. Chỉnh đồng hồ tiến để gian lận thì chấp nhận, vì game offline và đã có trần 12 giờ.
 - **Quán chưa kiếm tiền khi thoát** (thu nhập bằng 0) thì thời gian vắng không tính vào trần, để không bị kẹt ở trần mà không có gì để thu.
 
