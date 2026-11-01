@@ -244,6 +244,249 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(2, sim.Served);
         }
 
+        // ---- Task 6: kiên nhẫn, thiếu người, trạm bị chặn, đổi hồ sơ, Reset ----
+
+        private static RestaurantConfig Cfg(float patience = 40f, float cook = 5f, float serve = 4f, float cashier = 3f, float arrival = 15f, int tables = 3, int line = 4)
+        {
+            var config = RestaurantTestData.Config();
+            RestaurantTestData.SetList(config, "_dishes", RestaurantTestData.Dish(20, cook));
+            RestaurantTestData.SetList(config, "_customers", RestaurantTestData.Customer(1, patience, 1));
+            TestData.Edit(config, so =>
+            {
+                so.FindProperty("_serveSeconds").floatValue = serve;
+                so.FindProperty("_cashierSeconds").floatValue = cashier;
+                so.FindProperty("_baseArrivalInterval").floatValue = arrival;
+                so.FindProperty("_baseTables").intValue = tables;
+                so.FindProperty("_maxWaitingLine").intValue = line;
+            });
+            return config;
+        }
+
+        private static RestaurantProfile ProfileOf(RestaurantConfig config, int[] cook = null, int[] serve = null, int[] cashier = null) =>
+            RestaurantTestData.Profile(config, cook ?? One, serve ?? One, cashier ?? One);
+
+        // Khách 1 đến lúc 7,5 và hết kiên nhẫn lúc 17,5 (patience 10); khách 2 đến lúc 18,0, sau khi khách 1 đã đi.
+        [TestCase(CustomerState.WaitingForTable, 5f, 4f, -1, 0)]
+        [TestCase(CustomerState.WaitingForCook, 5f, 4f, (int)StaffRole.Cook, 1)]
+        [TestCase(CustomerState.Cooking, 100f, 4f, -1, 1)]
+        [TestCase(CustomerState.WaitingForServer, 5f, 4f, (int)StaffRole.Server, 1)]
+        [TestCase(CustomerState.Serving, 5f, 100f, -1, 1)]
+        public void Patience1_ExpiresInEachState_NoPayment_FreesResources(CustomerState state, float cook, float serve, int blockedRole, int tablesAtStart)
+        {
+            var config = Cfg(patience: 10f, cook: cook, serve: serve, tables: tablesAtStart);
+            var oneTable = ProfileOf(Cfg(patience: 10f, cook: cook, serve: serve, tables: 1));
+            var sim = Make(config, new ScriptedRandom(0.99, 0.0, 0.0, 0.0, 0.2), ProfileOf(config));
+            if (blockedRole >= 0) sim.SetStationBlocked((StaffRole)blockedRole, true);
+            var paid = 0;
+            sim.CustomerPaid += (_, _) => paid++;
+
+            sim.Tick(17.3f);
+            Assert.AreEqual(state, sim.Customers.Single().State);
+
+            sim.Tick(0.4f);
+            Assert.AreEqual(0, sim.Customers.Count);
+            Assert.AreEqual(1, sim.Abandoned);
+            Assert.AreEqual(0, sim.Served);
+            Assert.AreEqual(0, paid);
+            Assert.IsTrue(sim.Workers.All(w => w.CustomerId == -1));
+
+            // Bàn đã nhả và khỏi hàng chờ bàn: khách 2 (t = 18,0) ngồi ngay vào bàn 0.
+            sim.SetProfile(oneTable);
+            sim.Tick(0.6f);
+            var second = sim.Customers.Single();
+            Assert.AreEqual(0, second.TableIndex);
+            Assert.AreNotEqual(CustomerState.WaitingForTable, second.State);
+        }
+
+        // Khoảng đến 40 giây: khách 1 đến lúc 20, nấu xong 25, bưng xong 29 (bắt đầu ăn), ăn xong 37, rồi còn 10 giây kiên nhẫn tới 47.
+        [Test]
+        public void Patience2_ExpiresWhileWaitingForCashier_NoPayment()
+        {
+            var config = Cfg(patience: 10f, arrival: 40f);
+            var sim = Make(config, new ScriptedRandom(0.99, 0.0, 0.0, 0.0), ProfileOf(config));
+            sim.SetStationBlocked(StaffRole.Cashier, true);
+            var paid = 0;
+            sim.CustomerPaid += (_, _) => paid++;
+
+            sim.Tick(46.8f);
+            Assert.AreEqual(CustomerState.WaitingForCashier, sim.Customers.Single().State);
+
+            sim.Tick(0.4f);
+
+            Assert.AreEqual(0, sim.Customers.Count);
+            Assert.AreEqual(1, sim.Abandoned);
+            Assert.AreEqual(0, sim.Served);
+            Assert.AreEqual(0, paid);
+        }
+
+        [Test]
+        public void Patience2_ExpiresWhilePaying_NoPayment()
+        {
+            var config = Cfg(patience: 10f, cashier: 100f, arrival: 40f);
+            var sim = Make(config, new ScriptedRandom(0.99, 0.0, 0.0, 0.0), ProfileOf(config));
+            var paid = 0;
+            sim.CustomerPaid += (_, _) => paid++;
+
+            sim.Tick(46.8f);
+            Assert.AreEqual(CustomerState.Paying, sim.Customers.Single().State);
+            Assert.AreEqual(sim.Customers.Single().Id, sim.Workers.Single(w => w.Role == StaffRole.Cashier).CustomerId);
+
+            sim.Tick(0.4f);
+
+            Assert.AreEqual(0, sim.Customers.Count);
+            Assert.AreEqual(1, sim.Abandoned);
+            Assert.AreEqual(0, paid);
+            Assert.AreEqual(-1, sim.Workers.Single(w => w.Role == StaffRole.Cashier).CustomerId);
+        }
+
+        [Test]
+        public void Eating_DoesNotRunPatience()
+        {
+            // Kiên nhẫn 5 giây, ăn 8 giây; các trạm nhanh (nấu 2,5 + bưng 2 = 4,5 giây tới lúc ăn, thu 1,5).
+            var config = Cfg(patience: 5f);
+            var fast = new[] { 100 };
+            var sim = Make(config, OneCustomerOnly(), ProfileOf(config, fast, fast, fast));
+
+            sim.Tick(22f);
+
+            Assert.AreEqual(1, sim.Served);
+            Assert.AreEqual(0, sim.Abandoned);
+        }
+
+        [TestCase(StaffRole.Cook)]
+        [TestCase(StaffRole.Server)]
+        [TestCase(StaffRole.Cashier)]
+        public void MissingRole_CustomersLeaveUnpaid(StaffRole missing)
+        {
+            var config = RestaurantTestData.Config();
+            int[] Crew(StaffRole role) => role == missing ? new int[0] : One;
+            var sim = Make(config, new ScriptedRandom(), ProfileOf(config, Crew(StaffRole.Cook), Crew(StaffRole.Server), Crew(StaffRole.Cashier)));
+
+            sim.Tick(90f);
+
+            Assert.AreEqual(0, sim.Served);
+            Assert.GreaterOrEqual(sim.Abandoned, 1);
+        }
+
+        [Test]
+        public void StationBlocked_FreezesProgress_ThenResumes()
+        {
+            // Nấu 5 giây từ 7,5; chặn lúc 10 (còn 2,5 giây), mở lúc 20: xong lúc 22,5. Làm lại từ đầu thì xong 25,0; không đóng băng thì xong 12,5.
+            var sim = Make(RestaurantTestData.Config(), OneCustomerOnly());
+            sim.Tick(10f);
+            var id = sim.Customers.Single().Id;
+            sim.SetStationBlocked(StaffRole.Cook, true);
+
+            sim.Tick(10f);
+            Assert.AreEqual(CustomerState.Cooking, sim.Customers.Single(c => c.Id == id).State);
+            sim.SetStationBlocked(StaffRole.Cook, false);
+
+            sim.Tick(2.2f);
+            Assert.AreEqual(CustomerState.Cooking, sim.Customers.Single(c => c.Id == id).State);
+            sim.Tick(0.6f);
+            Assert.AreNotEqual(CustomerState.Cooking, sim.Customers.Single(c => c.Id == id).State);
+        }
+
+        [Test]
+        public void StationBlocked_NoNewJobsStarted()
+        {
+            var sim = Make(RestaurantTestData.Config(), OneCustomerOnly());
+            sim.SetStationBlocked(StaffRole.Server, true);
+
+            // Khách thứ hai của OneCustomerOnly đến lúc 29,85, nên dừng ở 29.
+            sim.Tick(29f);
+            Assert.AreEqual(CustomerState.WaitingForServer, sim.Customers.Single().State);
+            Assert.AreEqual(-1, sim.Workers.Single(w => w.Role == StaffRole.Server).CustomerId);
+
+            sim.SetStationBlocked(StaffRole.Server, false);
+            sim.Tick(0.2f);
+
+            Assert.AreEqual(CustomerState.Serving, sim.Customers.Single().State);
+        }
+
+        [Test]
+        public void SetProfile_MoreTables_AppliesImmediately()
+        {
+            var oneTable = Cfg(tables: 1);
+            var sim = Make(oneTable, new ScriptedRandom(), ProfileOf(oneTable));
+            sim.Tick(16f);
+            Assert.AreEqual(1, sim.Customers.Count(c => c.State == CustomerState.WaitingForTable));
+
+            sim.SetProfile(ProfileOf(Cfg(tables: 3)));
+            sim.Tick(0.1f);
+
+            Assert.AreEqual(0, sim.Customers.Count(c => c.State == CustomerState.WaitingForTable));
+        }
+
+        [Test]
+        public void SetProfile_NewWorker_AppliesImmediately()
+        {
+            var config = Cfg(cook: 20f);
+            var sim = Make(config, new ScriptedRandom(), ProfileOf(config));
+            sim.Tick(16f);
+            Assert.AreEqual(1, sim.Customers.Count(c => c.State == CustomerState.WaitingForCook));
+
+            sim.SetProfile(ProfileOf(config, cook: new[] { 0, 0 }));
+            sim.Tick(0.1f);
+
+            Assert.AreEqual(0, sim.Customers.Count(c => c.State == CustomerState.WaitingForCook));
+            Assert.AreEqual(2, sim.Customers.Count(c => c.State == CustomerState.Cooking));
+        }
+
+        [Test]
+        public void SetProfile_RemovedWorker_JobReturnsToFrontOfQueue_ProgressLost()
+        {
+            // Khách 1 nấu 20 giây từ 7,5; lúc 16 người nấu bị thay (mất 8,5 giây tiến độ); khách 2 (t = 15) đang chờ phía sau.
+            var config = Cfg(cook: 20f);
+            var sim = Make(config, new ScriptedRandom(), ProfileOf(config));
+            sim.Tick(10f);
+            var first = sim.Customers.Single().Id;
+            sim.Tick(6f);
+            Assert.AreEqual(1, sim.Customers.Count(c => c.State == CustomerState.WaitingForCook));
+
+            sim.SetProfile(ProfileOf(config).WithWorkers(StaffRole.Cook, new[] { new WorkerInfo("replacement", 0) }));
+            Assert.AreEqual(CustomerState.WaitingForCook, sim.Customers.Single(c => c.Id == first).State);
+
+            sim.Tick(0.2f);
+            Assert.AreEqual(first, sim.Customers.Single(c => c.State == CustomerState.Cooking).Id);
+            Assert.AreEqual("replacement", sim.Workers.Single(w => w.Role == StaffRole.Cook).CharacterId);
+
+            // Làm lại đủ 20 giây từ lúc 16,1 (xong 36,1), không phải 11,5 giây còn lại (xong 27,5).
+            sim.Tick(19f);
+            Assert.AreEqual(CustomerState.Cooking, sim.Customers.Single(c => c.Id == first).State);
+            sim.Tick(1.5f);
+            Assert.AreNotEqual(CustomerState.Cooking, sim.Customers.Single(c => c.Id == first).State);
+        }
+
+        [Test]
+        public void Reset_ClearsCustomersCountersAndQueues()
+        {
+            // Khách đến mỗi 1 giây, một bàn, hàng chờ 1: có khách đã trả tiền, có khách bị bỏ về, có khách đang ngồi và chờ.
+            var config = Cfg(arrival: 2f, tables: 1, line: 1);
+            var random = new ScriptedRandom();
+            var sim = Make(config, random, ProfileOf(config));
+            sim.Tick(22f);
+            Assert.Greater(sim.Served, 0);
+            Assert.Greater(sim.Abandoned, 0);
+            Assert.Greater(sim.Customers.Count, 0);
+            var callsBefore = random.Calls;
+
+            sim.Reset();
+
+            Assert.AreEqual(callsBefore + 1, random.Calls);
+            Assert.AreEqual(0, sim.Customers.Count);
+            Assert.AreEqual(0, sim.Served);
+            Assert.AreEqual(0, sim.Abandoned);
+            Assert.IsTrue(sim.Workers.All(w => w.CustomerId == -1));
+
+            // Khoảng đến đầu mới là 0,5 × 2 = 1,0 giây.
+            sim.Tick(0.8f);
+            Assert.AreEqual(0, sim.Customers.Count);
+            sim.Tick(0.4f);
+            Assert.AreEqual(1, sim.Customers.Count);
+            Assert.AreEqual(CustomerState.Cooking, sim.Customers.Single().State);
+        }
+
         [Test]
         public void Workers_ReportCustomerWhileBusy()
         {

@@ -309,7 +309,7 @@ git push
 - Consumes: Task 5.
 - Produces, thêm vào `RestaurantSimulation`: `public void SetStationBlocked(StaffRole role, bool blocked);` `public void Reset();`. Luật theo [spec 4.3](../specs/2026-11-01-restaurant-design.md#43-mô-phỏng-restaurantsimulation-class-thuần): hai đồng hồ kiên nhẫn (1: từ lúc đến tới lúc bắt đầu `Eating`; 2: từ lúc ăn xong tới lúc thanh toán xong, đều dùng `PatienceSeconds` của loại khách); hết một trong hai thì khách rời không trả tiền, việc đang làm của khách bị huỷ ngay, nhả bàn, `Abandoned` tăng. Trạm chặn: người của vai ngừng nhận việc mới và việc đang làm đóng băng tiến độ. `SetProfile` đổi giữa chừng: người còn ở cùng vai giữ việc; người bị rút đi hoặc vượt số ô thì việc của họ quay lại **đầu** hàng đợi của trạm, mất tiến độ; thêm bàn hoặc người có hiệu lực ngay. `Reset()` xoá khách, hàng đợi, `Served`, `Abandoned`, rồi bốc lại khoảng cách đến đầu tiên (một lần RNG).
 
-- [ ] **Step 1: Viết test đỏ (17 test)** (thêm vào `RestaurantSimulationTests`; khách có `PatienceSeconds` ngắn khi cần, trạm cố tình chậm bằng chỉ số 0 và thời gian gốc lớn):
+- [x] **Step 1: Viết test đỏ (17 test)** (thêm vào `RestaurantSimulationTests`; khách có `PatienceSeconds` ngắn khi cần, trạm cố tình chậm bằng chỉ số 0 và thời gian gốc lớn):
   - `Patience1_ExpiresInEachState_NoPayment_FreesResources`: `[TestCase]` 5 ca ứng với khách đang `WaitingForTable`, `WaitingForCook`, `Cooking`, `WaitingForServer`, `Serving`: khi hết kiên nhẫn `Served == 0`, `Abandoned == 1`, không `CustomerPaid`, khách biến mất, bàn được nhả (khách kế ngồi được), người làm rảnh (`CustomerId == -1`).
   - `Patience2_ExpiresWhileWaitingForCashier_NoPayment` và `Patience2_ExpiresWhilePaying_NoPayment` (2 test): cashier chậm hơn kiên nhẫn.
   - `Eating_DoesNotRunPatience`: kiên nhẫn 5 giây, ăn 8 giây vẫn trả tiền nếu kịp các trạm.
@@ -319,10 +319,10 @@ git push
   - `SetProfile_MoreTables_AppliesImmediately` và `SetProfile_NewWorker_AppliesImmediately` (2 test).
   - `SetProfile_RemovedWorker_JobReturnsToFrontOfQueue_ProgressLost`: rút người nấu giữa chừng, khách về `WaitingForCook` đứng **trước** khách đến sau; người thay vào nấu lại đủ thời gian.
   - `Reset_ClearsCustomersCountersAndQueues`: sau `Reset`, `Customers` rỗng, `Served == 0`, `Abandoned == 0`, khách không tự xuất hiện trước khoảng cách đầu mới.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** (`error CS1061` về `SetStationBlocked`/`Reset`).
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="285"`.
-- [ ] **Step 5: Commit và push** (`feat: add patience, blocked stations, profile changes and reset to simulation`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** (`error CS1061` về `SetStationBlocked`/`Reset`).
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="285"`.
+- [x] **Step 5: Commit và push** (`feat: add patience, blocked stations, profile changes and reset to simulation`).
 
 ---
 

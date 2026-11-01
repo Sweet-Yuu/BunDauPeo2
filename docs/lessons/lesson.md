@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-008 — Dung sai của kế hoạch che lỗi lệch một bước trong mô phỏng thời gian (2026-11-01)  #process #script
+- Triệu chứng: `RestaurantSimulation` xanh 268/268 nhưng bữa ăn ngắn đi 0,1 giây (khách trả tiền ở 27,4 thay vì 27,5), vì bước "ăn" chạy sau bước "worker" nên bị trừ giờ ngay trong bước vừa chuyển trạng thái; kế hoạch cho dung sai ±0,2 giây nên test không bắt được.
+- Nguyên nhân gốc: dung sai của test rộng hơn đúng một bước cố định (0,1 giây), nên mọi lỗi lệch một bước đều lọt.
+- Luật từ nay: test thời gian của mô phỏng bước cố định phải chặn ở mốc ±nửa bước (vd. chưa xong ở 27,45, xong ở 27,55), và trong mỗi bước, hệ thống trừ giờ phải chạy trước hệ thống đổi trạng thái.
+
 ### L-007 — Tưởng lỗi vì độ trễ lệnh, và để lại thay đổi ngoài ý muốn (2026-11-01)  #process #unity-files
 - Triệu chứng: ảnh chụp 1 giây sau khi bấm Quay đã ở bước reveal, tôi tưởng cutscene bị bỏ; thực ra mỗi lệnh CLI tốn ~3 giây. Lệnh bật chạy nền còn ghi `runInBackground: 1` vào `ProjectSettings.asset`.
 - Nguyên nhân gốc: kết luận từ ảnh chụp mà chưa đo thời gian thật; bật tuỳ chọn Editor mà không kiểm `git status`.

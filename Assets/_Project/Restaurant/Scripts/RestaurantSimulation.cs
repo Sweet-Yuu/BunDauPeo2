@@ -69,6 +69,8 @@ namespace BunDauPeo.Restaurant
             public CustomerState State;
             public int Table = -1;
             public double EatRemaining;
+            // Đồng hồ kiên nhẫn đang chạy; khi bắt đầu ăn nó đặt lại đầy và đứng yên, nên đây cũng là đồng hồ 2.
+            public double Patience;
         }
 
         private sealed class Worker
@@ -99,12 +101,13 @@ namespace BunDauPeo.Restaurant
         // Khoảng đến đầu tiên bốc ở constructor, khi chưa có hồ sơ nên chưa biết hệ số; tính ở SetProfile đầu tiên.
         private double? _firstArrivalFraction;
         private int _nextCustomerId;
+        private readonly bool[] _blocked = new bool[3];
 
         public RestaurantSimulation(RestaurantConfig config, Random random)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _random = random ?? throw new ArgumentNullException(nameof(random));
-            _firstArrivalFraction = 0.5 + _random.NextDouble();
+            DrawFirstArrival();
         }
 
         public IReadOnlyList<CustomerSnapshot> Customers => _customerSnapshots;
@@ -124,12 +127,81 @@ namespace BunDauPeo.Restaurant
                 _firstArrivalFraction = null;
             }
 
-            if (_tables.Length != profile.Tables) Array.Resize(ref _tables, profile.Tables);
+            // Bàn đang có khách không biến mất khi số bàn giảm: mảng chỉ co tới bàn cuối còn người ngồi.
+            var length = profile.Tables;
+            for (var i = _tables.Length - 1; i >= profile.Tables; i--)
+            {
+                if (_tables[i] == null) continue;
+                length = i + 1;
+                break;
+            }
+
+            if (_tables.Length != length) Array.Resize(ref _tables, length);
+            ReconcileWorkers(profile);
+            RefreshSnapshots();
+        }
+
+        // Người vẫn còn ở cùng vai giữ việc; người bị rút đi hoặc vượt số ô thì việc của họ về ĐẦU hàng đợi của trạm, mất tiến độ.
+        private void ReconcileWorkers(RestaurantProfile profile)
+        {
+            var previous = new List<Worker>(_workers);
             _workers.Clear();
             foreach (var role in new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier })
+            {
                 foreach (var info in profile.Workers(role))
-                    _workers.Add(new Worker { CharacterId = info.CharacterId, Role = role, Stat = info.Stat });
+                {
+                    var kept = previous.Find(w => w.Role == role && w.CharacterId == info.CharacterId);
+                    if (kept != null)
+                    {
+                        previous.Remove(kept);
+                        kept.Stat = info.Stat;
+                        _workers.Add(kept);
+                    }
+                    else
+                    {
+                        _workers.Add(new Worker { CharacterId = info.CharacterId, Role = role, Stat = info.Stat });
+                    }
+                }
+            }
+
+            var insertAt = new int[3];
+            foreach (var gone in previous)
+            {
+                if (gone.Current == null) continue;
+                QueueOf(gone.Role).Insert(insertAt[(int)gone.Role]++, gone.Current);
+                gone.Current.State = gone.Role switch
+                {
+                    StaffRole.Cook => CustomerState.WaitingForCook,
+                    StaffRole.Server => CustomerState.WaitingForServer,
+                    _ => CustomerState.WaitingForCashier,
+                };
+            }
+        }
+
+        // Sự cố: người của vai ngừng nhận việc mới và việc đang làm đóng băng tiến độ.
+        public void SetStationBlocked(StaffRole role, bool blocked) => _blocked[(int)role] = blocked;
+
+        public void Reset()
+        {
+            _customers.Clear();
+            _tableQueue.Clear();
+            _cookQueue.Clear();
+            _serveQueue.Clear();
+            _cashierQueue.Clear();
+            Array.Clear(_tables, 0, _tables.Length);
+            foreach (var worker in _workers) worker.Current = null;
+            Served = 0;
+            Abandoned = 0;
+            _accumulated = 0;
+            DrawFirstArrival();
             RefreshSnapshots();
+        }
+
+        private void DrawFirstArrival()
+        {
+            var fraction = 0.5 + _random.NextDouble();
+            if (_hasProfile) _arrivalTimer = ArrivalInterval(fraction);
+            else _firstArrivalFraction = fraction;
         }
 
         // Cộng dồn dt rồi chạy bước cố định 0,1 giây, nên kết quả không phụ thuộc tốc độ khung hình.
@@ -148,7 +220,8 @@ namespace BunDauPeo.Restaurant
 
         private void RunStep()
         {
-            // Ăn chạy trước worker: khách vừa bưng xong bắt đầu ăn ở bước này nên không được trừ giờ ăn ngay.
+            // Kiên nhẫn và ăn chạy trước worker: khách vừa đổi trạng thái ở bước này không bị trừ giờ ngay trong chính bước đó.
+            AdvancePatience();
             AdvanceEating();
             AdvanceWorkers();
             SeatWaiting();
@@ -157,11 +230,38 @@ namespace BunDauPeo.Restaurant
             AssignWork();
         }
 
+        private void AdvancePatience()
+        {
+            List<Customer> expired = null;
+            foreach (var customer in _customers)
+            {
+                if (customer.State == CustomerState.Eating) continue;
+                customer.Patience -= Step;
+                if (customer.Patience <= Epsilon) (expired ??= new List<Customer>()).Add(customer);
+            }
+
+            if (expired == null) return;
+            foreach (var customer in expired) Abandon(customer);
+        }
+
+        // Rời không trả tiền: việc đang làm bị huỷ ngay (người làm rảnh), nhả bàn, rời mọi hàng đợi.
+        private void Abandon(Customer customer)
+        {
+            _tableQueue.Remove(customer);
+            _cookQueue.Remove(customer);
+            _serveQueue.Remove(customer);
+            _cashierQueue.Remove(customer);
+            foreach (var worker in _workers)
+                if (worker.Current == customer) worker.Current = null;
+            Remove(customer);
+            Abandoned++;
+        }
+
         private void AdvanceWorkers()
         {
             foreach (var worker in _workers)
             {
-                if (worker.Current == null) continue;
+                if (worker.Current == null || _blocked[(int)worker.Role]) continue;
                 worker.Remaining -= Step;
                 if (worker.Remaining > Epsilon) continue;
 
@@ -176,6 +276,7 @@ namespace BunDauPeo.Restaurant
                     case StaffRole.Server:
                         customer.State = CustomerState.Eating;
                         customer.EatRemaining = _config.EatSeconds;
+                        customer.Patience = customer.Definition.PatienceSeconds;
                         break;
                     default:
                         Pay(customer);
@@ -231,6 +332,7 @@ namespace BunDauPeo.Restaurant
                 Definition = PickCustomer(),
                 State = CustomerState.WaitingForTable,
             };
+            customer.Patience = customer.Definition.PatienceSeconds;
             var dishes = _config.Dishes;
             customer.Dish = dishes[Math.Min((int)(_random.NextDouble() * dishes.Count), dishes.Count - 1)];
             _customers.Add(customer);
@@ -259,7 +361,7 @@ namespace BunDauPeo.Restaurant
         {
             while (_tableQueue.Count > 0)
             {
-                var free = Array.IndexOf(_tables, null);
+                var free = Array.IndexOf(_tables, null, 0, Math.Min(_tables.Length, _profile.Tables));
                 if (free < 0) return;
                 var customer = _tableQueue[0];
                 _tableQueue.RemoveAt(0);
@@ -275,7 +377,7 @@ namespace BunDauPeo.Restaurant
         {
             foreach (var worker in _workers)
             {
-                if (worker.Current != null) continue;
+                if (worker.Current != null || _blocked[(int)worker.Role]) continue;
                 var queue = QueueOf(worker.Role);
                 if (queue.Count == 0) continue;
 
@@ -310,7 +412,7 @@ namespace BunDauPeo.Restaurant
         {
             _customerSnapshots.Clear();
             foreach (var customer in _customers)
-                _customerSnapshots.Add(new CustomerSnapshot(customer.Id, customer.Definition, customer.Dish, customer.State, customer.Table, float.PositiveInfinity));
+                _customerSnapshots.Add(new CustomerSnapshot(customer.Id, customer.Definition, customer.Dish, customer.State, customer.Table, (float)customer.Patience));
             _workerSnapshots.Clear();
             foreach (var worker in _workers)
                 _workerSnapshots.Add(new WorkerSnapshot(worker.CharacterId, worker.Role, worker.Current?.Id ?? -1));
