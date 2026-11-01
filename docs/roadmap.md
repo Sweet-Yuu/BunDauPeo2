@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- [ ] Restaurant: mô phỏng quán, xếp nhân viên, nâng cấp, chất lượng và sự cố, AFK, màn quán tối thiểu: [spec](superpowers/specs/2026-11-01-restaurant-design.md) (đã duyệt 2026-11-01), [kế hoạch](superpowers/plans/2026-11-01-restaurant.md) (15 task, 3 giai đoạn, giai đoạn A dừng để user thử). Đã xong Task 1–8 (Core, SO, hồ sơ quán, công thức thu nhập, mô phỏng, `RestaurantService` + Runner nối vào `Boot`, dữ liệu mẫu, scene Restaurant với phòng, HUD và dải DEV); tiếp theo Task 9 (`StaffPanel`, dừng cho user thử Play). Test hiện tại 318 (mốc đầu 185), dự kiến cuối 409.
+- [ ] Restaurant: mô phỏng quán, xếp nhân viên, nâng cấp, chất lượng và sự cố, AFK, màn quán tối thiểu: [spec](superpowers/specs/2026-11-01-restaurant-design.md) (đã duyệt 2026-11-01), [kế hoạch](superpowers/plans/2026-11-01-restaurant.md) (15 task, 3 giai đoạn, giai đoạn A dừng để user thử). Đã xong Task 1–9 (Core, SO, hồ sơ quán, công thức thu nhập, mô phỏng, `RestaurantService` + Runner nối vào `Boot`, dữ liệu mẫu, scene Restaurant với phòng, HUD, dải DEV và panel Nhân viên); đang chờ user thử giai đoạn A trong Play Mode (Task 10 trở đi chưa làm). Test hiện tại 328 (mốc đầu 185), dự kiến cuối 411.
 
 ## Tiếp theo
 

@@ -94,7 +94,7 @@ namespace BunDauPeo.Restaurant
         private RestaurantProfile WithWorkersArray(IReadOnlyList<WorkerInfo>[] workers) =>
             new RestaurantProfile(Tables, CookSlots, ServeSlots, CashierSlots, ArrivalIntervalMultiplier, PriceMultiplier, workers);
 
-        private static int StatOf(CharacterDefinition character, StaffRole role) => role switch
+        public static int StatOf(CharacterDefinition character, StaffRole role) => role switch
         {
             StaffRole.Cook => character.RestaurantStats.Cooking,
             StaffRole.Server => character.RestaurantStats.Serving,

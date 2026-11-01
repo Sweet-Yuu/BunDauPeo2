@@ -28,10 +28,17 @@ namespace BunDauPeo.EditorTools
         private static readonly Color TextColor = Color.white;
         private static readonly Color PaleText = new(0.85f, 0.88f, 0.95f);
         private static readonly Color Gold = new(1f, 0.85f, 0.4f);
+        private static readonly Color PanelColor = new(0.18f, 0.20f, 0.27f);
+        private static readonly Color Dim = new(0f, 0f, 0f, 0.65f);
+        private static readonly Color ButtonColor = new(0.30f, 0.50f, 0.90f);
+        private static readonly Color GreyButton = new(0.45f, 0.47f, 0.55f);
+        private static readonly Color Warning = new(1f, 0.55f, 0.45f);
 
         private static readonly Vector2 Center = new(0.5f, 0.5f);
         private static readonly Vector2 TopLeft = new(0, 1);
         private static readonly Vector2 TopRight = new(1, 1);
+        private static readonly Vector2 TopCenter = new(0.5f, 1);
+        private static readonly Vector2 BottomCenter = new(0.5f, 0);
 
         // Ô lưới (gx, gy) của điểm mốc; gx đi xuống bên phải, gy đi xuống bên trái.
         private static readonly Vector2[] TableCells =
@@ -127,6 +134,7 @@ namespace BunDauPeo.EditorTools
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
             BuildHud(canvas, font, knob, counter);
+            BuildStaffPanel(canvas, font, sprite);
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
@@ -217,6 +225,136 @@ namespace BunDauPeo.EditorTools
             starProperty.arraySize = stars.Length;
             for (var i = 0; i < stars.Length; i++) starProperty.GetArrayElementAtIndex(i).objectReferenceValue = stars[i].GetComponent<Image>();
             SetRefs(so.FindProperty("_floatTexts"), floats);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Theo mẫu quest-team-select-popup: hộp giữa màn, danh sách ở trên, ô hiện tại ở dưới; ở đây là ba cột ô và danh sách mở khi bấm ô.
+        private static void BuildStaffPanel(RectTransform canvas, Font font, Sprite sprite)
+        {
+            const int slotsPerRole = 3;
+            var open = NewButton("StaffButton", canvas, sprite, font, "Nhân viên", ButtonColor, TopRight, new Vector2(-40, -165), new Vector2(300, 90));
+
+            var root = NewRect("StaffPanelRoot", canvas);
+            Stretch(root);
+            AddImage(root, null, Dim, raycast: true);
+            var box = NewRect("Box", root);
+            Place(box, Center, Center, Vector2.zero, new Vector2(1500, 860));
+            AddImage(box, sprite, PanelColor, raycast: false);
+            var title = NewText("TitleText", box, font, "Nhân viên", 52, TextAnchor.MiddleCenter, TextColor);
+            Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(800, 70));
+            var close = NewButton("CloseButton", box, sprite, font, "Đóng", GreyButton, TopRight, new Vector2(-30, -25), new Vector2(200, 80));
+            var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
+            Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 25), new Vector2(1300, 50));
+
+            var columnTitles = new Text[3];
+            var slotButtons = new Button[3 * slotsPerRole];
+            var slotTexts = new Text[3 * slotsPerRole];
+            var removeButtons = new Button[3 * slotsPerRole];
+            for (var role = 0; role < 3; role++)
+            {
+                var x = (role - 1) * 480f;
+                columnTitles[role] = NewText($"ColumnTitle{role}", box, font, "", 44, TextAnchor.MiddleCenter, Gold);
+                Place(columnTitles[role].rectTransform, TopCenter, TopCenter, new Vector2(x, -120), new Vector2(440, 60));
+                for (var slot = 0; slot < slotsPerRole; slot++)
+                {
+                    var index = role * slotsPerRole + slot;
+                    var button = NewButton($"Slot{role}_{slot}", box, sprite, font, "", ButtonColor, TopCenter, new Vector2(x, -190 - slot * 140), new Vector2(440, 110));
+                    var label = (RectTransform)button.transform.GetChild(0);
+                    // Chừa chỗ cho nút Gỡ bên phải.
+                    label.offsetMin = new Vector2(14, 0);
+                    label.offsetMax = new Vector2(-130, 0);
+                    slotTexts[index] = label.GetComponent<Text>();
+                    slotTexts[index].alignment = TextAnchor.MiddleLeft;
+                    slotTexts[index].fontSize = 30;
+                    slotButtons[index] = button;
+                    removeButtons[index] = NewButton("RemoveButton", button.transform as RectTransform, sprite, font, "Gỡ", GreyButton,
+                        new Vector2(1, 0.5f), new Vector2(-10, 0), new Vector2(110, 70));
+                }
+            }
+
+            // Danh sách nhân vật: ScrollRect với Content tự co giãn theo số hàng; hàng mẫu nằm ngoài Content và tắt.
+            var listRoot = NewRect("StaffListPopup", root);
+            Stretch(listRoot);
+            AddImage(listRoot, null, Dim, raycast: true);
+            var listBox = NewRect("Box", listRoot);
+            Place(listBox, Center, Center, Vector2.zero, new Vector2(1250, 780));
+            AddImage(listBox, sprite, PanelColor, raycast: false);
+            var listTitle = NewText("TitleText", listBox, font, "", 48, TextAnchor.MiddleCenter, TextColor);
+            Place(listTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(1100, 70));
+            var scrollRoot = NewRect("ScrollView", listBox);
+            Place(scrollRoot, Center, Center, new Vector2(0, -10), new Vector2(1150, 540));
+            var viewport = NewRect("Viewport", scrollRoot);
+            Stretch(viewport);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var content = NewRect("Content", viewport);
+            content.anchorMin = new Vector2(0, 1);
+            content.anchorMax = new Vector2(1, 1);
+            content.pivot = new Vector2(0.5f, 1);
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = Vector2.zero;
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 10;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            var fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var scroll = scrollRoot.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport;
+            scroll.content = content;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+
+            var rowTemplate = NewButton("RowTemplate", listBox, sprite, font, "", ButtonColor, Center, Vector2.zero, new Vector2(1150, 90));
+            var rowLabel = (RectTransform)rowTemplate.transform.GetChild(0);
+            rowLabel.offsetMin = new Vector2(16, 0);
+            rowLabel.offsetMax = new Vector2(-16, 0);
+            var rowText = rowLabel.GetComponent<Text>();
+            rowText.alignment = TextAnchor.MiddleLeft;
+            rowText.fontSize = 28;
+            var rowSize = rowTemplate.gameObject.AddComponent<LayoutElement>();
+            rowSize.minHeight = 90;
+            rowSize.preferredHeight = 90;
+            rowTemplate.gameObject.SetActive(false);
+            var listClose = NewButton("CloseButton", listBox, sprite, font, "Đóng", GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(320, 80));
+            listRoot.gameObject.SetActive(false);
+
+            var confirmRoot = NewRect("StaffConfirmPopup", root);
+            Stretch(confirmRoot);
+            AddImage(confirmRoot, null, Dim, raycast: true);
+            var confirmBox = NewRect("Box", confirmRoot);
+            Place(confirmBox, Center, Center, Vector2.zero, new Vector2(900, 420));
+            AddImage(confirmBox, sprite, PanelColor, raycast: false);
+            var confirmText = NewText("ConfirmText", confirmBox, font, "", 40, TextAnchor.MiddleCenter, TextColor);
+            Place(confirmText.rectTransform, TopCenter, TopCenter, new Vector2(0, -40), new Vector2(820, 190));
+            var yes = NewButton("YesButton", confirmBox, sprite, font, "Chuyển", ButtonColor, BottomCenter, new Vector2(-200, 40), new Vector2(340, 90));
+            var no = NewButton("NoButton", confirmBox, sprite, font, "Thôi", GreyButton, BottomCenter, new Vector2(200, 40), new Vector2(340, 90));
+            confirmRoot.gameObject.SetActive(false);
+
+            root.gameObject.SetActive(false);
+
+            var panelObject = NewRect("StaffPanel", canvas);
+            var panel = panelObject.gameObject.AddComponent<StaffPanel>();
+            var so = new SerializedObject(panel);
+            so.FindProperty("_openButton").objectReferenceValue = open;
+            so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.FindProperty("_root").objectReferenceValue = root.gameObject;
+            so.FindProperty("_messageText").objectReferenceValue = message;
+            SetRefs(so.FindProperty("_columnTitles"), columnTitles);
+            SetRefs(so.FindProperty("_slotButtons"), slotButtons);
+            SetRefs(so.FindProperty("_slotTexts"), slotTexts);
+            SetRefs(so.FindProperty("_removeButtons"), removeButtons);
+            so.FindProperty("_listRoot").objectReferenceValue = listRoot.gameObject;
+            so.FindProperty("_listTitle").objectReferenceValue = listTitle;
+            so.FindProperty("_listContent").objectReferenceValue = content;
+            so.FindProperty("_rowTemplate").objectReferenceValue = rowTemplate;
+            so.FindProperty("_listCloseButton").objectReferenceValue = listClose;
+            so.FindProperty("_confirmRoot").objectReferenceValue = confirmRoot.gameObject;
+            so.FindProperty("_confirmText").objectReferenceValue = confirmText;
+            so.FindProperty("_confirmYesButton").objectReferenceValue = yes;
+            so.FindProperty("_confirmNoButton").objectReferenceValue = no;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

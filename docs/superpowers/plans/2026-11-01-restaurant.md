@@ -435,14 +435,14 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
   ```
   `Stat` là chỉ số của vai `role`, sắp giảm dần; `NeedsConfirm` khi đang ở đội chiến đấu; `IncomeDelta` = thu nhập lý thuyết của hồ sơ giả định (đặt người này vào `role`, bỏ `replacingId` nếu có, **và bỏ người này khỏi vai cũ nếu nó đang ở vai khác**) trừ thu nhập hiện tại. `StaffPanel`: ba cột, ô mở theo `Profile.Slots`, ô chưa mở khoá kèm gợi ý nâng cấp, bấm ô mở danh sách (mỗi dòng ghi tên, độ hiếm, chỉ số, "→ ±X Coin/giây"), hộp xác nhận khi `NeedsConfirm` ("X đang ở đội chiến đấu, chuyển vào quán?"), nút "Gỡ" ở ô có người; nút "Nhân viên" của `RestaurantHud` mở nó.
 
-- [ ] **Step 1: Viết test đỏ (8 test)**
-  - `StaffPanelRowsTests` (7): `Candidates_SortedByRoleStatDescending`; `Candidates_IncludeOnlyOwned`; `Candidates_BattleTeamMember_NeedsConfirm`; `Candidates_IncomeDelta_PositiveWhenBetterStat`; `Candidates_IncomeDelta_CountsLeavingOtherRole` (người đang là cashier duy nhất, chuyển sang Cook thì delta âm vì Cashier trống); `Candidates_ReplacingId_ComparesAgainstReplacedCharacter` (thay người chỉ số 30 bằng 50 cho delta dương, thay bằng người 10 cho delta âm); `Candidates_CurrentRole_ReportedForCharacterAlreadyStaffed`.
+- [x] **Step 1: Viết test đỏ (10 test)**
+  - `StaffPanelRowsTests` (9, gồm 7 test dưới đây và thêm `RowLabel_ShowsNameRarityStatAndSignedDelta_WithCommaDecimal`, `LockedHint_NamesTheUpgradeThatOpensTheSlot` để chữ của panel nằm trong hàm tĩnh có test): `Candidates_SortedByRoleStatDescending`; `Candidates_IncludeOnlyOwned`; `Candidates_BattleTeamMember_NeedsConfirm`; `Candidates_IncomeDelta_PositiveWhenBetterStat`; `Candidates_IncomeDelta_CountsLeavingOtherRole` (người đang là cashier duy nhất, chuyển sang Cook thì delta âm vì Cashier trống); `Candidates_ReplacingId_ComparesAgainstReplacedCharacter` (thay người chỉ số 30 bằng 50 cho delta dương, thay bằng người 10 cho delta âm); `Candidates_CurrentRole_ReportedForCharacterAlreadyStaffed`.
   - `RestaurantSceneTests.RestaurantScene_StaffPanelWired` (1): đủ tham chiếu `[SerializeField]` của `StaffPanel`.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="326"`.
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="328"`.
 - [ ] **Step 5: Thử trong Editor (Play Mode)** (theo [unity-workflow.md](../../guides/unity-workflow.md): `unity open .`, Play từ bất kỳ scene). Kiểm: Console không lỗi từ code dự án; thấy Coin 500, nhãn "≈ ... Coin/giây" (0 và "Thiếu ..." khi chưa xếp đủ ba vai); mở panel Nhân viên, xếp 3 nhân vật khởi đầu vào ba vai thì khách đến, ngồi, ăn, trả và "+N" bay lên, Coin tăng; rút người nấu thì quán đứng yên và nhãn đổi; xếp nhân vật khỏi đội chiến đấu hỏi xác nhận. Dải DEV chuyển được sang Gacha và về lại. **Lượt thử ghi vào save thật:** sao lưu `save.json*` trước, xong dùng `Tools/BunDauPeo/Reset Save Data...`; sau khi thử `git status` và hoàn tác file `ProjectSettings` bị đổi (L-007). Không tự thử được thì nhờ user và ghi rõ trong báo cáo.
-- [ ] **Step 6: Commit và push** (`feat: add StaffPanel with income preview`).
+- [x] **Step 6: Commit và push** (`feat: add StaffPanel with income preview`).
 - [ ] **Step 7: Dừng.** Báo user quán đã chạy được và thử được (giai đoạn A xong); đợi user thử rồi mới sang giai đoạn B, vì nếu cần đổi mô phỏng thì Chất lượng, Sự cố, AFK chưa phải viết lại.
 
 ---
@@ -478,7 +478,7 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
   - `RestaurantSceneTests.RestaurantScene_UpgradePanelWired` (1).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="342"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="344"`.
 - [ ] **Step 5: Thử trong Play Mode:** bấm **+50 Material** vài lần, mua Bàn và ô; thấy ví trừ cả Coin lẫn Material, nút mờ khi thiếu; sau khi mua ô nấu thì xếp thêm người được. Dọn như Task 9 Step 5.
 - [ ] **Step 6: Commit và push** (`feat: add UpgradeService and test upgrade panel`).
 
@@ -529,7 +529,7 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
   - `Presence_RespectsLocalMidnight`: `LocalNow` 23:59 rồi 00:01 ngày sau ghi vào hai ngày khác nhau (khác với `UtcNow`).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="356"`.
+- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="358"`.
 - [ ] **Step 5: Commit và push** (`feat: add IClock and RestaurantQuality`).
 
 ---
@@ -564,7 +564,7 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
   - `RestaurantViewTextTests` (2): `IncidentLabel_NamesDefinition`; `IncidentHint_AsksForStaff_OnlyWhenRoleEmpty`.
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="377"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="379"`.
 - [ ] **Step 5: Commit và push** (`feat: add IncidentDirector with empty-role incidents`).
 
 ---
@@ -602,7 +602,7 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
   - `RestaurantViewTextTests.AfkButton_ShowsPreviewCoins` (1).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="402"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="404"`.
 
 - [ ] **Step 5: Thử trong Play Mode:** xếp đủ ba vai, bấm **Tua AFK +1 giờ**, thấy nút "Thu AFK (X Coin)"; thu thì Coin vào ví, nút biến mất; Tua 13 giờ thì pending dừng ở trần 12 giờ. Dọn như Task 9 Step 5.
 - [ ] **Step 6: Commit và push** (`feat: add AfkService with heartbeat, catch-up and collect`).
@@ -625,7 +625,7 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
   - `RestaurantSceneTests.RestaurantScene_PopupsWired` (1).
 - [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="409"`.
+- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="411"`.
 - [ ] **Step 5: Thử trong Play Mode:** Tua AFK, mở lại màn quán từ Gacha thì popup hiện đúng một lần với số hợp lý; Quality popup khớp số liệu; trong lúc popup mở không sinh sự cố mới; xử lý sự cố bằng cách bấm "!"; vai trống thì "!" ghi cần xếp người. Dọn như Task 9 Step 5.
 - [ ] **Step 6: Commit và push** (`feat: add AFK and quality popups`).
 
@@ -637,7 +637,7 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
 - Modify: `docs/project/structure.md` ("Hiện tại": thêm `Restaurant/`, mục UI mới, số test thật thay chỗ ghi 184, asset mẫu mới), `docs/roadmap.md` (chuyển Restaurant sang "Đã xong" kèm ngày, link spec và kế hoạch, số test), `docs/design/game-design.md` (đối chiếu mục Quán, AFK, Chất lượng, Sự cố, Nhân vật với những gì đã làm; sửa chỗ lệch), `docs/guides/unity-workflow.md` (nếu có lệnh CLI mới hoặc cái bẫy mới)
 - Modify (nếu có lỗi phát sinh): `docs/lessons/lesson.md`
 
-- [ ] **Step 1:** Cập nhật các file trên cho khớp thực tế (số test lấy từ lần chạy cuối, `total="409"` nếu không đổi). Không sửa `docs/vision/vision.md`; không sửa `docs/decisions/decisions.md` trừ khi user yêu cầu.
+- [ ] **Step 1:** Cập nhật các file trên cho khớp thực tế (số test lấy từ lần chạy cuối, `total="411"` nếu không đổi). Không sửa `docs/vision/vision.md`; không sửa `docs/decisions/decisions.md` trừ khi user yêu cầu.
 - [ ] **Step 2:** Mỗi lỗi hoặc điều user sửa lại trong đợt này: một mục lesson ở đầu danh sách theo mẫu.
 - [ ] **Step 3: Commit và push** (`docs: record Restaurant in structure, roadmap and game design`).
 

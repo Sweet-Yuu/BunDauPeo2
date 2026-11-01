@@ -136,6 +136,10 @@ namespace BunDauPeo.EditorTools
             Debug.Log("ProjectSetup: done.");
         }
 
+        // Run giữ scene Restaurant đã có; lệnh này dựng lại từ builder (ghi đè cùng đường dẫn nên GUID và Build Settings không đổi).
+        [MenuItem("Tools/BunDauPeo/Rebuild Restaurant Scene")]
+        public static void RebuildRestaurantScene() => RestaurantSceneBuilder.Create(RestaurantScenePath);
+
         public static T GetOrCreateAsset<T>(string path, Action<T> init) where T : ScriptableObject
         {
             var existing = AssetDatabase.LoadAssetAtPath<T>(path);

@@ -36,6 +36,7 @@ namespace BunDauPeo.Restaurant
             roster.Changed += OnRosterChanged;
         }
 
+        public RestaurantConfig Config => _config;
         public bool IsRunning { get; }
         public RestaurantSimulation Simulation { get; }
         public StaffingService Staffing { get; }

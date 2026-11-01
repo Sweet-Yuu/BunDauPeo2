@@ -81,6 +81,10 @@ namespace BunDauPeo.Tests
             });
 
         [Test]
+        public void RestaurantScene_StaffPanelWired() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene => AssertAllReferencesAssigned(All<StaffPanel>(scene).Single()));
+
+        [Test]
         public void RestaurantScene_IsThirdInBuildSettings()
         {
             var scenes = EditorBuildSettings.scenes;
