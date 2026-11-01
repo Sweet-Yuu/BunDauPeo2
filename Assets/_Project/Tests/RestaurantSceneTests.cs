@@ -88,6 +88,49 @@ namespace BunDauPeo.Tests
         public void RestaurantScene_UpgradePanelWired() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene => AssertAllReferencesAssigned(All<UpgradeTestPanel>(scene).Single()));
 
+        // Độ sáng tương đối đơn giản (đủ để so chữ với nền, không cần đúng chuẩn WCAG).
+        private static float Luma(Color c) => 0.299f * c.r + 0.587f * c.g + 0.114f * c.b;
+
+        [Test]
+        public void RestaurantScene_PopupsWired() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                var afk = All<AfkPopup>(scene).Single();
+                var quality = All<QualityPopup>(scene).Single();
+                AssertAllReferencesAssigned(afk);
+                AssertAllReferencesAssigned(quality);
+
+                // Mở scene là đóng: popup chỉ hiện khi view gọi Show hoặc người chơi bấm thẻ sao.
+                foreach (var popup in new Component[] { afk, quality })
+                {
+                    var root = (GameObject)new SerializedObject(popup).FindProperty("_root").objectReferenceValue;
+                    Assert.IsFalse(root.activeSelf, $"{popup.GetType().Name} starts open");
+                    Assert.IsTrue(root.GetComponent<Image>().raycastTarget, $"{popup.GetType().Name} must block clicks behind it");
+                }
+
+                // Thẻ sao ở HUD là nút mở QualityPopup.
+                var opener = (Button)new SerializedObject(quality).FindProperty("_openButton").objectReferenceValue;
+                Assert.AreEqual("InfoBar", opener.name);
+                Assert.IsTrue(opener.targetGraphic.raycastTarget, "the star card must be clickable");
+
+                // Popup sáng như màn quán: nền hộp sáng, mọi chữ không nằm trên nút phải tối hơn nền ít nhất 0,45 độ sáng; hộp nằm trong Canvas.
+                var canvas = new Rect(0, 0, 1920, 1080);
+                foreach (var boxName in new[] { "AfkPopupBox", "QualityPopupBox" })
+                {
+                    var box = Named(scene, boxName);
+                    var rect = InReferenceCanvas(box);
+                    Assert.IsTrue(canvas.Contains(rect.min) && canvas.Contains(rect.max - Vector2.one), $"{boxName} {rect} leaves the canvas");
+                    var boxColor = box.GetComponent<Image>().color;
+                    Assert.Greater(Luma(boxColor), 0.8f, $"{boxName} must be a light card");
+                    foreach (var text in box.GetComponentsInChildren<Text>(true))
+                    {
+                        // Popup đóng nên cả nhánh inactive: phải tìm cả đối tượng tắt.
+                        if (text.GetComponentInParent<Button>(true) != null) continue;
+                        Assert.Greater(Luma(boxColor) - Luma(text.color), 0.45f, $"{boxName}/{text.name} is hard to read on the card");
+                    }
+                }
+            });
+
         private static RectTransform Named(Scene scene, string name) =>
             All<RectTransform>(scene).First(r => r.name == name);
 

@@ -68,6 +68,9 @@ namespace BunDauPeo.Restaurant
 
         public double TodaySeconds => SecondsOf(DayIndex(_clock.LocalNow));
 
+        // Cũ → mới, tối đa 10 mục; để popup đếm Kịp/Trễ/Bỏ lỡ.
+        public IReadOnlyList<int> IncidentScores => _save.IncidentScores;
+
         public void RecordPresence(double seconds)
         {
             if (!(seconds > 0)) return;

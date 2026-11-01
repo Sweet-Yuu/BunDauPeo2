@@ -26,6 +26,8 @@ namespace BunDauPeo.UI
         [SerializeField] private Button _incidentButton;
         [SerializeField] private Text _incidentLabel;
         [SerializeField] private Text _incidentHint;
+        // Hiện khi vừa vắng đủ lâu; view là nơi duy nhất lấy số giây vắng (TakePendingAbsence) vì chỉ nó biết màn quán đang mở.
+        [SerializeField] private AfkPopup _afkPopup;
 
         private sealed class Actor
         {
@@ -100,7 +102,16 @@ namespace BunDauPeo.UI
             Move(Mathf.Min(Time.unscaledDeltaTime, RestaurantRunner.MaxDelta));
             SortByDepth();
             ShowIncident();
+            ShowPendingAbsence();
             _settle = false;
+        }
+
+        // Lấy ở Update (không ở OnEnable) vì thứ tự OnEnable giữa view và popup không được đảm bảo; khung đầu tiên đã sau mọi OnEnable.
+        private void ShowPendingAbsence()
+        {
+            var afk = _service.Afk;
+            var seconds = afk.TakePendingAbsence();
+            if (seconds > 0 && afk.PreviewCollect() > 0) _afkPopup.Show(seconds);
         }
 
         private void OnIncidentClicked() => _service.Incidents.Resolve();
@@ -128,7 +139,7 @@ namespace BunDauPeo.UI
         private bool HasAllReferences()
         {
             var ok = _actors != null && _door != null && _customerTemplate != null && _workerTemplate != null
-                     && _incidentButton != null && _incidentLabel != null && _incidentHint != null
+                     && _incidentButton != null && _incidentLabel != null && _incidentHint != null && _afkPopup != null
                      && HasSpots(_tables) && HasSpots(_cookSpots) && HasSpots(_serverSpots) && HasSpots(_cashierSpots);
             if (!ok) Debug.LogError($"{nameof(RestaurantView)}: a serialized reference is not assigned.", this);
             return ok;

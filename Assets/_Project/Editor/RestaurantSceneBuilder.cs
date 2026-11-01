@@ -46,6 +46,9 @@ namespace BunDauPeo.EditorTools
         private static readonly Color AfkGreen = new(0.20f, 0.60f, 0.35f);
         private static readonly Color GreyButton = new(0.45f, 0.47f, 0.55f);
         private static readonly Color Warning = new(1f, 0.55f, 0.45f);
+        // Popup sáng theo màn quán: thẻ trắng, chữ tối; hai màu này đủ tối để đọc trên thẻ (RestaurantSceneTests kiểm độ tương phản).
+        private static readonly Color SoftText = new(0.36f, 0.38f, 0.46f);
+        private static readonly Color FullText = new(0.78f, 0.35f, 0f);
 
         private static readonly Vector2 Center = new(0.5f, 0.5f);
         private static readonly Vector2 TopLeft = new(0, 1);
@@ -181,7 +184,7 @@ namespace BunDauPeo.EditorTools
             viewSo.FindProperty("_incidentHint").objectReferenceValue = incidentHint;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
-            var hud = BuildHud(canvas, font, sprite, knob, counter);
+            var hud = BuildHud(canvas, font, sprite, knob, counter, out var statsButton);
 
             // Cột nút phải: dải trắng bo góc sát mép phải, ba ô; ô chưa có nút để trống (Thu AFK ở ô thứ ba).
             var column = NewRect("RightColumn", canvas);
@@ -190,6 +193,12 @@ namespace BunDauPeo.EditorTools
             BuildStaffPanel(canvas, column, font, sprite, knob);
             BuildUpgradePanel(canvas, column, font, sprite, knob);
             BuildAfkButton(column, font, knob, hud);
+
+            // Popup dựng sau cùng nên vẽ trên mọi thứ khác.
+            var afkPopup = BuildAfkPopup(canvas, font, sprite);
+            BuildQualityPopup(canvas, font, sprite, statsButton);
+            viewSo.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
+            viewSo.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
@@ -262,7 +271,7 @@ namespace BunDauPeo.EditorTools
             return label;
         }
 
-        private static RestaurantHud BuildHud(RectTransform canvas, Font font, Sprite sprite, Sprite knob, RectTransform counter)
+        private static RestaurantHud BuildHud(RectTransform canvas, Font font, Sprite sprite, Sprite knob, RectTransform counter, out Button statsButton)
         {
             // Ba thẻ tiền trên-trái.
             var coin = Card(canvas, font, sprite, "CoinCard", "CoinText", "Coin 0", new Vector2(30, -20));
@@ -272,7 +281,10 @@ namespace BunDauPeo.EditorTools
             // Thanh giữa-trên dưới hàng thẻ: sao và bộ đếm ở hàng trên, cảnh báo và nhãn thu nhập ở hàng dưới; được phép đè lên tường sau.
             var bar = NewRect("InfoBar", canvas);
             Place(bar, TopCenter, TopLeft, new Vector2(240 - ReferenceWidth / 2f, -108), new Vector2(1120, 120));
-            AddImage(bar, sprite, BarColor, raycast: false);
+            // Cả thanh là nút mở QualityPopup (spec 5.4: bấm thẻ sao); con của nó đều tắt raycast nên bấm đâu cũng trúng thanh.
+            var barImage = AddImage(bar, sprite, BarColor, raycast: true);
+            statsButton = bar.gameObject.AddComponent<Button>();
+            statsButton.targetGraphic = barImage;
 
             // Sao chất lượng: nền xám và lớp vàng Filled ngang chồng lên, vì font dựng sẵn có thể thiếu ký tự sao.
             var stars = new RectTransform[5];
@@ -298,6 +310,14 @@ namespace BunDauPeo.EditorTools
             var income = NewText("IncomeText", bar, font, "", 34, TextAnchor.MiddleLeft, DarkText);
             Place(income.rectTransform, TopLeft, TopLeft, new Vector2(74, -64), new Vector2(1020, 48));
 
+            // Thanh báo lỗi lưu khi thu AFK, ngay dưới thanh thông tin; RestaurantHud bật 6 giây rồi tắt.
+            var messageRoot = NewRect("AfkMessage", canvas);
+            Place(messageRoot, TopCenter, TopLeft, new Vector2(240 - ReferenceWidth / 2f, -236), new Vector2(1120, 56));
+            AddImage(messageRoot, sprite, BarColor, raycast: false);
+            var messageText = NewText("AfkMessageText", messageRoot, font, "", 30, TextAnchor.MiddleCenter, IncidentHintText);
+            Stretch(messageText.rectTransform);
+            messageRoot.gameObject.SetActive(false);
+
             var floats = new Text[8];
             for (var i = 0; i < floats.Length; i++)
             {
@@ -315,6 +335,8 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_incomeText").objectReferenceValue = income;
             so.FindProperty("_counterText").objectReferenceValue = counterText;
             so.FindProperty("_warningIcon").objectReferenceValue = warningImage;
+            so.FindProperty("_afkMessageRoot").objectReferenceValue = messageRoot.gameObject;
+            so.FindProperty("_afkMessageText").objectReferenceValue = messageText;
             so.FindProperty("_floatOrigin").objectReferenceValue = counter;
             var starProperty = so.FindProperty("_stars");
             starProperty.arraySize = stars.Length;
@@ -531,6 +553,106 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_messageText").objectReferenceValue = message;
             so.FindProperty("_content").objectReferenceValue = content;
             so.FindProperty("_rowTemplate").objectReferenceValue = rowTemplate;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Một dòng chữ căn giữa của popup, đặt theo mép trên của hộp.
+        private static Text PopupLine(RectTransform box, Font font, string name, string text, int size, Color color, float y, float width, float height)
+        {
+            var line = NewText(name, box, font, text, size, TextAnchor.MiddleCenter, color);
+            Place(line.rectTransform, TopCenter, TopCenter, new Vector2(0, y), new Vector2(width, height));
+            return line;
+        }
+
+        // Thẻ trắng giữa màn trên nền tối mờ, chữ tối (bố cục sáng của màn quán); trả về gốc và hộp.
+        private static (RectTransform Root, RectTransform Box) PopupFrame(RectTransform canvas, Sprite sprite, string rootName, string boxName, Vector2 size)
+        {
+            var root = NewRect(rootName, canvas);
+            Stretch(root);
+            AddImage(root, null, Dim, raycast: true);
+            var box = NewRect(boxName, root);
+            Place(box, Center, Center, Vector2.zero, size);
+            AddImage(box, sprite, CardColor, raycast: false);
+            return (root, box);
+        }
+
+        // Popup Thu AFK (spec 5.4): vắng bao lâu, Coin chờ, chất lượng, hệ số, Coin nhận, mẹo, Thu thập / Để sau.
+        private static AfkPopup BuildAfkPopup(RectTransform canvas, Font font, Sprite sprite)
+        {
+            var (root, box) = PopupFrame(canvas, sprite, "AfkPopupRoot", "AfkPopupBox", new Vector2(1100, 700));
+            var title = PopupLine(box, font, "TitleText", "Chào mừng trở lại!", 54, DarkText, -30, 800, 70);
+            title.fontStyle = FontStyle.Bold;
+            var summary = PopupLine(box, font, "SummaryText", "", 36, DarkText, -125, 960, 260);
+            summary.alignment = TextAnchor.UpperLeft;
+            var tip = PopupLine(box, font, "TipText", "", 30, SoftText, -395, 1000, 50);
+            var full = PopupLine(box, font, "FullText", "", 34, FullText, -450, 1000, 48);
+            var message = PopupLine(box, font, "MessageText", "", 30, IncidentHintText, -505, 1000, 48);
+            var collect = NewButton("CollectButton", box, sprite, font, "Thu thập", AfkGreen, BottomCenter, new Vector2(-200, 40), new Vector2(340, 100));
+            var later = NewButton("LaterButton", box, sprite, font, "Để sau", GreyButton, BottomCenter, new Vector2(200, 40), new Vector2(340, 100));
+            root.gameObject.SetActive(false);
+
+            var popup = NewRect("AfkPopup", canvas).gameObject.AddComponent<AfkPopup>();
+            var so = new SerializedObject(popup);
+            so.FindProperty("_root").objectReferenceValue = root.gameObject;
+            so.FindProperty("_summaryText").objectReferenceValue = summary;
+            so.FindProperty("_tipText").objectReferenceValue = tip;
+            so.FindProperty("_fullText").objectReferenceValue = full;
+            so.FindProperty("_messageText").objectReferenceValue = message;
+            so.FindProperty("_collectButton").objectReferenceValue = collect;
+            so.FindProperty("_laterButton").objectReferenceValue = later;
+            so.FindProperty("_laterLabel").objectReferenceValue = later.GetComponentInChildren<Text>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return popup;
+        }
+
+        // Popup Chất lượng (spec 5.4), mở bằng thanh sao ở HUD: Chuyên cần với 7 ô ngày, dòng hôm nay, Xử lý sự cố, hệ số AFK.
+        private static void BuildQualityPopup(RectTransform canvas, Font font, Sprite sprite, Button open)
+        {
+            const int days = 7;
+            var (root, box) = PopupFrame(canvas, sprite, "QualityPopupRoot", "QualityPopupBox", new Vector2(1300, 760));
+            var title = PopupLine(box, font, "TitleText", "Chất lượng quán", 54, DarkText, -28, 800, 70);
+            title.fontStyle = FontStyle.Bold;
+            var headline = PopupLine(box, font, "HeadlineText", "", 40, DarkText, -100, 1100, 56);
+            var attendance = PopupLine(box, font, "AttendanceText", "", 38, DarkText, -170, 1100, 56);
+
+            // Ô ngày: nền xám và lớp vàng Filled ngang chồng lên, như sao ở HUD.
+            var fills = new Image[days];
+            var labels = new Text[days];
+            for (var i = 0; i < days; i++)
+            {
+                var cell = NewRect($"DayCell{i}", box);
+                Place(cell, TopCenter, TopCenter, new Vector2((i - 3) * 160, -240), new Vector2(140, 44));
+                AddImage(cell, sprite, StarOff, raycast: false);
+                var fillRect = NewRect("Fill", cell);
+                Stretch(fillRect);
+                fills[i] = AddImage(fillRect, sprite, StarOn, raycast: false);
+                fills[i].type = Image.Type.Filled;
+                fills[i].fillMethod = Image.FillMethod.Horizontal;
+                fills[i].fillAmount = 0f;
+                labels[i] = NewText($"DayLabel{i}", box, font, "", 24, TextAnchor.MiddleCenter, SoftText);
+                Place(labels[i].rectTransform, TopCenter, TopCenter, new Vector2((i - 3) * 160, -290), new Vector2(150, 34));
+            }
+
+            var today = PopupLine(box, font, "TodayText", "", 30, SoftText, -335, 1100, 44);
+            var incident = PopupLine(box, font, "IncidentText", "", 38, DarkText, -405, 1100, 56);
+            var breakdown = PopupLine(box, font, "BreakdownText", "", 32, SoftText, -465, 1100, 44);
+            var factor = PopupLine(box, font, "FactorText", "", 38, DarkText, -540, 1100, 56);
+            var close = NewButton("CloseButton", box, sprite, font, "Đóng", GreyButton, BottomCenter, new Vector2(0, 30), new Vector2(320, 90));
+            root.gameObject.SetActive(false);
+
+            var popup = NewRect("QualityPopup", canvas).gameObject.AddComponent<QualityPopup>();
+            var so = new SerializedObject(popup);
+            so.FindProperty("_openButton").objectReferenceValue = open;
+            so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.FindProperty("_root").objectReferenceValue = root.gameObject;
+            so.FindProperty("_headlineText").objectReferenceValue = headline;
+            so.FindProperty("_attendanceText").objectReferenceValue = attendance;
+            SetRefs(so.FindProperty("_dayFills"), fills);
+            SetRefs(so.FindProperty("_dayLabels"), labels);
+            so.FindProperty("_todayText").objectReferenceValue = today;
+            so.FindProperty("_incidentText").objectReferenceValue = incident;
+            so.FindProperty("_breakdownText").objectReferenceValue = breakdown;
+            so.FindProperty("_factorText").objectReferenceValue = factor;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

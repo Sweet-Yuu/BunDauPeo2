@@ -648,14 +648,14 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
 - Consumes: `RestaurantService.Afk/Quality/Estimate`, `AfkService.TakePendingAbsence/PreviewCollect/Collect/IsFull`, `RestaurantQuality.DayCredits/TodaySeconds/Attendance/IncidentPoints/Stars/AfkFactor`.
 - Produces: `RestaurantViewText.AbsenceText(double seconds)` ("5 giờ 12 phút"), `FullCapLine(bool isFull)` (rỗng khi chưa đầy), `AfkSummary(...)`, `DayCellFill(float credit)`, `TodayLine(double seconds, double goalSeconds)` ("Hôm nay: a/b phút (tính vào ngày mai)"), `IncidentBreakdown(IReadOnlyList<int> scores)` ("Kịp 5 · Trễ 1 · Bỏ lỡ 1 · Chưa có 3"). `RestaurantView` gọi `TakePendingAbsence()` ở `OnEnable` và mỗi khung; kết quả `> 0` và `PreviewCollect() > 0` thì hiện `AfkPopup` (thời gian vắng, Coin lý thuyết chờ, sao và điểm, hệ số, Coin nhận, mẹo, nút Thu thập / Để sau, dòng "Đã đầy, ..." khi `IsFull`). Bấm thẻ sao ở HUD mở `QualityPopup` (Chuyên cần x/50 với 7 ô ngày, dòng hôm nay, Xử lý sự cố y/50, hệ số AFK). Mở popup thì `SetSpawnAllowed(false)`, đóng thì `true`.
 
-- [ ] **Step 1: Viết test đỏ (7 test)**
+- [x] **Step 1: Viết test đỏ (7 test)**
   - `RestaurantViewTextTests` (6): `AbsenceText_HoursAndMinutes` (18720 → chứa "5" và "12"); `AbsenceText_UnderAnHour_MinutesOnly`; `FullCapLine_OnlyWhenFull`; `DayCellFill_IsCredit`; `TodayLine_ShowsProgressAndNextDayNote`; `IncidentBreakdown_CountsKindLateMissedAndEmpty` (`[2,2,1,0]` → Kịp 2, Trễ 1, Bỏ lỡ 1, Chưa có 6).
   - `RestaurantSceneTests.RestaurantScene_PopupsWired` (1).
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="414"`.
-- [ ] **Step 5: Thử trong Play Mode:** Tua AFK, mở lại màn quán từ Gacha thì popup hiện đúng một lần với số hợp lý; Quality popup khớp số liệu; trong lúc popup mở không sinh sự cố mới; xử lý sự cố bằng cách bấm "!"; vai trống thì "!" ghi cần xếp người. Dọn như Task 9 Step 5.
-- [ ] **Step 6: Commit và push** (`feat: add AFK and quality popups`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="414"`. **Thực tế 420**: 6 test thêm (`IncidentBreakdown_OnlyLatestTenCount`, `SaveWarning_OnlyWhenNotSaved`, `AfkSummary_*`, `AfkCollectedLine_ShowsCoinsReceived`, `TipLine_UsesDailyGoalMinutes`, `QualityPopupLines_RoundPointsAndNameDays`) cho luật "Thu AFK mà `Saved == false` phải báo người chơi" và các dòng chữ của popup.
+- [x] **Step 5: Thử trong Play Mode:** Tua AFK, mở lại màn quán từ Gacha thì popup hiện đúng một lần với số hợp lý; Quality popup khớp số liệu; trong lúc popup mở không sinh sự cố mới; xử lý sự cố bằng cách bấm "!"; vai trống thì "!" ghi cần xếp người. Dọn như Task 9 Step 5.
+- [x] **Step 6: Commit và push** (`feat: add AFK and quality popups`).
 
 ---
 

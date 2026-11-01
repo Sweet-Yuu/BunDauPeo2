@@ -140,6 +140,124 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void AbsenceText_HoursAndMinutes()
+        {
+            Assert.AreEqual("5 giờ 12 phút", RestaurantViewText.AbsenceText(18720));
+            // Phút lẻ không làm tròn lên: 3 giờ 7 phút 59 giây vẫn là 7 phút.
+            Assert.AreEqual("3 giờ 7 phút", RestaurantViewText.AbsenceText(3 * 3600 + 7 * 60 + 59));
+            Assert.AreEqual("12 giờ 0 phút", RestaurantViewText.AbsenceText(12 * 3600));
+        }
+
+        [Test]
+        public void AbsenceText_UnderAnHour_MinutesOnly()
+        {
+            Assert.AreEqual("25 phút", RestaurantViewText.AbsenceText(25 * 60 + 40));
+            StringAssert.DoesNotContain("giờ", RestaurantViewText.AbsenceText(59 * 60 + 59));
+        }
+
+        [Test]
+        public void FullCapLine_OnlyWhenFull()
+        {
+            Assert.AreEqual("", RestaurantViewText.FullCapLine(false));
+            StringAssert.Contains("Đã đầy", RestaurantViewText.FullCapLine(true));
+            StringAssert.Contains("thu thập", RestaurantViewText.FullCapLine(true));
+        }
+
+        [Test]
+        public void DayCellFill_IsCredit()
+        {
+            Assert.AreEqual(0.4f, RestaurantViewText.DayCellFill(0.4f), 1e-5f);
+            Assert.AreEqual(0f, RestaurantViewText.DayCellFill(0f), 1e-5f);
+            // Ngoài 0..1 thì kẹp lại, để Image.Filled không nhận số lạ.
+            Assert.AreEqual(1f, RestaurantViewText.DayCellFill(1.7f), 1e-5f);
+            Assert.AreEqual(0f, RestaurantViewText.DayCellFill(-0.3f), 1e-5f);
+        }
+
+        [Test]
+        public void TodayLine_ShowsProgressAndNextDayNote()
+        {
+            // 170 giây là 2 phút 50 giây: phút đã đủ là 2, làm tròn sẽ ra 3.
+            var line = RestaurantViewText.TodayLine(170, 300);
+            StringAssert.Contains("Hôm nay", line);
+            StringAssert.Contains("2/5 phút", line);
+            StringAssert.Contains("tính vào ngày mai", line);
+            StringAssert.Contains("0/10 phút", RestaurantViewText.TodayLine(0, 600));
+        }
+
+        [Test]
+        public void IncidentBreakdown_CountsKindLateMissedAndEmpty() =>
+            Assert.AreEqual("Kịp 2 · Trễ 1 · Bỏ lỡ 1 · Chưa có 6", RestaurantViewText.IncidentBreakdown(new[] { 2, 2, 1, 0 }));
+
+        [Test]
+        public void IncidentBreakdown_OnlyLatestTenCount()
+        {
+            // Mười hai mục: hai mục cũ nhất (Kịp) rơi ngoài cửa sổ 10, nên không còn "Chưa có".
+            var scores = new[] { 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 };
+            Assert.AreEqual("Kịp 0 · Trễ 2 · Bỏ lỡ 8 · Chưa có 0", RestaurantViewText.IncidentBreakdown(scores));
+        }
+
+        [Test]
+        public void SaveWarning_OnlyWhenNotSaved()
+        {
+            Assert.AreEqual("", RestaurantViewText.SaveWarning(true));
+            Assert.IsNotEmpty(RestaurantViewText.SaveWarning(false));
+            // Mua nâng cấp không lưu được dùng cùng một câu.
+            Assert.AreEqual(RestaurantViewText.SaveWarning(false), RestaurantViewText.UpgradeStatus(UpgradeBuyStatus.Success, false));
+        }
+
+        [Test]
+        public void AfkSummary_ShowsAbsenceTheoreticalQualityFactorAndCoins()
+        {
+            var saved = CultureInfo.CurrentCulture;
+            try
+            {
+                foreach (var name in new[] { "en-US", "de-DE" })
+                {
+                    CultureInfo.CurrentCulture = new CultureInfo(name);
+                    // 29203,7 Coin lý thuyết: bỏ phần lẻ chứ không làm tròn lên 29204.
+                    var text = RestaurantViewText.AfkSummary(18720, 29203.7, 62, 0.35, 10221);
+                    StringAssert.Contains("5 giờ 12 phút", text, name);
+                    StringAssert.Contains("29203 Coin", text, name);
+                    StringAssert.Contains("62/100", text, name);
+                    StringAssert.Contains("3,1 sao", text, name);
+                    StringAssert.Contains("0,35", text, name);
+                    StringAssert.Contains("10221 Coin", text, name);
+                }
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = saved;
+            }
+        }
+
+        [Test]
+        public void AfkCollectedLine_ShowsCoinsReceived()
+        {
+            StringAssert.Contains("10221 Coin", RestaurantViewText.AfkCollectedLine(10221));
+            StringAssert.Contains("5 Coin", RestaurantViewText.AfkCollectedLine(5));
+            Assert.AreNotEqual(RestaurantViewText.AfkCollectedLine(10221), RestaurantViewText.AfkCollectedLine(5));
+        }
+
+        [Test]
+        public void TipLine_UsesDailyGoalMinutes()
+        {
+            StringAssert.Contains("5 phút", RestaurantViewText.TipLine(300));
+            StringAssert.Contains("10 phút", RestaurantViewText.TipLine(600));
+        }
+
+        [Test]
+        public void QualityPopupLines_RoundPointsAndNameDays()
+        {
+            Assert.AreEqual("Chuyên cần 31/50", RestaurantViewText.AttendanceLine(31.4, 50));
+            // 19,6 làm tròn lên 20; cắt bỏ phần lẻ sẽ ra 19.
+            Assert.AreEqual("Xử lý sự cố 20/50", RestaurantViewText.IncidentPointsLine(19.6, 50));
+            Assert.AreEqual("Hệ số AFK ×0,35", RestaurantViewText.FactorLine(0.35));
+            Assert.AreEqual("Hệ số AFK ×0,50", RestaurantViewText.FactorLine(0.5));
+            Assert.AreEqual("Hôm qua", RestaurantViewText.DayCellLabel(1));
+            Assert.AreEqual("7 ngày", RestaurantViewText.DayCellLabel(7));
+        }
+
+        [Test]
         public void StarFill_PartialStar()
         {
             // 3,1 sao: ba ngôi đầy, ngôi thứ tư đầy một phần mười, ngôi cuối trống.
