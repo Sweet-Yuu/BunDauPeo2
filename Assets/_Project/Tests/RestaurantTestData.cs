@@ -111,6 +111,24 @@ namespace BunDauPeo.Tests
             return worker;
         }
 
+        // Hồ sơ với nhân viên giả (id "cook0", "serve0"...), chỉ số theo từng vai; số ô không bị cắt.
+        public static RestaurantProfile Profile(RestaurantConfig config, int[] cook, int[] serve, int[] cashier, PlayerSave save = null)
+        {
+            save ??= new PlayerSave();
+            var roster = new Roster(save, TestData.Catalog());
+            return RestaurantProfile.Build(config, save, roster)
+                .WithWorkers(StaffRole.Cook, Crew("cook", cook))
+                .WithWorkers(StaffRole.Server, Crew("serve", serve))
+                .WithWorkers(StaffRole.Cashier, Crew("cashier", cashier));
+        }
+
+        private static WorkerInfo[] Crew(string prefix, int[] stats)
+        {
+            var crew = new WorkerInfo[stats.Length];
+            for (var i = 0; i < stats.Length; i++) crew[i] = new WorkerInfo($"{prefix}{i}", stats[i]);
+            return crew;
+        }
+
         public static void SetList(Object target, string field, params Object[] items)
         {
             TestData.Edit(target, so =>

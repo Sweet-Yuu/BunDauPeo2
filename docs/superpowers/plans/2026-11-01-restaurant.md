@@ -235,7 +235,7 @@ git push
 - Consumes: `RestaurantConfig`, `RestaurantProfile`, `WorkerInfo` (Task 2–3).
 - Produces: `public readonly struct IncomeEstimate { public double CoinsPerSecond { get; } public StaffRole? MissingRole { get; } }` và `public static class IncomeCalculator { public static IncomeEstimate Estimate(RestaurantConfig config, RestaurantProfile profile); }` theo công thức [spec 4.2](../specs/2026-11-01-restaurant-design.md#42-thu-nhập-lý-thuyết-incomecalculator-hàm-tĩnh-thuần). `MissingRole` là vai đầu tiên theo thứ tự Cook, Server, Cashier không có ai; khi đó `CoinsPerSecond == 0`.
 
-- [ ] **Step 1: Viết test đỏ (13 test).** Cấu hình thử: `RestaurantTestData.Config()` (món 20 Coin cook 5 giây, một khách ×1, serve 4, eat 8, cashier 3, arrival 15, 3 bàn); `profile` dựng bằng `RestaurantProfile.Build` với `WorkerInfo` giả (qua `WithWorkers`). Thời gian xử lý = gốc × 100/(100 + chỉ số); năng lực vai = Σ (100 + chỉ số)/(100 × gốc).
+- [x] **Step 1: Viết test đỏ (13 test).** Cấu hình thử: `RestaurantTestData.Config()` (món 20 Coin cook 5 giây, một khách ×1, serve 4, eat 8, cashier 3, arrival 15, 3 bàn); `profile` dựng bằng `RestaurantProfile.Build` với `WorkerInfo` giả (qua `WithWorkers`). Thời gian xử lý = gốc × 100/(100 + chỉ số); năng lực vai = Σ (100 + chỉ số)/(100 × gốc).
   - `Arrival_IsBottleneck`: mỗi vai một người chỉ số 0, 3 bàn: năng lực (0,2 / 0,25 / 0,333), bàn 3/20 = 0,15; khách đến 1/15 → `CoinsPerSecond ≈ 1,3333`.
   - `Cook_IsBottleneck`: arrival 1 giây, 100 bàn, cook chỉ số 0 (0,2), serve và cashier chỉ số 100 → `≈ 4,0`.
   - `Server_IsBottleneck`: arrival 1, 100 bàn, cook 100 (0,4), serve 0 (0,25), cashier 100 → `≈ 5,0`.
@@ -279,7 +279,7 @@ git push
   ```
   `SetStationBlocked`, `Reset` và logic kiên nhẫn thêm ở Task 6. Hợp đồng RNG theo [spec 4.3](../specs/2026-11-01-restaurant-design.md#43-mô-phỏng-restaurantsimulation-class-thuần): constructor gọi **một** lần để bốc khoảng cách đến đầu tiên; mỗi lần khách đến: nếu hàng chờ bàn chưa đầy thì một lần chọn loại khách (cộng dồn `SpawnWeight`, `u × tổng`, so `<`), một lần chọn món (`(int)(u × n)` chặn ở `n − 1`); rồi **luôn** một lần bốc khoảng cách kế = `BaseArrivalInterval × ArrivalIntervalMultiplier × (0,5 + u)`. Bước cố định 0,1 giây; cộng dồn `dt` dư; thời gian việc cố định lúc nhận việc; dùng `double` hoặc đếm bước nguyên để 50 bước × 0,1 đúng 5 giây. Tiền = `Math.Round(BasePrice × PayMultiplier × PriceMultiplier, MidpointRounding.AwayFromZero)` tối thiểu 1. Hàng chờ đầy (`MaxWaitingLine`): không tạo khách, `Abandoned` tăng.
 
-- [ ] **Step 1: Viết test đỏ (12 test).** Cấu hình `RestaurantTestData.Config()`, `ScriptedRandom()` mặc định trả 0,0 → khoảng cách đầu = 0,5 × 15 = 7,5 giây; nhân viên stat 0, mỗi vai một người. "Tại t" nghĩa là sau `Tick` đủ t giây, dung sai ±0,2 giây.
+- [x] **Step 1: Viết test đỏ (12 test).** Cấu hình `RestaurantTestData.Config()`, `ScriptedRandom()` mặc định trả 0,0 → khoảng cách đầu = 0,5 × 15 = 7,5 giây; nhân viên stat 0, mỗi vai một người. "Tại t" nghĩa là sau `Tick` đủ t giây, dung sai ±0,2 giây.
   - `OneCustomer_FullPipeline_PaysAtExpectedTimeAndAmount`: khách đến t = 7,5, nấu 5, bưng 4, ăn 8, thu 3 → trả tiền t = 27,5; trước 27,3 `Served == 0`, sau 27,7 `Served == 1`; `CustomerPaid` đúng một lần với số tiền 20; `Customers` rỗng sau đó.
   - `HigherStat_ShortensWork`: cook stat 100 làm trả tiền sớm hơn 2,5 giây (t = 25,0).
   - `TwoCustomers_AreCookedFifoByOneCook`: hai khách đến cách nhau, người đến trước có `State` đi trước (kiểm `Id` đang `Cooking` đúng thứ tự).
@@ -292,10 +292,10 @@ git push
   - `Snapshots_ShowStatesInOrder`: một khách đi qua `WaitingForCook` hoặc `Cooking`, `Serving`, `Eating`, `Paying` theo thứ tự (lấy mẫu mỗi 0,1 giây, chuỗi trạng thái đã khử trùng lặp bằng đúng thứ tự dây chuyền).
   - `PaidHandlerThrows_DoesNotBreakSimulation`: handler ném lỗi (`LogAssert.Expect`), `Served` vẫn tăng và mô phỏng tiếp tục.
   - `Workers_ReportCustomerWhileBusy`: người nấu có `CustomerId` bằng `Id` khách đang `Cooking`, rảnh thì `-1`.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement** theo Interfaces và hợp đồng RNG.
-- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="268"`.
-- [ ] **Step 5: Commit và push** (`feat: add RestaurantSimulation customer pipeline and payment`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement** theo Interfaces và hợp đồng RNG.
+- [x] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="268"`.
+- [x] **Step 5: Commit và push** (`feat: add RestaurantSimulation customer pipeline and payment`).
 
 ---
 
