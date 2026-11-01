@@ -118,7 +118,7 @@ Tests/               BunDauPeo.Tests.asmdef (sửa), RestaurantTestData.cs, Rest
 
 ## Trước khi bắt đầu
 
-- [ ] Nhánh `docs/restaurant-spec` (spec và kế hoạch này) đã vào `main` hoặc user cho phép làm tiếp từ nó. Tạo `feature/restaurant`: `git checkout -b feature/restaurant`.
+- [x] Nhánh `docs/restaurant-spec` (spec và kế hoạch này) đã vào `main` hoặc user cho phép làm tiếp từ nó. Tạo `feature/restaurant`: `git checkout -b feature/restaurant`.
 - [ ] Đọc `docs/guides/code-style.md`, `docs/guides/unity-workflow.md`, và `Grep "#script" docs/lessons/lesson.md` (L-001, L-003, L-006), `Grep "#unity-files" docs/lessons/lesson.md` (L-002, L-004, L-005, L-007).
 
 ---
@@ -136,17 +136,17 @@ Tests/               BunDauPeo.Tests.asmdef (sửa), RestaurantTestData.cs, Rest
 - Produces, namespace `BunDauPeo.Core`: `[Serializable] struct UpgradeLevel { string UpgradeId; int Level; }`, `[Serializable] struct DailyPresenceEntry { int DayIndex; double Seconds; }`, `[Serializable] class AfkState { long LastActiveUtcTicks; double RatePerSecond; double AccumulatedSeconds; double PendingTheoretical; }` (field `public`). `PlayerSave` thêm `public List<UpgradeLevel> Upgrades = new(); public List<DailyPresenceEntry> DailyPresence = new(); public List<int> IncidentScores = new(); public AfkState Afk = new();` (`Version` giữ 1).
 - Produces, `GameSession`: `public event Action ResetCompleted;` bắn bằng `SafeInvoke()` trong `ResetToDefaults()` sau `Wallet.NotifyChanged()` và `Roster.NotifyChanged()`, trước `Persist()`.
 
-- [ ] **Step 1: Xác nhận mốc test.** Chạy lệnh test chung trước khi sửa gì. Kỳ vọng: exit `0`, `failed="0"`, `total="185"` (roadmap ghi 185, `structure.md` còn ghi 184, và `git log origin/main -1` hiện merge PR #2). Số khác 185 thì **dừng và hỏi user**; số ở các task sau cộng dồn từ mốc này.
-- [ ] **Step 2: Viết test đỏ (5 test)**
+- [x] **Step 1: Xác nhận mốc test.** Chạy lệnh test chung trước khi sửa gì. Kỳ vọng: exit `0`, `failed="0"`, `total="185"` (roadmap ghi 185, `structure.md` còn ghi 184, và `git log origin/main -1` hiện merge PR #2). Số khác 185 thì **dừng và hỏi user**; số ở các task sau cộng dồn từ mốc này.
+- [x] **Step 2: Viết test đỏ (5 test)**
   - `SaveCompatibilityTests.OldSave_WithoutRestaurantFields_LoadsWithDefaults`: `FromJson<PlayerSave>("{\"Version\":1,\"Balances\":[{\"Type\":1,\"Amount\":5}],\"OwnedCharacterIds\":[\"a\"]}")` cho `Upgrades`, `DailyPresence`, `IncidentScores` rỗng, `Afk` khác `null` với `LastActiveUtcTicks == 0` và `PendingTheoretical == 0`, `Balances[0].Amount == 5`.
   - `SaveCompatibilityTests.RestaurantFields_RoundTripThroughSaveService`: lưu rồi `Load()` một save có `Upgrades = {("up_tables", 2)}`, `DailyPresence = {(7300, 120.5)}`, `IncidentScores = {2, 0, 1}`, `Afk` = (ticks `123456789012345`, rate `1.56`, accumulated `3600.25`, pending `5614.5`); đọc lại đúng từng giá trị (kể cả `double` và `long` lớn).
   - `GameSessionTests.ResetToDefaults_ClearsRestaurantFields`: gán dữ liệu vào bốn field, reset, kiểm cả bốn về giá trị khởi tạo.
   - `GameSessionTests.ResetToDefaults_RaisesResetCompletedOnce_AfterWalletAndRosterChanged_BeforeFileWritten`: ghi lại thứ tự sự kiện `Wallet.Changed`, `Roster.Changed`, `ResetCompleted`; `ResetCompleted` đúng 1 lần, sau hai cái kia; trong handler `File.Exists(_path)` là `false` (file chỉ được ghi lại bởi `Persist()` sau đó), và sau reset thì `File.Exists` là `true`.
   - `GameSessionTests.ResetCompleted_HandlerThrows_StillPersistsAndCallsOtherHandlers`: hai handler, cái đầu ném lỗi (`LogAssert.Expect(LogType.Exception, ...)`); cái sau vẫn được gọi, `ResetToDefaults()` trả `true`, file tồn tại.
-- [ ] **Step 3: Chạy test, kỳ vọng đỏ** (`error CS1061` về `Upgrades`, `ResetCompleted`).
-- [ ] **Step 4: Implement** theo Interfaces.
-- [ ] **Step 5: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="190"`.
-- [ ] **Step 6: Commit và push**
+- [x] **Step 3: Chạy test, kỳ vọng đỏ** (`error CS1061` về `Upgrades`, `ResetCompleted`).
+- [x] **Step 4: Implement** theo Interfaces.
+- [x] **Step 5: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="190"`.
+- [x] **Step 6: Commit và push**
 
 ```bash
 git add Assets/_Project/Core/Scripts Assets/_Project/Boot/Scripts/GameSession.cs Assets/_Project/Tests/SaveCompatibilityTests.cs Assets/_Project/Tests/GameSessionTests.cs
