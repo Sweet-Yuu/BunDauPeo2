@@ -5,13 +5,12 @@
 
 ## Đang làm
 
-(trống)
+- [ ] Restaurant: mô phỏng quán, xếp nhân viên, nâng cấp, chất lượng và sự cố, AFK, màn quán tối thiểu: [spec](superpowers/specs/2026-11-01-restaurant-design.md) (đã duyệt 2026-11-01), [kế hoạch](superpowers/plans/2026-11-01-restaurant.md) (15 task, 3 giai đoạn, giai đoạn A dừng để user thử). Chưa bắt đầu code; mốc test đầu 185 (xác nhận ở Task 1), dự kiến cuối 408.
 
 ## Tiếp theo
 
 Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử được.
 
-- [ ] Restaurant: simulation, khách và món, xếp nhân viên, nâng cấp, AFK.
 - [ ] Combat: lượt, 3 hành động, quái, wave, màn chơi, phần thưởng; class và đội hình 3 vị trí (front, mid, back), xem [game-design](design/game-design.md#nhân-vật).
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
 - [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game, gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
