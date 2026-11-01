@@ -14,6 +14,7 @@ namespace BunDauPeo.UI
     {
         public const string RestaurantScene = "Restaurant";
         public const string GachaScene = "Gacha";
+        public const long MaterialGrant = 50;
 
         public static readonly string[] SceneNames = { RestaurantScene, GachaScene };
 
@@ -49,12 +50,15 @@ namespace BunDauPeo.UI
             scaler.matchWidthOrHeight = 0.5f;
 
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(360, 76));
+            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(608, 76));
             var stripImage = strip.gameObject.AddComponent<Image>();
             stripImage.color = new Color(0f, 0f, 0f, 0.6f);
             stripImage.raycastTarget = false;
-            AddButton(strip, font, "Quán", new Vector2(8, 8), () => SceneManager.LoadScene(RestaurantScene));
-            AddButton(strip, font, "Gacha", new Vector2(184, 8), () => SceneManager.LoadScene(GachaScene));
+            AddButton(strip, font, "Quán", new Vector2(8, 8), 168, () => SceneManager.LoadScene(RestaurantScene));
+            AddButton(strip, font, "Gacha", new Vector2(184, 8), 168, () => SceneManager.LoadScene(GachaScene));
+            // Qua ví như mọi nguồn thu khác (không chạm file save), nên Changed bắn và Reset Save Data xoá sạch như thường.
+            AddButton(strip, font, $"+{MaterialGrant} Material", new Vector2(360, 8), 240,
+                () => ServiceLocator.Get<Wallet>().Add(CurrencyType.Material, MaterialGrant));
         }
 
         private static RectTransform NewRect(string name, Transform parent, Vector2 position, Vector2 size)
@@ -68,9 +72,9 @@ namespace BunDauPeo.UI
             return rect;
         }
 
-        private static void AddButton(RectTransform parent, Font font, string label, Vector2 position, Action onClick)
+        private static void AddButton(RectTransform parent, Font font, string label, Vector2 position, float width, Action onClick)
         {
-            var rect = NewRect(label + "Button", parent, position, new Vector2(168, 60));
+            var rect = NewRect(label + "Button", parent, position, new Vector2(width, 60));
             var image = rect.gameObject.AddComponent<Image>();
             image.color = new Color(0.30f, 0.50f, 0.90f);
             var button = rect.gameObject.AddComponent<Button>();

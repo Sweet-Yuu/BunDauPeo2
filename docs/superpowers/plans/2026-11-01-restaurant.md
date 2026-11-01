@@ -499,16 +499,16 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   ```
   `TryBuy` đúng thứ tự [spec 4.8](../specs/2026-11-01-restaurant-design.md#48-nâng-cấp-upgradeservice-và-nhân-viên-staffingservice): tra id → `Validate()` còn lỗi → `MaxLevel` → `CanAfford(chi phí cấp kế)` → `TrySpend` (sai thì `NotEnoughCurrency`) → tăng cấp trong `save.Upgrades` → `Changed` → `persist()` đúng một lần (`false` thì `Saved = false`, bộ nhớ giữ nguyên, không hoàn tiền). `RestaurantService` thêm `public UpgradeService Upgrades { get; }` (tạo từ `config.Upgrades`), nghe `Upgrades.Changed` để dựng lại hồ sơ. `UpgradeTestPanel`: một cột nút, mỗi nâng cấp một nút ghi tên, cấp/tối đa, giá; mờ khi `!CanAfford` hoặc tối đa; thông báo khi `Status != Success` hoặc `Saved == false`; `RestaurantViewText.UpgradeButton(UpgradeDefinition def, int level)` và `UpgradeStatus(UpgradeBuyStatus status, bool saved)`. `DevOverlay` thêm nút **+50 Material** (`Wallet.Add`).
 
-- [ ] **Step 1: Viết test đỏ (16 test)** (`wallet` có Coin 5000, Material 100 trừ khi ghi khác; catalog gồm nâng cấp `up_tables` cấp 1 = 4 bàn tốn 300 Coin + 5 Material):
+- [x] **Step 1: Viết test đỏ (16 test)** (`wallet` có Coin 5000, Material 100 trừ khi ghi khác; catalog gồm nâng cấp `up_tables` cấp 1 = 4 bàn tốn 300 Coin + 5 Material):
   - `UpgradeServiceTests` (11): `Buy_SpendsBothCurrencies_RaisesLevel_PersistsOnce`; `Buy_MissingCoinOnly_ChangesNothing` (Coin 299); `Buy_MissingMaterialOnly_ChangesNothing` (Material 4); với hai ca này kiểm ví, cấp, `Changed` (0 lần) và số lần `persist` (0); `Buy_AtMaxLevel_ReturnsMaxLevel`; `Buy_UnknownId`; `Buy_InvalidUpgrade_NothingSpent` (cấp có chi phí tổng 0); `Buy_PersistFails_SavedFalse_KeepsState`; `Buy_PersistedExactlyOnce` (mua một lần, `persist` 1 lần); `Buy_Consecutive_SpendsEachLevelCost` (cấp 1 rồi cấp 2: tổng trừ 300 + 600 Coin, 5 + 10 Material); `Changed_RaisedOnSuccessOnly`; `Buy_ChangedHandlerThrows_StillPersistsAndKeepsState` (L-003).
   - `RestaurantServiceTests.BuyUpgrade_TakesEffectInSimulation_Immediately` (1): mua Bàn thì `Profile.Tables` tăng ngay và `ProfileChanged` được bắn.
   - `RestaurantViewTextTests` (3): `UpgradeButton_ShowsNameLevelAndCost`; `UpgradeButton_AtMax_ShowsMax`; `UpgradeStatus_EveryFailureHasDistinctText_SuccessSavedIsEmpty_SuccessUnsavedWarns`.
   - `RestaurantSceneTests.RestaurantScene_UpgradePanelWired` (1).
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="347"`.
-- [ ] **Step 5: Thử trong Play Mode:** bấm **+50 Material** vài lần, mua Bàn và ô; thấy ví trừ cả Coin lẫn Material, nút mờ khi thiếu; sau khi mua ô nấu thì xếp thêm người được. Dọn như Task 9 Step 5.
-- [ ] **Step 6: Commit và push** (`feat: add UpgradeService and test upgrade panel`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="347"`.
+- [x] **Step 5: Thử trong Play Mode:** bấm **+50 Material** vài lần, mua Bàn và ô; thấy ví trừ cả Coin lẫn Material, nút mờ khi thiếu; sau khi mua ô nấu thì xếp thêm người được. Dọn như Task 9 Step 5.
+- [x] **Step 6: Commit và push** (`feat: add UpgradeService and test upgrade panel`).
 
 ---
 

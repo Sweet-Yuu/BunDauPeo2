@@ -30,16 +30,20 @@ namespace BunDauPeo.Restaurant
 
             Simulation = new RestaurantSimulation(config, random);
             Staffing = new StaffingService(roster, () => Profile);
+            // Catalog thiếu là lỗi cấu hình (đã báo ở trên): không có dịch vụ nâng cấp, view phải kiểm null.
+            if (config.Upgrades != null) Upgrades = new UpgradeService(save, wallet, config.Upgrades, persist);
             RebuildProfile();
 
             Simulation.CustomerPaid += OnCustomerPaid;
             roster.Changed += OnRosterChanged;
+            if (Upgrades != null) Upgrades.Changed += OnRosterChanged;
         }
 
         public RestaurantConfig Config => _config;
         public bool IsRunning { get; }
         public RestaurantSimulation Simulation { get; }
         public StaffingService Staffing { get; }
+        public UpgradeService Upgrades { get; }
         public RestaurantProfile Profile { get; private set; }
         public IncomeEstimate Estimate { get; private set; }
         public bool IsPresent { get; private set; }

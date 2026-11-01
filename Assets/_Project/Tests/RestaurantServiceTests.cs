@@ -183,6 +183,26 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void BuyUpgrade_TakesEffectInSimulation_Immediately()
+        {
+            var tables = RestaurantTestData.Upgrade("up_tables", UpgradeEffect.Tables, RestaurantTestData.Level(4, 300, 5));
+            var f = Make(config: RestaurantTestData.Config(RestaurantTestData.UpgradeCatalog(tables)));
+            f.Wallet.Add(CurrencyType.Coin, 300);
+            f.Wallet.Add(CurrencyType.Material, 5);
+            var raised = 0;
+            f.Service.ProfileChanged += () => raised++;
+            Assert.AreEqual(3, f.Service.Profile.Tables);
+
+            var result = f.Service.Upgrades.TryBuy("up_tables");
+
+            // Không Update: hồ sơ phải đổi ngay khi mua, không đợi khung kế tiếp.
+            Assert.AreEqual(UpgradeBuyStatus.Success, result.Status);
+            Assert.AreEqual(4, f.Service.Profile.Tables);
+            Assert.AreEqual(1, raised);
+            Assert.AreEqual(1, f.Persists);
+        }
+
+        [Test]
         public void Clamp_CapsAtHalfSecond()
         {
             Assert.AreEqual(0.1f, RestaurantRunner.Clamp(0.1f));

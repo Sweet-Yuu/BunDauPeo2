@@ -84,6 +84,10 @@ namespace BunDauPeo.Tests
         public void RestaurantScene_StaffPanelWired() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene => AssertAllReferencesAssigned(All<StaffPanel>(scene).Single()));
 
+        [Test]
+        public void RestaurantScene_UpgradePanelWired() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene => AssertAllReferencesAssigned(All<UpgradeTestPanel>(scene).Single()));
+
         private static RectTransform Named(Scene scene, string name) =>
             All<RectTransform>(scene).First(r => r.name == name);
 
@@ -170,6 +174,15 @@ namespace BunDauPeo.Tests
                 var staffRect = InReferenceCanvas(staff);
                 Assert.GreaterOrEqual(Mathf.Min(staffRect.width, staffRect.height), 110f, "touch size");
                 Assert.IsTrue(InReferenceCanvas(column).Contains(staffRect.min) && InReferenceCanvas(column).Contains(staffRect.max - Vector2.one));
+
+                // Nâng cấp ở ô thứ hai của cột, dưới nút Nhân viên và không đè lên nó.
+                var upgrade = Named(scene, "UpgradeButton");
+                Assert.AreSame(column, upgrade.parent, "UpgradeButton belongs to the right column");
+                var upgradeRect = InReferenceCanvas(upgrade);
+                Assert.GreaterOrEqual(Mathf.Min(upgradeRect.width, upgradeRect.height), 110f, "touch size");
+                Assert.IsTrue(InReferenceCanvas(column).Contains(upgradeRect.min) && InReferenceCanvas(column).Contains(upgradeRect.max - Vector2.one));
+                Assert.IsFalse(upgradeRect.Overlaps(staffRect), "UpgradeButton overlaps StaffButton");
+                Assert.Less(upgradeRect.center.y, staffRect.center.y, "UpgradeButton is below StaffButton");
 
                 // Cạnh phải của sàn là góc (12, 0): gốc của phòng cộng 90 × 12.
                 var room = InReferenceCanvas(Named(scene, "Room"));

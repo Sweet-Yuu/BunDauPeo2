@@ -44,6 +44,64 @@ namespace BunDauPeo.Tests
         public void InvalidConfigLine_NotEmpty() =>
             Assert.IsNotEmpty(RestaurantViewText.InvalidConfigLine());
 
+        private static UpgradeDefinition TablesUpgrade()
+        {
+            var upgrade = RestaurantTestData.Upgrade("up_tables", UpgradeEffect.Tables,
+                RestaurantTestData.Level(4, 300, 5), RestaurantTestData.Level(5, 600, 10));
+            TestData.Edit(upgrade, so => so.FindProperty("_displayName").stringValue = "Bàn");
+            return upgrade;
+        }
+
+        [Test]
+        public void UpgradeButton_ShowsNameLevelAndCost()
+        {
+            var upgrade = TablesUpgrade();
+
+            // Giá là của cấp kế tiếp: cấp 0 thấy 300 + 5, cấp 1 thấy 600 + 10.
+            var fresh = RestaurantViewText.UpgradeButton(upgrade, 0);
+            StringAssert.Contains("Bàn", fresh);
+            StringAssert.Contains("0/2", fresh);
+            StringAssert.Contains("300 Coin", fresh);
+            StringAssert.Contains("5 Material", fresh);
+
+            var next = RestaurantViewText.UpgradeButton(upgrade, 1);
+            StringAssert.Contains("1/2", next);
+            StringAssert.Contains("600 Coin", next);
+            StringAssert.Contains("10 Material", next);
+            StringAssert.DoesNotContain("300", next);
+        }
+
+        [Test]
+        public void UpgradeButton_AtMax_ShowsMax()
+        {
+            var text = RestaurantViewText.UpgradeButton(TablesUpgrade(), 2);
+
+            StringAssert.Contains("2/2", text);
+            StringAssert.Contains("Tối đa", text);
+            StringAssert.DoesNotContain("Coin", text);
+            StringAssert.DoesNotContain("Material", text);
+        }
+
+        [Test]
+        public void UpgradeStatus_EveryFailureHasDistinctText_SuccessSavedIsEmpty_SuccessUnsavedWarns()
+        {
+            Assert.AreEqual("", RestaurantViewText.UpgradeStatus(UpgradeBuyStatus.Success, true));
+            Assert.IsNotEmpty(RestaurantViewText.UpgradeStatus(UpgradeBuyStatus.Success, false));
+
+            var texts = new System.Collections.Generic.HashSet<string>
+            {
+                RestaurantViewText.UpgradeStatus(UpgradeBuyStatus.Success, false),
+            };
+            foreach (var status in new[] { UpgradeBuyStatus.UnknownUpgrade, UpgradeBuyStatus.InvalidUpgrade, UpgradeBuyStatus.MaxLevel, UpgradeBuyStatus.NotEnoughCurrency })
+            {
+                var text = RestaurantViewText.UpgradeStatus(status, false);
+                Assert.IsNotEmpty(text, status.ToString());
+                Assert.IsTrue(texts.Add(text), $"{status} shares its text with another status");
+                // Thất bại không lưu gì nên cờ Saved không được đổi chữ.
+                Assert.AreEqual(text, RestaurantViewText.UpgradeStatus(status, true), status.ToString());
+            }
+        }
+
         [Test]
         public void StarFill_PartialStar()
         {

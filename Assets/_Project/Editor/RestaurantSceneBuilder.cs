@@ -164,11 +164,12 @@ namespace BunDauPeo.EditorTools
 
             BuildHud(canvas, font, sprite, knob, counter);
 
-            // Cột nút phải: dải trắng bo góc sát mép phải, ba ô; ô chưa có nút để trống (Nâng cấp: Task 10, Thu AFK: Task 13).
+            // Cột nút phải: dải trắng bo góc sát mép phải, ba ô; ô chưa có nút để trống (Thu AFK: Task 13).
             var column = NewRect("RightColumn", canvas);
             Place(column, TopRight, TopRight, new Vector2(-20, -110), new Vector2(170, 520));
             AddImage(column, sprite, CardColor, raycast: false);
             BuildStaffPanel(canvas, column, font, sprite, knob);
+            BuildUpgradePanel(canvas, column, font, sprite, knob);
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
@@ -432,6 +433,62 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_confirmText").objectReferenceValue = confirmText;
             so.FindProperty("_confirmYesButton").objectReferenceValue = yes;
             so.FindProperty("_confirmNoButton").objectReferenceValue = no;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Bản thử của nâng cấp (spec 5.3): hộp giữa màn, mỗi nâng cấp một hàng nút do UpgradeTestPanel dựng từ hàng mẫu.
+        private static void BuildUpgradePanel(RectTransform canvas, RectTransform column, Font font, Sprite sprite, Sprite knob)
+        {
+            // Ô thứ hai của cột phải, cùng cỡ với nút Nhân viên.
+            var open = NewButton("UpgradeButton", column, knob, font, "Nâng cấp", ButtonColor, TopCenter, new Vector2(0, -185), new Vector2(130, 130));
+            ((Image)open.targetGraphic).type = Image.Type.Simple;
+            open.GetComponentInChildren<Text>().fontSize = 24;
+
+            var root = NewRect("UpgradePanelRoot", canvas);
+            Stretch(root);
+            AddImage(root, null, Dim, raycast: true);
+            var box = NewRect("Box", root);
+            Place(box, Center, Center, Vector2.zero, new Vector2(1100, 880));
+            AddImage(box, sprite, PanelColor, raycast: false);
+            var title = NewText("TitleText", box, font, "Nâng cấp (bản thử)", 52, TextAnchor.MiddleCenter, TextColor);
+            Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(700, 70));
+            var close = NewButton("CloseButton", box, sprite, font, "Đóng", GreyButton, TopRight, new Vector2(-30, -25), new Vector2(200, 80));
+            var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
+            Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 25), new Vector2(1000, 50));
+
+            // shortcut: cột không cuộn, vừa sáu nâng cấp mẫu; thêm ScrollRect như danh sách của StaffPanel nếu catalog dài hơn.
+            var content = NewRect("Content", box);
+            Place(content, TopCenter, TopCenter, new Vector2(0, -120), new Vector2(1000, 660));
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 10;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            var rowTemplate = NewButton("RowTemplate", box, sprite, font, "", ButtonColor, Center, Vector2.zero, new Vector2(1000, 100));
+            var rowLabel = (RectTransform)rowTemplate.transform.GetChild(0);
+            rowLabel.offsetMin = new Vector2(20, 0);
+            rowLabel.offsetMax = new Vector2(-20, 0);
+            var rowText = rowLabel.GetComponent<Text>();
+            rowText.alignment = TextAnchor.MiddleLeft;
+            rowText.fontSize = 30;
+            var rowSize = rowTemplate.gameObject.AddComponent<LayoutElement>();
+            rowSize.minHeight = 100;
+            rowSize.preferredHeight = 100;
+            rowTemplate.gameObject.SetActive(false);
+
+            root.gameObject.SetActive(false);
+
+            var panelObject = NewRect("UpgradeTestPanel", canvas);
+            var panel = panelObject.gameObject.AddComponent<UpgradeTestPanel>();
+            var so = new SerializedObject(panel);
+            so.FindProperty("_openButton").objectReferenceValue = open;
+            so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.FindProperty("_root").objectReferenceValue = root.gameObject;
+            so.FindProperty("_messageText").objectReferenceValue = message;
+            so.FindProperty("_content").objectReferenceValue = content;
+            so.FindProperty("_rowTemplate").objectReferenceValue = rowTemplate;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
