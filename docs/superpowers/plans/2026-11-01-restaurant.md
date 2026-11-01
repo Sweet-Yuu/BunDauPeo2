@@ -540,7 +540,7 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   Công thức theo [spec 4.4](../specs/2026-11-01-restaurant-design.md#44-chất-lượng-restaurantquality): hôm nay **không** tính; `DayIndex` = số ngày từ 2000-01-01 của `LocalNow.Date`; dòng "tương lai" không nằm trong cửa sổ và không bị xoá trừ khi danh sách vượt 8 (bỏ dòng `DayIndex` nhỏ nhất). `RestaurantService` thêm tham số `IClock clock` ở constructor (cập nhật hàm `Make` của fixture Task 7), `Quality`, và `Update` gọi `Quality.RecordPresence(dt)` khi `IsPresent`. `RestaurantHud` hiện sao và điểm từ `Quality`.
 - Test helper: `FakeClock : IClock` (đặt `UtcNow`, `LocalNow` tuỳ ý, `Advance(TimeSpan)`) trong `RestaurantTestData`.
 
-- [ ] **Step 1: Viết test đỏ (14 test: 13 ở `RestaurantQualityTests`, 1 ở `RestaurantServiceTests`).** `AttendanceMax`/`IncidentMax` = 50/50, mục tiêu 300 giây.
+- [x] **Step 1: Viết test đỏ (14 test: 13 ở `RestaurantQualityTests`, 1 ở `RestaurantServiceTests`).** `AttendanceMax`/`IncidentMax` = 50/50, mục tiêu 300 giây.
   - `RestaurantServiceTests.RecordPresence_OnlyWhenPresent`: `Update(10)` khi `SetPresent(false)` không đổi `Quality.TodaySeconds`; khi `SetPresent(true)` thì cộng 10.
   - `Today_IsNeverCounted`: `RecordPresence(600)` hôm nay, `Attendance == 0`; sang ngày hôm sau (`Advance` 1 ngày) thì ngày đó thành "hôm qua" và được tính.
   - `FullYesterday_GivesOneSeventhOfAttendance`: một ngày đủ 300 giây → `50/7`.
@@ -555,10 +555,10 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   - `AfkFactor_AtZeroFiftyAndHundredPoints`: 0,1 / 0,3 / 0,5.
   - `Stars_IsTotalOverTwenty`.
   - `Presence_RespectsLocalMidnight`: `LocalNow` 23:59 rồi 00:01 ngày sau ghi vào hai ngày khác nhau (khác với `UtcNow`).
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="361"`.
-- [ ] **Step 5: Commit và push** (`feat: add IClock and RestaurantQuality`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="361"`.
+- [x] **Step 5: Commit và push** (`feat: add IClock and RestaurantQuality`).
 
 ---
 

@@ -20,6 +20,8 @@ namespace BunDauPeo.UI
 
         public static string CounterLine(int served, int abandoned) => $"Phục vụ {served} · Bỏ về {abandoned}";
 
+        public static string QualityLine(double total) => $"Chất lượng {Math.Round(total).ToString(CultureInfo.InvariantCulture)}/100";
+
         public static string InvalidConfigLine() => "Cấu hình quán lỗi";
 
         // Chi phí của cấp kế tiếp; null khi đã tối đa.

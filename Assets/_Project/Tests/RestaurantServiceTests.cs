@@ -18,6 +18,7 @@ namespace BunDauPeo.Tests
             public PlayerSave Save;
             public Wallet Wallet;
             public Roster Roster;
+            public FakeClock Clock;
             public int Persists;
         }
 
@@ -38,9 +39,9 @@ namespace BunDauPeo.Tests
                 roster.AssignStaff("cashier0", StaffRole.Cashier);
             }
 
-            var fixture = new Fixture { Save = save, Wallet = new Wallet(save), Roster = roster };
+            var fixture = new Fixture { Save = save, Wallet = new Wallet(save), Roster = roster, Clock = new FakeClock() };
             fixture.Service = new RestaurantService(config ?? RestaurantTestData.Config(), save, fixture.Wallet, roster,
-                random ?? new ScriptedRandom(0.99, 0.0, 0.0, 0.0), persist ?? (() => { fixture.Persists++; return true; }));
+                random ?? new ScriptedRandom(0.99, 0.0, 0.0, 0.0), fixture.Clock, persist ?? (() => { fixture.Persists++; return true; }));
             return fixture;
         }
 
@@ -48,6 +49,23 @@ namespace BunDauPeo.Tests
         {
             var steps = Mathf.RoundToInt(seconds / dt);
             for (var i = 0; i < steps; i++) service.Update(dt);
+        }
+
+        [Test]
+        public void RecordPresence_OnlyWhenPresent()
+        {
+            var f = Make();
+
+            f.Service.Update(10f);
+            Assert.AreEqual(0, f.Service.Quality.TodaySeconds, 1e-9);
+
+            f.Service.SetPresent(true);
+            f.Service.Update(10f);
+            Assert.AreEqual(10, f.Service.Quality.TodaySeconds, 1e-9);
+
+            f.Service.SetPresent(false);
+            f.Service.Update(10f);
+            Assert.AreEqual(10, f.Service.Quality.TodaySeconds, 1e-9);
         }
 
         [Test]

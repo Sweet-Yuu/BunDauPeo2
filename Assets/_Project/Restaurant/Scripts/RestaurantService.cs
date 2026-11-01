@@ -16,7 +16,7 @@ namespace BunDauPeo.Restaurant
         // double: cộng 0,1f nhiều lần bằng float sẽ lệch khỏi mốc 60 giây.
         private double _autosaveTimer;
 
-        public RestaurantService(RestaurantConfig config, PlayerSave save, Wallet wallet, Roster roster, System.Random random, Func<bool> persist)
+        public RestaurantService(RestaurantConfig config, PlayerSave save, Wallet wallet, Roster roster, System.Random random, IClock clock, Func<bool> persist)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _save = save ?? throw new ArgumentNullException(nameof(save));
@@ -29,6 +29,7 @@ namespace BunDauPeo.Restaurant
             if (!IsRunning) Debug.LogError($"{nameof(RestaurantService)}: invalid config, restaurant not running:\n- {string.Join("\n- ", errors)}");
 
             Simulation = new RestaurantSimulation(config, random);
+            Quality = new RestaurantQuality(save, config, clock ?? throw new ArgumentNullException(nameof(clock)));
             Staffing = new StaffingService(roster, () => Profile);
             // Catalog thiếu là lỗi cấu hình (đã báo ở trên): không có dịch vụ nâng cấp, view phải kiểm null.
             if (config.Upgrades != null) Upgrades = new UpgradeService(save, wallet, config.Upgrades, persist);
@@ -44,6 +45,7 @@ namespace BunDauPeo.Restaurant
         public RestaurantSimulation Simulation { get; }
         public StaffingService Staffing { get; }
         public UpgradeService Upgrades { get; }
+        public RestaurantQuality Quality { get; }
         public RestaurantProfile Profile { get; private set; }
         public IncomeEstimate Estimate { get; private set; }
         public bool IsPresent { get; private set; }
@@ -57,6 +59,7 @@ namespace BunDauPeo.Restaurant
             if (!IsRunning) return;
 
             Simulation.Tick(unscaledDt);
+            if (IsPresent) Quality.RecordPresence(unscaledDt);
             _autosaveTimer += unscaledDt;
             if (_autosaveTimer < _config.AutosaveSeconds) return;
 

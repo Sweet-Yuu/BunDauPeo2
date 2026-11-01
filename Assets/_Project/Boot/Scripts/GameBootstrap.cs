@@ -84,7 +84,7 @@ namespace BunDauPeo.Boot
                 _bannerCatalog, new System.Random(), _session.Persist));
 
             var restaurant = new RestaurantService(_restaurantConfig, _session.Save, _session.Wallet, _session.Roster,
-                new System.Random(), _session.Persist);
+                new System.Random(), new SystemClock(), _session.Persist);
             gameObject.AddComponent<RestaurantRunner>().Init(restaurant);
             ServiceLocator.Register(restaurant);
             _session.ResetCompleted += restaurant.ResetRuntime;

@@ -1,3 +1,4 @@
+using System;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Restaurant;
@@ -6,6 +7,25 @@ using UnityEngine;
 
 namespace BunDauPeo.Tests
 {
+    // UtcNow và LocalNow đặt riêng được, để thử mốc nửa đêm theo giờ máy và đồng hồ chạy lùi.
+    internal sealed class FakeClock : IClock
+    {
+        public FakeClock(DateTime? start = null)
+        {
+            UtcNow = start ?? new DateTime(2026, 11, 10, 12, 0, 0, DateTimeKind.Utc);
+            LocalNow = DateTime.SpecifyKind(UtcNow, DateTimeKind.Local);
+        }
+
+        public DateTime UtcNow { get; set; }
+        public DateTime LocalNow { get; set; }
+
+        public void Advance(TimeSpan by)
+        {
+            UtcNow += by;
+            LocalNow += by;
+        }
+    }
+
     // Dựng SO của Restaurant qua SerializedObject, giống TestData; giá trị mặc định là số khởi điểm của spec.
     internal static class RestaurantTestData
     {
@@ -129,7 +149,7 @@ namespace BunDauPeo.Tests
             return crew;
         }
 
-        public static void SetList(Object target, string field, params Object[] items)
+        public static void SetList(UnityEngine.Object target, string field, params UnityEngine.Object[] items)
         {
             TestData.Edit(target, so =>
             {

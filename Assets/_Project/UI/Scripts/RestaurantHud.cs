@@ -31,6 +31,7 @@ namespace BunDauPeo.UI
         private int _nextFloat;
         private int _shownServed = -1;
         private int _shownAbandoned = -1;
+        private double _shownTotal = -1;
 
         private void OnEnable()
         {
@@ -61,10 +62,16 @@ namespace BunDauPeo.UI
             _service.Simulation.CustomerPaid += OnCustomerPaid;
             _shownServed = -1;
             _shownAbandoned = -1;
+            _shownTotal = -1;
             RedrawWallet();
             RedrawIncome();
-            // Chất lượng chưa có (Task 11): luôn 0 sao.
-            for (var i = 0; i < _stars.Length; i++) _stars[i].fillAmount = RestaurantViewText.StarFill(0, i);
+            RedrawStars();
+        }
+
+        private void RedrawStars()
+        {
+            var stars = _service.Quality.Stars;
+            for (var i = 0; i < _stars.Length; i++) _stars[i].fillAmount = RestaurantViewText.StarFill(stars, i);
         }
 
         private void OnDisable()
@@ -81,11 +88,15 @@ namespace BunDauPeo.UI
             if (_service == null) return;
 
             var simulation = _service.Simulation;
-            if (simulation.Served != _shownServed || simulation.Abandoned != _shownAbandoned)
+            var total = _service.Quality.Total;
+            // Chất lượng đổi khi qua nửa đêm hoặc sau mỗi sự cố, không có event, nên so mỗi khung (rẻ).
+            if (simulation.Served != _shownServed || simulation.Abandoned != _shownAbandoned || total != _shownTotal)
             {
                 _shownServed = simulation.Served;
                 _shownAbandoned = simulation.Abandoned;
-                _counterText.text = RestaurantViewText.CounterLine(_shownServed, _shownAbandoned);
+                _shownTotal = total;
+                _counterText.text = $"{RestaurantViewText.CounterLine(_shownServed, _shownAbandoned)} · {RestaurantViewText.QualityLine(total)}";
+                RedrawStars();
             }
 
             AnimateFloats(Time.unscaledDeltaTime);
