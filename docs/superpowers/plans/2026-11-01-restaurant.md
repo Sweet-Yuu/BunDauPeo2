@@ -215,13 +215,13 @@ git push
   ```
   `Build`: số ô và bàn lấy từ nâng cấp cùng `Effect` trong `config.Upgrades` theo cấp trong `save.Upgrades` (`Value` của cấp đó; cấp 0 hoặc không có dòng thì giá trị gốc của config; cấp lớn hơn `MaxLevel` thì dùng cấp cao nhất, **không đổi save**; `UpgradeId` lạ bị bỏ qua); `ArrivalIntervalMultiplier`/`PriceMultiplier` tương tự (gốc 1); nhân viên từ `Roster.GetStaff(role)` theo thứ tự, cắt còn `Slots(role)`, `Stat` từ `RestaurantStats.Cooking/Serving/Cashier`. `TryAssign`: vai đã đủ (đếm theo `currentProfile().Workers`, không tính chính nhân vật đó nếu nó đã ở vai này) thì `RoleFull`, chưa sở hữu thì `NotOwned`, ngược lại `Roster.AssignStaff`. `TryReplace`: kiểm `newId` sở hữu trước khi đổi gì, rồi `RemoveStaff(old)` và `AssignStaff(new, role)`.
 
-- [ ] **Step 1: Viết test đỏ (17 test)**
+- [x] **Step 1: Viết test đỏ (17 test)**
   - `RestaurantProfileTests` (8): `Build_NoUpgrades_UsesConfigBases`; `Build_UpgradeLevels_UseLevelValues` (Tables cấp 2 → 5; `ArrivalInterval` cấp 1 → 0,9; `DishPrice` cấp 3 → 1,3); `Build_LevelBeyondSo_UsesHighestLevel_KeepsSave`; `Build_UnknownUpgradeId_Ignored`; `Build_TrimsStaffToSlots_WithoutRemovingFromSave` (3 người ở Cook, 1 ô: `Workers(Cook).Count == 1`, `Roster.GetStaff(Cook).Count == 3`); `Build_StaffStatsComeFromRestaurantStats` (cook 30, serve 20, cashier 10 đúng vai); `Build_UnknownCharacterIdSkipped` (id không trong catalog nằm trong `save.Staff`); `WithWorkers_ReplacesOnlyThatRole`.
   - `StaffingServiceTests` (9): `TryAssign_FreeRole_Success`; `TryAssign_RoleFull_ReturnsRoleFull_AndChangesNothing`; `TryAssign_AfterSlotsIncrease_Succeeds` (func trả hồ sơ 2 ô); `TryAssign_NotOwned`; `TryAssign_CharacterInBattleTeam_LeavesTeam`; `TryAssign_CharacterAtOtherRole_MovesRole`; `TryAssign_SameRoleSameCharacter_NotRoleFull` (không tự chặn mình); `TryReplace_SwapsCharacter_KeepsRoleCount`; `TryReplace_NewNotOwned_ChangesNothing`. `Remove` được kiểm trong `TryAssign_FreeRole_Success`: sau khi gán, `Remove` trả `true` và `Roster.GetStaff` rỗng.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** (`error CS0246` về `RestaurantProfile`).
-- [ ] **Step 3: Implement** theo Interfaces.
-- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="243"`.
-- [ ] **Step 5: Commit và push** (`git add Assets/_Project/Restaurant/Scripts Assets/_Project/Tests/RestaurantProfileTests.cs Assets/_Project/Tests/StaffingServiceTests.cs`; message `feat: add RestaurantProfile and StaffingService`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** (`error CS0246` về `RestaurantProfile`).
+- [x] **Step 3: Implement** theo Interfaces.
+- [x] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="243"`.
+- [x] **Step 5: Commit và push** (`git add Assets/_Project/Restaurant/Scripts Assets/_Project/Tests/RestaurantProfileTests.cs Assets/_Project/Tests/StaffingServiceTests.cs`; message `feat: add RestaurantProfile and StaffingService`).
 
 ---
 
