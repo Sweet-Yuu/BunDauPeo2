@@ -406,16 +406,16 @@ Nạp skill `unity:ui-ugui` và `unity:unity-cli` trước khi làm.
   ```
   `RestaurantView` (`MonoBehaviour`, `OnEnable` gọi `SetPresent(true)`, `OnDisable` gọi `SetPresent(false)`; mỗi khung đối chiếu `Simulation.Customers/Workers` theo `Id` và nội suy giữa điểm mốc, đặt thẳng khi mở lại màn); `RestaurantHud` (thanh trên: Coin/Material/Gem từ `Wallet.Changed`, `IncomeLine`, `CounterLine`, chữ "+N" bay từ quầy khi `CustomerPaid` với bể 8 đối tượng, dải sao dựng bằng `Image` `type = Filled` theo `StarFill`; ở Task này chất lượng hiện 0 sao). `DevOverlay`: **cả file trong `#if UNITY_EDITOR || DEVELOPMENT_BUILD`**; `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` tự dựng Canvas (`Image`, `Button`, `Text`) bằng code, `DontDestroyOnLoad`, không dựng khi chưa có `RestaurantService`; nút **Quán** và **Gacha** (`SceneManager.LoadScene` theo tên), hằng tên scene `"Restaurant"`, `"Gacha"`. `RestaurantSceneBuilder.Create(string scenePath)`: `Camera`, `EventSystem` + `InputSystemUIInputModule`, Canvas 1920×1080, sàn lưới 8×8 hình thoi đỏ/xanh xen kẽ (cha xoay 45° trong cha nén y 0,5, `Image` không gán sprite), điểm mốc (cửa, bếp, 8 bàn, quầy), `RestaurantView`, `RestaurantHud`; bỏ tường nếu ghép hình bình hành quá rườm rà. `ProjectSetup`: hằng `RestaurantScenePath = "Assets/_Project/Scenes/Restaurant.unity"`; `Run()` tạo scene nếu chưa có; Build Settings thứ tự `Boot`, `Gacha`, `Restaurant`; đổi `_startScene` từ `Gacha` sang `Restaurant` **một lần**, chỉ khi giá trị hiện là `Gacha`. Đổi `GachaSceneTests.BootScene_StartSceneIsGacha` thành `BootScene_StartSceneIsRestaurant` (kiểm `"Restaurant"`).
 
-- [ ] **Step 1: Viết test đỏ (16 test mới, 1 test đổi)**
+- [x] **Step 1: Viết test đỏ (16 test mới, 1 test đổi)**
   - `IsoProjectionTests` (5): `CellToLocal_Origin_IsZero`; `CellToLocal_StepInX_GoesRightAndDown` (1,0 → (60, −30)); `CellToLocal_StepInY_GoesLeftAndDown` (0,1 → (−60, −30)); `CellToLocal_Combined` (2,3 → (−60, −150)); `DepthKey_NearerCellIsLarger` (2,3 > 1,1).
   - `RestaurantViewTextTests` (7): `IncomeLine_FormatsRateWithCommaDecimal` (1,56 → chứa `"1,6"` và `"Coin/giây"`, không phụ thuộc culture máy); `IncomeLine_MissingRole_NamesRole` 3 ca Cook/Server/Cashier; `CounterLine_ShowsServedAndAbandoned`; `InvalidConfigLine_NotEmpty`; `StarFill_PartialStar` (3,1 sao → 1, 1, 1, 0,1, 0).
   - `RestaurantSceneTests` (4, mở scene Additive và đóng lại như `GachaSceneTests`): `RestaurantScene_HasCameraAndEventSystemWithInputSystemModule` (có `Camera`, `EventSystem`, `InputSystemUIInputModule`, không `StandaloneInputModule`); `RestaurantScene_ViewAndHudAreWired_AndUseOnlyImageAndText` (`RestaurantView` và `RestaurantHud` đủ tham chiếu `[SerializeField]`, không `RawImage`); `RestaurantScene_IsThirdInBuildSettings`; `DevOverlay_SceneTargetsAreInBuildSettings` (hai tên scene của `DevOverlay` có trong `EditorBuildSettings.scenes`).
   - Đổi `GachaSceneTests.BootScene_StartSceneIsGacha` → `BootScene_StartSceneIsRestaurant`.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ** (`error CS0246` về `IsoProjection`, `RestaurantScenePath`).
-- [ ] **Step 3: Implement** theo Interfaces; giữ view mỏng, mọi chọn chữ/số nằm trong hàm tĩnh có test.
-- [ ] **Step 4: Chạy Setup ở batch mode:** exit `0`, `Scenes/Restaurant.unity` xuất hiện.
-- [ ] **Step 5: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="318"`.
-- [ ] **Step 6: Commit và push** (`git add Assets/_Project/UI Assets/_Project/Editor Assets/_Project/Scenes Assets/_Project/Tests ProjectSettings/EditorBuildSettings.asset`; `git status` trước, chỉ đưa file của task này; message `feat: add Restaurant scene, room view, HUD and dev overlay scene switch`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ** (`error CS0246` về `IsoProjection`, `RestaurantScenePath`).
+- [x] **Step 3: Implement** theo Interfaces; giữ view mỏng, mọi chọn chữ/số nằm trong hàm tĩnh có test.
+- [x] **Step 4: Chạy Setup ở batch mode:** exit `0`, `Scenes/Restaurant.unity` xuất hiện.
+- [x] **Step 5: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="318"`.
+- [x] **Step 6: Commit và push** (`git add Assets/_Project/UI Assets/_Project/Editor Assets/_Project/Scenes Assets/_Project/Tests ProjectSettings/EditorBuildSettings.asset`; `git status` trước, chỉ đưa file của task này; message `feat: add Restaurant scene, room view, HUD and dev overlay scene switch`).
 
 ---
 

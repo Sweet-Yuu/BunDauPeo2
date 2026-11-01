@@ -22,6 +22,7 @@ namespace BunDauPeo.EditorTools
         public const string CatalogPath = "Assets/_Project/Characters/Data/CharacterCatalog.asset";
         public const string NewGameConfigPath = "Assets/_Project/Boot/Data/NewGameConfig.asset";
         public const string GachaScenePath = "Assets/_Project/Scenes/Gacha.unity";
+        public const string RestaurantScenePath = "Assets/_Project/Scenes/Restaurant.unity";
         public const string BannerPath = "Assets/_Project/Gacha/Data/banner_standard.asset";
         public const string BannerCatalogPath = "Assets/_Project/Gacha/Data/GachaBannerCatalog.asset";
         public const string RestaurantConfigPath = "Assets/_Project/Restaurant/Data/RestaurantConfig.asset";
@@ -127,6 +128,7 @@ namespace BunDauPeo.EditorTools
 
             CreateBootScene();
             CreateGachaScene();
+            CreateRestaurantScene();
             WireBootScene();
             PutScenesInBuildOrder();
             ApplyPlayerSettings();
@@ -186,10 +188,11 @@ namespace BunDauPeo.EditorTools
                         changed = true;
                     }
 
+                    // Chỉ đổi giá trị trống hoặc "Gacha" (mặc định cũ): lựa chọn khác của user được giữ.
                     var start = so.FindProperty("_startScene");
-                    if (string.IsNullOrEmpty(start.stringValue))
+                    if (string.IsNullOrEmpty(start.stringValue) || start.stringValue == Path.GetFileNameWithoutExtension(GachaScenePath))
                     {
-                        start.stringValue = Path.GetFileNameWithoutExtension(GachaScenePath);
+                        start.stringValue = Path.GetFileNameWithoutExtension(RestaurantScenePath);
                         changed = true;
                     }
                 });
@@ -341,17 +344,22 @@ namespace BunDauPeo.EditorTools
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(GachaScenePath) == null) GachaSceneBuilder.Create(GachaScenePath);
         }
 
-        // Boot luôn đầu tiên (nạp trước mọi scene), Gacha ngay sau.
+        private static void CreateRestaurantScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(RestaurantScenePath) == null) RestaurantSceneBuilder.Create(RestaurantScenePath);
+        }
+
+        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Gacha, rồi Restaurant.
         private static void PutScenesInBuildOrder()
         {
+            var ordered = new[] { BootScenePath, GachaScenePath, RestaurantScenePath };
             var scenes = EditorBuildSettings.scenes;
-            if (scenes.Length > 1 && scenes[0].path == BootScenePath && scenes[0].enabled
-                && scenes[1].path == GachaScenePath && scenes[1].enabled) return;
+            if (scenes.Length >= ordered.Length && ordered.Select((path, i) => scenes[i].path == path && scenes[i].enabled).All(ok => ok)) return;
 
-            var rest = scenes.Where(s => s.path != BootScenePath && s.path != GachaScenePath);
-            EditorBuildSettings.scenes = rest
-                .Prepend(new EditorBuildSettingsScene(GachaScenePath, true))
-                .Prepend(new EditorBuildSettingsScene(BootScenePath, true))
+            var rest = scenes.Where(s => !ordered.Contains(s.path));
+            EditorBuildSettings.scenes = ordered
+                .Select(path => new EditorBuildSettingsScene(path, true))
+                .Concat(rest)
                 .ToArray();
         }
 
