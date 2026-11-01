@@ -30,6 +30,7 @@ namespace BunDauPeo.Restaurant
 
             Simulation = new RestaurantSimulation(config, random);
             Quality = new RestaurantQuality(save, config, clock ?? throw new ArgumentNullException(nameof(clock)));
+            Incidents = new IncidentDirector(config, random, Simulation, Quality, role => Profile.Workers(role).Count > 0);
             Staffing = new StaffingService(roster, () => Profile);
             // Catalog thiếu là lỗi cấu hình (đã báo ở trên): không có dịch vụ nâng cấp, view phải kiểm null.
             if (config.Upgrades != null) Upgrades = new UpgradeService(save, wallet, config.Upgrades, persist);
@@ -46,19 +47,25 @@ namespace BunDauPeo.Restaurant
         public StaffingService Staffing { get; }
         public UpgradeService Upgrades { get; }
         public RestaurantQuality Quality { get; }
+        public IncidentDirector Incidents { get; }
         public RestaurantProfile Profile { get; private set; }
         public IncomeEstimate Estimate { get; private set; }
         public bool IsPresent { get; private set; }
 
         public event Action ProfileChanged;
 
-        public void SetPresent(bool present) => IsPresent = present;
+        public void SetPresent(bool present)
+        {
+            IsPresent = present;
+            Incidents.SetPresent(present);
+        }
 
         public void Update(float unscaledDt)
         {
             if (!IsRunning) return;
 
             Simulation.Tick(unscaledDt);
+            Incidents.Update(unscaledDt);
             if (IsPresent) Quality.RecordPresence(unscaledDt);
             _autosaveTimer += unscaledDt;
             if (_autosaveTimer < _config.AutosaveSeconds) return;
@@ -79,6 +86,7 @@ namespace BunDauPeo.Restaurant
         public void ResetRuntime()
         {
             Simulation.Reset();
+            Incidents.Reset();
             _autosaveTimer = 0;
         }
 

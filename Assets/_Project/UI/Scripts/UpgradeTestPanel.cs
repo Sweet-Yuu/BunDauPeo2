@@ -57,6 +57,7 @@ namespace BunDauPeo.UI
         private void OnDisable()
         {
             if (_service == null) return;
+            _service.Incidents.SetSpawnAllowed(true);
             _openButton.onClick.RemoveListener(Open);
             _closeButton.onClick.RemoveListener(Close);
             _wallet.Changed -= Refresh;
@@ -74,6 +75,7 @@ namespace BunDauPeo.UI
 
         private void Open()
         {
+            _service.Incidents.SetSpawnAllowed(false);
             _messageText.text = "";
             // Dọn hàng cũ trước khi dựng lại, nếu không mỗi lần mở lại cộng dồn thêm hàng.
             ClearRows();
@@ -103,7 +105,11 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
-        private void Close() => _root.SetActive(false);
+        private void Close()
+        {
+            _service.Incidents.SetSpawnAllowed(true);
+            _root.SetActive(false);
+        }
 
         private void ClearRows()
         {

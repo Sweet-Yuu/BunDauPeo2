@@ -22,6 +22,10 @@ namespace BunDauPeo.UI
         [SerializeField] private RectTransform[] _cashierSpots;
         [SerializeField] private Image _customerTemplate;
         [SerializeField] private Image _workerTemplate;
+        // Bong bóng "!" của sự cố: nút bấm có hai chữ con (tên sự cố, gợi ý xếp người); đặt trên trạm của sự cố.
+        [SerializeField] private Button _incidentButton;
+        [SerializeField] private Text _incidentLabel;
+        [SerializeField] private Text _incidentHint;
 
         private sealed class Actor
         {
@@ -66,6 +70,8 @@ namespace BunDauPeo.UI
             }
 
             _service.SetPresent(true);
+            _incidentButton.onClick.AddListener(OnIncidentClicked);
+            _incidentButton.gameObject.SetActive(false);
             _settle = true;
         }
 
@@ -73,6 +79,8 @@ namespace BunDauPeo.UI
         {
             if (_service == null) return;
             _service.SetPresent(false);
+            _incidentButton.onClick.RemoveListener(OnIncidentClicked);
+            _incidentButton.gameObject.SetActive(false);
             _service = null;
             foreach (var actor in _all) Destroy(actor.Rect.gameObject);
             _all.Clear();
@@ -91,12 +99,36 @@ namespace BunDauPeo.UI
             RemoveUnseen();
             Move(Mathf.Min(Time.unscaledDeltaTime, RestaurantRunner.MaxDelta));
             SortByDepth();
+            ShowIncident();
             _settle = false;
+        }
+
+        private void OnIncidentClicked() => _service.Incidents.Resolve();
+
+        private void ShowIncident()
+        {
+            var active = _service.Incidents.Active;
+            _incidentButton.gameObject.SetActive(active.HasValue);
+            if (!active.HasValue) return;
+
+            var incident = active.Value;
+            var spots = incident.Role switch
+            {
+                StaffRole.Cook => _cookSpots,
+                StaffRole.Server => _serverSpots,
+                _ => _cashierSpots,
+            };
+            _incidentButton.transform.position = Spot(spots, 0) + Offset(0f, 120f);
+            _incidentLabel.text = RestaurantViewText.IncidentLabel(incident);
+            _incidentHint.text = RestaurantViewText.IncidentHint(incident);
+            // Xám khi vai chưa có người: bấm không có tác dụng.
+            _incidentButton.targetGraphic.color = incident.CanResolve ? new Color(0.90f, 0.25f, 0.25f) : new Color(0.55f, 0.55f, 0.60f);
         }
 
         private bool HasAllReferences()
         {
             var ok = _actors != null && _door != null && _customerTemplate != null && _workerTemplate != null
+                     && _incidentButton != null && _incidentLabel != null && _incidentHint != null
                      && HasSpots(_tables) && HasSpots(_cookSpots) && HasSpots(_serverSpots) && HasSpots(_cashierSpots);
             if (!ok) Debug.LogError($"{nameof(RestaurantView)}: a serialized reference is not assigned.", this);
             return ok;

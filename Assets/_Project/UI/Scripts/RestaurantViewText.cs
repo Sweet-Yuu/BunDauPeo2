@@ -22,6 +22,21 @@ namespace BunDauPeo.UI
 
         public static string QualityLine(double total) => $"Chất lượng {Math.Round(total).ToString(CultureInfo.InvariantCulture)}/100";
 
+        public static string IncidentLabel(ActiveIncident incident) => incident.Definition.DisplayName;
+
+        // Chỉ nhắc xếp người khi vai trống; có người thì "!" bấm được ngay.
+        public static string IncidentHint(ActiveIncident incident)
+        {
+            if (incident.CanResolve) return "";
+            var role = incident.Role switch
+            {
+                StaffRole.Cook => "Đầu bếp",
+                StaffRole.Server => "Phục vụ",
+                _ => "Thu ngân",
+            };
+            return $"Cần xếp người vào vai {role}";
+        }
+
         public static string InvalidConfigLine() => "Cấu hình quán lỗi";
 
         // Chi phí của cấp kế tiếp; null khi đã tối đa.

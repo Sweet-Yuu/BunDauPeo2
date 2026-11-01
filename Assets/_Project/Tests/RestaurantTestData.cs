@@ -52,13 +52,14 @@ namespace BunDauPeo.Tests
             return customer;
         }
 
-        public static IncidentDefinition Incident(StaffRole role, float weight = 1)
+        public static IncidentDefinition Incident(StaffRole role, float weight = 1, string name = null)
         {
             var incident = ScriptableObject.CreateInstance<IncidentDefinition>();
             TestData.Edit(incident, so =>
             {
                 so.FindProperty("_role").enumValueIndex = (int)role;
                 so.FindProperty("_weight").floatValue = weight;
+                if (name != null) so.FindProperty("_displayName").stringValue = name;
             });
             return incident;
         }
@@ -108,12 +109,14 @@ namespace BunDauPeo.Tests
         }
 
         // Một món 20 Coin nấu 5 giây, một khách ×1, ba sự cố mỗi vai một cái, catalog nâng cấp rỗng nếu không truyền; còn lại là số của spec.
-        public static RestaurantConfig Config(UpgradeCatalog upgrades = null)
+        public static RestaurantConfig Config(UpgradeCatalog upgrades = null, params IncidentDefinition[] incidents)
         {
             var config = ScriptableObject.CreateInstance<RestaurantConfig>();
             SetList(config, "_dishes", Dish());
             SetList(config, "_customers", Customer());
-            SetList(config, "_incidents", Incident(StaffRole.Cook), Incident(StaffRole.Server), Incident(StaffRole.Cashier));
+            if (incidents == null || incidents.Length == 0)
+                incidents = new[] { Incident(StaffRole.Cook), Incident(StaffRole.Server), Incident(StaffRole.Cashier) };
+            SetList(config, "_incidents", incidents);
             TestData.SetRef(config, "_upgrades", upgrades != null ? upgrades : UpgradeCatalog());
             return config;
         }

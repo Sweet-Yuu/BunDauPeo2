@@ -586,14 +586,14 @@ Thay phần hình của Task 8 theo [spec 5.1](../specs/2026-11-01-restaurant-de
   ```
   Luật theo [spec 4.5](../specs/2026-11-01-restaurant-design.md#45-sự-cố-incidentdirector): chỉ chạy khi `SetPresent(true)`; chọn theo trọng số trong **mọi** sự cố kể cả vai trống; tối đa một sự cố; kích hoạt thì `SetStationBlocked(role, true)`; `Resolve()` ≤ `IncidentFastSeconds` là kịp, ≤ `IncidentLateSeconds` là trễ, quá hạn thì tự bỏ lỡ; kết thúc bằng cách nào cũng mở trạm và `Quality.RecordIncident`. Hợp đồng RNG: mỗi lần đặt đồng hồ sinh một lần (`SpawnMin + u × (SpawnMax − SpawnMin)`), mỗi lần sinh một lần chọn sự cố (cộng dồn `Weight`). `RestaurantService` thêm `Incidents`, truyền `roleHasStaff = role => Profile.Workers(role).Count > 0`, chuyển `SetPresent` sang director và gọi `Incidents.Update(dt)` trong `Update`, `ResetRuntime` gọi `Incidents.Reset()`. `RestaurantView` vẽ "!" (và dòng "Cần xếp người vào vai X" khi `!CanResolve`) ở trạm của sự cố, bấm gọi `Resolve()`; `RestaurantViewText.IncidentLabel(ActiveIncident)` và `IncidentHint(ActiveIncident)`.
 
-- [ ] **Step 1: Viết test đỏ (21 test)** (`FakeClock`, `ScriptedRandom`; `SpawnMin 60`, `SpawnMax 120`, kịp 8, trễ 20; `roleHasStaff` điều chỉnh được):
+- [x] **Step 1: Viết test đỏ (21 test)** (`FakeClock`, `ScriptedRandom`; `SpawnMin 60`, `SpawnMax 120`, kịp 8, trễ 20; `roleHasStaff` điều chỉnh được):
   - `IncidentDirectorTests` (17): `NoSpawn_WhenNotPresent`; `Spawns_AfterRandomInterval` (u = 0 → 60 giây, u = 1 → 120 giây); `EmptyRole_StillSpawns`; `OnlyOneIncidentAtATime`; `SpawnNotAllowed_NoSpawn_ThenSpawnsImmediatelyWhenReallowed`; `ActiveIncident_KeepsCounting_WhenSpawnNotAllowed`; `Resolve_FastBoundary` (tại 8,0 là kịp, tại 8,01 là trễ → điểm `Fast`/`Late` đúng); `Resolve_LateBoundary` (tại 20,0 là trễ, tại 20,01 tự bỏ lỡ trước khi `Resolve`); `Missed_AutoAtLateSeconds_RecordsZero`; `Resolve_EmptyRole_ReturnsFalse_NoScoreNoStateChange`; `Resolve_AfterStaffAssignedInTime_ReturnsTrue`; `Resolve_StaffRemovedMidIncident_ReturnsFalse`; `StationBlocked_WhileActive_UnblockedAfterEnd` (kiểm mô phỏng: trạm đóng băng rồi chạy lại); `Cancel_OnLeavingOrBackground_NoScore_Unblocks`; `Pick_IsWeighted`; `RngCallContract_OnePerTimerOnePerPick`; `Outcome_IsRecordedInQuality` (kịp = 2, trễ = 1, bỏ lỡ = 0 trong `IncidentScores`).
   - `RestaurantServiceTests` (2): `Presence_SpawnsIncidentAndBlocksStation_ThroughService`; `ResetRuntime_CancelsIncidentAndUnblocks`.
   - `RestaurantViewTextTests` (2): `IncidentLabel_NamesDefinition`; `IncidentHint_AsksForStaff_OnlyWhenRoleEmpty`.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="382"`.
-- [ ] **Step 5: Commit và push** (`feat: add IncidentDirector with empty-role incidents`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Chạy Setup (batch) rồi test, kỳ vọng xanh:** `failed="0"`, `total="382"`.
+- [x] **Step 5: Commit và push** (`feat: add IncidentDirector with empty-role incidents`).
 
 ---
 

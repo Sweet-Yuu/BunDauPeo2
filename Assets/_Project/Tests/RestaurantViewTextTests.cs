@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using BunDauPeo.Core;
 using BunDauPeo.Restaurant;
 using BunDauPeo.UI;
@@ -8,6 +9,30 @@ namespace BunDauPeo.Tests
 {
     public class RestaurantViewTextTests
     {
+        private static ActiveIncident Incident(StaffRole role, string name, bool canResolve) =>
+            new ActiveIncident(RestaurantTestData.Incident(role, 1, name), role, 0f, canResolve);
+
+        [Test]
+        public void IncidentLabel_NamesDefinition()
+        {
+            Assert.AreEqual("Bếp tắc ga", RestaurantViewText.IncidentLabel(Incident(StaffRole.Cook, "Bếp tắc ga", true)));
+            Assert.AreEqual("Máy tính tiền treo", RestaurantViewText.IncidentLabel(Incident(StaffRole.Cashier, "Máy tính tiền treo", false)));
+        }
+
+        [Test]
+        public void IncidentHint_AsksForStaff_OnlyWhenRoleEmpty()
+        {
+            var hints = new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier }
+                .Select(role => RestaurantViewText.IncidentHint(Incident(role, "x", false))).ToArray();
+
+            StringAssert.Contains("đầu bếp", hints[0].ToLowerInvariant());
+            StringAssert.Contains("phục vụ", hints[1].ToLowerInvariant());
+            StringAssert.Contains("thu ngân", hints[2].ToLowerInvariant());
+            Assert.AreEqual(3, hints.Distinct().Count());
+            foreach (var role in new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier })
+                Assert.AreEqual("", RestaurantViewText.IncidentHint(Incident(role, "x", true)));
+        }
+
         [Test]
         public void IncomeLine_FormatsRateWithCommaDecimal()
         {

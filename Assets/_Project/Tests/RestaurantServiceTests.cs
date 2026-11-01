@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
@@ -49,6 +50,52 @@ namespace BunDauPeo.Tests
         {
             var steps = Mathf.RoundToInt(seconds / dt);
             for (var i = 0; i < steps; i++) service.Update(dt);
+        }
+
+        // Sự cố sinh đúng lúc 66 giây (bếp rảnh: khách ở t = 60 nấu xong lúc 65, khách kế đến lúc 67,5); chọn Cook vì RNG luôn trả 0.
+        private static Fixture MakeWithIncidentAt66()
+        {
+            var config = RestaurantTestData.Config(null, RestaurantTestData.Incident(StaffRole.Cook));
+            TestData.Edit(config, so =>
+            {
+                so.FindProperty("_incidentSpawnMin").floatValue = 66f;
+                so.FindProperty("_incidentSpawnMax").floatValue = 66f;
+            });
+            return Make(new ScriptedRandom(0.0), config);
+        }
+
+        [Test]
+        public void Presence_SpawnsIncidentAndBlocksStation_ThroughService()
+        {
+            var f = MakeWithIncidentAt66();
+            f.Service.SetPresent(true);
+
+            Run(f.Service, 65f);
+            Assert.IsFalse(f.Service.Incidents.Active.HasValue, "chưa tới 66 giây");
+            Run(f.Service, 5f);
+
+            Assert.AreEqual(StaffRole.Cook, f.Service.Incidents.Active.Value.Role);
+            var customers = f.Service.Simulation.Customers;
+            Assert.IsTrue(customers.Any(c => c.State == CustomerState.WaitingForCook), "khách đến sau 66 giây không được nấu");
+            Assert.IsFalse(customers.Any(c => c.State == CustomerState.Cooking));
+        }
+
+        [Test]
+        public void ResetRuntime_CancelsIncidentAndUnblocks()
+        {
+            var f = MakeWithIncidentAt66();
+            f.Service.SetPresent(true);
+            Run(f.Service, 70f);
+            Assert.IsTrue(f.Service.Incidents.Active.HasValue);
+
+            f.Service.ResetRuntime();
+
+            Assert.IsFalse(f.Service.Incidents.Active.HasValue);
+            Assert.AreEqual(0, f.Save.IncidentScores.Count, "huỷ không tính điểm");
+            // Khách đầu sau Reset đến lúc 7,5 giây và nấu xong lúc 12,5: tới 14 giây phải đã qua bước nấu.
+            Run(f.Service, 14f);
+            Assert.IsTrue(f.Service.Simulation.Customers.Any(c => c.State != CustomerState.WaitingForCook && c.State != CustomerState.WaitingForTable),
+                "bếp phải mở lại sau Reset");
         }
 
         [Test]

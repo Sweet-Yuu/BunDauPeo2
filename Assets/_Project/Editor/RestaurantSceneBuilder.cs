@@ -36,6 +36,8 @@ namespace BunDauPeo.EditorTools
         private static readonly Color StarOn = new(1f, 0.74f, 0.15f);
         private static readonly Color StarOff = new(0.78f, 0.79f, 0.84f);
         private static readonly Color FloatText = new(0.92f, 0.50f, 0.05f);
+        private static readonly Color IncidentRed = new(0.90f, 0.25f, 0.25f);
+        private static readonly Color IncidentHintText = new(0.75f, 0.10f, 0.10f);
         private static readonly Color TextColor = Color.white;
         private static readonly Color Gold = new(1f, 0.85f, 0.4f);
         private static readonly Color PanelColor = new(0.18f, 0.20f, 0.27f);
@@ -149,6 +151,18 @@ namespace BunDauPeo.EditorTools
             var actors = NewRect("Actors", room);
             Place(actors, Center, Center, Vector2.zero, Vector2.zero);
 
+            // Bong bóng sự cố nằm trên lớp người; RestaurantView đặt nó lên trạm của sự cố và bật/tắt.
+            var bubble = NewButton("IncidentBubble", room, knob, font, "!", IncidentRed, Center, Vector2.zero, new Vector2(90, 90));
+            ((Image)bubble.targetGraphic).type = Image.Type.Simple;
+            var bubbleMark = bubble.GetComponentInChildren<Text>();
+            bubbleMark.fontSize = 64;
+            bubbleMark.fontStyle = FontStyle.Bold;
+            var incidentLabel = NewText("IncidentLabel", (RectTransform)bubble.transform, font, "", 28, TextAnchor.MiddleCenter, DarkText);
+            Place(incidentLabel.rectTransform, Center, Center, new Vector2(0, 75), new Vector2(420, 34));
+            var incidentHint = NewText("IncidentHint", (RectTransform)bubble.transform, font, "", 26, TextAnchor.MiddleCenter, IncidentHintText);
+            Place(incidentHint.rectTransform, Center, Center, new Vector2(0, 112), new Vector2(460, 34));
+            bubble.gameObject.SetActive(false);
+
             var viewObject = NewRect("RestaurantView", canvas);
             var view = viewObject.gameObject.AddComponent<RestaurantView>();
             var viewSo = new SerializedObject(view);
@@ -160,6 +174,9 @@ namespace BunDauPeo.EditorTools
             SetRefs(viewSo.FindProperty("_cashierSpots"), cashierSpots);
             viewSo.FindProperty("_customerTemplate").objectReferenceValue = customerImage;
             viewSo.FindProperty("_workerTemplate").objectReferenceValue = workerImage;
+            viewSo.FindProperty("_incidentButton").objectReferenceValue = bubble;
+            viewSo.FindProperty("_incidentLabel").objectReferenceValue = incidentLabel;
+            viewSo.FindProperty("_incidentHint").objectReferenceValue = incidentHint;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
             BuildHud(canvas, font, sprite, knob, counter);
