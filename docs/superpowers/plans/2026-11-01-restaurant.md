@@ -247,10 +247,10 @@ git push
   - `MoneyPerCustomer_UsesWeightedMeans`: hai món 20 và 40 (trung bình 30), hai khách (trọng số 1 ×1,0 và trọng số 3 ×2,0 → hệ số trung bình 1,75), `PriceMultiplier` 1,1 → tiền/khách 57,75 (kiểm `CoinsPerSecond / thông lượng`).
   - `ArrivalMultiplier_ScalesArrival`: `ArrivalIntervalMultiplier` 0,5 gấp đôi thu nhập khi arrival là cổ chai.
   - `CookTime_IsAverageOfDishes`: hai món cook 4 và 6 cho cùng kết quả với một món cook 5.
-- [ ] **Step 2: Chạy test, kỳ vọng đỏ.**
-- [ ] **Step 3: Implement** theo công thức (năng lực bàn dùng người nhanh nhất mỗi vai).
-- [ ] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="256"`.
-- [ ] **Step 5: Commit và push** (`feat: add IncomeCalculator`).
+- [x] **Step 2: Chạy test, kỳ vọng đỏ.**
+- [x] **Step 3: Implement** theo công thức (năng lực bàn dùng người nhanh nhất mỗi vai).
+- [x] **Step 4: Chạy test, kỳ vọng xanh:** `failed="0"`, `total="256"`.
+- [x] **Step 5: Commit và push** (`feat: add IncomeCalculator`).
 
 ---
 
