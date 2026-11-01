@@ -22,5 +22,21 @@ namespace BunDauPeo.Core
                 }
             }
         }
+
+        public static void SafeInvoke<T1, T2>(this Action<T1, T2> action, T1 first, T2 second)
+        {
+            if (action == null) return;
+            foreach (var handler in action.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<T1, T2>)handler)(first, second);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+        }
     }
 }

@@ -239,14 +239,14 @@ namespace BunDauPeo.EditorTools
             go.AddComponent<AudioListener>();
         }
 
-        private static void CreateEventSystem(Scene scene)
+        internal static void CreateEventSystem(Scene scene)
         {
             // Project chỉ dùng Input System (activeInputHandler: 1); StandaloneInputModule sẽ không nhận chuột/chạm.
             var go = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             SceneManager.MoveGameObjectToScene(go, scene);
         }
 
-        private static RectTransform CreateCanvas(Scene scene)
+        internal static RectTransform CreateCanvas(Scene scene)
         {
             var go = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             SceneManager.MoveGameObjectToScene(go, scene);
@@ -267,7 +267,7 @@ namespace BunDauPeo.EditorTools
             return go;
         }
 
-        private static Button NewButton(string name, RectTransform parent, Sprite sprite, Font font, string text, Color color,
+        internal static Button NewButton(string name, RectTransform parent, Sprite sprite, Font font, string text, Color color,
             Vector2 anchor, Vector2 position, Vector2 size)
         {
             var rect = NewRect(name, parent);
@@ -281,10 +281,10 @@ namespace BunDauPeo.EditorTools
             return button;
         }
 
-        private static Text NewText(string name, RectTransform parent, Font font, string text, int size, TextAnchor align, Color color) =>
+        internal static Text NewText(string name, RectTransform parent, Font font, string text, int size, TextAnchor align, Color color) =>
             AddText(NewRect(name, parent), font, text, size, align, color);
 
-        private static Text AddText(RectTransform rect, Font font, string text, int size, TextAnchor align, Color color)
+        internal static Text AddText(RectTransform rect, Font font, string text, int size, TextAnchor align, Color color)
         {
             var t = rect.gameObject.AddComponent<Text>();
             t.font = font;
@@ -296,7 +296,7 @@ namespace BunDauPeo.EditorTools
             return t;
         }
 
-        private static Image AddImage(RectTransform rect, Sprite sprite, Color color, bool raycast)
+        internal static Image AddImage(RectTransform rect, Sprite sprite, Color color, bool raycast)
         {
             var image = rect.gameObject.AddComponent<Image>();
             image.sprite = sprite;
@@ -306,7 +306,7 @@ namespace BunDauPeo.EditorTools
             return image;
         }
 
-        private static RectTransform NewRect(string name, Transform parent)
+        internal static RectTransform NewRect(string name, Transform parent)
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -314,7 +314,7 @@ namespace BunDauPeo.EditorTools
         }
 
         // Đặt anchor và pivot trùng nhau trước, rồi mới đặt vị trí và kích thước.
-        private static void Place(RectTransform rect, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
+        internal static void Place(RectTransform rect, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
         {
             rect.anchorMin = anchor;
             rect.anchorMax = anchor;
@@ -323,7 +323,7 @@ namespace BunDauPeo.EditorTools
             rect.sizeDelta = size;
         }
 
-        private static void Stretch(RectTransform rect, float inset = 0)
+        internal static void Stretch(RectTransform rect, float inset = 0)
         {
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;

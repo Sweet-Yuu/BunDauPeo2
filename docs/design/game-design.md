@@ -20,7 +20,7 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - Có được từ gacha. Mỗi nhân vật có chỉ số chiến đấu (HP, tấn công, thủ, tốc độ) và chỉ số quán (nấu, phục vụ, thu ngân).
 - Độ hiếm: R, SR, SSR.
 - Một nhân vật chỉ ở một nơi: **trong đội chiến đấu thì không làm quán, dù đang đánh hay không.** Đưa vào đội thì tự rời quán, và ngược lại.
-- Đội chiến đấu tối đa 5 người (user chốt 2026-10-31).
+- Đội chiến đấu tối đa 5 người (user chốt 2026-10-31). **Vào trận cần tối thiểu 1 người; dưới 5 người thì phải qua hộp xác nhận** để tránh bấm nhầm (user chốt 2026-11-01, thuộc spec Combat).
 - **Vị trí:** đội hình có 3 vị trí là front, mid và back.
 - **Class:** 5 class chính là đỡ đòn, đấu sĩ, hỗ trợ, xạ thủ, pháp sư. Mỗi nhân vật thuộc một class.
 - `TODO(user)`: mỗi class đứng vị trí nào, mỗi vị trí có mấy ô trong 5 ô, và vị trí là cố định theo nhân vật hay người chơi tự xếp. Chốt trong spec Combat. `CharacterDefinition` và `Roster` hiện chưa có class hay vị trí; `Roster` đang giữ đội là một danh sách phẳng.
@@ -34,7 +34,15 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - Tự chạy: khách đến ngẫu nhiên, nhân vật làm việc theo chỉ số ở vị trí được xếp (nấu, phục vụ, thu ngân). Người chơi xếp nhân sự và mua nâng cấp.
 - Có hình: khách và nhân vật đi lại trong quán. Logic tách khỏi hình.
 - Vẫn chạy khi người chơi đang đánh trận.
-- **Phòng bán** (user chốt 2026-11-01): tạm thời theo phòng isometric trong `Mota/restaurant-room-isometric-en.jpg`. Các phần khác của quán không theo ảnh nào: agent đề xuất phương án tối ưu trong spec Restaurant, user duyệt.
+- **Bố cục màn quán** (user chốt 2026-11-01, thay phòng isometric trước đó): theo ba ảnh `Mota/restaurant-layout-*`. Chỉ lấy bố cục; mô tả cụ thể và phần không lấy ở [spec Restaurant mục 5.1](../superpowers/specs/2026-11-01-restaurant-design.md#51-màn-quán-restaurantunity).
+- **Dây chuyền** (user chốt 2026-11-01): khách vào, ngồi bàn, **nấu**, **phục vụ** bưng ra, ăn (không cần ai), **thu ngân** thanh toán, về. Thời gian một việc = thời gian gốc × 100 / (100 + chỉ số), chỉ số chỉ làm nhanh hơn, không đổi giá món. Mỗi vai khởi điểm 1 ô, bàn khởi điểm 3 (nâng cấp tăng).
+- **Kiên nhẫn:** hai lần chờ có hạn (từ lúc đến tới khi có món; từ lúc ăn xong tới khi trả tiền xong). Quá hạn thì khách bỏ về **không trả tiền**.
+- **Thiếu người ở một vai** thì trạm đó đứng yên, quán không thu được gì. Không có "chủ quán làm thay". Với 3 nhân vật khởi đầu, chạy quán thì đội chiến đấu trống: đúng cân nhắc "đội mạnh hay quán đông".
+- **Nâng cấp** (user chốt 2026-11-01): sáu loại, mọi cấp tốn cả Coin và Material, không có điều kiện cần có trước: Bàn (5 cấp, 3 → 8), ba loại ô nhân viên (2 cấp mỗi loại, 1 → 3), Biển hiệu (5 cấp, khách đến nhanh hơn), Thực đơn (5 cấp, giá món cao hơn). Số khởi điểm ở [spec Restaurant](../superpowers/specs/2026-11-01-restaurant-design.md#34-sáu-nâng-cấp-mẫu). UI nâng cấp hoàn chỉnh do người khác làm, `TODO(user)` gửi mô tả; công thức nấu ăn và đồ trang trí là ý tưởng chưa thiết kế, `TODO(user)`.
+- **Chất lượng quán** (user chốt 2026-11-01): thang 100 điểm, 20 điểm là 1 sao, chỉ ảnh hưởng AFK, không ảnh hưởng tiền khi chơi thật. Gồm hai phần, mỗi phần tối đa 50 điểm:
+  - **Chuyên cần:** 50 × trung bình của **7 ngày trọn vẹn gần nhất** (hôm qua trở về trước) của min(1, thời gian ở màn quán trong ngày / 5 phút). **Hôm nay không được tính**, nên chơi hôm nay chỉ tăng chất lượng từ ngày mai. Vắng ngày thứ 2 mới bắt đầu giảm, tối đa sau 7 ngày. Kiểu quest tuần: quà AFK thấp là cái giá của việc không chăm.
+  - **Xử lý sự cố:** 50 × trung bình điểm của 10 sự cố gần nhất (kịp 1, trễ 0,5, bỏ lỡ 0, chưa có 0).
+- **Sự cố** (user chốt 2026-11-01): chỉ xuất hiện khi người chơi đang ở màn quán, tối đa 1 sự cố cùng lúc, cách nhau khoảng 60–120 giây. Biểu tượng "!" trên một trạm, bấm một lần để xử lý: trong 8 giây là kịp, trong 20 giây là trễ, quá là bỏ lỡ. Chưa xử lý thì trạm đó đứng yên. **Vai không có người vẫn sinh sự cố nhưng không xử lý được nếu vai đó không có nhân vật.** Mở panel hoặc popup thì không sinh sự cố mới. Rời màn quán hoặc app vào nền khi sự cố đang chạy thì sự cố bị huỷ, không tính điểm, trạm mở lại. Loại sự cố có lựa chọn xử lý để dành làm sau.
 
 ## AFK
 
@@ -44,12 +52,14 @@ Quán gần như tự động, nên AFK phải **kém hơn chơi thật**, để
 - **Trần:** 12 giờ tích lũy. Đầy thì dừng, **phải thu thập mới tích tiếp**.
 - **Chưa thu thập mà thoát lại:** phần cũ vẫn giữ, tích tiếp đến khi đủ 12 giờ tổng cộng.
 - **Chỉ cho Coin.** Material và Gem chỉ đến từ chiến đấu.
-- **Tỉ lệ:** thu nhập mỗi giây × hệ số AFK. Hệ số *khởi điểm* **0.3**, đặt trong `RestaurantConfig` cùng với số giờ tối đa.
-- **Thu nhập mỗi giây lấy tại lúc thoát game**, dựa trên nhân viên và nâng cấp lúc đó. Như vậy không lách được bằng cách xếp nhân viên giỏi ngay trước khi thu thập.
-- **Thu thập:** người chơi tự bấm, tiền vào ví và bộ đếm về 0.
+- **Tỉ lệ** (user chốt 2026-11-01, thay hệ số 0,3 cố định cũ): AFK/giây = **thu nhập lý thuyết** × **hệ số theo chất lượng**. Hệ số chạy liên tục từ **0,1** (0 điểm) đến **0,5** (100 điểm), *khởi điểm*, đặt trong `RestaurantConfig` cùng với số giờ tối đa. Hệ số tối đa luôn nhỏ hơn tỉ lệ thu nhập thật so với lý thuyết, nên AFK luôn thấp hơn chơi thật.
+- **Thu nhập lý thuyết** là cận trên của mô phỏng, tính bằng công thức nút cổ chai từ nhân viên và nâng cấp ([spec 4.2](../superpowers/specs/2026-11-01-restaurant-design.md#42-thu-nhập-lý-thuyết-incomecalculator-hàm-tĩnh-thuần)), không ngẫu nhiên. **Chốt lúc thoát game**, nên không lách được bằng cách xếp nhân viên giỏi ngay trước khi thu thập. Quán thiếu một vai thì bằng 0.
+- **Hệ số chất lượng tính lúc thu thập**, không phải lúc thoát. Nhờ vậy vắng nhiều ngày thì quà giảm (xem Chuyên cần ở mục Quán).
+- **Thu thập:** người chơi tự bấm, tiền vào ví và bộ đếm về 0. Mở lại màn quán sau khi vắng từ 5 phút thì hiện popup thu thập; nút "Thu AFK" còn trên màn quán khi có Coin chờ. Thu mà lưu không được thì Coin vẫn vào ví nhưng người chơi được báo "chưa lưu được dữ liệu" (ở popup lẫn nút), game thử lưu lại ở lần lưu sau. Bấm thẻ sao ở màn quán mở popup chất lượng (chuyên cần 7 ngày, hôm nay, sự cố, hệ số AFK).
 - **Đồng hồ máy:** thời gian âm (đồng hồ bị lùi) tính là 0. Chỉnh đồng hồ tiến để gian lận thì chấp nhận, vì game offline và đã có trần 12 giờ.
+- **Quán chưa kiếm tiền khi thoát** (thu nhập bằng 0) thì thời gian vắng không tính vào trần, để không bị kẹt ở trần mà không có gì để thu.
 
-Save cần lưu: thời điểm hoạt động cuối, thu nhập mỗi giây lúc thoát, số giây đã tích, số Coin đang chờ. Triển khai trong spec Restaurant.
+Save cần lưu: thời điểm hoạt động cuối, thu nhập lý thuyết mỗi giây lúc thoát, số giây đã tích, số Coin lý thuyết đang chờ (chưa nhân hệ số chất lượng), cùng thời gian có mặt từng ngày và điểm 10 sự cố gần nhất cho chất lượng. Triển khai trong [spec Restaurant](../superpowers/specs/2026-11-01-restaurant-design.md).
 
 ## Chiến đấu
 

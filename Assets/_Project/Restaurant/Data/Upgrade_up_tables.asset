@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 294e3ae5e164fed42a3cbc8c58daa81f, type: 3}
+  m_Name: Upgrade_up_tables
+  m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.UpgradeDefinition
+  _id: up_tables
+  _displayName: "B\xE0n"
+  _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  _effect: 0
+  _levels:
+  - Cost:
+    - Type: 0
+      Amount: 300
+    - Type: 2
+      Amount: 5
+    Value: 4
+  - Cost:
+    - Type: 0
+      Amount: 600
+    - Type: 2
+      Amount: 10
+    Value: 5
+  - Cost:
+    - Type: 0
+      Amount: 1200
+    - Type: 2
+      Amount: 15
+    Value: 6
+  - Cost:
+    - Type: 0
+      Amount: 2400
+    - Type: 2
+      Amount: 20
+    Value: 7
+  - Cost:
+    - Type: 0
+      Amount: 4800
+    - Type: 2
+      Amount: 25
+    Value: 8

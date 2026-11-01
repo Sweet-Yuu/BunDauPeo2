@@ -15,6 +15,9 @@ namespace BunDauPeo.Boot
         public Roster Roster { get; }
         public bool IsNewGame { get; private set; }
 
+        // Trạng thái chạy ngoài PlayerSave (D-005) nối vào đây để xoá theo.
+        public event Action ResetCompleted;
+
         public GameSession(SaveService saveService, CharacterCatalog catalog, NewGameConfig newGame)
         {
             _saveService = saveService ?? throw new ArgumentNullException(nameof(saveService));
@@ -49,6 +52,7 @@ namespace BunDauPeo.Boot
             GrantNewGame();
             Wallet.NotifyChanged();
             Roster.NotifyChanged();
+            ResetCompleted.SafeInvoke();
             return Persist();
         }
 

@@ -10,18 +10,19 @@ Assets/
   Scenes/      SampleScene.unity (scene mẫu của template)
   Settings/    URP, Renderer2D, Input actions (do template sinh ra)
   _Project/
-    Core/          BunDauPeo.Core        Wallet, SaveService, PlayerSave, Catalog<T>, ServiceLocator, EventExtensions, kiểu tiền/vai trò
+    Core/          BunDauPeo.Core        Wallet, SaveService, PlayerSave (kèm UpgradeLevel, DailyPresenceEntry, AfkState), Catalog<T>, ServiceLocator, EventExtensions, kiểu tiền/vai trò
     Characters/    BunDauPeo.Characters  CharacterDefinition, SkillDefinition, CharacterCatalog, Roster (kèm mảnh nhân vật)
     Gacha/         BunDauPeo.Gacha       GachaBannerDefinition, GachaBannerCatalog, GachaRoller, GachaService, GachaPullResult
-    UI/            BunDauPeo.UI          GachaView (điều phối), GachaRevealSequence (thứ tự và luật bỏ qua), GachaRevealView, GachaTotalView, GachaRollAgainPopup, GachaHistoryPopup, GachaViewText (màn Gacha; hub thật làm ở spec UI hub)
-    Boot/          BunDauPeo.Boot        GameBootstrap (nối GachaService, nạp scene khởi đầu), GameSession, NewGameConfig
-    Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode, GachaSceneBuilder
-    Tests/         BunDauPeo.Tests       EditMode (184 test)
-    Scenes/        Boot.unity (đầu Build Settings), Gacha.unity (thứ hai; Boot nạp nó qua `_startScene`)
-    Restaurant/ Combat/                  mới có folder con rỗng (.gitkeep), chưa có asmdef
+    Restaurant/    BunDauPeo.Restaurant  RestaurantConfig và SO (món, khách, sự cố, nâng cấp), RestaurantProfile, StaffingService, IncomeCalculator, RestaurantSimulation, UpgradeService, RestaurantQuality, IncidentDirector, AfkService, IClock, RestaurantService + RestaurantRunner (chỉ tham chiếu Core và Characters)
+    UI/            BunDauPeo.UI          Gacha: GachaView (điều phối), GachaRevealSequence, GachaRevealView, GachaTotalView, GachaRollAgainPopup, GachaHistoryPopup, GachaViewText. Quán: RestaurantView (người đi lại, "!" sự cố, lấy số giây vắng), RestaurantHud (tiền, sao, thu nhập, nút Thu AFK), StaffPanel + StaffPanelRows, UpgradeTestPanel (bản thử), AfkPopup, QualityPopup, RestaurantViewText, IsoProjection, DevOverlay (chỉ Editor và Development Build). Hub thật làm ở spec UI hub
+    Boot/          BunDauPeo.Boot        GameBootstrap (nối GachaService và RestaurantService, OnAppPause trước Persist, nạp scene khởi đầu), GameSession (có `ResetCompleted`), NewGameConfig
+    Editor/        BunDauPeo.Editor      Tools/BunDauPeo/Setup Project, Reset Save Data, BootScenePlayMode, GachaSceneBuilder, RestaurantSceneBuilder
+    Tests/         BunDauPeo.Tests       EditMode (425 test)
+    Scenes/        Boot.unity (đầu Build Settings), Gacha.unity, Restaurant.unity (thứ ba; Boot nạp nó qua `_startScene`, đổi từ Gacha một lần)
+    Combat/                              mới có folder con rỗng (.gitkeep), chưa có asmdef
 ```
 
-Asset mẫu (6 nhân vật, 4 skill, `CharacterCatalog`, `NewGameConfig`, banner `banner_standard`, `GachaBannerCatalog`) nằm ở `Characters/Data/`, `Boot/Data/` và `Gacha/Data/`, do `Setup Project` sinh; chạy lại không ghi đè số đã chỉnh. Scene `Gacha.unity` cũng do `Setup Project` sinh (một lần, có rồi thì giữ nguyên); `Boot.unity` được vá chứ không tạo lại. Cutscene Gacha (2 clip + controller ở `Gacha/Animations/Summoning/`, 2 prefab ở `Gacha/Prefabs/Cutscenes/`, 3 PNG Spark/Ring/Glow ở `Gacha/Art/Summoning/`) do user cung cấp, copy nguyên từ Project_04 kèm `.meta`; GUID phải giữ nguyên (test `GachaRevealAssetTests`).
+Asset mẫu (6 nhân vật, 4 skill, `CharacterCatalog`, `NewGameConfig`, banner `banner_standard`, `GachaBannerCatalog`, và cho quán: `RestaurantConfig`, 3 món, 3 loại khách, 3 sự cố, 6 nâng cấp + `UpgradeCatalog`) nằm ở `Characters/Data/`, `Boot/Data/`, `Gacha/Data/` và `Restaurant/Data/`, do `Setup Project` sinh; chạy lại không ghi đè số đã chỉnh. Scene `Gacha.unity` và `Restaurant.unity` cũng do `Setup Project` sinh (một lần, có rồi thì giữ nguyên; đổi builder thì dựng lại bằng `ProjectSetup.RebuildRestaurantScene`, xem [unity-workflow](../guides/unity-workflow.md)); `Boot.unity` được vá chứ không tạo lại. Cutscene Gacha (2 clip + controller ở `Gacha/Animations/Summoning/`, 2 prefab ở `Gacha/Prefabs/Cutscenes/`, 3 PNG Spark/Ring/Glow ở `Gacha/Art/Summoning/`) do user cung cấp, copy nguyên từ Project_04 kèm `.meta`; GUID phải giữ nguyên (test `GachaRevealAssetTests`).
 Save: `Application.persistentDataPath/save.json` (kèm `.bak`, `.tmp`, `.corrupt`), xem [D-004](../decisions/decisions.md).
 
 ## Quy ước (đã duyệt, áp dụng khi thêm nội dung)

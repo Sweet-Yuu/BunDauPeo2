@@ -111,6 +111,69 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void ResetToDefaults_ClearsRestaurantFields()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            session.Save.Upgrades.Add(new UpgradeLevel { UpgradeId = "up_tables", Level = 2 });
+            session.Save.DailyPresence.Add(new DailyPresenceEntry { DayIndex = 7300, Seconds = 120.5 });
+            session.Save.IncidentScores.Add(2);
+            session.Save.Afk.LastActiveUtcTicks = 99;
+            session.Save.Afk.RatePerSecond = 1.5;
+            session.Save.Afk.AccumulatedSeconds = 60;
+            session.Save.Afk.PendingTheoretical = 90;
+
+            Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.AreEqual(0, session.Save.Upgrades.Count);
+            Assert.AreEqual(0, session.Save.DailyPresence.Count);
+            Assert.AreEqual(0, session.Save.IncidentScores.Count);
+            Assert.IsNotNull(session.Save.Afk);
+            Assert.AreEqual(0, session.Save.Afk.LastActiveUtcTicks);
+            Assert.AreEqual(0, session.Save.Afk.RatePerSecond);
+            Assert.AreEqual(0, session.Save.Afk.AccumulatedSeconds);
+            Assert.AreEqual(0, session.Save.Afk.PendingTheoretical);
+        }
+
+        [Test]
+        public void ResetToDefaults_RaisesResetCompletedOnce_AfterWalletAndRosterChanged_BeforeFileWritten()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            var events = new System.Collections.Generic.List<string>();
+            var fileExistedInHandler = true;
+            session.Wallet.Changed += () => events.Add("wallet");
+            session.Roster.Changed += () => events.Add("roster");
+            session.ResetCompleted += () =>
+            {
+                events.Add("reset");
+                fileExistedInHandler = File.Exists(_path);
+            };
+
+            Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.AreEqual(1, events.FindAll(e => e == "reset").Count);
+            Assert.AreEqual("reset", events[events.Count - 1]);
+            Assert.GreaterOrEqual(events.IndexOf("wallet"), 0);
+            Assert.GreaterOrEqual(events.IndexOf("roster"), 0);
+            Assert.IsFalse(fileExistedInHandler);
+            Assert.IsTrue(File.Exists(_path));
+        }
+
+        [Test]
+        public void ResetCompleted_HandlerThrows_StillPersistsAndCallsOtherHandlers()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            var secondCalled = false;
+            session.ResetCompleted += () => throw new InvalidOperationException("boom");
+            session.ResetCompleted += () => secondCalled = true;
+            LogAssert.Expect(LogType.Exception, new Regex("boom"));
+
+            Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.IsTrue(secondCalled);
+            Assert.IsTrue(File.Exists(_path));
+        }
+
+        [Test]
         public void GachaService_AfterReset_SeesClearedPityAndFragments()
         {
             // Nhân vật khởi đầu `a` là R duy nhất của banner, nên mọi lượt quay đều là mảnh của `a`.

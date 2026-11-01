@@ -22,5 +22,11 @@ namespace BunDauPeo.Core
         public List<FragmentCount> Fragments = new();
         public List<PityEntry> GachaPity = new();
         public List<GachaHistoryEntry> GachaHistory = new();
+        public List<UpgradeLevel> Upgrades = new();
+        // Tối đa 8 mục: 7 ngày trọn vẹn và hôm nay.
+        public List<DailyPresenceEntry> DailyPresence = new();
+        // Tối đa 10 mục, giá trị 0 bỏ lỡ, 1 trễ, 2 kịp.
+        public List<int> IncidentScores = new();
+        public AfkState Afk = new();
     }
 }

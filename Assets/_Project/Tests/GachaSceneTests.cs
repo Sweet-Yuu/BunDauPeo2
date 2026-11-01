@@ -114,11 +114,11 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void BootScene_StartSceneIsGacha() =>
+        public void BootScene_StartSceneIsRestaurant() =>
             WithScene(ProjectSetup.BootScenePath, scene =>
             {
                 var bootstrap = All<GameBootstrap>(scene).Single();
-                Assert.AreEqual("Gacha", new SerializedObject(bootstrap).FindProperty("_startScene").stringValue);
+                Assert.AreEqual("Restaurant",new SerializedObject(bootstrap).FindProperty("_startScene").stringValue);
             });
     }
 }

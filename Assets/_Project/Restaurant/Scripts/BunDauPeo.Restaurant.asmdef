@@ -1,0 +1,6 @@
+{
+  "name": "BunDauPeo.Restaurant",
+  "rootNamespace": "BunDauPeo.Restaurant",
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters"],
+  "autoReferenced": true
+}

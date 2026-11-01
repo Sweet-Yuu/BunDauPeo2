@@ -38,7 +38,10 @@
 | Gacha | `gacha-result-10.jpg` | Kết quả 10 lượt: lưới 2 × 5, nút OK |
 | Nhân vật | `character-list-en.png` | Danh sách nhân vật: thẻ artwork có sao, lọc Front/Middle/Back, sắp xếp |
 | Nhân vật | `character-upgrade.png` | Nâng cấp nhân vật: nhân vật ở giữa, tab chức năng, chỉ số |
-| Quán | `restaurant-room-isometric-en.jpg` | **Phòng bán tạm thời theo ảnh này:** phòng isometric có nhân vật đi lại, nút bên cạnh. Trong game gốc đây là Guildhouse |
+| Quán | `restaurant-layout-garden-en.webp` | **Bố cục màn quán cần theo** (user chốt 2026-11-01), cùng hai ảnh dưới: phòng chữ nhật nghiêng lấp gần hết màn, tường ở cạnh sau và cạnh trái, cảnh quanh phòng, thẻ tiền trên-trái, cột nút phải. Mô tả và phần không lấy: [spec Restaurant mục 5.1](../superpowers/specs/2026-11-01-restaurant-design.md#51-màn-quán-restaurantunity) |
+| Quán | `restaurant-layout-farm-en.webp` | Như trên, bối cảnh nông trại: có quầy thu ngân và lối vào rõ hơn |
+| Quán | `restaurant-layout-sea-en.webp` | Như trên, bối cảnh biển: dãy dài dọc tường sau, hai hàng đồ giữa phòng |
+| Quán | `restaurant-room-isometric-en.jpg` | Phòng isometric có nhân vật đi lại. **Không còn là mẫu cần theo**, đã thay bằng ba ảnh trên. Trong game gốc đây là Guildhouse |
 | Cốt truyện | `story-dialogue-en.webp` | Hội thoại: nhân vật lớn, khung thoại, nút Skip. Cốt truyện sẽ làm sau MVP ([vision](../vision/vision.md)) |
 
 User đã gửi đủ ảnh cho các màn hiện biết (2026-11-01). Các phần khác của quán (xếp nhân viên, nâng cấp, AFK) không có ảnh: agent đề xuất phương án tối ưu trong spec Restaurant, user duyệt.

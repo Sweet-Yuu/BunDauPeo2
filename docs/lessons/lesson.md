@@ -25,6 +25,51 @@
 
 ## Danh sách
 
+### L-016 — `Validate()` thiếu một field thì config xấu hoặc làm NaN, hoặc làm Boot ném lỗi (2026-11-02)  #script #process
+- Triệu chứng: review độc lập tìm ra `_dailyGoalSeconds = 0` qua `Validate` làm chất lượng NaN (Thu AFK mất Coin chờ), `_maxWaitingLine = 0` làm mọi khách bỏ về, và `_baseTables = -1` làm `RestaurantService` ném lỗi trong `Awake` dù `IsRunning` đã là false.
+- Nguyên nhân gốc: `Validate()` chỉ liệt kê field của những task đã nghĩ tới; code chạy tiếp sau khi báo lỗi cấu hình (`RebuildProfile`) vẫn dùng giá trị xấu.
+- Luật từ nay: field nào xuất hiện trong mẫu số, chỉ số mảng hay ngưỡng thì phải có trong `Validate()` và test; khi `IsRunning = false`, mọi bước dựng còn lại của constructor không được dùng config.
+
+### L-015 — Một cờ bool dùng chung cho nhiều chủ làm panel này mở khoá panel kia (2026-11-02)  #script #ui
+- Triệu chứng: `SetSpawnAllowed(bool)` được panel Nhân viên, Nâng cấp, popup AFK và popup Chất lượng cùng gọi; popup AFK chồng lên panel rồi đóng thì sự cố sinh ra dưới panel đang che màn, quá 20 giây là bỏ lỡ oan.
+- Nguyên nhân gốc: trạng thái "bị chặn" là một bool ghi đè; plan và code chỉ nghĩ tới từng panel riêng lẻ, không tới panel chồng nhau.
+- Luật từ nay: trạng thái chặn dùng chung giữa nhiều view phải theo chủ (`SetSpawnBlocked(owner, bool)`, idempotent theo chủ), không phải bool hay bộ đếm tăng giảm; test phải có ca hai chủ gỡ lần lượt.
+
+### L-014 — Lệnh thử đổi trạng thái rồi quên khôi phục, kịch bản sau cho kết quả 0 (2026-11-02)  #process
+- Triệu chứng: thử Tua AFK ở màn Gacha ra `pend=0`, tưởng AFK hỏng; thật ra một lệnh `eval` trước đó đã gỡ Thu ngân (lệnh sau của cùng cặp bị lỗi biên dịch nên không xếp lại).
+- Nguyên nhân gốc: không ghi lại trạng thái đã đổi và không đọc `Estimate.MissingRole` đầu mỗi kịch bản.
+- Luật từ nay: mỗi lệnh thử Play đổi trạng thái thì ghi một dòng "đã đổi X" và đặt lại ngay trong lệnh kế; đầu mỗi kịch bản in `Estimate.CoinsPerSecond` và `MissingRole` trước khi tin con số nào.
+
+### L-013 — `GetComponentInParent` bỏ qua đối tượng đang tắt, test popup đóng sai (2026-11-02)  #script #unity-files
+- Triệu chứng: test độ tương phản chữ của popup đỏ vì chữ trắng trên nút bị tính là "chữ trên thẻ" (`Expected: greater than 0.45, but was 0`).
+- Nguyên nhân gốc: popup mở scene là đóng, mà `GetComponentInParent<Button>()` mặc định không tìm trong nhánh inactive nên trả null.
+- Luật từ nay: test duyệt scene có đối tượng tắt dùng `GetComponentInParent<T>(true)` / `GetComponentsInChildren<T>(true)`; kiểm test bằng một ca mà cài đặt sai sẽ đỏ (test này đỏ đúng chỗ nên bắt được).
+
+### L-012 — Số test trong kế hoạch đếm theo method, `[TestCase]` làm tổng lệch (2026-11-02)  #process #script
+- Triệu chứng: viết test tham số hoá (`[TestCase]`) cho Task 12 thì tổng vượt số kế hoạch ghi (389 thay vì 382) dù đủ method.
+- Nguyên nhân gốc: NUnit đếm mỗi `[TestCase]` là một test trong XML; kế hoạch đếm method.
+- Luật từ nay: test cần nhiều đầu vào để bắt lỗi biên (L-006) thì lặp trong một method kèm thông báo có đầu vào (`$"u = {u}"`), không dùng `[TestCase]`, để tổng khớp kế hoạch.
+
+### L-011 — Game view hẹp thì chụp màn hình ra ảnh bé, và `unity close .` có thể quá 30 giây (2026-11-02)  #ui #process
+- Triệu chứng: `ScreenCapture.CaptureScreenshot` ra ảnh 401×664 dù `Screen.width/height` báo 2658×960 (cửa sổ Game bị thu hẹp); `unity close .` báo "did not close within 30s" nhưng Editor vẫn đóng sau đó.
+- Nguyên nhân gốc: Game view phụ thuộc bố cục cửa sổ Editor lúc mở; lệnh đóng chỉ chờ 30 giây.
+- Luật từ nay: khi thử màn UI, đổi Canvas sang `ScreenSpaceCamera` với camera có `targetTexture` 1920×1080, `Canvas.ForceUpdateCanvases()`, `cam.Render()`, `ReadPixels` rồi ghi PNG ngoài repo và trả Canvas về Overlay, ngay trong một lệnh `eval`. Sau `unity close .` lỗi 30 giây, chạy `unity status` lặp lại cho tới khi không còn Editor, không kill process.
+
+### L-010 — Ảnh chụp Game view bị bóp về 16:9 nên kết luận sai về bố cục (2026-11-02)  #ui #process
+- Triệu chứng: `capture game_view` luôn trả ảnh 1280×720 dù Game view thật là 2658×960, nên hình tròn thành bầu dục và phòng trông méo; kèm theo, với `matchWidthOrHeight = 0,5` canvas chỉ cao 865 và cắt phía dưới bố cục cao 1080.
+- Nguyên nhân gốc: tin kích thước ảnh chụp thay vì đọc `Screen.width/height` và `Canvas.scaleFactor` của lượt chạy.
+- Luật từ nay: khi thử màn UI, đọc `Screen.width/height` rồi chụp bằng `ScreenCapture.CaptureScreenshot("D:/…/x.png")` (đúng tỉ lệ thật, ghi ngoài repo); màn có bố cục cố định theo chiều cao thì scaler khớp theo chiều cao.
+
+### L-009 — Play đứng im khi Editor không focus, dễ nhầm với lỗi mô phỏng (2026-11-01)  #process #unity-files
+- Triệu chứng: thử quán qua `unity command`, Coin đứng ở 583 hơn 50 giây dù đủ ba nhân viên; chưa kiểm đã định kết luận khách không đến nữa.
+- Nguyên nhân gốc: Editor không focus thì vòng lặp Play không chạy (`Time.frameCount` đứng yên), không phải lỗi `RestaurantSimulation`. Cờ của hai lệnh bật chạy nền là `--enable true` (không phải `--enabled`).
+- Luật từ nay: vào Play xong là chạy ngay `unity command editor set_auto_tick --enable true` và `editor.playmode set_run_in_background --enable true`; trước khi tin số đo hay nghi lỗi, đọc `Time.frameCount` hai lần cách vài giây.
+
+### L-008 — Dung sai của kế hoạch che lỗi lệch một bước trong mô phỏng thời gian (2026-11-01)  #process #script
+- Triệu chứng: `RestaurantSimulation` xanh 268/268 nhưng bữa ăn ngắn đi 0,1 giây (khách trả tiền ở 27,4 thay vì 27,5), vì bước "ăn" chạy sau bước "worker" nên bị trừ giờ ngay trong bước vừa chuyển trạng thái; kế hoạch cho dung sai ±0,2 giây nên test không bắt được.
+- Nguyên nhân gốc: dung sai của test rộng hơn đúng một bước cố định (0,1 giây), nên mọi lỗi lệch một bước đều lọt.
+- Luật từ nay: test thời gian của mô phỏng bước cố định phải chặn ở mốc ±nửa bước (vd. chưa xong ở 27,45, xong ở 27,55), và trong mỗi bước, hệ thống trừ giờ phải chạy trước hệ thống đổi trạng thái.
+
 ### L-007 — Tưởng lỗi vì độ trễ lệnh, và để lại thay đổi ngoài ý muốn (2026-11-01)  #process #unity-files
 - Triệu chứng: ảnh chụp 1 giây sau khi bấm Quay đã ở bước reveal, tôi tưởng cutscene bị bỏ; thực ra mỗi lệnh CLI tốn ~3 giây. Lệnh bật chạy nền còn ghi `runInBackground: 1` vào `ProjectSettings.asset`.
 - Nguyên nhân gốc: kết luận từ ảnh chụp mà chưa đo thời gian thật; bật tuỳ chọn Editor mà không kiểm `git status`.

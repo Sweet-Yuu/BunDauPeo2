@@ -151,7 +151,8 @@ MonoBehaviour:
   _catalog: {fileID: 11400000, guid: d261c9c3979574e4fade53ea564b7091, type: 2}
   _newGameConfig: {fileID: 11400000, guid: d99f4917abc19ae409198544c87be93d, type: 2}
   _bannerCatalog: {fileID: 11400000, guid: 3dd6e6af34bffbe4b8dfe0c429776610, type: 2}
-  _startScene: Gacha
+  _restaurantConfig: {fileID: 11400000, guid: aef5a893b081a2742b49a3797be60a70, type: 2}
+  _startScene: Restaurant
 --- !u!4 &1435306805
 Transform:
   m_ObjectHideFlags: 0
