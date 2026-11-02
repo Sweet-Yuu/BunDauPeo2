@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-018 — `Random` mơ hồ khi file test có cả `using System` và `using UnityEngine` (2026-11-02)  #script
+- Triệu chứng: `CombatTestData` khai báo tham số `Random random = null` và báo `CS0104: 'Random' is an ambiguous reference between 'UnityEngine.Random' and 'System.Random'`, làm cả assembly test không biên dịch.
+- Nguyên nhân gốc: helper test cần `UnityEngine` (`ScriptableObject`) và nhận RNG của `BattleSession` (`System.Random`), nên cả hai namespace cùng được import.
+- Luật từ nay: trong file có `using UnityEngine`, luôn viết `System.Random` đầy đủ cho tham số và field RNG.
+
 ### L-017 — Message commit nhiều dòng có dấu ngoặc kép bị PowerShell 5.1 cắt thành pathspec (2026-11-02)  #git #process
 - Triệu chứng: `git commit -m @'...'@` báo `pathspec 'in' did not match any file(s)`, không commit gì; message có `"not in scope"`.
 - Nguyên nhân gốc: Windows PowerShell 5.1 truyền chuỗi chứa `"` cho chương trình ngoài mà không escape, nên git nhận phần sau dấu ngoặc là đối số riêng.
