@@ -419,7 +419,7 @@ namespace BunDauPeo.Tests
                 ("st_1_story2", StageKind.Story, new string[0][], 0, new CurrencyAmount[0], new CurrencyAmount[0]),
                 ("st_1_3", StageKind.Battle, new[] { new[] { F, R }, new[] { R, R }, new[] { F, R, R } }, 10, new[] { M(50), Gem(200) }, new[] { M(50), Gem(40) }),
                 ("st_1_4", StageKind.Battle, new[] { new[] { R, R }, new[] { G, R }, new[] { G, G, R } }, 10, new[] { M(60), Gem(200) }, new[] { M(60), Gem(40) }),
-                ("st_1_5", StageKind.Battle, new[] { new[] { R, G }, new[] { G, G, R }, new[] { K } }, 15, new[] { M(100), Gem(500) }, new[] { M(100), Gem(100) }),
+                ("st_1_5", StageKind.Battle, new[] { new[] { R, G }, new[] { G, G, R }, new[] { K } }, 10, new[] { M(100), Gem(500) }, new[] { M(100), Gem(100) }),
             };
 
             var items = SampleCombatConfig().Stages.Items;
@@ -530,6 +530,40 @@ namespace BunDauPeo.Tests
             // Đường dẫn save phụ thuộc hai tên này; đổi sau khi có save thật thì save cũ bị bỏ lại.
             Assert.AreEqual("Sweet-Yuu", PlayerSettings.companyName);
             Assert.AreEqual("BunDauPeo", PlayerSettings.productName);
+        }
+
+        // Asset sinh theo luật thể lực cũ (tối đa 60, boss 15) được chuyển, giá trị đã sửa tay thì giữ nguyên.
+        [Test]
+        public void Run_MigratesOldStaminaRule_KeepsEditedValues()
+        {
+            var config = SampleCombatConfig();
+            var boss = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/_Project/Combat/Data/Stages/st_1_5.asset");
+            try
+            {
+                SetInt(config, "_maxStamina", 60);
+                SetInt(boss, "_staminaCost", 15);
+                ProjectSetup.Run();
+                Assert.AreEqual((100, 10), (config.MaxStamina, boss.StaminaCost), "the old rule's own numbers move to the new rule");
+
+                SetInt(config, "_maxStamina", 80);
+                SetInt(boss, "_staminaCost", 12);
+                ProjectSetup.Run();
+                Assert.AreEqual((80, 12), (config.MaxStamina, boss.StaminaCost), "edited values are left alone");
+            }
+            finally
+            {
+                SetInt(config, "_maxStamina", 100);
+                SetInt(boss, "_staminaCost", 10);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetInt(Object asset, string field, int value)
+        {
+            var so = new SerializedObject(asset);
+            so.FindProperty(field).intValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
         }
     }
 }

@@ -276,5 +276,14 @@ namespace BunDauPeo.Tests
             Assert.IsNull(DevOverlay.NextBattleStageId(CombatTestData.Catalog(CombatTestData.Story("story")), null), "no battle stage at all");
             Assert.IsNull(DevOverlay.NextBattleStageId(null, null), "invalid config leaves no catalog");
         }
+
+        [Test]
+        public void Stamina_IsExposedByService()
+        {
+            var stamina = new StaminaService(new PlayerSave(), CombatTestData.Config(), () => DateTime.UtcNow);
+
+            Assert.AreSame(stamina, CombatTestData.Service(stamina: stamina).Stamina);
+            Assert.IsNotNull(CombatTestData.Service().Stamina, "the helper supplies one when a test does not care");
+        }
     }
 }

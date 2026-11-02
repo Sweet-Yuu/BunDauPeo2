@@ -25,7 +25,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 53bb3a192fc7dd54a841eba0856bd09f, type: 2}
   - _enemies:
     - {fileID: 11400000, guid: 0cf9c00644feef0419a9b736a7b0afbf, type: 2}
-  _staminaCost: 15
+  _staminaCost: 10
   _firstClearReward:
   - Type: 2
     Amount: 100

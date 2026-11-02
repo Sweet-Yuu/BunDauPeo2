@@ -64,7 +64,7 @@ namespace BunDauPeo.UI
 
             _trialStageId = NextBattleStageId(combat.Config.Stages, null);
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(1422, 76));
+            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(1688, 76));
             var stripImage = strip.gameObject.AddComponent<Image>();
             stripImage.color = new Color(0f, 0f, 0f, 0.6f);
             stripImage.raycastTarget = false;
@@ -81,6 +81,7 @@ namespace BunDauPeo.UI
                 _trialStageId = NextBattleStageId(combat.Config.Stages, _trialStageId);
                 stageLabel.text = StageLabel(combat);
             });
+            AddButton(strip, font, "Hồi đầy thể lực", new Vector2(1422, 8), 250, combat.Stamina.Refill);
         }
 
         // Đội trống thì thêm tối đa một đội đầy từ người đã sở hữu, theo thứ tự sở hữu; trả số người thêm.

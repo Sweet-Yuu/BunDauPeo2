@@ -26,7 +26,7 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(15, c.EnergyOnHit);
             Assert.AreEqual(60, c.MaxRounds);
             Assert.AreEqual(0.7f, c.AutoHealBelow);
-            Assert.AreEqual(60, c.MaxStamina);
+            Assert.AreEqual(100, c.MaxStamina);
             Assert.AreEqual(300, c.StaminaRegenSeconds);
             Assert.AreEqual(3f, c.Weight(BattlePosition.Front));
             Assert.AreEqual(2f, c.Weight(BattlePosition.Mid));
@@ -125,7 +125,7 @@ namespace BunDauPeo.Tests
         [Test]
         public void Validate_StageCostAboveMaxStamina_Reported()
         {
-            foreach (var (cost, reported) in new[] { (61, true), (60, false) })
+            foreach (var (cost, reported) in new[] { (101, true), (100, false) })
             {
                 var stage = CombatTestData.Stage("st", new[] { CombatTestData.Enemy() });
                 TestData.Edit(stage, so => so.FindProperty("_staminaCost").intValue = cost);

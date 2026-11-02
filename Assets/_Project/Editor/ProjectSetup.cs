@@ -116,7 +116,7 @@ namespace BunDauPeo.EditorTools
             ("st_1_story2", "Cốt truyện 2", StageKind.Story, new string[0][], 0, 0, 0, 0, 0),
             ("st_1_3", "1-3", StageKind.Battle, new[] { new[] { "Enemy_Fly", "Enemy_Rat" }, new[] { "Enemy_Rat", "Enemy_Rat" }, new[] { "Enemy_Fly", "Enemy_Rat", "Enemy_Rat" } }, 10, 50, 200, 50, 40),
             ("st_1_4", "1-4", StageKind.Battle, new[] { new[] { "Enemy_Rat", "Enemy_Rat" }, new[] { "Enemy_Roach", "Enemy_Rat" }, new[] { "Enemy_Roach", "Enemy_Roach", "Enemy_Rat" } }, 10, 60, 200, 60, 40),
-            ("st_1_5", "1-5", StageKind.Battle, new[] { new[] { "Enemy_Rat", "Enemy_Roach" }, new[] { "Enemy_Roach", "Enemy_Roach", "Enemy_Rat" }, new[] { "Enemy_RatKing" } }, 15, 100, 500, 100, 100),
+            ("st_1_5", "1-5", StageKind.Battle, new[] { new[] { "Enemy_Rat", "Enemy_Roach" }, new[] { "Enemy_Roach", "Enemy_Roach", "Enemy_Rat" }, new[] { "Enemy_RatKing" } }, 10, 100, 500, 100, 100),
         };
 
         private static readonly string[] StarterIds = { "char_nem_chua", "char_cha_com", "char_dau_phu" };
@@ -365,6 +365,30 @@ namespace BunDauPeo.EditorTools
 
             GetOrCreateAsset<CombatConfig>(CombatConfigPath, asset =>
                 Apply(asset, so => so.FindProperty("_stages").objectReferenceValue = catalog));
+
+            MigrateStaminaRule();
+        }
+
+        // Luật thể lực đổi 2026-11-03 (D-008): tối đa 60 → 100, màn 1-5 từ 15 → 10. Setup không ghi đè asset đã sinh nên đổi riêng;
+        // chỉ đổi đúng giá trị cũ nguyên văn, số user đã sửa tay giữ nguyên.
+        public static void MigrateStaminaRule()
+        {
+            MigrateInt(AssetDatabase.LoadAssetAtPath<CombatConfig>(CombatConfigPath), "_maxStamina", 60, 100);
+            MigrateInt(AssetDatabase.LoadAssetAtPath<StageDefinition>($"{CombatData}/Stages/st_1_5.asset"), "_staminaCost", 15, 10);
+        }
+
+        private static void MigrateInt(Object asset, string field, int oldValue, int newValue)
+        {
+            if (asset == null) return;
+
+            var so = new SerializedObject(asset);
+            var property = so.FindProperty(field);
+            if (property.intValue != oldValue) return;
+
+            property.intValue = newValue;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
         }
 
         private static void SetRewards(SerializedProperty array, long material, long gem)

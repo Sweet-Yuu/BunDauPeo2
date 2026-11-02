@@ -30,7 +30,7 @@ namespace BunDauPeo.Combat
         [SerializeField] private float _autoHealBelow = 0.7f;
 
         [Header("Thể lực")]
-        [SerializeField] private int _maxStamina = 60;
+        [SerializeField] private int _maxStamina = 100;
         // Một điểm mỗi khoảng này; là mẫu số của StaminaService.
         [SerializeField] private int _staminaRegenSeconds = 300;
 

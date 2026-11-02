@@ -26,10 +26,11 @@ namespace BunDauPeo.Combat
         private readonly System.Random _random;
         private readonly Func<bool> _persist;
 
-        public CombatService(CombatConfig config, Roster roster, System.Random random, Func<bool> persist)
+        public CombatService(CombatConfig config, Roster roster, StaminaService stamina, System.Random random, Func<bool> persist)
         {
             Config = config ?? throw new ArgumentNullException(nameof(config));
             _roster = roster ?? throw new ArgumentNullException(nameof(roster));
+            Stamina = stamina ?? throw new ArgumentNullException(nameof(stamina));
             _random = random ?? throw new ArgumentNullException(nameof(random));
             _persist = persist ?? throw new ArgumentNullException(nameof(persist));
 
@@ -40,6 +41,7 @@ namespace BunDauPeo.Combat
         }
 
         public CombatConfig Config { get; }
+        public StaminaService Stamina { get; }
         public bool IsRunning { get; }
         public BattleSession Current { get; private set; }
         // Nhớ giữa các trận trong phiên chơi, không lưu.

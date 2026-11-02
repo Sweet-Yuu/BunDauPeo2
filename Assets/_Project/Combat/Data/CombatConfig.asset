@@ -21,6 +21,6 @@ MonoBehaviour:
   _energyOnHit: 15
   _maxRounds: 60
   _autoHealBelow: 0.7
-  _maxStamina: 60
+  _maxStamina: 100
   _staminaRegenSeconds: 300
   _stages: {fileID: 11400000, guid: 4131d149ee8acf9448bdcf0edda5e805, type: 2}
