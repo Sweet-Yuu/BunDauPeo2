@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- [ ] Combat: xong Task 1–15/15 (nhánh `feature/combat`, 692 test xanh, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh, lỗi đã sửa)), chờ review độc lập cuối nhánh và playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực), rồi mới hỏi PR. Lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
+(trống)
 
 ## Tiếp theo
 
@@ -27,6 +27,7 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 
 ## Đã xong
 
+- 2026-11-03 — Combat: trận theo lượt nhiều đợt (đánh thường, skill, ultimate, AUTO, x2, tạm dừng), bản đồ 1 chương 5 màn đánh + 2 màn cốt truyện giữ chỗ, chọn đội, thể lực (D-008: tối đa 100, trừ 10 khi vào trận, không hoàn), thưởng và mở màn, lưu tiến độ: [spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md). 692 test EditMode xanh; nhánh `feature/combat`, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh), user đã playtest 3, đã merge vào `main` (PR #5). Còn `TODO(user)`: cân bằng độ khó và thưởng (spec mục 9), bố cục màn, hội thoại cốt truyện thật, đổi quái mẫu sang tôm.
 - 2026-11-02 — Restaurant: mô phỏng quán, xếp nhân viên, nâng cấp (UI bản thử), chất lượng, sự cố, AFK, popup AFK và chất lượng, màn quán `Restaurant.unity` bố cục theo ba ảnh tham khảo: [spec](superpowers/specs/2026-11-01-restaurant-design.md), [kế hoạch](superpowers/plans/2026-11-01-restaurant.md). 425 test EditMode xanh; nhánh `feature/restaurant`, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh), user đã thử, đã merge vào `main` (PR #3). Còn `TODO(user)`: UI nâng cấp hoàn chỉnh, cân bằng Coin/Material (spec mục 9), kiểm save trên Android.
 - 2026-10-31 — Gacha: banner, roll, đảm bảo (pity), nhân vật trùng thành mảnh, màn thử (`Gacha.unity`): [spec](superpowers/specs/2026-10-31-gacha-design.md), [kế hoạch](superpowers/plans/2026-10-31-gacha.md). 148 test EditMode xanh; nhánh `feature/gacha`, đã qua review độc lập cuối nhánh.
 - 2026-11-01 — Gacha reveal: cutscene, từng nhân vật lóe sáng, SSR cuối không bỏ qua, trang tổng 5 + 5, popup quay tiếp, lịch sử quay, số sao khởi điểm: [spec](superpowers/specs/2026-10-31-gacha-reveal-design.md), [kế hoạch](superpowers/plans/2026-10-31-gacha-reveal.md). 185 test EditMode xanh.
