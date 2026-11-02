@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- [ ] Combat: xong Task 1–8/15 (nhánh `feature/combat`, 584 test xanh), chờ playtest 1 (sau đó Session 3: Task 9–11). Lượt, 3 hành động, quái, wave, màn chơi, thể lực, phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
+- [ ] Combat: xong Task 1–11/15 (nhánh `feature/combat`, 629 test xanh), chờ playtest 2 (sau đó Session 4: Task 12–15). Lượt, 3 hành động, quái, wave, màn chơi, thể lực, phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
 
 ## Tiếp theo
 

@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-020 — `unity status && unity run …` không chạy lệnh sau khi không có Editor, và log cũ trông như log mới (2026-11-03)  #process #unity-files
+- Triệu chứng: `unity status && unity run . -- -executeMethod …RebuildBattleScene` thoát mã 12 mà scene không đổi; tôi đọc `../bdp-setup.log` còn từ lần trước ("Exiting batchmode successfully") và suýt coi là đã dựng xong.
+- Nguyên nhân gốc: `unity status` thoát 12 khi không có Editor nào (đúng ý khi Editor phải đóng), nên `&&` cắt chuỗi; file log ghi đè chỉ khi lệnh `run` thật sự chạy.
+- Luật từ nay: `unity status` là một lệnh riêng, đọc kết quả rồi mới chạy `test`/`run`; sau `run` kiểm `git status` có file đổi (hoặc giờ sửa của log) trước khi tin log.
+
 ### L-019 — Play không qua Boot khi Editor mở bằng CLI: không có dịch vụ, không có dải DEV (2026-11-03)  #process #unity-files
 - Triệu chứng: `unity open .` rồi `editor.playmode start` chạy scene Untitled; `eval` báo "Service CombatService is not registered", không có `DevOverlay`. Nạp `Boot` bằng `SceneManager.LoadScene` trong Play thì có dịch vụ nhưng vẫn không có dải DEV (nó chỉ dựng ở lần nạp scene đầu tiên).
 - Nguyên nhân gốc: Editor mới mở chưa đặt Boot làm scene khởi động cho Play; `DevOverlay` dựng ở `AfterSceneLoad` đầu tiên và thoát sớm nếu chưa có dịch vụ.
