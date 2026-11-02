@@ -56,6 +56,29 @@ namespace BunDauPeo.Tests
             return enemy;
         }
 
+        // Nhân vật hợp lệ cả Validate() lẫn CombatSkillRules. Skill mặc định: Damage SingleEnemy hệ số 2, hồi chiêu 3;
+        // ultimate mặc định: Damage AllEnemies hệ số 3, năng lượng 100.
+        public static CharacterDefinition Hero(string id, CharacterClass cls = CharacterClass.Fighter, int hp = 1000,
+            int attack = 100, int defense = 0, int speed = 100, SkillDefinition skill = null, SkillDefinition ultimate = null)
+        {
+            var hero = TestData.Character(id);
+            TestData.Edit(hero, so =>
+            {
+                so.FindProperty("_displayName").stringValue = id;
+                so.FindProperty("_class").enumValueIndex = (int)cls;
+                var stats = so.FindProperty("_combatStats");
+                stats.FindPropertyRelative("HP").intValue = hp;
+                stats.FindPropertyRelative("Attack").intValue = attack;
+                stats.FindPropertyRelative("Defense").intValue = defense;
+                stats.FindPropertyRelative("Speed").intValue = speed;
+                so.FindProperty("_basicAttack").objectReferenceValue = Skill(SkillKind.Basic);
+                so.FindProperty("_skill").objectReferenceValue = skill ?? Skill(SkillKind.Skill, power: 2f, cooldown: 3);
+                so.FindProperty("_ultimate").objectReferenceValue =
+                    ultimate ?? Skill(SkillKind.Ultimate, SkillTarget.AllEnemies, power: 3f, energy: 100);
+            });
+            return hero;
+        }
+
         // Màn Battle: thể lực 10, lần đầu 30 Material + 150 Gem, đánh lại 30 Material + 30 Gem.
         public static StageDefinition Stage(string id, params EnemyDefinition[][] waves)
         {
