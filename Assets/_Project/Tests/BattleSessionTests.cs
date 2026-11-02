@@ -385,5 +385,101 @@ namespace BunDauPeo.Tests
             CollectionAssert.AreEqual(new[] { "tank", "fighter", "sup", "mage" }, Names(s.Allies));
             CollectionAssert.AreEqual(new[] { 0, 1, 2, 4 }, s.Allies.Select(a => a.SlotIndex).ToArray());
         }
+
+        private static BattleSession Capped(int maxRounds, params EnemyDefinition[][] waves) =>
+            CombatTestData.Battle(new[] { Hero("a", speed: 100) }, CombatTestData.Stage("s", waves),
+                CombatTestData.Config(so => so.FindProperty("_maxRounds").intValue = maxRounds));
+
+        [Test]
+        public void Round_AboveMaxRounds_Lost()
+        {
+            for (var max = 1; max <= 4; max++)
+            {
+                var s = Capped(max, new[] { Foe("e", hp: 100000, speed: 50) });
+                for (var round = 1; round <= max; round++)
+                {
+                    Assert.AreEqual(round, s.Round, $"max {max}");
+                    s.PlayerAct(BattleActionKind.Basic);
+                    var r = s.EnemyAct();
+                    if (round < max) continue;
+
+                    Assert.AreEqual(BattleState.Lost, r.StateAfter, $"max {max}: the round after the last allowed one");
+                    Assert.AreEqual(BattleState.Lost, s.State, $"max {max}");
+                    Assert.IsNull(s.Current, $"max {max}");
+                    Assert.AreEqual(BattleActionStatus.Ended, s.PlayerAct(BattleActionKind.Basic).Status, $"max {max}");
+                }
+            }
+        }
+
+        [Test]
+        public void Round_EqualMaxRounds_StillPlaying()
+        {
+            var one = Capped(1, new[] { Foe("e", hp: 100000) });
+            Assert.AreEqual((1, BattleState.PlayerTurn), (one.Round, one.State), "round 1 of 1");
+
+            var two = Capped(2, new[] { Foe("e", hp: 100000) });
+            two.PlayerAct(BattleActionKind.Basic);
+            two.EnemyAct();
+            Assert.AreEqual((2, BattleState.PlayerTurn), (two.Round, two.State), "round 2 of 2");
+            Assert.AreEqual(BattleActionStatus.Success, two.PlayerAct(BattleActionKind.Basic).Status);
+            Assert.AreEqual(BattleState.EnemyTurn, two.State, "still no loss before the round ends");
+        }
+
+        [Test]
+        public void NextWave_PastMaxRounds_Lost()
+        {
+            var late = Capped(1, new[] { Foe("w0", hp: 1) }, new[] { Foe("w1", hp: 1) });
+            var r = late.PlayerAct(BattleActionKind.Basic);
+            Assert.IsTrue(r.WaveCleared);
+            Assert.IsFalse(r.NextWaveStarted, "round 2 would exceed the limit of 1");
+            Assert.AreEqual(BattleState.Lost, r.StateAfter);
+            Assert.AreEqual(0, late.WaveIndex);
+
+            var inTime = Capped(2, new[] { Foe("w0", hp: 1) }, new[] { Foe("w1", hp: 1) });
+            var ok = inTime.PlayerAct(BattleActionKind.Basic);
+            Assert.IsTrue(ok.NextWaveStarted, "round 2 is allowed when the limit is 2");
+            Assert.AreEqual((1, 2), (inTime.WaveIndex, inTime.Round));
+        }
+
+        [Test]
+        public void ClearingLastWave_InFinalRound_Won()
+        {
+            var single = Capped(1, new[] { Foe("e", hp: 1) });
+            single.PlayerAct(BattleActionKind.Basic);
+            Assert.AreEqual((BattleState.Won, 1), (single.State, single.Round));
+
+            var two = Capped(2, new[] { Foe("w0", hp: 1) }, new[] { Foe("w1", hp: 1) });
+            two.PlayerAct(BattleActionKind.Basic);
+            two.PlayerAct(BattleActionKind.Basic);
+            Assert.AreEqual((BattleState.Won, 2), (two.State, two.Round), "winning does not advance the round");
+        }
+
+        [Test]
+        public void ThreeWaves_FullRun_CarriesHpEnergyCooldown()
+        {
+            var config = CombatTestData.Config();
+            var s = CombatTestData.Battle(new[] { Hero("a", speed: 100, attack: 100) },
+                CombatTestData.Stage("s", new[] { Foe("w0", hp: 100, attack: 20, speed: 50) },
+                    new[] { Foe("w1", hp: 150, attack: 20, speed: 50) }, new[] { Foe("w2", hp: 100, attack: 20, speed: 50) }), config);
+            var hero = s.Allies[0];
+            int Gain(int energy) => System.Math.Min(config.MaxEnergy, energy);
+
+            Assert.IsTrue(s.PlayerAct(BattleActionKind.Skill).NextWaveStarted, "skill (200) kills wave 0");
+            var energy = Gain(config.EnergyOnSkill);
+            Assert.AreEqual((1, 2, 1000, energy, 2), (s.WaveIndex, s.Round, hero.Hp, hero.Energy, hero.SkillCooldown), "after wave 0");
+
+            s.PlayerAct(BattleActionKind.Basic);
+            s.EnemyAct();
+            energy = Gain(Gain(energy + config.EnergyOnBasic) + config.EnergyOnHit);
+            Assert.AreEqual((1, 3, 980, energy, 1), (s.WaveIndex, s.Round, hero.Hp, hero.Energy, hero.SkillCooldown), "wave 1 mid-fight");
+
+            Assert.IsTrue(s.PlayerAct(BattleActionKind.Basic).NextWaveStarted);
+            energy = Gain(energy + config.EnergyOnBasic);
+            Assert.AreEqual((2, 4, 980, energy, 0), (s.WaveIndex, s.Round, hero.Hp, hero.Energy, hero.SkillCooldown), "after wave 1");
+
+            var last = s.PlayerAct(BattleActionKind.Skill);
+            Assert.AreEqual(BattleState.Won, last.StateAfter);
+            Assert.AreEqual(980, hero.Hp);
+        }
     }
 }

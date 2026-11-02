@@ -37,6 +37,7 @@ namespace BunDauPeo.Combat
         public int WaveIndex { get; private set; }
         public int WaveCount => _stage.Waves.Count;
         public int Round { get; private set; }
+        internal CombatConfig Config => _config;
         public IReadOnlyList<BattleUnit> Allies => _allies;
         // Đợt hiện tại; SlotIndex là chỉ số trong mảng đợt.
         public IReadOnlyList<BattleUnit> Enemies => _enemies;
@@ -200,11 +201,14 @@ namespace BunDauPeo.Combat
                 if (WaveIndex + 1 < WaveCount)
                 {
                     // Vòng mới: người chưa kịp đánh ở vòng cũ không được đánh bù.
-                    WaveIndex++;
-                    Round++;
-                    SpawnWave();
-                    BuildQueue();
-                    nextWave = true;
+                    if (++Round > _config.MaxRounds) End(BattleState.Lost);
+                    else
+                    {
+                        WaveIndex++;
+                        SpawnWave();
+                        BuildQueue();
+                        nextWave = true;
+                    }
                 }
                 else
                 {
@@ -240,11 +244,8 @@ namespace BunDauPeo.Combat
             _queue.RemoveAt(0);
             while (_queue.Count > 0 && !_queue[0].IsAlive) _queue.RemoveAt(0);
             if (_queue.Count > 0) UpdateTurnState();
-            else
-            {
-                Round++;
-                BuildQueue();
-            }
+            else if (++Round > _config.MaxRounds) End(BattleState.Lost);
+            else BuildQueue();
         }
 
         // Speed giảm; hoà thì phe ta trước, rồi ô thấp trước. Thứ tự này đầy đủ nên không phụ thuộc thuật toán sắp.
