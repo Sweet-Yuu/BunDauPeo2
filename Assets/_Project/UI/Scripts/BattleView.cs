@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -26,6 +27,12 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _floatTemplate;
         [SerializeField] private GameObject _emptyRoot;
         [SerializeField] private Button _emptyBackButton;
+        [SerializeField] private BattleActionPanel _panel;
+        [SerializeField] private BattleCardView[] _cards;
+        // Banner tạm: Task kết quả thay bằng BattleResultView.
+        [SerializeField] private GameObject _endRoot;
+        [SerializeField] private Text _endText;
+        [SerializeField] private Button _endButton;
 
         private sealed class FloatText
         {
@@ -41,6 +48,8 @@ namespace BunDauPeo.UI
         private CombatService _service;
         private BattleSession _drawn;
         private bool _hasDrawn;
+        private bool _ready;
+        private readonly List<(Button Button, UnityAction Action)> _listeners = new();
         private BattleActionResult _playing;
         private BattleUnitView _actorView;
         private float _elapsed, _duration;
@@ -50,6 +59,13 @@ namespace BunDauPeo.UI
 
         // Task sau (bảng chiêu) đưa kết quả đòn của người chơi vào đây.
         public bool IsBusy => _playing != null || _queue.Count > 0;
+
+        // Người đang ra đòn trong hoạt hình; null khi rảnh.
+        public BattleUnit ActingUnit => _playing?.Actor;
+
+        public IReadOnlyList<BattleUnitView> AllyViews => _allies;
+
+        public IReadOnlyList<BattleUnitView> EnemyViews => _enemies;
 
         public void Enqueue(BattleActionResult result)
         {
@@ -71,18 +87,37 @@ namespace BunDauPeo.UI
             }
 
             _emptyBackButton.onClick.AddListener(Back);
+            _endButton.onClick.AddListener(OnEndClicked);
+            // Chạm quái hoặc người phe ta đặt mục tiêu; thẻ chỉ chọn đồng minh. Đọc Unit lúc chạm vì hình được dùng lại giữa các đợt.
+            foreach (var view in _enemies) Listen(view.Button, () => _panel.ChooseEnemy(view.Unit));
+            foreach (var view in _allies) Listen(view.Button, () => _panel.ChooseAlly(view.Unit));
+            foreach (var card in _cards) Listen(card.Button, () => _panel.ChooseAlly(card.Unit));
             _hasDrawn = false;
+            _ready = true;
         }
 
         private void OnDisable()
         {
+            _ready = false;
             if (_emptyBackButton != null) _emptyBackButton.onClick.RemoveListener(Back);
+            if (_endButton != null) _endButton.onClick.RemoveListener(OnEndClicked);
+            foreach (var (button, action) in _listeners)
+                if (button != null) button.onClick.RemoveListener(action);
+            _listeners.Clear();
+        }
+
+        private void Listen(Button button, UnityAction action)
+        {
+            button.onClick.AddListener(action);
+            _listeners.Add((button, action));
         }
 
         private bool HasAllReferences()
         {
             var ok = _floatTemplate != null && _emptyRoot != null && _emptyBackButton != null
-                     && Complete(_allies) && Complete(_enemies);
+                     && _panel != null && _endRoot != null && _endText != null && _endButton != null
+                     && Complete(_allies) && Complete(_enemies) && _cards != null && _cards.Length == SlotCount
+                     && System.Array.TrueForAll(_cards, c => c != null);
             if (!ok) Debug.LogError($"{nameof(BattleView)}: references are not assigned.", this);
             return ok;
         }
@@ -97,9 +132,16 @@ namespace BunDauPeo.UI
 
         private static void Back() => SceneManager.LoadScene(RestaurantScene);
 
+        // Banner tạm: về Quán (Task kết quả đổi sang bản đồ màn).
+        private void OnEndClicked()
+        {
+            _service?.EndBattle();
+            SceneManager.LoadScene(RestaurantScene);
+        }
+
         private void Update()
         {
-            if (_allies == null || _emptyRoot == null) return;
+            if (!_ready) return;
 
             var dt = Time.unscaledDeltaTime;
             var session = _service?.Current;
@@ -109,6 +151,22 @@ namespace BunDauPeo.UI
             foreach (var view in _allies) view.Tick(dt);
             foreach (var view in _enemies) view.Tick(dt);
             TickFloats(dt);
+            if (session != null) RefreshHud(session);
+        }
+
+        // Thẻ theo máu hoạt hình; banner chỉ hiện khi đòn cuối đã phát xong.
+        private void RefreshHud(BattleSession session)
+        {
+            var current = session.State == BattleState.PlayerTurn && !IsBusy ? session.Current : null;
+            foreach (var card in _cards)
+            {
+                if (card.Unit == null) continue;
+                card.Refresh(_allies[card.Unit.SlotIndex].ShownHp, _service.Config.MaxEnergy, ReferenceEquals(card.Unit, current));
+            }
+
+            var ended = (session.State == BattleState.Won || session.State == BattleState.Lost) && !IsBusy;
+            _endRoot.SetActive(ended);
+            if (ended) _endText.text = CombatViewText.EndBanner(session.State);
         }
 
         private void Redraw(BattleSession session)
@@ -121,11 +179,15 @@ namespace BunDauPeo.UI
             foreach (var text in _floats) text.Text.gameObject.SetActive(false);
             _emptyRoot.SetActive(session == null);
 
+            _endRoot.SetActive(false);
+            _panel.gameObject.SetActive(session != null);
             foreach (var view in _allies) view.Hide();
             foreach (var view in _enemies) view.Hide();
+            foreach (var card in _cards) card.Hide();
             if (session == null) return;
 
             foreach (var ally in session.Allies) _allies[ally.SlotIndex].Bind(ally, BattleLayout.AllyRect(ally.SlotIndex));
+            for (var i = 0; i < session.Allies.Count; i++) _cards[i].Bind(session.Allies[i]);
             BindEnemies(session);
         }
 
