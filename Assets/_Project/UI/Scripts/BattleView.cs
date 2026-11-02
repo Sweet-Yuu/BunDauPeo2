@@ -34,10 +34,7 @@ namespace BunDauPeo.UI
         [SerializeField] private Button _emptyBackButton;
         [SerializeField] private BattleActionPanel _panel;
         [SerializeField] private BattleCardView[] _cards;
-        // Banner tạm: Task kết quả thay bằng BattleResultView.
-        [SerializeField] private GameObject _endRoot;
-        [SerializeField] private Text _endText;
-        [SerializeField] private Button _endButton;
+        [SerializeField] private BattleResultView _result;
         // Thanh trên: chữ đợt, thanh lượt 10 ô, Menu / AUTO / tốc độ, banner đợt mới, popup tạm dừng.
         [SerializeField] private GameObject _topBar;
         [SerializeField] private Text _waveText;
@@ -110,7 +107,6 @@ namespace BunDauPeo.UI
             }
 
             _emptyBackButton.onClick.AddListener(Back);
-            _endButton.onClick.AddListener(OnEndClicked);
             Listen(_menuButton, OnMenuClicked);
             Listen(_autoButton, OnAutoClicked);
             Listen(_speedButton, OnSpeedClicked);
@@ -128,7 +124,6 @@ namespace BunDauPeo.UI
         {
             _ready = false;
             if (_emptyBackButton != null) _emptyBackButton.onClick.RemoveListener(Back);
-            if (_endButton != null) _endButton.onClick.RemoveListener(OnEndClicked);
             foreach (var (button, action) in _listeners)
                 if (button != null) button.onClick.RemoveListener(action);
             _listeners.Clear();
@@ -143,7 +138,7 @@ namespace BunDauPeo.UI
         private bool HasAllReferences()
         {
             var ok = _floatTemplate != null && _emptyRoot != null && _emptyBackButton != null
-                     && _panel != null && _endRoot != null && _endText != null && _endButton != null
+                     && _panel != null && _result != null
                      && _topBar != null && _waveText != null && _menuButton != null && _autoButton != null && _speedButton != null
                      && _waveBanner != null && _waveBannerText != null && _pause != null
                      && _turnCells != null && _turnCells.Length == TurnCellCount && System.Array.TrueForAll(_turnCells, c => c != null)
@@ -162,13 +157,6 @@ namespace BunDauPeo.UI
         }
 
         private static void Back() => SceneManager.LoadScene(StageSelectScene);
-
-        // Banner tạm: về bản đồ màn (Task kết quả thay bằng BattleResultView).
-        private void OnEndClicked()
-        {
-            _service?.EndBattle();
-            SceneManager.LoadScene(StageSelectScene);
-        }
 
         private void OnMenuClicked()
         {
@@ -245,9 +233,9 @@ namespace BunDauPeo.UI
                 card.Refresh(_allies[card.Unit.SlotIndex].ShownHp, _service.Config.MaxEnergy, ReferenceEquals(card.Unit, current));
             }
 
+            // Show chỉ làm việc ở lần đầu của mỗi trận (CompleteBattle đúng một lần).
             var ended = (session.State == BattleState.Won || session.State == BattleState.Lost) && !IsBusy;
-            _endRoot.SetActive(ended);
-            if (ended) _endText.text = CombatViewText.EndBanner(session.State);
+            if (ended) _result.Show(_service, session);
         }
 
         private void Redraw(BattleSession session)
@@ -265,7 +253,7 @@ namespace BunDauPeo.UI
             _shownWave = session?.WaveIndex ?? 0;
             _topBar.SetActive(session != null);
 
-            _endRoot.SetActive(false);
+            _result.Hide();
             _panel.gameObject.SetActive(session != null);
             foreach (var view in _allies) view.Hide();
             foreach (var view in _enemies) view.Hide();

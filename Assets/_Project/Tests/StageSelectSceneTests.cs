@@ -62,6 +62,33 @@ namespace BunDauPeo.Tests
             });
 
         [Test]
+        public void TeamSelectPopupWired_StartsClosed_BlocksClicks() =>
+            WithStageSelect(scene =>
+            {
+                var popup = RestaurantSceneTests.All<TeamSelectPopup>(scene).Single();
+                RestaurantSceneTests.AssertAllReferencesAssigned(popup);
+                var root = RootOf(popup);
+                Assert.IsFalse(root.activeSelf);
+                Assert.IsTrue(root.GetComponent<Image>().raycastTarget, "must block clicks behind it");
+                Assert.IsTrue(popup.gameObject.activeSelf);
+                Assert.AreSame(popup, new SerializedObject(RestaurantSceneTests.All<StageMapView>(scene).Single()).FindProperty("_team").objectReferenceValue);
+            });
+
+        [Test]
+        public void TeamSelect_ConfirmBoxesStartClosed() =>
+            WithStageSelect(scene =>
+            {
+                var so = new SerializedObject(RestaurantSceneTests.All<TeamSelectPopup>(scene).Single());
+                foreach (var field in new[] { "_smallConfirmRoot", "_staffConfirmRoot" })
+                {
+                    var root = (GameObject)so.FindProperty(field).objectReferenceValue;
+                    Assert.IsNotNull(root, field);
+                    Assert.IsFalse(root.activeSelf, $"{field} starts open (the stamina must not be spent before a confirm)");
+                    Assert.IsTrue(root.GetComponent<Image>().raycastTarget, $"{field} must block clicks behind it");
+                }
+            });
+
+        [Test]
         public void NodeCenters_SevenNodes_InsideMapArea_NoOverlap()
         {
             const float size = 120f;

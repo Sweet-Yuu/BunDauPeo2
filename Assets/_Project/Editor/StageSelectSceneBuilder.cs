@@ -75,6 +75,7 @@ namespace BunDauPeo.EditorTools
 
             var info = BuildInfoPopup(canvas, sprite, font);
             var story = BuildStoryPopup(canvas, sprite, font);
+            var team = BuildTeamPopup(canvas, sprite, font);
 
             var viewObject = NewRect("StageMapView", canvas);
             var view = viewObject.gameObject.AddComponent<StageMapView>();
@@ -91,6 +92,7 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_invalidText").objectReferenceValue = invalid;
             so.FindProperty("_info").objectReferenceValue = info;
             so.FindProperty("_story").objectReferenceValue = story;
+            so.FindProperty("_team").objectReferenceValue = team;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.SaveScene(scene, scenePath);
@@ -263,6 +265,146 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_closeButton").objectReferenceValue = close;
             so.ApplyModifiedPropertiesWithoutUndo();
             return popup;
+        }
+
+        // Hộp 1700×880: lưới 12 thẻ (4×3, phân trang), hàng "Thành viên hiện tại" chia theo đội hình tự xếp, Hủy / Vào trận;
+        // hai hộp xác nhận nằm trong cùng nền chặn chạm và tắt sẵn (thể lực chưa bị trừ khi hộp mở).
+        private static TeamSelectPopup BuildTeamPopup(RectTransform canvas, Sprite sprite, Font font)
+        {
+            var holder = NewRect("TeamSelectPopup", canvas);
+            Stretch(holder);
+            var root = NewRect("TeamRoot", holder);
+            Stretch(root);
+            AddImage(root, null, Dim, raycast: true);
+
+            var box = NewRect("TeamBox", root);
+            Place(box, Center, Center, Vector2.zero, new Vector2(1700, 880));
+            AddImage(box, sprite, CardColor, raycast: false);
+
+            var title = NewText("Title", box, font, "", 48, TextAnchor.MiddleCenter, Gold);
+            title.fontStyle = FontStyle.Bold;
+            Place(title.rectTransform, Center, Center, new Vector2(0, 395), new Vector2(1200, 60));
+
+            var cards = new TeamCardView[TeamSelectPopup.CardsPerPage];
+            for (var i = 0; i < cards.Length; i++)
+                cards[i] = BuildTeamCard(box, i, sprite, font);
+
+            var prev = NewButton("PrevButton", box, sprite, font, "<", CardFrame, Center, new Vector2(-130, -75), new Vector2(100, 60));
+            var next = NewButton("NextButton", box, sprite, font, ">", CardFrame, Center, new Vector2(130, -75), new Vector2(100, 60));
+            var page = NewText("PageText", box, font, "1/1", 32, TextAnchor.MiddleCenter, Color.white);
+            Place(page.rectTransform, Center, Center, new Vector2(0, -75), new Vector2(120, 50));
+
+            var header = NewText("TeamHeader", box, font, "", 34, TextAnchor.MiddleCenter, Gold);
+            Place(header.rectTransform, Center, Center, new Vector2(0, -130), new Vector2(900, 46));
+            // Ô 0-1 hàng trước, 2-3 hàng giữa, 4 hàng sau (BattleFormation): nhãn nằm giữa nhóm của nó.
+            var positions = new[] { -480f, 160f, 640f };
+            var labels = new Text[3];
+            for (var i = 0; i < labels.Length; i++)
+            {
+                labels[i] = NewText($"PositionLabel{i}", box, font, "", 26, TextAnchor.MiddleCenter, Color.white);
+                Place(labels[i].rectTransform, Center, Center, new Vector2(positions[i], -170), new Vector2(400, 34));
+            }
+
+            var chips = new Image[5];
+            var chipTexts = new Text[5];
+            for (var i = 0; i < chips.Length; i++)
+            {
+                var chip = NewRect($"Chip{i}", box);
+                Place(chip, Center, Center, new Vector2(-640 + i * 320, -225), new Vector2(300, 70));
+                chips[i] = AddImage(chip, sprite, CardFrame, raycast: false);
+                chipTexts[i] = NewText("Text", chip, font, "-", 24, TextAnchor.MiddleCenter, Color.white);
+                Stretch(chipTexts[i].rectTransform);
+            }
+
+            var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
+            Place(message.rectTransform, Center, Center, new Vector2(0, -292), new Vector2(1200, 40));
+            var cancel = NewButton("CancelButton", box, sprite, font, "Hủy", CardFrame, Center, new Vector2(-220, -375), new Vector2(380, 100));
+            var start = NewButton("StartButton", box, sprite, font, "Vào trận", ButtonColor, Center, new Vector2(220, -375), new Vector2(380, 100));
+
+            var small = BuildConfirm(root, sprite, font, "SmallConfirm", "Vào trận", "Không", out var smallText, out var smallYes, out var smallNo);
+            var staff = BuildConfirm(root, sprite, font, "StaffConfirm", "Chuyển", "Không", out var staffText, out var staffYes, out var staffNo);
+            root.gameObject.SetActive(false);
+
+            var popup = holder.gameObject.AddComponent<TeamSelectPopup>();
+            var so = new SerializedObject(popup);
+            so.FindProperty("_root").objectReferenceValue = root.gameObject;
+            so.FindProperty("_title").objectReferenceValue = title;
+            SetRefs(so.FindProperty("_cards"), cards);
+            so.FindProperty("_prevButton").objectReferenceValue = prev;
+            so.FindProperty("_nextButton").objectReferenceValue = next;
+            so.FindProperty("_pageText").objectReferenceValue = page;
+            so.FindProperty("_teamHeader").objectReferenceValue = header;
+            SetRefs(so.FindProperty("_positionLabels"), labels);
+            SetRefs(so.FindProperty("_chips"), chips);
+            SetRefs(so.FindProperty("_chipTexts"), chipTexts);
+            so.FindProperty("_messageText").objectReferenceValue = message;
+            so.FindProperty("_cancelButton").objectReferenceValue = cancel;
+            so.FindProperty("_startButton").objectReferenceValue = start;
+            so.FindProperty("_smallConfirmRoot").objectReferenceValue = small.gameObject;
+            so.FindProperty("_smallConfirmText").objectReferenceValue = smallText;
+            so.FindProperty("_smallYesButton").objectReferenceValue = smallYes;
+            so.FindProperty("_smallNoButton").objectReferenceValue = smallNo;
+            so.FindProperty("_staffConfirmRoot").objectReferenceValue = staff.gameObject;
+            so.FindProperty("_staffConfirmText").objectReferenceValue = staffText;
+            so.FindProperty("_staffYesButton").objectReferenceValue = staffYes;
+            so.FindProperty("_staffNoButton").objectReferenceValue = staffNo;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return popup;
+        }
+
+        // Thẻ 380×130 ở lưới 4 cột (x -600..600) × 3 hàng (y 300, 160, 20): chân dung vuông bên trái, ba dòng chữ bên phải.
+        private static TeamCardView BuildTeamCard(RectTransform box, int index, Sprite sprite, Font font)
+        {
+            var root = NewRect($"TeamCard{index}", box);
+            Place(root, Center, Center, new Vector2(-600 + index % 4 * 400, 300 - index / 4 * 140), new Vector2(380, 130));
+            var frame = AddImage(root, sprite, CardFrame, raycast: true);
+            var button = root.gameObject.AddComponent<Button>();
+            button.targetGraphic = frame;
+
+            var body = NewRect("Body", root);
+            Stretch(body, 5);
+            AddImage(body, sprite, CardColor, raycast: false);
+            var portraitRect = NewRect("Portrait", root);
+            Place(portraitRect, Center, Center, new Vector2(-135, 0), new Vector2(96, 96));
+            var portrait = AddImage(portraitRect, null, Color.white, raycast: false);
+
+            var name = NewText("Name", root, font, "", 30, TextAnchor.MiddleLeft, Color.white);
+            name.fontStyle = FontStyle.Bold;
+            Place(name.rectTransform, Center, Center, new Vector2(55, 36), new Vector2(260, 36));
+            var info = NewText("Info", root, font, "", 22, TextAnchor.MiddleLeft, Color.white);
+            Place(info.rectTransform, Center, Center, new Vector2(55, 0), new Vector2(260, 32));
+            var tag = NewText("Tag", root, font, "", 24, TextAnchor.MiddleLeft, Gold);
+            Place(tag.rectTransform, Center, Center, new Vector2(55, -34), new Vector2(260, 32));
+
+            var view = root.gameObject.AddComponent<TeamCardView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_button").objectReferenceValue = button;
+            so.FindProperty("_frame").objectReferenceValue = frame;
+            so.FindProperty("_portrait").objectReferenceValue = portrait;
+            so.FindProperty("_name").objectReferenceValue = name;
+            so.FindProperty("_info").objectReferenceValue = info;
+            so.FindProperty("_tag").objectReferenceValue = tag;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            root.gameObject.SetActive(false);
+            return view;
+        }
+
+        // Hộp xác nhận Có/Không nằm trong nền popup, có nền tối riêng chặn chạm; tắt sẵn.
+        private static RectTransform BuildConfirm(RectTransform parent, Sprite sprite, Font font, string name, string yesLabel, string noLabel,
+            out Text text, out Button yes, out Button no)
+        {
+            var confirm = NewRect(name + "Root", parent);
+            Stretch(confirm);
+            AddImage(confirm, null, new Color(0f, 0f, 0f, 0.5f), raycast: true);
+            var box = NewRect(name + "Box", confirm);
+            Place(box, Center, Center, Vector2.zero, new Vector2(900, 380));
+            AddImage(box, sprite, CardFrame, raycast: false);
+            text = NewText(name + "Text", box, font, "", 42, TextAnchor.MiddleCenter, Color.white);
+            Place(text.rectTransform, Center, Center, new Vector2(0, 70), new Vector2(820, 170));
+            yes = NewButton(name + "YesButton", box, sprite, font, yesLabel, ButtonColor, Center, new Vector2(-190, -100), new Vector2(340, 110));
+            no = NewButton(name + "NoButton", box, sprite, font, noLabel, new Color(0.45f, 0.47f, 0.55f), Center, new Vector2(190, -100), new Vector2(340, 110));
+            confirm.gameObject.SetActive(false);
+            return confirm;
         }
 
         private static Text Line(RectTransform parent, Font font, string name, int size, Color color, float y, float width)

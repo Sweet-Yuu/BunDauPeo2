@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace BunDauPeo.UI
 {
     // Thông tin một màn Battle: các đợt quái (ô vuông, boss lớn hơn), thưởng, thể lực trước/sau và cảnh báo không hoàn.
-    // Không tự vào trận: bấm Thách đấu thì bắn Challenge, người nghe (bản đồ hoặc popup chọn đội) gọi EnterStage.
+    // Không tự vào trận: bấm Thách đấu thì bắn Challenge, bản đồ mở popup chọn đội.
     public class StageInfoPopup : MonoBehaviour
     {
         public const int WaveRows = 4, CellsPerRow = WaveDefinition.MaxEnemies;
@@ -30,9 +30,6 @@ namespace BunDauPeo.UI
 
         private CombatService _service;
         private StageDefinition _stage;
-        private string _message = "";
-        // Đã bấm Thách đấu và chưa có kết quả: giữ nút tắt qua các lần Refresh (chống bấm đôi).
-        private bool _busy;
 
         public event Action<StageDefinition> Challenge;
 
@@ -44,8 +41,6 @@ namespace BunDauPeo.UI
 
             _service = service;
             _stage = stage;
-            _message = "";
-            _busy = false;
             _title.text = stage.DisplayName;
             // shortcut: bốn hàng đợt; màn nhiều đợt hơn chỉ hiện bốn đợt đầu, nới WaveRows nếu có màn dài hơn.
             for (var row = 0; row < WaveRows; row++)
@@ -73,14 +68,6 @@ namespace BunDauPeo.UI
         {
             _stage = null;
             if (_root != null) _root.SetActive(false);
-        }
-
-        // Lý do vào trận thất bại; bật lại nút nếu vẫn đủ thể lực.
-        public void ShowMessage(string text)
-        {
-            _message = text ?? "";
-            _busy = false;
-            Refresh();
         }
 
         private void OnEnable()
@@ -128,23 +115,15 @@ namespace BunDauPeo.UI
             _warningText.text = CombatViewText.EnterWarning(cost);
 
             var affordable = stamina.CanAfford(cost);
-            _challengeButton.interactable = affordable && !_busy;
-            if (_message.Length > 0)
-                _messageText.text = _message;
-            else
-                _messageText.text = affordable
-                    ? ""
-                    : CombatViewText.WaitLine(CombatViewText.SecondsUntilAffordable(current, cost, stamina.SecondsToNext, _service.Config.StaminaRegenSeconds));
+            _challengeButton.interactable = affordable;
+            _messageText.text = affordable
+                ? ""
+                : CombatViewText.WaitLine(CombatViewText.SecondsUntilAffordable(current, cost, stamina.SecondsToNext, _service.Config.StaminaRegenSeconds));
         }
 
-        // Tắt nút ngay (chống bấm đôi) trước khi người nghe gọi EnterStage; ShowMessage bật lại nếu vào trận thất bại.
         private void OnChallengeClicked()
         {
-            if (_stage == null) return;
-
-            _busy = true;
-            _challengeButton.interactable = false;
-            Challenge?.Invoke(_stage);
+            if (_stage != null) Challenge?.Invoke(_stage);
         }
     }
 }

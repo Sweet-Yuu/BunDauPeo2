@@ -90,15 +90,8 @@ namespace BunDauPeo.EditorTools
             // Popup tạm dừng dựng sau thanh trên nên chặn chạm xuống nó; banner kết thúc vẫn nằm trên.
             var pause = BuildPausePopup(canvas, sprite, font);
 
-            // Banner tạm thắng/thua dựng sau cùng nên vẽ trên mọi thứ (và chặn chạm xuống dưới).
-            var end = NewRect("EndRoot", canvas);
-            Stretch(end);
-            AddImage(end, null, new Color(0f, 0f, 0f, 0.6f), raycast: true);
-            var endText = NewText("EndText", end, font, "", 140, TextAnchor.MiddleCenter, Gold);
-            endText.fontStyle = FontStyle.Bold;
-            Place(endText.rectTransform, Center, Center, new Vector2(0, 80), new Vector2(1200, 200));
-            var endButton = NewButton("EndButton", end, sprite, font, "Về", ButtonColor, Center, new Vector2(0, -80), new Vector2(300, 100));
-            end.gameObject.SetActive(false);
+            // Màn kết quả dựng sau cùng nên vẽ trên mọi thứ (và chặn chạm xuống dưới).
+            var result = BuildResultView(canvas, sprite, font);
 
             var viewObject = NewRect("BattleView", canvas);
             var view = viewObject.gameObject.AddComponent<BattleView>();
@@ -110,9 +103,7 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_emptyBackButton").objectReferenceValue = emptyBack;
             so.FindProperty("_panel").objectReferenceValue = panel;
             SetRefs(so.FindProperty("_cards"), cards);
-            so.FindProperty("_endRoot").objectReferenceValue = end.gameObject;
-            so.FindProperty("_endText").objectReferenceValue = endText;
-            so.FindProperty("_endButton").objectReferenceValue = endButton;
+            so.FindProperty("_result").objectReferenceValue = result;
             so.FindProperty("_topBar").objectReferenceValue = topBar.gameObject;
             so.FindProperty("_waveText").objectReferenceValue = waveText;
             SetRefs(so.FindProperty("_turnCells"), turnCells);
@@ -366,6 +357,49 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_confirmNoButton").objectReferenceValue = no;
             so.ApplyModifiedPropertiesWithoutUndo();
             return popup;
+        }
+
+        // Nền tối chặn chạm; chữ giữa màn: banner CLEAR/Thất bại, thưởng hoặc gợi ý, thể lực, cảnh báo lưu, lý do Thử lại; nút Xác nhận
+        // (thắng) hoặc Thử lại và Về bản đồ (thua) chung một hàng, view bật tắt theo kết quả.
+        private static BattleResultView BuildResultView(RectTransform canvas, Sprite sprite, Font font)
+        {
+            var holder = NewRect("BattleResultView", canvas);
+            Stretch(holder);
+            var root = NewRect("ResultRoot", holder);
+            Stretch(root);
+            // Đậm hơn nền popup khác: chữ kết quả nằm đè lên quái và người phe ta phía sau.
+            AddImage(root, null, new Color(0f, 0f, 0f, 0.85f), raycast: true);
+
+            var banner = NewText("Banner", root, font, "", 140, TextAnchor.MiddleCenter, Gold);
+            banner.fontStyle = FontStyle.Bold;
+            Place(banner.rectTransform, Center, Center, new Vector2(0, 280), new Vector2(1200, 200));
+            var reward = NewText("RewardText", root, font, "", 52, TextAnchor.MiddleCenter, Color.white);
+            Place(reward.rectTransform, Center, Center, new Vector2(0, 120), new Vector2(1400, 80));
+            var stamina = NewText("StaminaText", root, font, "", 44, TextAnchor.MiddleCenter, Color.white);
+            Place(stamina.rectTransform, Center, Center, new Vector2(0, 40), new Vector2(1400, 70));
+            var warning = NewText("WarningText", root, font, "", 32, TextAnchor.MiddleCenter, new Color(1f, 0.55f, 0.45f));
+            Place(warning.rectTransform, Center, Center, new Vector2(0, -30), new Vector2(1400, 50));
+            var message = NewText("MessageText", root, font, "", 36, TextAnchor.MiddleCenter, new Color(1f, 0.65f, 0.45f));
+            Place(message.rectTransform, Center, Center, new Vector2(0, -95), new Vector2(1400, 50));
+
+            var confirm = NewButton("ConfirmButton", root, sprite, font, "Xác nhận", ButtonColor, Center, new Vector2(0, -230), new Vector2(380, 110));
+            var retry = NewButton("RetryButton", root, sprite, font, "Thử lại", ButtonColor, Center, new Vector2(-220, -230), new Vector2(380, 110));
+            var back = NewButton("BackButton", root, sprite, font, "Về bản đồ", CardFrame, Center, new Vector2(220, -230), new Vector2(380, 110));
+            root.gameObject.SetActive(false);
+
+            var view = holder.gameObject.AddComponent<BattleResultView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_root").objectReferenceValue = root.gameObject;
+            so.FindProperty("_banner").objectReferenceValue = banner;
+            so.FindProperty("_rewardText").objectReferenceValue = reward;
+            so.FindProperty("_staminaText").objectReferenceValue = stamina;
+            so.FindProperty("_warningText").objectReferenceValue = warning;
+            so.FindProperty("_messageText").objectReferenceValue = message;
+            so.FindProperty("_confirmButton").objectReferenceValue = confirm;
+            so.FindProperty("_retryButton").objectReferenceValue = retry;
+            so.FindProperty("_backButton").objectReferenceValue = back;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return view;
         }
 
         private static Button ActionButton(RectTransform parent, string name, string label, Sprite knob, Font font, Color color, float x)

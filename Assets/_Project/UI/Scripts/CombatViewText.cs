@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using UnityEngine;
@@ -86,6 +87,44 @@ namespace BunDauPeo.UI
             var sec = total % 60;
             return h > 0 ? $"{h}:{m:00}:{sec:00}" : $"{m}:{sec:00}";
         }
+
+        public static string ConfirmSmallTeam(int count) => $"Đội mới có {count} người, vào trận?";
+
+        public static string ConfirmFromStaff(string name, StaffRole role) =>
+            $"{name} đang làm {StaffPanelRows.RoleName(role)}, chuyển vào đội chiến đấu?";
+
+        public static string StaffTag(StaffRole role) => $"Quán: {StaffPanelRows.RoleName(role)}";
+
+        public static string ClassName(CharacterClass cls) => cls switch
+        {
+            CharacterClass.Tank => "Đỡ đòn",
+            CharacterClass.Fighter => "Đấu sĩ",
+            CharacterClass.Support => "Hỗ trợ",
+            CharacterClass.Marksman => "Xạ thủ",
+            CharacterClass.Mage => "Pháp sư",
+            _ => "",
+        };
+
+        public static string PositionName(BattlePosition position) => position switch
+        {
+            BattlePosition.Front => "Hàng trước",
+            BattlePosition.Mid => "Hàng giữa",
+            _ => "Hàng sau",
+        };
+
+        public static string TeamFull() => $"Đội đã đủ {Roster.MaxBattleTeamSize} người";
+
+        // Nhãn "Lần đầu" chỉ khi là lần đầu; thưởng đọc từ kết quả thật, không tính lại.
+        public static string ResultRewards(StageCompleteResult result) =>
+            result.FirstClear ? $"Lần đầu · {RewardLine(result.Rewards)}" : RewardLine(result.Rewards);
+
+        public static string StaminaUsed(int cost) => $"Thể lực đã dùng: {cost}";
+
+        public static string TrialLine() => "Trận thử, không có thưởng";
+
+        public static string FailHint() => "Thử vào đủ 5 người, hoặc đánh lại màn trước để lấy Gem";
+
+        public static string FailStamina(int cost) => $"Đã trừ {cost} thể lực khi vào, không hoàn";
 
         public static string EndBanner(BattleState state) => state switch
         {

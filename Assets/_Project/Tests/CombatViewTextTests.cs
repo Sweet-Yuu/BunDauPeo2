@@ -1,3 +1,4 @@
+using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.UI;
@@ -189,6 +190,68 @@ namespace BunDauPeo.Tests
             Assert.AreEqual("Chưa có nội dung cốt truyện", CombatViewText.StoryEmpty());
             Assert.AreEqual("Clear màn trước để mở", CombatViewText.LockedHint());
             Assert.AreEqual("Cấu hình trận lỗi", CombatViewText.InvalidConfigLine());
+        }
+
+        [Test]
+        public void ConfirmSmallTeam_ShowsCount()
+        {
+            Assert.AreEqual("Đội mới có 3 người, vào trận?", CombatViewText.ConfirmSmallTeam(3));
+            Assert.AreEqual("Đội mới có 1 người, vào trận?", CombatViewText.ConfirmSmallTeam(1));
+        }
+
+        [Test]
+        public void ConfirmFromStaff_NamesRole()
+        {
+            Assert.AreEqual("Nem Chua đang làm Đầu bếp, chuyển vào đội chiến đấu?", CombatViewText.ConfirmFromStaff("Nem Chua", StaffRole.Cook));
+            StringAssert.Contains("Thu ngân", CombatViewText.ConfirmFromStaff("x", StaffRole.Cashier));
+            StringAssert.Contains("Phục vụ", CombatViewText.ConfirmFromStaff("x", StaffRole.Server));
+        }
+
+        [Test]
+        public void StaffTag_AndClassName()
+        {
+            Assert.AreEqual("Quán: Đầu bếp", CombatViewText.StaffTag(StaffRole.Cook));
+            Assert.AreEqual("Quán: Thu ngân", CombatViewText.StaffTag(StaffRole.Cashier));
+            Assert.AreEqual("Đỡ đòn", CombatViewText.ClassName(CharacterClass.Tank));
+            Assert.AreEqual("Đấu sĩ", CombatViewText.ClassName(CharacterClass.Fighter));
+            Assert.AreEqual("Hỗ trợ", CombatViewText.ClassName(CharacterClass.Support));
+            Assert.AreEqual("Xạ thủ", CombatViewText.ClassName(CharacterClass.Marksman));
+            Assert.AreEqual("Pháp sư", CombatViewText.ClassName(CharacterClass.Mage));
+            Assert.AreEqual("", CombatViewText.ClassName(CharacterClass.Unset));
+            Assert.AreEqual("Hàng trước", CombatViewText.PositionName(BattlePosition.Front));
+            Assert.AreEqual("Hàng giữa", CombatViewText.PositionName(BattlePosition.Mid));
+            Assert.AreEqual("Hàng sau", CombatViewText.PositionName(BattlePosition.Back));
+            Assert.AreEqual("Đội đã đủ 5 người", CombatViewText.TeamFull());
+        }
+
+        [Test]
+        public void ResultRewards_FirstClearTagOnlyOnFirst()
+        {
+            var rig = new CombatRig(new[] { CombatTestData.Stage("b1", new[] { CombatTestData.Enemy(hp: 1) }) });
+
+            var first = rig.Progress.CompleteBattle(CombatTestData.PaidWin(rig.Service, "b1"));
+            var repeat = rig.Progress.CompleteBattle(CombatTestData.PaidWin(rig.Service, "b1"));
+
+            Assert.AreEqual("Lần đầu · 30 Material · 150 Gem", CombatViewText.ResultRewards(first));
+            Assert.AreEqual("30 Material · 30 Gem", CombatViewText.ResultRewards(repeat), "no label when it is not the first clear");
+        }
+
+        [Test]
+        public void StaminaUsed_Text()
+        {
+            Assert.AreEqual("Thể lực đã dùng: 10", CombatViewText.StaminaUsed(10));
+            Assert.AreEqual("Thể lực đã dùng: 25", CombatViewText.StaminaUsed(25));
+        }
+
+        [Test]
+        public void TrialAndFailLines_Text()
+        {
+            Assert.AreEqual("Trận thử, không có thưởng", CombatViewText.TrialLine());
+            Assert.AreEqual("Thử vào đủ 5 người, hoặc đánh lại màn trước để lấy Gem", CombatViewText.FailHint());
+            Assert.AreEqual("Đã trừ 10 thể lực khi vào, không hoàn", CombatViewText.FailStamina(10));
+            StringAssert.Contains("10", CombatViewText.FailStamina(10));
+            StringAssert.Contains("không hoàn", CombatViewText.FailStamina(10));
+            StringAssert.Contains("25", CombatViewText.FailStamina(25));
         }
     }
 }

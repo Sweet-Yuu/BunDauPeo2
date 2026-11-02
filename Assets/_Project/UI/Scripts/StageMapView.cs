@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using UnityEngine;
@@ -28,12 +29,14 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _invalidText;
         [SerializeField] private StageInfoPopup _info;
         [SerializeField] private StoryPlaceholderPopup _story;
+        [SerializeField] private TeamSelectPopup _team;
 
         private readonly List<StageNodeView> _nodes = new();
         private readonly List<Image> _links = new();
 
         private CombatService _service;
         private Wallet _wallet;
+        private Roster _roster;
         private bool _ready;
         private bool _built;
         private bool _dirty = true;
@@ -66,12 +69,14 @@ namespace BunDauPeo.UI
             {
                 _service = ServiceLocator.Get<CombatService>();
                 _wallet = ServiceLocator.Get<Wallet>();
+                _roster = ServiceLocator.Get<Roster>();
             }
             catch (InvalidOperationException)
             {
                 // Mở không qua Boot: không có dịch vụ thì chỉ hiện dòng cấu hình lỗi.
                 _service = null;
                 _wallet = null;
+                _roster = null;
             }
 
             _backButton.onClick.AddListener(Back);
@@ -96,7 +101,7 @@ namespace BunDauPeo.UI
         {
             var ok = _backButton != null && _staminaText != null && _materialText != null && _gemText != null && _nodesRoot != null
                      && _nodeTemplate != null && _linkTemplate != null && _nextMarker != null && _hintText != null && _invalidText != null
-                     && _info != null && _story != null;
+                     && _info != null && _story != null && _team != null;
             if (!ok) Debug.LogError($"{nameof(StageMapView)}: references are not assigned.", this);
             return ok;
         }
@@ -203,17 +208,11 @@ namespace BunDauPeo.UI
             }
         }
 
-        // Thách đấu: EnterStage một lần (kiểm, trừ thể lực, lưu); chỉ Entered mới nạp Battle.
+        // Thách đấu mở popup chọn đội; chỉ nó gọi EnterStage (kiểm, trừ thể lực, lưu), khi người chơi bấm Vào trận.
         private void OnChallenge(StageDefinition stage)
         {
-            var result = _service.EnterStage(stage.Id);
-            if (result.Status == EnterStageStatus.Entered)
-            {
-                SceneManager.LoadScene(BattleView.BattleScene);
-                return;
-            }
-
-            _info.ShowMessage(CombatViewText.EnterFailedLine(result.Status));
+            _info.Close();
+            _team.Open(_service, _roster, stage);
         }
     }
 }

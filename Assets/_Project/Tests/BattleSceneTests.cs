@@ -99,6 +99,19 @@ namespace BunDauPeo.Tests
             });
 
         [Test]
+        public void BattleScene_ResultViewWired_StartsClosed() =>
+            WithBattleScene(scene =>
+            {
+                var result = RestaurantSceneTests.All<BattleResultView>(scene).Single();
+                RestaurantSceneTests.AssertAllReferencesAssigned(result);
+                var root = (GameObject)new SerializedObject(result).FindProperty("_root").objectReferenceValue;
+                Assert.IsFalse(root.activeSelf, "the result screen appears only when the battle ends");
+                Assert.IsTrue(root.GetComponent<Image>().raycastTarget, "must block clicks behind it");
+                Assert.IsTrue(result.gameObject.activeSelf);
+                Assert.AreSame(result, new SerializedObject(RestaurantSceneTests.All<BattleView>(scene).Single()).FindProperty("_result").objectReferenceValue);
+            });
+
+        [Test]
         public void BattleScene_InBuildSettings_AfterRestaurant()
         {
             var scenes = EditorBuildSettings.scenes;
