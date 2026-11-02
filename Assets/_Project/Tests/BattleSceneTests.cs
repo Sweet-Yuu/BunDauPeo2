@@ -102,10 +102,11 @@ namespace BunDauPeo.Tests
         public void BattleScene_InBuildSettings_AfterRestaurant()
         {
             var scenes = EditorBuildSettings.scenes;
-            Assert.GreaterOrEqual(scenes.Length, 4);
+            Assert.GreaterOrEqual(scenes.Length, 5);
             Assert.AreEqual(ProjectSetup.RestaurantScenePath, scenes[2].path);
-            Assert.AreEqual(ProjectSetup.BattleScenePath, scenes[3].path);
-            Assert.IsTrue(scenes[3].enabled);
+            Assert.AreEqual(ProjectSetup.StageSelectScenePath, scenes[3].path, "the map sits between the restaurant and the battle");
+            Assert.AreEqual(ProjectSetup.BattleScenePath, scenes[4].path);
+            Assert.IsTrue(scenes[4].enabled);
         }
 
         [Test]

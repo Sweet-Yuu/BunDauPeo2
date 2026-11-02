@@ -20,7 +20,7 @@ namespace BunDauPeo.UI
         public const long MaterialGrant = 50;
         public const int AfkRewindHours = 1;
 
-        public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.BattleScene };
+        public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.StageSelectScene, BattleView.BattleScene };
 
         private static GameObject _root;
         // Màn mà nút "Chiến đấu thử" dùng; nút "Màn thử" xoay vòng nó.
@@ -64,7 +64,7 @@ namespace BunDauPeo.UI
 
             _trialStageId = NextBattleStageId(combat.Config.Stages, null);
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(1688, 76));
+            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(1856, 76));
             var stripImage = strip.gameObject.AddComponent<Image>();
             stripImage.color = new Color(0f, 0f, 0f, 0.6f);
             stripImage.raycastTarget = false;
@@ -82,6 +82,7 @@ namespace BunDauPeo.UI
                 stageLabel.text = StageLabel(combat);
             });
             AddButton(strip, font, "Hồi đầy thể lực", new Vector2(1422, 8), 250, combat.Stamina.Refill);
+            AddButton(strip, font, "Màn chơi", new Vector2(1680, 8), 168, () => SceneManager.LoadScene(BattleView.StageSelectScene));
         }
 
         // Đội trống thì thêm tối đa một đội đầy từ người đã sở hữu, theo thứ tự sở hữu; trả số người thêm.

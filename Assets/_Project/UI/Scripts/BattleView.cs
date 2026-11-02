@@ -161,13 +161,13 @@ namespace BunDauPeo.UI
             return true;
         }
 
-        private static void Back() => SceneManager.LoadScene(RestaurantScene);
+        private static void Back() => SceneManager.LoadScene(StageSelectScene);
 
-        // Banner tạm: về Quán (Task kết quả đổi sang bản đồ màn).
+        // Banner tạm: về bản đồ màn (Task kết quả thay bằng BattleResultView).
         private void OnEndClicked()
         {
             _service?.EndBattle();
-            SceneManager.LoadScene(RestaurantScene);
+            SceneManager.LoadScene(StageSelectScene);
         }
 
         private void OnMenuClicked()
