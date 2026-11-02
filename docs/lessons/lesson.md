@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-017 — Message commit nhiều dòng có dấu ngoặc kép bị PowerShell 5.1 cắt thành pathspec (2026-11-02)  #git #process
+- Triệu chứng: `git commit -m @'...'@` báo `pathspec 'in' did not match any file(s)`, không commit gì; message có `"not in scope"`.
+- Nguyên nhân gốc: Windows PowerShell 5.1 truyền chuỗi chứa `"` cho chương trình ngoài mà không escape, nên git nhận phần sau dấu ngoặc là đối số riêng.
+- Luật từ nay: message commit nhiều dòng thì ghi ra file trong scratchpad và dùng `git commit -F <file>`; chỉ dùng `-m @'...'@` khi message không có `"`.
+
 ### L-016 — `Validate()` thiếu một field thì config xấu hoặc làm NaN, hoặc làm Boot ném lỗi (2026-11-02)  #script #process
 - Triệu chứng: review độc lập tìm ra `_dailyGoalSeconds = 0` qua `Validate` làm chất lượng NaN (Thu AFK mất Coin chờ), `_maxWaitingLine = 0` làm mọi khách bỏ về, và `_baseTables = -1` làm `RestaurantService` ném lỗi trong `Awake` dù `IsRunning` đã là false.
 - Nguyên nhân gốc: `Validate()` chỉ liệt kê field của những task đã nghĩ tới; code chạy tiếp sau khi báo lỗi cấu hình (`RebuildProfile`) vẫn dùng giá trị xấu.
