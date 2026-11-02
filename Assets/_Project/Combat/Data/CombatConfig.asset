@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e7a191f092bad64cae9ecff84c8fea5, type: 3}
+  m_Name: CombatConfig
+  m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.CombatConfig
+  _frontWeight: 3
+  _midWeight: 2
+  _backWeight: 1
+  _maxEnergy: 100
+  _energyOnBasic: 25
+  _energyOnSkill: 10
+  _energyOnHit: 15
+  _maxRounds: 60
+  _autoHealBelow: 0.7
+  _maxStamina: 60
+  _staminaRegenSeconds: 300
+  _stages: {fileID: 11400000, guid: 4131d149ee8acf9448bdcf0edda5e805, type: 2}

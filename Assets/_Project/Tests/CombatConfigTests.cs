@@ -95,6 +95,46 @@ namespace BunDauPeo.Tests
             Assert.That(Validate(so => so.FindProperty("_maxStamina").intValue = 1), Has.None.StartsWith("MaxStamina"));
         }
 
+        [Test]
+        public void Validate_MissingStages_Reported() =>
+            Assert.That(Validate(so => so.FindProperty("_stages").objectReferenceValue = null), Has.Some.StartsWith("Stages"));
+
+        [Test]
+        public void Validate_EmptyStages_Reported() =>
+            Assert.That(Validate(so => so.FindProperty("_stages").objectReferenceValue = CombatTestData.Catalog()),
+                Has.Some.StartsWith("Stages").And.Some.Contains("empty"));
+
+        [Test]
+        public void Validate_DuplicateStageId_Reported()
+        {
+            var catalog = CombatTestData.Catalog(
+                CombatTestData.Stage("dup", new[] { CombatTestData.Enemy() }),
+                CombatTestData.Stage("dup", new[] { CombatTestData.Enemy() }));
+            Assert.That(Validate(so => so.FindProperty("_stages").objectReferenceValue = catalog),
+                Has.Some.StartsWith("Stages").And.Some.Contains("duplicate"));
+        }
+
+        [Test]
+        public void Validate_BrokenStage_Reported()
+        {
+            var catalog = CombatTestData.Catalog(CombatTestData.Stage("bad", new[] { CombatTestData.Enemy(hp: 0) }));
+            Assert.That(Validate(so => so.FindProperty("_stages").objectReferenceValue = catalog),
+                Has.Some.StartsWith("Stages[0] (bad)"));
+        }
+
+        [Test]
+        public void Validate_StageCostAboveMaxStamina_Reported()
+        {
+            foreach (var (cost, reported) in new[] { (61, true), (60, false) })
+            {
+                var stage = CombatTestData.Stage("st", new[] { CombatTestData.Enemy() });
+                TestData.Edit(stage, so => so.FindProperty("_staminaCost").intValue = cost);
+                var errors = Validate(so => so.FindProperty("_stages").objectReferenceValue = CombatTestData.Catalog(stage));
+                if (reported) Assert.That(errors, Has.Some.StartsWith("Stages[0] (st): StaminaCost"), $"cost {cost}");
+                else Assert.That(errors, Has.None.Contains("StaminaCost"), $"cost {cost}");
+            }
+        }
+
         // 0 chia cho 0 ở StaminaService, nên phải bị chặn ở config (L-016).
         [Test]
         public void Validate_StaminaRegenNonPositive_Reported()

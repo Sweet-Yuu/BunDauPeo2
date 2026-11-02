@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02232abbeaa885f4387790bcf8f6e291, type: 3}
+  m_Name: Enemy_Fly
+  m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.EnemyDefinition
+  _displayName: "Ru\u1ED3i B\xE0n"
+  _stats:
+    HP: 500
+    Attack: 60
+    Defense: 30
+    Speed: 90
+  _basicAttack: {fileID: 11400000, guid: 7ca1717754f4c824189ba7e29d539c97, type: 2}
+  _skill: {fileID: 0}
+  _isBoss: 0

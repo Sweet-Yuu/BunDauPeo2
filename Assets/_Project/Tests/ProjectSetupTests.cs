@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
+using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.EditorTools;
 using BunDauPeo.Gacha;
@@ -376,6 +377,118 @@ namespace BunDauPeo.Tests
         {
             var so = new SerializedObject(config);
             so.FindProperty("_baseTables").intValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static CombatConfig SampleCombatConfig() =>
+            AssetDatabase.LoadAssetAtPath<CombatConfig>(ProjectSetup.CombatConfigPath);
+
+        private static EnemyDefinition SampleEnemy(string file) =>
+            AssetDatabase.LoadAssetAtPath<EnemyDefinition>($"Assets/_Project/Combat/Data/Enemies/{file}.asset");
+
+        [Test]
+        public void SampleCombatConfig_IsValid()
+        {
+            var config = SampleCombatConfig();
+            Assert.IsNotNull(config);
+            CollectionAssert.IsEmpty(config.Validate());
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<StageCatalog>(ProjectSetup.StageCatalogPath), config.Stages);
+            Assert.AreEqual(7, config.Stages.Items.Count);
+        }
+
+        [Test]
+        public void SampleStages_MatchSpecTable()
+        {
+            const string F = "Ruồi Bàn", R = "Chuột Bếp", G = "Gián Kho", K = "Chuột Chúa";
+            CurrencyAmount M(long n) => new CurrencyAmount(CurrencyType.Material, n);
+            CurrencyAmount Gem(long n) => new CurrencyAmount(CurrencyType.Gem, n);
+            // Viết thẳng theo spec Combat 3.5, theo đúng thứ tự nút.
+            var expected = new (string Id, StageKind Kind, string[][] Waves, int Cost, CurrencyAmount[] First, CurrencyAmount[] Repeat)[]
+            {
+                ("st_1_story1", StageKind.Story, new string[0][], 0, new CurrencyAmount[0], new CurrencyAmount[0]),
+                ("st_1_1", StageKind.Battle, new[] { new[] { F, F } }, 10, new[] { M(30), Gem(150) }, new[] { M(30), Gem(30) }),
+                ("st_1_2", StageKind.Battle, new[] { new[] { F, F }, new[] { F, F, F } }, 10, new[] { M(40), Gem(150) }, new[] { M(40), Gem(30) }),
+                ("st_1_story2", StageKind.Story, new string[0][], 0, new CurrencyAmount[0], new CurrencyAmount[0]),
+                ("st_1_3", StageKind.Battle, new[] { new[] { F, R }, new[] { R, R }, new[] { F, R, R } }, 10, new[] { M(50), Gem(200) }, new[] { M(50), Gem(40) }),
+                ("st_1_4", StageKind.Battle, new[] { new[] { R, R }, new[] { G, R }, new[] { G, G, R } }, 10, new[] { M(60), Gem(200) }, new[] { M(60), Gem(40) }),
+                ("st_1_5", StageKind.Battle, new[] { new[] { R, G }, new[] { G, G, R }, new[] { K } }, 15, new[] { M(100), Gem(500) }, new[] { M(100), Gem(100) }),
+            };
+
+            var items = SampleCombatConfig().Stages.Items;
+            Assert.AreEqual(expected.Length, items.Count);
+            for (var i = 0; i < expected.Length; i++)
+            {
+                var (id, kind, waves, cost, first, repeat) = expected[i];
+                var stage = items[i];
+                Assert.AreEqual(id, stage.Id, $"order {i}");
+                Assert.AreEqual(kind, stage.Kind, id);
+                Assert.AreEqual(cost, stage.StaminaCost, id);
+                Assert.AreEqual(waves.Length, stage.Waves.Count, $"{id} waves");
+                for (var w = 0; w < waves.Length; w++)
+                    CollectionAssert.AreEqual(waves[w], stage.Waves[w].Enemies.Select(e => e.DisplayName).ToArray(), $"{id} wave {w}");
+                CollectionAssert.AreEqual(first.Select(a => (a.Type, a.Amount)).ToArray(), stage.FirstClearReward.Select(a => (a.Type, a.Amount)).ToArray(), $"{id} first");
+                CollectionAssert.AreEqual(repeat.Select(a => (a.Type, a.Amount)).ToArray(), stage.RepeatReward.Select(a => (a.Type, a.Amount)).ToArray(), $"{id} repeat");
+            }
+        }
+
+        [Test]
+        public void SampleEnemies_MatchSpecTable()
+        {
+            // (file, name, hp, attack, defense, speed, boss, skill: Target, Power, Cooldown hoặc null)
+            var expected = new (string File, string Name, int Hp, int Atk, int Def, int Spd, bool Boss, (SkillTarget Target, float Power, int Cooldown)? Skill)[]
+            {
+                ("Enemy_Fly", "Ruồi Bàn", 500, 60, 30, 90, false, null),
+                ("Enemy_Rat", "Chuột Bếp", 900, 85, 45, 100, false, null),
+                ("Enemy_Roach", "Gián Kho", 1300, 110, 60, 85, false, (SkillTarget.SingleEnemy, 1.8f, 3)),
+                ("Enemy_RatKing", "Chuột Chúa", 7000, 135, 70, 105, true, (SkillTarget.AllEnemies, 1.0f, 3)),
+            };
+            var basic = AssetDatabase.LoadAssetAtPath<SkillDefinition>("Assets/_Project/Characters/Data/Skills/Skill_BasicStrike.asset");
+            foreach (var row in expected)
+            {
+                var e = SampleEnemy(row.File);
+                Assert.IsNotNull(e, row.File);
+                Assert.AreEqual(row.Name, e.DisplayName, row.File);
+                Assert.AreEqual((row.Hp, row.Atk, row.Def, row.Spd), (e.Stats.HP, e.Stats.Attack, e.Stats.Defense, e.Stats.Speed), row.File);
+                Assert.AreEqual(row.Boss, e.IsBoss, row.File);
+                Assert.AreSame(basic, e.BasicAttack, row.File);
+                if (row.Skill == null)
+                {
+                    Assert.IsNull(e.Skill, row.File);
+                    continue;
+                }
+
+                Assert.IsNotNull(e.Skill, row.File);
+                Assert.AreEqual(SkillKind.Skill, e.Skill.Kind, row.File);
+                Assert.AreEqual(SkillEffect.Damage, e.Skill.Effect, row.File);
+                Assert.AreEqual(row.Skill.Value.Target, e.Skill.Target, row.File);
+                Assert.AreEqual(row.Skill.Value.Power, e.Skill.Power, 0.0001f, row.File);
+                Assert.AreEqual(row.Skill.Value.Cooldown, e.Skill.Cooldown, row.File);
+            }
+        }
+
+        [Test]
+        public void Setup_RerunKeepsEditedCombatValues()
+        {
+            var config = SampleCombatConfig();
+            var original = config.MaxRounds;
+            SetMaxRounds(config, 61);
+            try
+            {
+                ProjectSetup.Run();
+                Assert.AreEqual(61, config.MaxRounds);
+            }
+            finally
+            {
+                SetMaxRounds(config, original);
+                EditorUtility.SetDirty(config);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetMaxRounds(CombatConfig config, int value)
+        {
+            var so = new SerializedObject(config);
+            so.FindProperty("_maxRounds").intValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

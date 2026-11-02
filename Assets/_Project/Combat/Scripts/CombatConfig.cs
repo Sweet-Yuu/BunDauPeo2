@@ -34,6 +34,10 @@ namespace BunDauPeo.Combat
         // Một điểm mỗi khoảng này; là mẫu số của StaminaService.
         [SerializeField] private int _staminaRegenSeconds = 300;
 
+        [Header("Màn")]
+        [SerializeField] private StageCatalog _stages;
+
+        public StageCatalog Stages => _stages;
         public float FrontWeight => _frontWeight;
         public float MidWeight => _midWeight;
         public float BackWeight => _backWeight;
@@ -75,7 +79,31 @@ namespace BunDauPeo.Combat
             if (_maxStamina < 1) errors.Add("MaxStamina: must be >= 1");
             if (_staminaRegenSeconds <= 0) errors.Add("StaminaRegenSeconds: must be > 0");
 
+            CheckStages(errors);
             return errors;
+        }
+
+        private void CheckStages(List<string> errors)
+        {
+            if (_stages == null)
+            {
+                errors.Add("Stages: missing catalog");
+                return;
+            }
+
+            if (_stages.Items.Count == 0) errors.Add("Stages: empty");
+            foreach (var error in _stages.Validate()) errors.Add($"Stages: {error}");
+
+            for (var i = 0; i < _stages.Items.Count; i++)
+            {
+                var stage = _stages.Items[i];
+                if (stage == null) continue;
+                var prefix = $"Stages[{i}] ({stage.Id})";
+                foreach (var error in stage.Validate()) errors.Add($"{prefix}: {error}");
+                // Màn mà thể lực tối đa không đủ trả thì không bao giờ vào được.
+                if (stage.Kind == StageKind.Battle && stage.StaminaCost > _maxStamina)
+                    errors.Add($"{prefix}: StaminaCost {stage.StaminaCost} is above MaxStamina {_maxStamina}");
+            }
         }
 
         private void OnValidate()
