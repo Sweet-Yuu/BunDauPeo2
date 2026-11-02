@@ -72,6 +72,8 @@ namespace BunDauPeo.UI
                 return;
             }
 
+            // Bị từ chối (khoá, lỗi): bật lại nút để thử lại sau khi đóng và mở lại hoặc khi trạng thái đổi.
+            if (result.Status != StageCompleteStatus.Success) _continueButton.interactable = true;
             // Đã mở nhưng chưa lưu được: giữ popup để người chơi đọc cảnh báo (bộ nhớ đã đổi, lần lưu sau sẽ ghi).
             _message.text = result.Status == StageCompleteStatus.Success
                 ? RestaurantViewText.SaveWarning(false)

@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- [ ] Combat: xong Task 1–15/15 (nhánh `feature/combat`, 688 test xanh), chờ review độc lập cuối nhánh và playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực), rồi mới hỏi PR. Lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
+- [ ] Combat: xong Task 1–15/15 (nhánh `feature/combat`, 692 test xanh, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh, lỗi đã sửa)), chờ review độc lập cuối nhánh và playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực), rồi mới hỏi PR. Lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
 
 ## Tiếp theo
 

@@ -424,6 +424,39 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void EnterStage_PersistThrows_RestoresStamina_NoSession_ExceptionPropagates()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            var trial = rig.Service.StartBattle("b1").Session;
+            CombatTestData.PlayToWin(trial);
+            _ = rig.Stamina.Current; // chốt phần hồi: từ đây số thô là số trước khi trừ
+            var rawBefore = (rig.Save.Stamina.Current, rig.Save.Stamina.AnchorUtcTicks);
+            rig.PersistThrows = true;
+
+            Assert.Throws<InvalidOperationException>(() => rig.Service.EnterStage("b1"));
+
+            Assert.AreEqual(1, rig.PersistCalls);
+            Assert.AreEqual(rawBefore, (rig.Save.Stamina.Current, rig.Save.Stamina.AnchorUtcTicks), "exact raw numbers restored");
+            Assert.AreSame(trial, rig.Service.Current, "no new session");
+            Assert.AreEqual(100, rig.Stamina.Current);
+        }
+
+        [Test]
+        public void EnterStage_BrokenStaminaConfig_InvalidConfig_NoThrow()
+        {
+            foreach (var field in new[] { "_staminaRegenSeconds", "_maxStamina" })
+            {
+                LogAssert.Expect(LogType.Error, new Regex("invalid config"));
+                CombatRig rig = null;
+                Assert.DoesNotThrow(() => rig = EnterRig(so => so.FindProperty(field).intValue = 0), $"{field} = 0");
+
+                Assert.IsFalse(rig.Service.IsRunning, $"{field} = 0");
+                Assert.AreEqual(EnterStageStatus.InvalidConfig, rig.Service.EnterStage("b1").Status, $"{field} = 0");
+                Assert.AreEqual(0, rig.PersistCalls, $"{field} = 0");
+            }
+        }
+
+        [Test]
         public void EnterStage_WhileBattleInProgress_Rejected_NoSecondCharge()
         {
             var rig = new CombatRig(new[] { CombatTestData.Stage("b1", new[] { CombatTestData.Enemy(hp: 100000) }) });

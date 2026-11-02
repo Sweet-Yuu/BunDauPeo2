@@ -59,6 +59,21 @@ namespace BunDauPeo.UI
             _ => "Không vào được màn này",
         };
 
+        // Tên các lý do từ chối của CanEnter trùng tên ở EnterStageStatus; viết rõ từng nhánh để đổi tên một enum thì lỗi biên dịch.
+        public static string EnterFailedLine(StageEnterStatus status) => EnterFailedLine(status switch
+        {
+            StageEnterStatus.Locked => EnterStageStatus.Locked,
+            StageEnterStatus.EmptyTeam => EnterStageStatus.EmptyTeam,
+            StageEnterStatus.NotEnoughStamina => EnterStageStatus.NotEnoughStamina,
+            StageEnterStatus.Invalid => EnterStageStatus.Invalid,
+            StageEnterStatus.WrongKind => EnterStageStatus.WrongKind,
+            _ => EnterStageStatus.Unknown,
+        });
+
+        // Chỉ trận chưa trả thể lực (NotPaid, từ dải DEV) là "trận thử"; trận đã trả mà không nhận được thưởng thì báo thẳng.
+        public static string NoRewardLine(StageCompleteStatus status) =>
+            status == StageCompleteStatus.NotPaid ? TrialLine() : "Chưa nhận được thưởng";
+
         // Số giây tới khi đủ `cost`: phần hồi đang chạy dở, rồi các lần hồi tròn còn lại.
         public static double SecondsUntilAffordable(int current, int cost, double secondsToNext, int regenSeconds) =>
             current >= cost ? 0d : secondsToNext + (cost - current - 1) * (double)regenSeconds;

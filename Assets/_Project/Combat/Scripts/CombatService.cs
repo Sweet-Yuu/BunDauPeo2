@@ -97,19 +97,13 @@ namespace BunDauPeo.Combat
                 return new EnterStageResult(EnterStageStatus.BattleInProgress);
 
             var team = _roster.GetBattleTeam();
-            switch (Progress.CanEnter(stageId, team.Count))
-            {
-                case StageEnterStatus.Unknown: return new EnterStageResult(EnterStageStatus.Unknown);
-                case StageEnterStatus.Invalid: return new EnterStageResult(EnterStageStatus.Invalid);
-                case StageEnterStatus.WrongKind: return new EnterStageResult(EnterStageStatus.WrongKind);
-                case StageEnterStatus.Locked: return new EnterStageResult(EnterStageStatus.Locked);
-                case StageEnterStatus.EmptyTeam: return new EnterStageResult(EnterStageStatus.EmptyTeam);
-                case StageEnterStatus.NotEnoughStamina: return new EnterStageResult(EnterStageStatus.NotEnoughStamina);
-            }
+            var can = Progress.CanEnter(stageId, team.Count);
+            if (can != StageEnterStatus.Ready) return new EnterStageResult(RejectionOf(can));
 
             if (team.Any(c => !IsBattleReady(c))) return new EnterStageResult(EnterStageStatus.InvalidCharacter);
 
-            Config.Stages.TryGet(stageId, out var stage);
+            // CanEnter vừa tra được màn này; nếu hai danh mục lệch nhau thì dừng trước bước trừ.
+            if (!Config.Stages.TryGet(stageId, out var stage)) return new EnterStageResult(EnterStageStatus.Unknown);
             var session = new BattleSession(team, stage, Config, _random);
             switch (Stamina.TrySpend(stage.StaminaCost, _persist))
             {
@@ -121,6 +115,17 @@ namespace BunDauPeo.Combat
             Current = session;
             return new EnterStageResult(EnterStageStatus.Entered, session, stage.StaminaCost, true);
         }
+
+        // Trạng thái nào CanEnter thêm về sau mà chưa ánh xạ thì bị từ chối (Unknown), không rơi xuống bước trừ thể lực.
+        private static EnterStageStatus RejectionOf(StageEnterStatus status) => status switch
+        {
+            StageEnterStatus.Invalid => EnterStageStatus.Invalid,
+            StageEnterStatus.WrongKind => EnterStageStatus.WrongKind,
+            StageEnterStatus.Locked => EnterStageStatus.Locked,
+            StageEnterStatus.EmptyTeam => EnterStageStatus.EmptyTeam,
+            StageEnterStatus.NotEnoughStamina => EnterStageStatus.NotEnoughStamina,
+            _ => EnterStageStatus.Unknown,
+        };
 
         public void EndBattle() => Current = null;
 

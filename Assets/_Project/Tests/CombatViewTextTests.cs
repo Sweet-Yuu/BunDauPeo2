@@ -237,6 +237,30 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void NoRewardLine_TrialOnlyForNotPaid()
+        {
+            Assert.AreEqual(CombatViewText.TrialLine(), CombatViewText.NoRewardLine(StageCompleteStatus.NotPaid));
+            foreach (StageCompleteStatus status in System.Enum.GetValues(typeof(StageCompleteStatus)))
+            {
+                if (status == StageCompleteStatus.Success || status == StageCompleteStatus.NotPaid) continue;
+                var line = CombatViewText.NoRewardLine(status);
+                Assert.IsNotEmpty(line, $"status = {status}");
+                Assert.AreNotEqual(CombatViewText.TrialLine(), line, $"status = {status}: a paid battle is not a trial");
+            }
+        }
+
+        [Test]
+        public void EnterFailedLine_ForCanEnterStatus_MatchesEnterStageStatus()
+        {
+            foreach (StageEnterStatus status in System.Enum.GetValues(typeof(StageEnterStatus)))
+            {
+                if (status == StageEnterStatus.Ready) continue;
+                var expected = (EnterStageStatus)System.Enum.Parse(typeof(EnterStageStatus), status.ToString());
+                Assert.AreEqual(CombatViewText.EnterFailedLine(expected), CombatViewText.EnterFailedLine(status), $"status = {status}");
+            }
+        }
+
+        [Test]
         public void StaminaUsed_Text()
         {
             Assert.AreEqual("Thể lực đã dùng: 10", CombatViewText.StaminaUsed(10));

@@ -67,9 +67,9 @@ namespace BunDauPeo.UI
                 }
                 else
                 {
-                    // Chỉ gặp ở trận vào thẳng từ dải DEV (NotPaid): vẫn CLEAR nhưng không thưởng.
-                    _rewardText.text = CombatViewText.TrialLine();
-                    _staminaText.text = "";
+                    // NotPaid (trận vào thẳng từ dải DEV): vẫn CLEAR, ghi "trận thử". Trận đã trả mà không nhận được thưởng vẫn hiện thể lực đã dùng.
+                    _rewardText.text = CombatViewText.NoRewardLine(result.Status);
+                    _staminaText.text = session.EntryPaid ? CombatViewText.StaminaUsed(session.Stage.StaminaCost) : "";
                 }
             }
             else
@@ -154,8 +154,7 @@ namespace BunDauPeo.UI
             }
             else
             {
-                // Tên các lý do từ chối của CanEnter trùng tên ở EnterStageStatus.
-                _messageText.text = CombatViewText.EnterFailedLine((EnterStageStatus)Enum.Parse(typeof(EnterStageStatus), status.ToString()));
+                _messageText.text = CombatViewText.EnterFailedLine(status);
             }
         }
 
@@ -169,13 +168,27 @@ namespace BunDauPeo.UI
             var stageId = _shown.Stage.Id;
             if (_shown.EntryPaid)
             {
-                var result = _service.EnterStage(stageId);
+                EnterStageResult result;
+                try
+                {
+                    result = _service.EnterStage(stageId);
+                }
+                catch
+                {
+                    // Lưu ném lỗi: thể lực đã được hoàn, bật lại nút rồi để lỗi nổi lên.
+                    _busy = false;
+                    _retryButton.interactable = true;
+                    throw;
+                }
+
                 if (result.Status == EnterStageStatus.Entered) return;
 
                 _busy = false;
                 _retryError = CombatViewText.EnterFailedLine(result.Status);
                 _messageText.text = _retryError;
             }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Trận chưa trả thể lực chỉ đến từ dải DEV, nên đường vào miễn phí này cũng chỉ có ở bản DEV.
             else
             {
                 var result = _service.StartBattle(stageId);
@@ -186,6 +199,7 @@ namespace BunDauPeo.UI
                 _retryError = CombatViewText.EnterFailedLine(EnterStageStatus.Unknown);
                 _messageText.text = _retryError;
             }
+#endif
         }
     }
 }

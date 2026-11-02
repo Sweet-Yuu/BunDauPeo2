@@ -538,6 +538,9 @@ namespace BunDauPeo.Tests
         {
             var config = SampleCombatConfig();
             var boss = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/_Project/Combat/Data/Stages/st_1_5.asset");
+            // Trả đúng số đang có (người chơi có thể đã chỉnh cân bằng), không phải số mặc định.
+            var originalMax = config.MaxStamina;
+            var originalCost = boss.StaminaCost;
             try
             {
                 SetInt(config, "_maxStamina", 60);
@@ -552,8 +555,8 @@ namespace BunDauPeo.Tests
             }
             finally
             {
-                SetInt(config, "_maxStamina", 100);
-                SetInt(boss, "_staminaCost", 10);
+                SetInt(config, "_maxStamina", originalMax);
+                SetInt(boss, "_staminaCost", originalCost);
                 AssetDatabase.SaveAssets();
             }
         }

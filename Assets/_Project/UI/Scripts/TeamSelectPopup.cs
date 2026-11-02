@@ -246,7 +246,19 @@ namespace BunDauPeo.UI
 
             _busy = true;
             Refresh();
-            var result = _service.EnterStage(_stage.Id);
+            EnterStageResult result;
+            try
+            {
+                result = _service.EnterStage(_stage.Id);
+            }
+            catch
+            {
+                // Lưu ném lỗi: thể lực đã được hoàn, bật lại nút rồi để lỗi nổi lên.
+                _busy = false;
+                Refresh();
+                throw;
+            }
+
             if (result.Status == EnterStageStatus.Entered)
             {
                 SceneManager.LoadScene(BattleView.BattleScene);

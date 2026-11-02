@@ -70,6 +70,8 @@ namespace BunDauPeo.Tests
         public StageProgressService Progress { get; }
         public CombatService Service { get; }
         public bool PersistResult { get; set; } = true;
+        // Persist ném lỗi (đĩa hỏng giữa chừng); đếm lần gọi trước khi ném.
+        public bool PersistThrows { get; set; }
         public int PersistCalls { get; private set; }
         // Trận mà test muốn biết RewardsClaimed của nó lúc persist chạy.
         public BattleSession Watched { get; set; }
@@ -78,6 +80,7 @@ namespace BunDauPeo.Tests
         public bool Persist()
         {
             PersistCalls++;
+            if (PersistThrows) throw new InvalidOperationException("boom");
             _snapshots.Add(new PersistSnapshot(Wallet.Get(CurrencyType.Material), Wallet.Get(CurrencyType.Gem),
                 string.Join(",", Save.ClearedStages), Save.Stamina.Current, Save.Stamina.AnchorUtcTicks,
                 Service?.Current != null, Watched?.RewardsClaimed));
