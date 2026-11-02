@@ -16,6 +16,7 @@ MonoBehaviour:
   _displayName: "L\xF2ng D\u1ED3i"
   _rarity: 1
   _stars: 2
+  _class: 1
   _portrait: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   _battleSprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _combatStats:

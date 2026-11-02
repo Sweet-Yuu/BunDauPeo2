@@ -42,14 +42,14 @@ namespace BunDauPeo.EditorTools
             ("Finisher", "Finisher", SkillKind.Ultimate, SkillTarget.AllEnemies, SkillEffect.Damage, 2.5f, 0, 100),
         };
 
-        private static readonly (string Id, string Name, Rarity Rarity, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill)[] CharacterTable =
+        private static readonly (string Id, string Name, Rarity Rarity, CharacterClass Class, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill)[] CharacterTable =
         {
-            ("char_nem_chua", "Nem Chua", Rarity.R, 800, 80, 40, 100, 30, 20, 10, "PowerStrike"),
-            ("char_cha_com", "Chả Cốm", Rarity.R, 900, 70, 50, 95, 20, 30, 10, "PowerStrike"),
-            ("char_dau_phu", "Đậu Phụ", Rarity.R, 1000, 60, 60, 90, 10, 20, 30, "Heal"),
-            ("char_mam_tom", "Mắm Tôm", Rarity.SR, 1000, 110, 50, 110, 50, 30, 20, "PowerStrike"),
-            ("char_long_doi", "Lòng Dồi", Rarity.SR, 1200, 90, 70, 100, 30, 50, 20, "Heal"),
-            ("char_bun_la", "Bún Lá", Rarity.SSR, 1400, 130, 80, 120, 60, 50, 50, "PowerStrike"),
+            ("char_nem_chua", "Nem Chua", Rarity.R, CharacterClass.Fighter, 800, 80, 40, 100, 30, 20, 10, "PowerStrike"),
+            ("char_cha_com", "Chả Cốm", Rarity.R, CharacterClass.Marksman, 900, 70, 50, 95, 20, 30, 10, "PowerStrike"),
+            ("char_dau_phu", "Đậu Phụ", Rarity.R, CharacterClass.Support, 1000, 60, 60, 90, 10, 20, 30, "Heal"),
+            ("char_mam_tom", "Mắm Tôm", Rarity.SR, CharacterClass.Mage, 1000, 110, 50, 110, 50, 30, 20, "PowerStrike"),
+            ("char_long_doi", "Lòng Dồi", Rarity.SR, CharacterClass.Tank, 1200, 90, 70, 100, 30, 50, 20, "Heal"),
+            ("char_bun_la", "Bún Lá", Rarity.SSR, CharacterClass.Fighter, 1400, 130, 80, 120, 60, 50, 50, "PowerStrike"),
         };
 
         private const string RestaurantData = "Assets/_Project/Restaurant/Data";
@@ -98,6 +98,7 @@ namespace BunDauPeo.EditorTools
             var characters = CharacterTable.Select(row => CreateCharacter(row, skills)).ToArray();
             // Asset đã có từ trước field _stars không được init lại, nên điền riêng; số user đã chỉnh (khác 0) giữ nguyên.
             FillMissingStars(characters);
+            FillMissingClass(characters);
 
             GetOrCreateAsset<CharacterCatalog>(CatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), characters)));
@@ -293,7 +294,7 @@ namespace BunDauPeo.EditorTools
             }));
 
         private static CharacterDefinition CreateCharacter(
-            (string Id, string Name, Rarity Rarity, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill) row,
+            (string Id, string Name, Rarity Rarity, CharacterClass Class, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill) row,
             Dictionary<string, SkillDefinition> skills) =>
             GetOrCreateAsset<CharacterDefinition>($"{CharactersFolder}/{row.Id}.asset", asset => Apply(asset, so =>
             {
@@ -301,6 +302,7 @@ namespace BunDauPeo.EditorTools
                 so.FindProperty("_displayName").stringValue = row.Name;
                 so.FindProperty("_rarity").enumValueIndex = (int)row.Rarity;
                 so.FindProperty("_stars").intValue = StarsFor(row.Rarity);
+                so.FindProperty("_class").enumValueIndex = (int)row.Class;
                 so.FindProperty("_portrait").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(PortraitSprite);
                 so.FindProperty("_battleSprite").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(IconSprite);
 
@@ -391,6 +393,21 @@ namespace BunDauPeo.EditorTools
                 var stars = so.FindProperty("_stars");
                 if (stars.intValue != 0) continue;
                 stars.intValue = StarsFor(character.Rarity);
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        // Cùng khuôn FillMissingStars: chỉ điền khi còn Unset; Id lạ (đã đổi tên) thì bỏ qua.
+        private static void FillMissingClass(CharacterDefinition[] characters)
+        {
+            foreach (var character in characters)
+            {
+                var so = new SerializedObject(character);
+                var cls = so.FindProperty("_class");
+                if (cls.enumValueIndex != (int)CharacterClass.Unset) continue;
+                var row = CharacterTable.FirstOrDefault(r => r.Id == character.Id);
+                if (row.Id == null) continue;
+                cls.enumValueIndex = (int)row.Class;
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
         }

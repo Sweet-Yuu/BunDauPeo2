@@ -225,6 +225,57 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void SampleCharacters_ClassMatchSpecTable()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<CharacterCatalog>(ProjectSetup.CatalogPath);
+            // Viết thẳng theo spec Combat 3.2, tra theo Id, không dùng lại bảng của ProjectSetup.
+            var expected = new System.Collections.Generic.Dictionary<string, CharacterClass>
+            {
+                ["char_nem_chua"] = CharacterClass.Fighter, ["char_cha_com"] = CharacterClass.Marksman,
+                ["char_dau_phu"] = CharacterClass.Support, ["char_mam_tom"] = CharacterClass.Mage,
+                ["char_long_doi"] = CharacterClass.Tank, ["char_bun_la"] = CharacterClass.Fighter,
+            };
+            foreach (var pair in expected)
+            {
+                Assert.IsTrue(catalog.TryGet(pair.Key, out var c), pair.Key);
+                Assert.AreEqual(pair.Value, c.Class, pair.Key);
+            }
+
+            foreach (var cls in new[] { CharacterClass.Tank, CharacterClass.Fighter, CharacterClass.Support, CharacterClass.Marksman, CharacterClass.Mage })
+                Assert.Contains(cls, new System.Collections.Generic.List<CharacterClass>(expected.Values), $"no sample character of class {cls}");
+        }
+
+        [Test]
+        public void Run_FillsUnsetClass_AndKeepsUserValues()
+        {
+            const string unsetPath = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
+            const string keepPath = "Assets/_Project/Characters/Data/Characters/char_bun_la.asset";
+            var unset = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(unsetPath);
+            var keep = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(keepPath);
+            SetClass(unset, CharacterClass.Unset);
+            SetClass(keep, CharacterClass.Mage);
+            try
+            {
+                ProjectSetup.Run();
+                Assert.AreEqual(CharacterClass.Fighter, unset.Class, "unset class is filled from the sample table");
+                Assert.AreEqual(CharacterClass.Mage, keep.Class, "a user-set class is never overwritten");
+            }
+            finally
+            {
+                SetClass(unset, CharacterClass.Fighter);
+                SetClass(keep, CharacterClass.Fighter);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetClass(CharacterDefinition c, CharacterClass cls)
+        {
+            var so = new SerializedObject(c);
+            so.FindProperty("_class").enumValueIndex = (int)cls;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        [Test]
         public void Run_AfterSampleIdWasRenamed_DoesNotThrow()
         {
             const string path = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
