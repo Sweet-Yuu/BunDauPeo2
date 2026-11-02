@@ -86,11 +86,38 @@ namespace BunDauPeo.Tests
 
         // Mọi test tạo CombatService qua đây, để task thể lực và tiến độ đổi chữ ký ở một chỗ.
         public static CombatService Service(CombatConfig config = null, Roster roster = null, Func<bool> persist = null,
-            StaminaService stamina = null)
+            StaminaService stamina = null, StageProgressService progress = null)
         {
             config ??= Config();
-            return new CombatService(config, roster ?? new Roster(new PlayerSave(), TestData.Catalog()),
-                stamina ?? new StaminaService(new PlayerSave(), config, () => DateTime.UtcNow), new ScriptedRandom(), persist ?? (() => true));
+            persist ??= () => true;
+            var save = new PlayerSave();
+            stamina ??= new StaminaService(save, config, () => DateTime.UtcNow);
+            progress ??= new StageProgressService(save, new Wallet(save), config.Stages, stamina, persist);
+            return new CombatService(config, roster ?? new Roster(new PlayerSave(), TestData.Catalog()), stamina, progress,
+                new ScriptedRandom(), persist);
+        }
+
+        // Đánh tới Won bằng đòn thường (quái trong test có 1 HP, nhân vật nhanh hơn).
+        public static void PlayToWin(BattleSession session)
+        {
+            for (var i = 0; i < 200 && (session.State == BattleState.PlayerTurn || session.State == BattleState.EnemyTurn); i++)
+            {
+                if (session.State == BattleState.PlayerTurn)
+                    session.PlayerAct(BattleActionKind.Basic, session.DefaultTarget(BattleActionKind.Basic));
+                else
+                    session.EnemyAct();
+            }
+
+            NUnit.Framework.Assert.AreEqual(BattleState.Won, session.State, "PlayToWin needs weak enemies");
+        }
+
+        // Vào trận bằng đường thật (EnterStage, có trả thể lực) rồi thắng: dựng được trận EntryPaid dù ở assembly khác.
+        public static BattleSession PaidWin(CombatService service, string stageId)
+        {
+            var entered = service.EnterStage(stageId);
+            NUnit.Framework.Assert.AreEqual(EnterStageStatus.Entered, entered.Status, $"stage '{stageId}'");
+            PlayToWin(entered.Session);
+            return entered.Session;
         }
 
         // Màn Battle: thể lực 10, lần đầu 30 Material + 150 Gem, đánh lại 30 Material + 30 Gem.

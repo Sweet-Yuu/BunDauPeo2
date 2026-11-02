@@ -99,7 +99,8 @@ namespace BunDauPeo.Boot
             _session.ResetCompleted += _restaurant.ResetRuntime;
 
             var stamina = new StaminaService(_session.Save, _combatConfig, () => System.DateTime.UtcNow);
-            var combat = new CombatService(_combatConfig, _session.Roster, stamina, new System.Random(), _session.Persist);
+            var progress = new StageProgressService(_session.Save, _session.Wallet, _combatConfig.Stages, stamina, _session.Persist);
+            var combat = new CombatService(_combatConfig, _session.Roster, stamina, progress, new System.Random(), _session.Persist);
             ServiceLocator.Register(combat);
             _session.ResetCompleted += combat.ResetRuntime;
 

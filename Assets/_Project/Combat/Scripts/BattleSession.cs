@@ -43,6 +43,8 @@ namespace BunDauPeo.Combat
         public IReadOnlyList<BattleUnit> Enemies => _enemies;
         // Chỉ StageProgressService đặt.
         public bool RewardsClaimed { get; internal set; }
+        // Chỉ CombatService.EnterStage đặt, sau khi thể lực đã trừ và lưu; trận từ StartBattle (dải DEV) luôn false.
+        public bool EntryPaid { get; internal set; }
 
         private bool IsEnded => State == BattleState.Won || State == BattleState.Lost;
 

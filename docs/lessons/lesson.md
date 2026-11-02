@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-021 — Test "màn hỏng" dựng config hỏng nên service không chạy, và số thô của thể lực chưa chốt thì lệch (2026-11-03)  #script #process
+- Triệu chứng: ca `Invalid` của `EnterStage`/`CanEnter` dựng catalog có màn hỏng ngay từ đầu nên `CombatService.IsRunning = false` (`NullReferenceException`, log "invalid config"); và so `Save.Stamina.Current` thô trước/sau ra 0 so với 100 dù không đổi gì.
+- Nguyên nhân gốc: `CombatConfig.Validate()` gom lỗi của mọi màn nên màn hỏng làm cả config hỏng; số thô trong save chỉ được chốt (đầy lúc `Anchor == 0`) khi có người đọc `Stamina.Current`.
+- Luật từ nay: muốn thử trạng thái "màn hỏng" thì dựng service với màn hợp lệ rồi `TestData.Edit` làm hỏng sau; so số thô của thể lực thì đọc `Stamina.Current` một lần trước để chốt.
+
 ### L-020 — `unity status && unity run …` không chạy lệnh sau khi không có Editor, và log cũ trông như log mới (2026-11-03)  #process #unity-files
 - Triệu chứng: `unity status && unity run . -- -executeMethod …RebuildBattleScene` thoát mã 12 mà scene không đổi; tôi đọc `../bdp-setup.log` còn từ lần trước ("Exiting batchmode successfully") và suýt coi là đã dựng xong.
 - Nguyên nhân gốc: `unity status` thoát 12 khi không có Editor nào (đúng ý khi Editor phải đóng), nên `&&` cắt chuỗi; file log ghi đè chỉ khi lệnh `run` thật sự chạy.
