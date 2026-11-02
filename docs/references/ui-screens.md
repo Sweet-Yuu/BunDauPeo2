@@ -10,7 +10,7 @@
 - **Thiếu ảnh thì hỏi user:** cần tham khảo một màn mà bảng dưới không có thì nói rõ cần ảnh gì. User sẽ gửi.
 - **Đặt tên:** `<nhóm>-<màn>[-chi-tiết].<đuôi>`, chữ thường, tiếng Anh, nối bằng `-`. Thêm `-en` nếu chữ trong ảnh là tiếng Anh. Agent được đổi tên cho dễ tìm; đổi tên hoặc thêm ảnh thì cập nhật bảng dưới.
 - **Chỉ tham khảo:** học bố cục và luồng màn hình. Không đưa ảnh vào `Assets/` hay build, không sao chép art; UI vẫn theo mục "UI và hình tạm" của [unity-workflow.md](../guides/unity-workflow.md).
-- **Luật chơi không lấy từ ảnh:** ảnh có nhiều thứ game này chưa có hoặc không làm (hệ nguyên tố, trang bị, stamina, EXP người chơi, clan, nạp tiền). Phạm vi theo [vision](../vision/vision.md), luật theo [game-design](../design/game-design.md).
+- **Luật chơi không lấy từ ảnh:** ảnh có nhiều thứ game này chưa có hoặc không làm (hệ nguyên tố, trang bị, EXP người chơi, clan, nạp tiền). Phạm vi theo [vision](../vision/vision.md), luật theo [game-design](../design/game-design.md).
 
 ## Danh sách
 

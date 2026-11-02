@@ -11,7 +11,7 @@
 
 Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử được.
 
-- [ ] Combat: lượt, 3 hành động, quái, wave, màn chơi, phần thưởng; class và đội hình 3 vị trí (front, mid, back), xem [game-design](design/game-design.md#nhân-vật).
+- [ ] Combat: lượt, 3 hành động, quái, wave, màn chơi (có nút cốt truyện giữ chỗ), thể lực, phần thưởng; class và đội hình 3 vị trí, xem [game-design](design/game-design.md#chiến-đấu). [Spec](superpowers/specs/2026-11-02-combat-design.md) đã duyệt 2026-11-02; [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest, nhánh `feature/combat` cắt từ `docs/combat-spec`.
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
 - [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game, gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
 - [ ] Kiểm save trên Android thật (`File.Replace`, lưu khi vào nền): user tạm hoãn (2026-11-01), làm sau khi user nối điện thoại.
