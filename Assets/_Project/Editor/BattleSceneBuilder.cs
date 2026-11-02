@@ -29,6 +29,7 @@ namespace BunDauPeo.EditorTools
         private static readonly Vector2 TopLeft = new(0, 1);
         private static readonly Vector2 BottomLeft = new(0, 0);
         private static readonly Vector2 BottomRight = new(1, 0);
+        private static readonly Vector2 TopRight = new(1, 1);
 
         public static void Create(string scenePath)
         {
@@ -72,11 +73,22 @@ namespace BunDauPeo.EditorTools
 
             var panel = BuildActionPanel(canvas, knob, font);
 
+            var topBar = BuildTopBar(canvas, sprite, font, out var waveText, out var turnCells, out var menu, out var auto, out var speed);
+
+            // Banner "Đợt 2/3": chữ lớn giữa màn, bật 1 giây khi sang đợt mới; không chặn chạm.
+            var waveBanner = NewText("WaveBanner", canvas, font, "", 120, TextAnchor.MiddleCenter, Gold);
+            waveBanner.fontStyle = FontStyle.Bold;
+            Place(waveBanner.rectTransform, Center, Center, new Vector2(0, 200), new Vector2(900, 160));
+            waveBanner.gameObject.SetActive(false);
+
             var empty = NewRect("EmptyRoot", canvas);
             Stretch(empty);
             var emptyText = NewText("EmptyText", empty, font, "Chưa có trận", 56, TextAnchor.MiddleCenter, Color.white);
             Place(emptyText.rectTransform, Center, Center, new Vector2(0, 40), new Vector2(800, 90));
             var emptyBack = NewButton("EmptyBackButton", empty, sprite, font, "Về", ButtonColor, Center, new Vector2(0, -80), new Vector2(260, 90));
+
+            // Popup tạm dừng dựng sau thanh trên nên chặn chạm xuống nó; banner kết thúc vẫn nằm trên.
+            var pause = BuildPausePopup(canvas, sprite, font);
 
             // Banner tạm thắng/thua dựng sau cùng nên vẽ trên mọi thứ (và chặn chạm xuống dưới).
             var end = NewRect("EndRoot", canvas);
@@ -101,6 +113,15 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_endRoot").objectReferenceValue = end.gameObject;
             so.FindProperty("_endText").objectReferenceValue = endText;
             so.FindProperty("_endButton").objectReferenceValue = endButton;
+            so.FindProperty("_topBar").objectReferenceValue = topBar.gameObject;
+            so.FindProperty("_waveText").objectReferenceValue = waveText;
+            SetRefs(so.FindProperty("_turnCells"), turnCells);
+            so.FindProperty("_menuButton").objectReferenceValue = menu;
+            so.FindProperty("_autoButton").objectReferenceValue = auto;
+            so.FindProperty("_speedButton").objectReferenceValue = speed;
+            so.FindProperty("_waveBanner").objectReferenceValue = waveBanner.gameObject;
+            so.FindProperty("_waveBannerText").objectReferenceValue = waveBanner;
+            so.FindProperty("_pause").objectReferenceValue = pause;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             var panelSo = new SerializedObject(panel);
@@ -260,6 +281,91 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_turnLine").objectReferenceValue = turnLine;
             so.ApplyModifiedPropertiesWithoutUndo();
             return panel;
+        }
+
+        // Thanh trên trong dải y 0-150 (quái bắt đầu từ y 180): chữ đợt và thanh lượt giữa, ba nút 150×110 góc phải.
+        private static RectTransform BuildTopBar(RectTransform canvas, Sprite sprite, Font font, out Text waveText, out Image[] turnCells,
+            out Button menu, out Button auto, out Button speed)
+        {
+            var bar = NewRect("TopBar", canvas);
+            Stretch(bar);
+
+            waveText = NewText("WaveText", bar, font, "", 44, TextAnchor.MiddleCenter, Color.white);
+            waveText.fontStyle = FontStyle.Bold;
+            Place(waveText.rectTransform, TopCenter, TopCenter, new Vector2(0, -20), new Vector2(400, 60));
+
+            var strip = NewRect("TurnBar", bar);
+            Place(strip, TopCenter, TopCenter, new Vector2(0, -90), new Vector2(632, 56));
+            turnCells = new Image[10];
+            for (var i = 0; i < turnCells.Length; i++)
+            {
+                var cell = NewRect($"TurnCell{i}", strip);
+                Place(cell, TopLeft, TopLeft, new Vector2(i * 64, 0), new Vector2(56, 56));
+                turnCells[i] = AddImage(cell, sprite, Color.white, raycast: false);
+                var letter = NewText("Letter", cell, font, "", 30, TextAnchor.MiddleCenter, Color.white);
+                Stretch(letter.rectTransform);
+                letter.fontStyle = FontStyle.Bold;
+                cell.gameObject.SetActive(false);
+            }
+
+            menu = NewButton("MenuButton", bar, sprite, font, "Menu", ButtonColor, TopRight, new Vector2(-20, -20), new Vector2(150, 110));
+            auto = NewButton("AutoButton", bar, sprite, font, "AUTO", CardFrame, TopRight, new Vector2(-190, -20), new Vector2(150, 110));
+            speed = NewButton("SpeedButton", bar, sprite, font, "x1", ButtonColor, TopRight, new Vector2(-360, -20), new Vector2(150, 110));
+            return bar;
+        }
+
+        // Nền tối chặn chạm; hộp giữa có 5 dòng HP, Tiếp tục, Bỏ cuộc; hộp xác nhận nằm trong cùng nền.
+        private static BattlePausePopup BuildPausePopup(RectTransform canvas, Sprite sprite, Font font)
+        {
+            var holder = NewRect("BattlePausePopup", canvas);
+            Stretch(holder);
+
+            var root = NewRect("PauseRoot", holder);
+            Stretch(root);
+            AddImage(root, null, new Color(0f, 0f, 0f, 0.65f), raycast: true);
+
+            var box = NewRect("PauseBox", root);
+            Place(box, Center, Center, Vector2.zero, new Vector2(800, 760));
+            AddImage(box, sprite, CardColor, raycast: false);
+            var title = NewText("Title", box, font, "Tạm dừng", 52, TextAnchor.MiddleCenter, Gold);
+            title.fontStyle = FontStyle.Bold;
+            Place(title.rectTransform, Center, Center, new Vector2(0, 320), new Vector2(700, 70));
+
+            var lines = new Text[5];
+            for (var i = 0; i < lines.Length; i++)
+            {
+                lines[i] = NewText($"HpLine{i}", box, font, "", 36, TextAnchor.MiddleCenter, Color.white);
+                Place(lines[i].rectTransform, Center, Center, new Vector2(0, 230 - i * 56), new Vector2(700, 50));
+            }
+
+            var resume = NewButton("ResumeButton", box, sprite, font, "Tiếp tục", ButtonColor, Center, new Vector2(-200, -250), new Vector2(340, 110));
+            var surrender = NewButton("SurrenderButton", box, sprite, font, "Bỏ cuộc", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(200, -250), new Vector2(340, 110));
+
+            var confirm = NewRect("ConfirmRoot", root);
+            Stretch(confirm);
+            AddImage(confirm, null, new Color(0f, 0f, 0f, 0.5f), raycast: true);
+            var confirmBox = NewRect("ConfirmBox", confirm);
+            Place(confirmBox, Center, Center, Vector2.zero, new Vector2(760, 380));
+            AddImage(confirmBox, sprite, CardFrame, raycast: false);
+            var confirmText = NewText("ConfirmText", confirmBox, font, "", 40, TextAnchor.MiddleCenter, Color.white);
+            Place(confirmText.rectTransform, Center, Center, new Vector2(0, 70), new Vector2(680, 170));
+            var yes = NewButton("ConfirmYesButton", confirmBox, sprite, font, "Bỏ cuộc", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(-170, -100), new Vector2(300, 110));
+            var no = NewButton("ConfirmNoButton", confirmBox, sprite, font, "Tiếp tục", ButtonColor, Center, new Vector2(170, -100), new Vector2(300, 110));
+            confirm.gameObject.SetActive(false);
+            root.gameObject.SetActive(false);
+
+            var popup = holder.gameObject.AddComponent<BattlePausePopup>();
+            var so = new SerializedObject(popup);
+            so.FindProperty("_root").objectReferenceValue = root.gameObject;
+            SetRefs(so.FindProperty("_hpLines"), lines);
+            so.FindProperty("_resumeButton").objectReferenceValue = resume;
+            so.FindProperty("_surrenderButton").objectReferenceValue = surrender;
+            so.FindProperty("_confirmRoot").objectReferenceValue = confirm.gameObject;
+            so.FindProperty("_confirmText").objectReferenceValue = confirmText;
+            so.FindProperty("_confirmYesButton").objectReferenceValue = yes;
+            so.FindProperty("_confirmNoButton").objectReferenceValue = no;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return popup;
         }
 
         private static Button ActionButton(RectTransform parent, string name, string label, Sprite knob, Font font, Color color, float x)

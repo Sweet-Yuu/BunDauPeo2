@@ -15,12 +15,17 @@ namespace BunDauPeo.UI
     {
         public const string BattleScene = "Battle", StageSelectScene = "StageSelect", RestaurantScene = "Restaurant";
 
-        private const int SlotCount = 5;
+        private const int SlotCount = 5, TurnCellCount = 10;
         private const float StrikeDistance = 60f, FloatRise = 90f;
 
         private static readonly Color DamageOnEnemy = Color.white;
         private static readonly Color DamageOnAlly = new(1f, 0.55f, 0.45f);
         private static readonly Color HealColor = new(0.55f, 0.95f, 0.55f);
+        private static readonly Color AutoOn = new(0.95f, 0.75f, 0.20f);
+        private static readonly Color AutoOff = new(0.30f, 0.33f, 0.45f);
+        private static readonly Color AllyCell = new(0.30f, 0.50f, 0.90f);
+        private static readonly Color EnemyCell = new(0.70f, 0.22f, 0.25f);
+        private const float WaveBannerSeconds = 1f;
 
         [SerializeField] private BattleUnitView[] _allies;
         [SerializeField] private BattleUnitView[] _enemies;
@@ -33,6 +38,16 @@ namespace BunDauPeo.UI
         [SerializeField] private GameObject _endRoot;
         [SerializeField] private Text _endText;
         [SerializeField] private Button _endButton;
+        // Thanh trên: chữ đợt, thanh lượt 10 ô, Menu / AUTO / tốc độ, banner đợt mới, popup tạm dừng.
+        [SerializeField] private GameObject _topBar;
+        [SerializeField] private Text _waveText;
+        [SerializeField] private Image[] _turnCells;
+        [SerializeField] private Button _menuButton;
+        [SerializeField] private Button _autoButton;
+        [SerializeField] private Button _speedButton;
+        [SerializeField] private GameObject _waveBanner;
+        [SerializeField] private Text _waveBannerText;
+        [SerializeField] private BattlePausePopup _pause;
 
         private sealed class FloatText
         {
@@ -54,6 +69,11 @@ namespace BunDauPeo.UI
         private BattleUnitView _actorView;
         private float _elapsed, _duration;
         private bool _impacted;
+        // Đợt đang hiện trên màn: chỉ tăng khi đòn kết liễu phát xong, cùng lúc quái mới hiện.
+        private int _shownWave;
+        private float _bannerLeft;
+        private Text _speedLabel;
+        private Text[] _cellLabels;
 
         public static float ActionSeconds(bool fast) => fast ? 0.3f : 0.6f;
 
@@ -62,6 +82,9 @@ namespace BunDauPeo.UI
 
         // Người đang ra đòn trong hoạt hình; null khi rảnh.
         public BattleUnit ActingUnit => _playing?.Actor;
+
+        // Popup tạm dừng đang mở: hoạt hình, quái và AUTO đứng yên.
+        public bool IsPaused => _pause != null && _pause.IsOpen;
 
         public IReadOnlyList<BattleUnitView> AllyViews => _allies;
 
@@ -88,6 +111,11 @@ namespace BunDauPeo.UI
 
             _emptyBackButton.onClick.AddListener(Back);
             _endButton.onClick.AddListener(OnEndClicked);
+            Listen(_menuButton, OnMenuClicked);
+            Listen(_autoButton, OnAutoClicked);
+            Listen(_speedButton, OnSpeedClicked);
+            _speedLabel = _speedButton.GetComponentInChildren<Text>(true);
+            _cellLabels = System.Array.ConvertAll(_turnCells, c => c.GetComponentInChildren<Text>(true));
             // Chạm quái hoặc người phe ta đặt mục tiêu; thẻ chỉ chọn đồng minh. Đọc Unit lúc chạm vì hình được dùng lại giữa các đợt.
             foreach (var view in _enemies) Listen(view.Button, () => _panel.ChooseEnemy(view.Unit));
             foreach (var view in _allies) Listen(view.Button, () => _panel.ChooseAlly(view.Unit));
@@ -116,6 +144,9 @@ namespace BunDauPeo.UI
         {
             var ok = _floatTemplate != null && _emptyRoot != null && _emptyBackButton != null
                      && _panel != null && _endRoot != null && _endText != null && _endButton != null
+                     && _topBar != null && _waveText != null && _menuButton != null && _autoButton != null && _speedButton != null
+                     && _waveBanner != null && _waveBannerText != null && _pause != null
+                     && _turnCells != null && _turnCells.Length == TurnCellCount && System.Array.TrueForAll(_turnCells, c => c != null)
                      && Complete(_allies) && Complete(_enemies) && _cards != null && _cards.Length == SlotCount
                      && System.Array.TrueForAll(_cards, c => c != null);
             if (!ok) Debug.LogError($"{nameof(BattleView)}: references are not assigned.", this);
@@ -139,6 +170,22 @@ namespace BunDauPeo.UI
             SceneManager.LoadScene(RestaurantScene);
         }
 
+        private void OnMenuClicked()
+        {
+            var session = _service?.Current;
+            if (session != null && session.State != BattleState.Won && session.State != BattleState.Lost) _pause.Open(session);
+        }
+
+        private void OnAutoClicked()
+        {
+            if (_service != null) _service.AutoEnabled = !_service.AutoEnabled;
+        }
+
+        private void OnSpeedClicked()
+        {
+            if (_service != null) _service.FastEnabled = !_service.FastEnabled;
+        }
+
         private void Update()
         {
             if (!_ready) return;
@@ -147,11 +194,45 @@ namespace BunDauPeo.UI
             var session = _service?.Current;
             if (!_hasDrawn || !ReferenceEquals(session, _drawn)) Redraw(session);
 
-            if (session != null) Animate(session, dt);
+            // Tạm dừng: không phát tiếp, không gọi EnemyAct hay AUTO, và mọi bộ đếm thời gian đứng yên.
+            var paused = IsPaused;
+            if (paused) dt = 0f;
+            if (session != null && !paused) Animate(session, dt);
             foreach (var view in _allies) view.Tick(dt);
             foreach (var view in _enemies) view.Tick(dt);
             TickFloats(dt);
-            if (session != null) RefreshHud(session);
+            if (session != null)
+            {
+                RefreshHud(session);
+                RefreshTopBar(session, dt);
+            }
+        }
+
+        private void RefreshTopBar(BattleSession session, float dt)
+        {
+            _waveText.text = CombatViewText.WaveLabel(_shownWave + 1, session.WaveCount);
+
+            var order = session.RemainingOrder;
+            for (var i = 0; i < _turnCells.Length; i++)
+            {
+                var cell = _turnCells[i];
+                cell.gameObject.SetActive(i < order.Count);
+                if (i >= order.Count) continue;
+
+                var baseColor = order[i].IsAlly ? AllyCell : EnemyCell;
+                cell.color = i == 0 ? Color.Lerp(baseColor, Color.white, 0.6f) : new Color(baseColor.r, baseColor.g, baseColor.b, 0.7f);
+                var name = order[i].DisplayName;
+                _cellLabels[i].text = string.IsNullOrEmpty(name) ? "" : name.Substring(0, 1);
+            }
+
+            ((Image)_autoButton.targetGraphic).color = _service.AutoEnabled ? AutoOn : AutoOff;
+            _speedLabel.text = CombatViewText.SpeedLabel(_service.FastEnabled);
+
+            if (_bannerLeft > 0f)
+            {
+                _bannerLeft -= dt;
+                if (_bannerLeft <= 0f) _waveBanner.SetActive(false);
+            }
         }
 
         // Thẻ theo máu hoạt hình; banner chỉ hiện khi đòn cuối đã phát xong.
@@ -178,6 +259,11 @@ namespace BunDauPeo.UI
             _actorView = null;
             foreach (var text in _floats) text.Text.gameObject.SetActive(false);
             _emptyRoot.SetActive(session == null);
+            _pause.Close();
+            _waveBanner.SetActive(false);
+            _bannerLeft = 0f;
+            _shownWave = session?.WaveIndex ?? 0;
+            _topBar.SetActive(session != null);
 
             _endRoot.SetActive(false);
             _panel.gameObject.SetActive(session != null);
@@ -205,6 +291,11 @@ namespace BunDauPeo.UI
                 if (_queue.Count > 0) Begin(_queue.Dequeue());
                 // Chỉ khi hàng đợi trống: hết đòn người chơi cũ thì mới tới quái, đúng thứ tự trận.
                 else if (session.State == BattleState.EnemyTurn) Enqueue(session.EnemyAct());
+                else if (session.State == BattleState.PlayerTurn && _service.AutoEnabled)
+                {
+                    var choice = AutoPolicy.Choose(session);
+                    Enqueue(session.PlayerAct(choice.Kind, choice.Target));
+                }
                 if (_playing == null && _queue.Count > 0) Begin(_queue.Dequeue());
             }
 
@@ -220,7 +311,15 @@ namespace BunDauPeo.UI
             if (!_impacted) Impact(_playing);
             if (_actorView != null) _actorView.Nudge(Vector2.zero);
             // Đợt mới chỉ hiện sau khi đòn kết liễu phát xong.
-            if (_playing.NextWaveStarted) BindEnemies(_drawn);
+            if (_playing.NextWaveStarted)
+            {
+                BindEnemies(_drawn);
+                _shownWave++;
+                _waveBannerText.text = CombatViewText.WaveLabel(_shownWave + 1, _drawn.WaveCount);
+                _waveBanner.SetActive(true);
+                _bannerLeft = WaveBannerSeconds;
+            }
+
             _playing = null;
             _actorView = null;
         }

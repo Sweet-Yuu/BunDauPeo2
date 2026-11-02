@@ -62,5 +62,40 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0.3f, BattleView.ActionSeconds(true), 1e-6f);
             Assert.AreEqual(BattleView.ActionSeconds(false) / 2f, BattleView.ActionSeconds(true), 1e-6f);
         }
+
+        [Test]
+        public void WaveLabel_OneBased()
+        {
+            Assert.AreEqual("Đợt 1/3", CombatViewText.WaveLabel(1, 3));
+            Assert.AreEqual("Đợt 3/3", CombatViewText.WaveLabel(3, 3));
+            Assert.AreEqual("Đợt 1/1", CombatViewText.WaveLabel(1, 1));
+        }
+
+        [Test]
+        public void SpeedLabel_PerFlag()
+        {
+            Assert.AreEqual("x1", CombatViewText.SpeedLabel(false));
+            Assert.AreEqual("x2", CombatViewText.SpeedLabel(true));
+        }
+
+        [Test]
+        public void PauseHpLine_AliveAndFallen()
+        {
+            // Quái nhanh hơn nên đánh trước: 160 sát thương làm Nem Chua còn 640/800, rồi 5000 sát thương hạ gục.
+            foreach (var (attack, expected) in new[] { (160, "Nem Chua 640/800"), (5000, "Nem Chua: đã ngã") })
+            {
+                var s = CombatTestData.Battle(new[] { CombatTestData.Hero("Nem Chua", hp: 800, speed: 100) },
+                    CombatTestData.Stage("s", new[] { CombatTestData.Enemy("e", 100000, attack, 0, 500) }));
+                s.EnemyAct();
+                Assert.AreEqual(expected, CombatViewText.PauseHpLine(s.Allies[0]), $"attack {attack}");
+            }
+        }
+
+        [Test]
+        public void SurrenderConfirm_SaysStaminaIsNotRefunded()
+        {
+            StringAssert.Contains("không được hoàn", CombatViewText.SurrenderConfirm());
+            Assert.AreEqual("Bỏ cuộc? Trận này tính thua, thể lực không được hoàn.", CombatViewText.SurrenderConfirm());
+        }
     }
 }

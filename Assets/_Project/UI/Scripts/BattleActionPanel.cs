@@ -99,7 +99,7 @@ namespace BunDauPeo.UI
         {
             var session = _service?.Current;
             // Nút đã khoá khi đang phát, nhưng hai lần bấm trong một khung thì vẫn có thể lọt qua.
-            if (session == null || _view.IsBusy) return;
+            if (session == null || _view.IsBusy || _view.IsPaused) return;
 
             var result = session.PlayerAct(kind, ResolveTarget(session, kind, _chosenEnemy, _chosenAlly));
             _view.Enqueue(result);
@@ -112,7 +112,7 @@ namespace BunDauPeo.UI
 
             var playerTurn = session.State == BattleState.PlayerTurn;
             if (playerTurn) _lastAlly = session.Current;
-            var locked = !playerTurn || _view.IsBusy;
+            var locked = !playerTurn || _view.IsBusy || _view.IsPaused;
 
             _basicButton.interactable = !locked && session.GetAvailability(BattleActionKind.Basic) == ActionAvailability.Available;
             _skillButton.interactable = !locked && session.GetAvailability(BattleActionKind.Skill) == ActionAvailability.Available;

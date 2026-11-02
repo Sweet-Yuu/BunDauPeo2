@@ -21,6 +21,16 @@ namespace BunDauPeo.UI
 
         public static string TurnLine(string name) => $"Lượt của {name}";
 
+        public static string WaveLabel(int waveIndex, int waveCount) => $"Đợt {waveIndex}/{waveCount}";
+
+        public static string SpeedLabel(bool fast) => fast ? "x2" : "x1";
+
+        public static string PauseHpLine(BattleUnit unit) =>
+            unit.IsAlive ? $"{unit.DisplayName} {UnitHp(unit.Hp, unit.MaxHp)}" : $"{unit.DisplayName}: đã ngã";
+
+        // Trận DEV chưa trừ thể lực nhưng dùng cùng một câu (chỉ là bản thử).
+        public static string SurrenderConfirm() => "Bỏ cuộc? Trận này tính thua, thể lực không được hoàn.";
+
         public static string EndBanner(BattleState state) => state switch
         {
             BattleState.Won => "CLEAR",
