@@ -67,8 +67,8 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 - **Lượt:** mỗi vòng, ai còn sống đánh đúng 1 lần theo tốc độ giảm dần; hoà thì phe ta trước, rồi theo ô. Sát thương không ngẫu nhiên, không chí mạng, không né; ngẫu nhiên duy nhất là quái chọn mục tiêu theo trọng số vị trí.
 - Mỗi nhân vật có đúng 3 hành động: đánh thường, skill (hồi chiêu tính theo lượt của chính nhân vật), ultimate (cần năng lượng; năng lượng có từ đánh thường, skill và khi bị đánh, mỗi trận bắt đầu từ 0). Quái có đánh thường và tối đa một skill, không có ultimate.
 - **Công thức:** sát thương = max(1, làm tròn(tấn công × hệ số × 100 / (100 + thủ))); hồi máu = tấn công × hệ số, không vượt máu tối đa, không hồi sinh.
-- Đội đánh nhiều quái theo wave trong từng màn; máu, năng lượng, hồi chiêu giữ qua các wave. Quá số vòng tối đa (*khởi điểm* 60) thì thua. Trận đang đánh không được lưu: thoát giữa trận là bỏ trận, không mất gì.
-- **Công cụ trong trận:** AUTO, tốc độ x1/x2, tạm dừng và bỏ cuộc (tính thua, không mất gì). Không có nút SET, thống kê sát thương, 3 sao, MVP.
+- Đội đánh nhiều quái theo wave trong từng màn; máu, năng lượng, hồi chiêu giữ qua các wave. Quá số vòng tối đa (*khởi điểm* 60) thì thua. Trận đang đánh không được lưu: thoát giữa trận là bỏ trận, không có thưởng và thể lực đã trừ lúc vào không hoàn ([Thể lực](#thể-lực)).
+- **Công cụ trong trận:** AUTO, tốc độ x1/x2, tạm dừng và bỏ cuộc (tính thua, không hoàn thể lực). Không có nút SET, thống kê sát thương, 3 sao, MVP.
 - **Thưởng:** thắng lần đầu được Material và Gem (*khởi điểm* màn đầu 30 Material, 150 Gem, tăng dần); đánh lại được Material như cũ và khoảng 1/5 Gem, để cày Gem chậm hơn cày Material. Thắng mới mở màn tiếp theo.
 - **Màn hình** (user chốt 2026-11-01): phe ta đứng bên trái. Nhân vật giữ khoảng cách, **không đứng chồng lên nhau**. Vì đội có 5 người nên bố trí theo kiểu Princess Connect; chọn chiêu theo kiểu Fate/Grand Order. Chỉ lấy giao diện chọn chiêu; luật giữ nguyên, từng nhân vật đánh theo tốc độ. Ảnh: [ui-screens.md](../references/ui-screens.md).
 
@@ -78,16 +78,17 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 
 - MVP có **1 chương: 5 màn đánh và 2 màn cốt truyện**, 7 nút nối nhau trên bản đồ. Màn mở theo thứ tự; màn đã clear luôn mở.
 - **Màn cốt truyện** hiện chỉ là nút giữ chỗ: bấm Tiếp tục là clear, không thưởng, không tốn thể lực. Hội thoại thật làm sau MVP ([vision](../vision/vision.md)).
-- Vào một màn đánh cần: màn đã mở, đủ thể lực, đội có ít nhất 1 người (dưới 5 người thì hỏi xác nhận, xem [Nhân vật](#nhân-vật)).
+- Vào một màn đánh cần: màn đã mở, đủ thể lực, đội có ít nhất 1 người (dưới 5 người thì hỏi xác nhận, xem [Nhân vật](#nhân-vật)). Thể lực bị trừ ngay khi vào, xem [Thể lực](#thể-lực).
 - Chưa làm: nhiều chương, độ khó Hard, quét nhanh, tự tiến màn tiếp theo.
 
 ## Thể lực
 
-(user chốt 2026-11-02; luật mới so với [vision](../vision/vision.md), `TODO(user)` cập nhật vision)
+(user chốt 2026-11-03, theo master plan mục 20.7, thay luật 2026-11-02; [D-008](../decisions/decisions.md). Luật mới so với [vision](../vision/vision.md), `TODO(user)` cập nhật vision)
 
-- Tối đa *khởi điểm* **60**, hồi **1 điểm mỗi 5 phút theo giờ máy, kể cả khi tắt game** (từ 0 lên đầy mất 5 giờ).
-- Mỗi màn đánh tốn thể lực (*khởi điểm* 10, màn boss 15); màn cốt truyện không tốn.
-- Vào trận chỉ cần **đủ** thể lực; **chỉ trừ khi thắng**, cùng lúc với nhận thưởng và lưu. Thua, bỏ cuộc, thoát giữa trận không mất thể lực.
+- Tối đa **100**, hồi **1 điểm mỗi 5 phút theo giờ máy, kể cả khi tắt game** (từ 0 lên đầy mất 8 giờ 20). Đầy thì không tích thêm.
+- Mỗi màn đánh tốn **10**, kể cả màn boss; màn cốt truyện tốn 0.
+- **Trừ một lần ngay khi vào trận hợp lệ**, và lưu ngay. Thua, bỏ cuộc, tắt app giữa trận đều **không hoàn**. "Thử lại" sau khi thua là một lần vào mới, trừ lại. Chỉ trừ sau khi mọi kiểm tra (màn, mở khoá, đội, cấu hình) đã qua, nên bị từ chối vào thì không mất thể lực. Nếu không lưu được thì không vào trận và không mất thể lực.
+- Dải DEV "Chiến đấu thử" vào thẳng, không trừ thể lực và không có thưởng.
 - Không mua thể lực bằng Gem, không có vật phẩm hồi thể lực.
 - Đồng hồ máy chạy lùi thì không hồi và không mất thể lực. Chỉnh đồng hồ tiến để gian lận thì chấp nhận, như [AFK](#afk).
 - Reset Save Data đưa thể lực về đầy.
