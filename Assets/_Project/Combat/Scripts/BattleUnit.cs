@@ -1,3 +1,4 @@
+using System;
 using BunDauPeo.Characters;
 
 namespace BunDauPeo.Combat
@@ -70,6 +71,9 @@ namespace BunDauPeo.Combat
         public SkillDefinition Skill { get; private set; }
         // Quái không có ultimate.
         public SkillDefinition Ultimate { get; private set; }
+
+        // Máu kẹp ở 0. Chỉ BattleSession gọi.
+        internal void TakeDamage(int amount) => Hp = Math.Max(0, Hp - amount);
 
         public bool IsAlive => Hp > 0;
         public float HpRatio => MaxHp > 0 ? (float)Hp / MaxHp : 0f;

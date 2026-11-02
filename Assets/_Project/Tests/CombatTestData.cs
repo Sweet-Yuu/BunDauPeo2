@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
@@ -78,6 +79,10 @@ namespace BunDauPeo.Tests
             });
             return hero;
         }
+
+        public static BattleSession Battle(IReadOnlyList<CharacterDefinition> team, StageDefinition stage,
+            CombatConfig config = null, System.Random random = null) =>
+            new BattleSession(team, stage, config ?? Config(), random ?? new ScriptedRandom());
 
         // Màn Battle: thể lực 10, lần đầu 30 Material + 150 Gem, đánh lại 30 Material + 30 Gem.
         public static StageDefinition Stage(string id, params EnemyDefinition[][] waves)
