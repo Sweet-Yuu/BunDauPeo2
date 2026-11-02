@@ -15,6 +15,18 @@
 
 ## Danh sách
 
+### D-007 — Android trước, tải miễn phí, có mua trong game và quảng cáo thưởng (2026-11-02)
+- Bối cảnh: [D-003](#d-003--offline-mobile-màn-ngang-không-nạp-tiền-thật-2026-10-30) chọn offline và không IAP. User duyệt đổi hướng kiếm tiền khi cập nhật master plan.
+- Quyết định: Android là nền tảng đầu tiên; game tải miễn phí; nguồn thu là gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu và quảng cáo thưởng. Quán, chiến đấu và gacha vẫn chạy offline; mua và xem quảng cáo cần mạng. Màn ngang và save cục bộ giữ nguyên.
+- Lý do / đánh đổi: có doanh thu để duy trì dự án. Theo D-003, phải xét lại `Wallet`, gacha và save khi làm spec: cách trao Gem sau khi mua (chống mất/nhận trùng), Reset Save Data với quyền lợi đã mua, chống sửa save. Chưa quyết, ghi `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
+- Trạng thái: Accepted (hướng; chi tiết chờ spec)
+
+### D-006 — Chưa dùng CI chạy test Unity (2026-10-31)
+- Bối cảnh: cân nhắc GitHub Actions chạy test EditMode. Image Unity 6000.3.15f1 của game-ci có sẵn, nhưng máy user dùng license Personal kiểu mới (không có `Unity_lic.ulf`), mà kích hoạt thủ công cho Personal đã bị Unity bỏ.
+- Quyết định: không làm CI (user chốt). Test chạy trên máy trước mỗi commit/push như hiện nay.
+- Lý do / đánh đổi: dự án nhỏ, một người làm; CI cần runner tự host hoặc tài khoản Unity riêng (vùng xám điều khoản). Mất khả năng bắt lỗi "thiếu file chưa commit" trên bản clone sạch. Xét lại khi có nhiều người hoặc nhiều session làm song song; hướng đã tra: runner tự host dùng `unity test`, hoặc `RageAgainstThePixel/activate-unity-license` với tài khoản CI riêng.
+- Trạng thái: Accepted
+
 ### D-005 — Reset Save Data xoá toàn bộ dữ liệu đã lưu, luôn hỏi xác nhận (2026-10-31)
 - Bối cảnh: user muốn đưa game về mặc định bằng một nút thay vì xoá file tay, và nút phải có hiệu lực với **mọi thứ đã lưu**, kể cả dữ liệu các tính năng thêm về sau.
 - Quyết định: menu Editor `Tools/BunDauPeo/Reset Save Data...` (`ResetSaveData.Run`) và lõi `GameSession.ResetToDefaults()` cho nút trong game (làm ở UI hub). Chưa xác nhận thì không xoá gì. Reset xoá mọi file `save.json.*` (`.bak`, `.tmp`, `.corrupt`) rồi file chính, ghi đè cả `PlayerSave` bằng `new PlayerSave()`, cấp lại đồ game mới, lưu, rồi báo `Wallet.Changed` và `Roster.Changed`.
@@ -36,7 +48,7 @@
 - Bối cảnh: game gacha thường cần server để chống gian lận; template đang cho phép xoay cả màn dọc.
 - Quyết định: chơi offline, save JSON cục bộ, roll gacha trên máy, không IAP. Player Settings chỉ cho phép màn ngang.
 - Lý do / đánh đổi: không cần server và backend. Người chơi có thể sửa save hoặc chỉnh đồng hồ để gian lận, chấp nhận được vì không có tiền thật. Nếu thêm IAP phải xét lại `Wallet`, gacha và save.
-- Trạng thái: Accepted
+- Trạng thái: Superseded by D-007 (phần "không IAP" và "offline hoàn toàn"; màn ngang và save cục bộ vẫn giữ)
 
 ### D-002 — Folder theo tính năng, asmdef riêng, không event bus (2026-10-30)
 - Bối cảnh: game gồm nhiều hệ thống làm lần lượt, cần giữ chúng không dính nhau.

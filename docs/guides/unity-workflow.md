@@ -61,7 +61,9 @@ Việc thuộc nhóm bên dưới thì **nạp skill tương ứng bằng Skill 
 | Âm thanh | `unity:audio-setup-mixers`, `unity:optimize-audio` |
 | Pixel art | `unity:2d-pixel-perfect` (chỉ khi art cuối là pixel art, đang `TODO(user)` ở [vision](../vision/vision.md)) |
 
-Ngoài phạm vi hiện tại (offline, không nạp tiền thật): `unity:build-live-game`, `unity:implement-in-app-purchases`, `unity:levelplay-unity-integration`, `unity:setup-multiplayer-services`, `unity:setup-vivox-voice-chat`. `unity:localization` chưa dùng, vì chưa có yêu cầu đa ngôn ngữ.
+Mua trong game và quảng cáo thưởng (user duyệt 2026-11-02, [D-007](../decisions/decisions.md)): `unity:implement-in-app-purchases`, `unity:levelplay-unity-integration`; nạp khi làm tính năng đó, sau khi có spec riêng.
+
+Ngoài phạm vi hiện tại (không online, không server): `unity:build-live-game`, `unity:setup-multiplayer-services`, `unity:setup-vivox-voice-chat`. `unity:localization` chưa dùng, vì chưa có yêu cầu đa ngôn ngữ.
 
 Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superpowers:*`, xem [agent-routing.md](agent-routing.md).
 

@@ -11,7 +11,7 @@ Mục ghi *khởi điểm* là giá trị tạm để bắt đầu cân bằng, 
 |---|---|---|
 | Coin | Khách trả tiền ở quán, thu thập AFK | Mua nâng cấp quán |
 | Material | Thưởng màn chơi | Mua nâng cấp quán |
-| Gem | Thưởng màn chơi | Quay gacha |
+| Gem | Thưởng màn chơi; mua trong game; quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
 
 Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để quán chạy vừa đi đánh.
 
@@ -104,3 +104,14 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 - **Quay tiếp:** bấm OK hiện popup Quay tiếp (cùng số lượt vừa quay) hoặc Thôi (về trang roll). Không đủ Gem thì popup cảnh báo và nút Quay tiếp mờ.
 - **Lịch sử quay:** lưu trong save, 50 lượt gần nhất (mỗi lần bấm Quay 1 hoặc Quay 10 là một mục), Reset Save Data xoá. Trang roll có nút Lịch sử mở popup chỉ đọc, mới nhất trên cùng.
 - Nhân vật trùng thành mảnh: xem mục [Nhân vật](#nhân-vật). Thiết kế đầy đủ: [spec Gacha](../superpowers/specs/2026-10-31-gacha-design.md).
+
+## Kiếm tiền
+
+(user duyệt hướng 2026-11-02, [D-007](../decisions/decisions.md); chưa có spec, làm sau Combat và UI hub)
+
+- Game tải miễn phí. Năm nguồn thu: **gói Gem**, **thẻ tháng**, **gói tân thủ**, **gói nhân vật khởi đầu**, **quảng cáo thưởng** (xem quảng cáo để nhận Gem).
+- Luật hiện hành không đổi: thể lực không mua được bằng Gem ([Thể lực](#thể-lực)); gacha giữ nguyên số khởi điểm.
+- `TODO(user)`, chốt trong spec riêng: nội dung và giá từng gói (số Gem mỗi gói; thẻ tháng nhận bao nhiêu Gem mỗi ngày; gói nhân vật khởi đầu gồm mấy nhân vật; gói tân thủ khác gói nhân vật khởi đầu ở đâu); quảng cáo thưởng cho bao nhiêu Gem mỗi lượt và tối đa mấy lượt mỗi ngày.
+- `TODO(user)`: Reset Save Data có xoá quyền lợi đã mua hay không. [D-005](../decisions/decisions.md) đang nói xoá toàn bộ, trong khi quyền lợi mua gắn với tài khoản cửa hàng và thường khôi phục được.
+- `TODO(user)`: save và roll gacha nằm trên máy, người chơi sửa được; khi có tiền thật phải quyết định chống gian lận tới mức nào ([D-003](../decisions/decisions.md) từng chấp nhận vì không có tiền thật).
+- Giá và tỉ lệ mua trong sheet master plan (tab *Giả định KD*) chỉ là ước lượng để dự báo doanh thu 2027, không phải luật chơi.
