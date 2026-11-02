@@ -20,7 +20,7 @@ namespace BunDauPeo.UI
         public const long MaterialGrant = 50;
         public const int AfkRewindHours = 1;
 
-        public static readonly string[] SceneNames = { RestaurantScene, GachaScene };
+        public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.BattleScene };
 
         private static GameObject _root;
         // Màn mà nút "Chiến đấu thử" dùng; nút "Màn thử" xoay vòng nó.
@@ -118,6 +118,7 @@ namespace BunDauPeo.UI
             FillTeamIfEmpty(ServiceLocator.Get<Roster>());
             var result = combat.StartBattle(_trialStageId);
             Debug.Log($"DevOverlay: StartBattle({_trialStageId}) = {result.Status}");
+            if (result.Status == StartBattleStatus.Success) SceneManager.LoadScene(BattleView.BattleScene);
         }
 
         // Heartbeat trước để chốt rate hiện tại (game mới chưa có Heartbeat nào thì rate là 0); sau Rewind phải CatchUp ngay,

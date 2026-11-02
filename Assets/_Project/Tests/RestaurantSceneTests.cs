@@ -17,7 +17,7 @@ namespace BunDauPeo.Tests
     public class RestaurantSceneTests
     {
         // Mở scene từ đĩa (L-002) và chỉ đóng nếu test là bên mở nó.
-        private static void WithScene(string path, Action<Scene> check)
+        internal static void WithScene(string path, Action<Scene> check)
         {
             var wasOpen = SceneManager.GetSceneByPath(path).isLoaded;
             var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
@@ -31,11 +31,11 @@ namespace BunDauPeo.Tests
             }
         }
 
-        private static T[] All<T>(Scene scene) where T : Component =>
+        internal static T[] All<T>(Scene scene) where T : Component =>
             scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<T>(true)).ToArray();
 
         // Mọi tham chiếu [SerializeField] của component phải có giá trị; mảng không rỗng và không phần tử null.
-        private static void AssertAllReferencesAssigned(Component component)
+        internal static void AssertAllReferencesAssigned(Component component)
         {
             var so = new SerializedObject(component);
             var property = so.GetIterator();
@@ -190,7 +190,7 @@ namespace BunDauPeo.Tests
             });
 
         // Rect trong hệ Canvas tham chiếu 1920×1080 (gốc dưới trái), tính từ neo và offset đã lưu: không phụ thuộc kích thước Game view lúc mở scene.
-        private static Rect InReferenceCanvas(RectTransform rt)
+        internal static Rect InReferenceCanvas(RectTransform rt)
         {
             var parent = rt.parent.GetComponent<Canvas>() != null ? new Rect(0, 0, 1920, 1080) : InReferenceCanvas((RectTransform)rt.parent);
             var anchorMin = parent.min + Vector2.Scale(rt.anchorMin, parent.size);
