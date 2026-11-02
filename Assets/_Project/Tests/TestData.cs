@@ -28,6 +28,7 @@ namespace BunDauPeo.Tests
             so.FindProperty("_id").stringValue = id;
             so.FindProperty("_rarity").enumValueIndex = (int)rarity;
             so.FindProperty("_stars").intValue = 1;
+            so.FindProperty("_class").enumValueIndex = (int)CharacterClass.Fighter;
             so.FindProperty("_basicAttack").objectReferenceValue = Skill(SkillKind.Basic);
             so.FindProperty("_skill").objectReferenceValue = Skill(SkillKind.Skill);
             so.FindProperty("_ultimate").objectReferenceValue = Skill(SkillKind.Ultimate);

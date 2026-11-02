@@ -41,7 +41,8 @@ Quy tắc:
   - `unity close .` có thể báo "did not close within 30s" dù Editor vẫn đóng: chạy `unity status` lặp lại tới khi hết dòng Editor, không kill process.
   - `unity command eval '<mã>'`: mã chạy trong thân một hàm, nên không có `using` (dùng tên đầy đủ, ví dụ `System.Linq.Enumerable.First(...)`), và `return x;` trả giá trị về trường `result` (thêm `--result-only` cho gọn). Bấm nút UI trong Play: `EventSystem.RaycastAll` tại tâm nút, nếu hit đầu là nút thì `ExecuteEvents.Execute(..., pointerClickHandler)`; hit rỗng nghĩa là toạ độ sai (Canvas Overlay thì dùng camera null khi đổi sang điểm màn hình).
   - `unity command console get` không lọc sẽ trả cả trăm cảnh báo shader và stack trace: luôn thêm `--level error` rồi `grep -o '"message":"[^"]*'`.
-  - Dựng lại scene bằng builder (`RestaurantSceneBuilder`, `GachaSceneBuilder`) chỉ chạy được ở batch mode với Editor đóng: `unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.RebuildRestaurantScene`. Trong Editor đang mở sẽ lỗi "Cannot create a new scene additively with an untitled scene unsaved".
+  - Dựng lại scene bằng builder (`RestaurantSceneBuilder`, `GachaSceneBuilder`, `BattleSceneBuilder`, `StageSelectSceneBuilder`) chỉ chạy được ở batch mode với Editor đóng: `unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.RebuildRestaurantScene` (hoặc `RebuildBattleScene`, `RebuildStageSelectScene`). Trong Editor đang mở sẽ lỗi "Cannot create a new scene additively with an untitled scene unsaved". Đổi field `[SerializeField]` của view thì phải dựng lại scene tương ứng, rồi chạy test (test scene đọc lại file).
+  - Thử Combat trong Play: bấm nút theo tên bằng `foreach (var b in Object.FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) if (b.name == "...") b.onClick.Invoke();`; vào `StageSelect` bằng `SceneManager.LoadScene` từ Restaurant (Boot đã chạy). AUTO với x2 hạ trận trong vài giây giữa hai lệnh CLI (mỗi lệnh ~3 giây): muốn thử đường thua thì tắt `CombatService.AutoEnabled` trước khi vào trận, kẻo trận đã thắng khi bạn gọi `Surrender()`.
   - Dòng ".. is not a valid directory name" khi chạy `unity test`/`unity run` với đường dẫn `../…` là vô hại; xem file kết quả.
 - Test, đường dẫn log và lệnh cụ thể của từng đợt nằm trong kế hoạch tương ứng ở `superpowers/plans/`, không chép lại ở đây.
 
@@ -61,7 +62,9 @@ Việc thuộc nhóm bên dưới thì **nạp skill tương ứng bằng Skill 
 | Âm thanh | `unity:audio-setup-mixers`, `unity:optimize-audio` |
 | Pixel art | `unity:2d-pixel-perfect` (chỉ khi art cuối là pixel art, đang `TODO(user)` ở [vision](../vision/vision.md)) |
 
-Ngoài phạm vi hiện tại (offline, không nạp tiền thật): `unity:build-live-game`, `unity:implement-in-app-purchases`, `unity:levelplay-unity-integration`, `unity:setup-multiplayer-services`, `unity:setup-vivox-voice-chat`. `unity:localization` chưa dùng, vì chưa có yêu cầu đa ngôn ngữ.
+Mua trong game và quảng cáo thưởng (user duyệt 2026-11-02, [D-007](../decisions/decisions.md)): `unity:implement-in-app-purchases`, `unity:levelplay-unity-integration`; nạp khi làm tính năng đó, sau khi có spec riêng.
+
+Ngoài phạm vi hiện tại (không online, không server): `unity:build-live-game`, `unity:setup-multiplayer-services`, `unity:setup-vivox-voice-chat`. `unity:localization` chưa dùng, vì chưa có yêu cầu đa ngôn ngữ.
 
 Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superpowers:*`, xem [agent-routing.md](agent-routing.md).
 

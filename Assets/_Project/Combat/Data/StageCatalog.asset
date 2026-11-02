@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472a8c0d596b67d4597f4dcc1589324d, type: 3}
+  m_Name: StageCatalog
+  m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.StageCatalog
+  _items:
+  - {fileID: 11400000, guid: 829610a145549624fa4bf6d55665e8fd, type: 2}
+  - {fileID: 11400000, guid: ef57a3aaacc9ae74d9218153578005ab, type: 2}
+  - {fileID: 11400000, guid: 97f8d7e100b68f244a6aa6314afeb9a2, type: 2}
+  - {fileID: 11400000, guid: 05a33e948ce7fe74d9be098cdcaad14b, type: 2}
+  - {fileID: 11400000, guid: e79156688e654a0428f905f912f1e77c, type: 2}
+  - {fileID: 11400000, guid: 503a133dd52695147bce5b7f12c87b1a, type: 2}
+  - {fileID: 11400000, guid: ef0178a0481601a4fbdd3f6d42d073eb, type: 2}

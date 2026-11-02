@@ -25,6 +25,36 @@
 
 ## Danh sách
 
+### L-022 — Lệnh Bash dài có heredoc Python lẫn tiếng Việt báo `unexpected EOF` và không chạy gì (2026-11-03)  #process
+- Triệu chứng: ba lần `python - <<'EOF'` sửa nhiều file một lượt thoát mã 2 ("unexpected EOF while looking for matching `''`"), không file nào đổi; chỉ thấy khi kiểm `git status`.
+- Nguyên nhân gốc: lệnh Bash nhiều chục dòng chứa chuỗi ba nháy, nháy đơn và tiếng Việt bị shell phân tích sai trước khi tới Python.
+- Luật từ nay: tạo file bằng công cụ Write, sửa chỗ lớn bằng công cụ Edit; Bash chỉ cho thay thế ngắn. Sau lệnh sửa hàng loạt, kiểm `git diff --stat` có đúng file đổi trước khi chạy tiếp.
+
+### L-021 — Test "màn hỏng" dựng config hỏng nên service không chạy, và số thô của thể lực chưa chốt thì lệch (2026-11-03)  #script #process
+- Triệu chứng: ca `Invalid` của `EnterStage`/`CanEnter` dựng catalog có màn hỏng ngay từ đầu nên `CombatService.IsRunning = false` (`NullReferenceException`, log "invalid config"); và so `Save.Stamina.Current` thô trước/sau ra 0 so với 100 dù không đổi gì.
+- Nguyên nhân gốc: `CombatConfig.Validate()` gom lỗi của mọi màn nên màn hỏng làm cả config hỏng; số thô trong save chỉ được chốt (đầy lúc `Anchor == 0`) khi có người đọc `Stamina.Current`.
+- Luật từ nay: muốn thử trạng thái "màn hỏng" thì dựng service với màn hợp lệ rồi `TestData.Edit` làm hỏng sau; so số thô của thể lực thì đọc `Stamina.Current` một lần trước để chốt.
+
+### L-020 — `unity status && unity run …` không chạy lệnh sau khi không có Editor, và log cũ trông như log mới (2026-11-03)  #process #unity-files
+- Triệu chứng: `unity status && unity run . -- -executeMethod …RebuildBattleScene` thoát mã 12 mà scene không đổi; tôi đọc `../bdp-setup.log` còn từ lần trước ("Exiting batchmode successfully") và suýt coi là đã dựng xong.
+- Nguyên nhân gốc: `unity status` thoát 12 khi không có Editor nào (đúng ý khi Editor phải đóng), nên `&&` cắt chuỗi; file log ghi đè chỉ khi lệnh `run` thật sự chạy.
+- Luật từ nay: `unity status` là một lệnh riêng, đọc kết quả rồi mới chạy `test`/`run`; sau `run` kiểm `git status` có file đổi (hoặc giờ sửa của log) trước khi tin log.
+
+### L-019 — Play không qua Boot khi Editor mở bằng CLI: không có dịch vụ, không có dải DEV (2026-11-03)  #process #unity-files
+- Triệu chứng: `unity open .` rồi `editor.playmode start` chạy scene Untitled; `eval` báo "Service CombatService is not registered", không có `DevOverlay`. Nạp `Boot` bằng `SceneManager.LoadScene` trong Play thì có dịch vụ nhưng vẫn không có dải DEV (nó chỉ dựng ở lần nạp scene đầu tiên).
+- Nguyên nhân gốc: Editor mới mở chưa đặt Boot làm scene khởi động cho Play; `DevOverlay` dựng ở `AfterSceneLoad` đầu tiên và thoát sớm nếu chưa có dịch vụ.
+- Luật từ nay: trước khi Play, `unity command scene open Assets/_Project/Scenes/Boot.unity` rồi `unity command editor.playmode start`; kiểm `GameObject.Find("DevOverlay")` có trước khi thử gì.
+
+### L-018 — `Random` mơ hồ khi file test có cả `using System` và `using UnityEngine` (2026-11-02)  #script
+- Triệu chứng: `CombatTestData` khai báo tham số `Random random = null` và báo `CS0104: 'Random' is an ambiguous reference between 'UnityEngine.Random' and 'System.Random'`, làm cả assembly test không biên dịch.
+- Nguyên nhân gốc: helper test cần `UnityEngine` (`ScriptableObject`) và nhận RNG của `BattleSession` (`System.Random`), nên cả hai namespace cùng được import.
+- Luật từ nay: trong file có `using UnityEngine`, luôn viết `System.Random` đầy đủ cho tham số và field RNG.
+
+### L-017 — Message commit nhiều dòng có dấu ngoặc kép bị PowerShell 5.1 cắt thành pathspec (2026-11-02)  #git #process
+- Triệu chứng: `git commit -m @'...'@` báo `pathspec 'in' did not match any file(s)`, không commit gì; message có `"not in scope"`.
+- Nguyên nhân gốc: Windows PowerShell 5.1 truyền chuỗi chứa `"` cho chương trình ngoài mà không escape, nên git nhận phần sau dấu ngoặc là đối số riêng.
+- Luật từ nay: message commit nhiều dòng thì ghi ra file trong scratchpad và dùng `git commit -F <file>`; chỉ dùng `-m @'...'@` khi message không có `"`.
+
 ### L-016 — `Validate()` thiếu một field thì config xấu hoặc làm NaN, hoặc làm Boot ném lỗi (2026-11-02)  #script #process
 - Triệu chứng: review độc lập tìm ra `_dailyGoalSeconds = 0` qua `Validate` làm chất lượng NaN (Thu AFK mất Coin chờ), `_maxWaitingLine = 0` làm mọi khách bỏ về, và `_baseTables = -1` làm `RestaurantService` ném lỗi trong `Awake` dù `IsRunning` đã là false.
 - Nguyên nhân gốc: `Validate()` chỉ liệt kê field của những task đã nghĩ tới; code chạy tiếp sau khi báo lỗi cấu hình (`RebuildProfile`) vẫn dùng giá trị xấu.

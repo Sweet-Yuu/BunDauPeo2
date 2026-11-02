@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
+using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using BunDauPeo.Restaurant;
@@ -23,10 +24,14 @@ namespace BunDauPeo.EditorTools
         public const string NewGameConfigPath = "Assets/_Project/Boot/Data/NewGameConfig.asset";
         public const string GachaScenePath = "Assets/_Project/Scenes/Gacha.unity";
         public const string RestaurantScenePath = "Assets/_Project/Scenes/Restaurant.unity";
-        public const string BannerPath = "Assets/_Project/Gacha/Data/banner_standard.asset";
+        public const string BattleScenePath = "Assets/_Project/Scenes/Battle.unity";
+        public const string StageSelectScenePath = "Assets/_Project/Scenes/StageSelect.unity";
+        public const string BannerPath ="Assets/_Project/Gacha/Data/banner_standard.asset";
         public const string BannerCatalogPath = "Assets/_Project/Gacha/Data/GachaBannerCatalog.asset";
         public const string RestaurantConfigPath = "Assets/_Project/Restaurant/Data/RestaurantConfig.asset";
         public const string UpgradeCatalogPath = "Assets/_Project/Restaurant/Data/UpgradeCatalog.asset";
+        public const string CombatConfigPath = "Assets/_Project/Combat/Data/CombatConfig.asset";
+        public const string StageCatalogPath = "Assets/_Project/Combat/Data/StageCatalog.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
         private const string SkillsFolder = CharacterData + "/Skills";
@@ -42,14 +47,14 @@ namespace BunDauPeo.EditorTools
             ("Finisher", "Finisher", SkillKind.Ultimate, SkillTarget.AllEnemies, SkillEffect.Damage, 2.5f, 0, 100),
         };
 
-        private static readonly (string Id, string Name, Rarity Rarity, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill)[] CharacterTable =
+        private static readonly (string Id, string Name, Rarity Rarity, CharacterClass Class, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill)[] CharacterTable =
         {
-            ("char_nem_chua", "Nem Chua", Rarity.R, 800, 80, 40, 100, 30, 20, 10, "PowerStrike"),
-            ("char_cha_com", "Chả Cốm", Rarity.R, 900, 70, 50, 95, 20, 30, 10, "PowerStrike"),
-            ("char_dau_phu", "Đậu Phụ", Rarity.R, 1000, 60, 60, 90, 10, 20, 30, "Heal"),
-            ("char_mam_tom", "Mắm Tôm", Rarity.SR, 1000, 110, 50, 110, 50, 30, 20, "PowerStrike"),
-            ("char_long_doi", "Lòng Dồi", Rarity.SR, 1200, 90, 70, 100, 30, 50, 20, "Heal"),
-            ("char_bun_la", "Bún Lá", Rarity.SSR, 1400, 130, 80, 120, 60, 50, 50, "PowerStrike"),
+            ("char_nem_chua", "Nem Chua", Rarity.R, CharacterClass.Fighter, 800, 80, 40, 100, 30, 20, 10, "PowerStrike"),
+            ("char_cha_com", "Chả Cốm", Rarity.R, CharacterClass.Marksman, 900, 70, 50, 95, 20, 30, 10, "PowerStrike"),
+            ("char_dau_phu", "Đậu Phụ", Rarity.R, CharacterClass.Support, 1000, 60, 60, 90, 10, 20, 30, "Heal"),
+            ("char_mam_tom", "Mắm Tôm", Rarity.SR, CharacterClass.Mage, 1000, 110, 50, 110, 50, 30, 20, "PowerStrike"),
+            ("char_long_doi", "Lòng Dồi", Rarity.SR, CharacterClass.Tank, 1200, 90, 70, 100, 30, 50, 20, "Heal"),
+            ("char_bun_la", "Bún Lá", Rarity.SSR, CharacterClass.Fighter, 1400, 130, 80, 120, 60, 50, 50, "PowerStrike"),
         };
 
         private const string RestaurantData = "Assets/_Project/Restaurant/Data";
@@ -86,6 +91,35 @@ namespace BunDauPeo.EditorTools
             ("up_prices", "Thực đơn", UpgradeEffect.DishPrice, new[] { 1.1f, 1.2f, 1.3f, 1.4f, 1.5f }, new[] { 400L, 800, 1600, 3200, 6400 }, new[] { 5L, 10, 15, 20, 25 }),
         };
 
+        private const string CombatData = "Assets/_Project/Combat/Data";
+
+        // Số mẫu của spec Combat 3.5. Đánh thường của quái dùng lại Skill_BasicStrike của nhân vật.
+        private static readonly (string File, string Display, SkillKind Kind, SkillTarget Target, SkillEffect Effect, float Power, int Cooldown, int Energy)[] EnemySkillTable =
+        {
+            ("Claw", "Cào mạnh", SkillKind.Skill, SkillTarget.SingleEnemy, SkillEffect.Damage, 1.8f, 3, 0),
+            ("Roar", "Gầm", SkillKind.Skill, SkillTarget.AllEnemies, SkillEffect.Damage, 1.0f, 3, 0),
+        };
+
+        private static readonly (string File, string Name, int Hp, int Atk, int Def, int Spd, string Skill, bool Boss)[] EnemyTable =
+        {
+            ("Enemy_Fly", "Ruồi Bàn", 500, 60, 30, 90, null, false),
+            ("Enemy_Rat", "Chuột Bếp", 900, 85, 45, 100, null, false),
+            ("Enemy_Roach", "Gián Kho", 1300, 110, 60, 85, "Claw", false),
+            ("Enemy_RatKing", "Chuột Chúa", 7000, 135, 70, 105, "Roar", true),
+        };
+
+        // Đợt là danh sách file quái; thưởng theo thứ tự Material rồi Gem.
+        private static readonly (string Id, string Name, StageKind Kind, string[][] Waves, int Stamina, long FirstMaterial, long FirstGem, long RepeatMaterial, long RepeatGem)[] StageTable =
+        {
+            ("st_1_story1", "Cốt truyện 1", StageKind.Story, new string[0][], 0, 0, 0, 0, 0),
+            ("st_1_1", "1-1", StageKind.Battle, new[] { new[] { "Enemy_Fly", "Enemy_Fly" } }, 10, 30, 150, 30, 30),
+            ("st_1_2", "1-2", StageKind.Battle, new[] { new[] { "Enemy_Fly", "Enemy_Fly" }, new[] { "Enemy_Fly", "Enemy_Fly", "Enemy_Fly" } }, 10, 40, 150, 40, 30),
+            ("st_1_story2", "Cốt truyện 2", StageKind.Story, new string[0][], 0, 0, 0, 0, 0),
+            ("st_1_3", "1-3", StageKind.Battle, new[] { new[] { "Enemy_Fly", "Enemy_Rat" }, new[] { "Enemy_Rat", "Enemy_Rat" }, new[] { "Enemy_Fly", "Enemy_Rat", "Enemy_Rat" } }, 10, 50, 200, 50, 40),
+            ("st_1_4", "1-4", StageKind.Battle, new[] { new[] { "Enemy_Rat", "Enemy_Rat" }, new[] { "Enemy_Roach", "Enemy_Rat" }, new[] { "Enemy_Roach", "Enemy_Roach", "Enemy_Rat" } }, 10, 60, 200, 60, 40),
+            ("st_1_5", "1-5", StageKind.Battle, new[] { new[] { "Enemy_Rat", "Enemy_Roach" }, new[] { "Enemy_Roach", "Enemy_Roach", "Enemy_Rat" }, new[] { "Enemy_RatKing" } }, 10, 100, 500, 100, 100),
+        };
+
         private static readonly string[] StarterIds = { "char_nem_chua", "char_cha_com", "char_dau_phu" };
 
         [MenuItem("Tools/BunDauPeo/Setup Project")]
@@ -94,10 +128,11 @@ namespace BunDauPeo.EditorTools
             EnsureFolder(CharacterData, "Skills");
             EnsureFolder(CharacterData, "Characters");
 
-            var skills = SkillTable.ToDictionary(row => row.File, CreateSkill);
+            var skills = SkillTable.ToDictionary(row => row.File, row => CreateSkill(row, $"{SkillsFolder}/Skill_{row.File}.asset"));
             var characters = CharacterTable.Select(row => CreateCharacter(row, skills)).ToArray();
             // Asset đã có từ trước field _stars không được init lại, nên điền riêng; số user đã chỉnh (khác 0) giữ nguyên.
             FillMissingStars(characters);
+            FillMissingClass(characters);
 
             GetOrCreateAsset<CharacterCatalog>(CatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), characters)));
@@ -125,10 +160,13 @@ namespace BunDauPeo.EditorTools
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), new Object[] { banner })));
 
             CreateRestaurantData();
+            CreateCombatData();
 
             CreateBootScene();
             CreateGachaScene();
             CreateRestaurantScene();
+            CreateStageSelectScene();
+            CreateBattleScene();
             WireBootScene();
             PutScenesInBuildOrder();
             ApplyPlayerSettings();
@@ -139,6 +177,12 @@ namespace BunDauPeo.EditorTools
         // Run giữ scene Restaurant đã có; lệnh này dựng lại từ builder (ghi đè cùng đường dẫn nên GUID và Build Settings không đổi).
         [MenuItem("Tools/BunDauPeo/Rebuild Restaurant Scene")]
         public static void RebuildRestaurantScene() => RestaurantSceneBuilder.Create(RestaurantScenePath);
+
+        [MenuItem("Tools/BunDauPeo/Rebuild StageSelect Scene")]
+        public static void RebuildStageSelectScene() => StageSelectSceneBuilder.Create(StageSelectScenePath);
+
+        [MenuItem("Tools/BunDauPeo/Rebuild Battle Scene")]
+        public static void RebuildBattleScene() => BattleSceneBuilder.Create(BattleScenePath);
 
         public static T GetOrCreateAsset<T>(string path, Action<T> init) where T : ScriptableObject
         {
@@ -189,6 +233,13 @@ namespace BunDauPeo.EditorTools
                     if (restaurant.objectReferenceValue == null)
                     {
                         restaurant.objectReferenceValue = AssetDatabase.LoadAssetAtPath<RestaurantConfig>(RestaurantConfigPath);
+                        changed = true;
+                    }
+
+                    var combat = so.FindProperty("_combatConfig");
+                    if (combat.objectReferenceValue == null)
+                    {
+                        combat.objectReferenceValue = AssetDatabase.LoadAssetAtPath<CombatConfig>(CombatConfigPath);
                         changed = true;
                     }
 
@@ -271,6 +322,87 @@ namespace BunDauPeo.EditorTools
             }));
         }
 
+        // Chỉ tạo asset còn thiếu; số bạn đã chỉnh trong Inspector được giữ nguyên.
+        private static void CreateCombatData()
+        {
+            EnsureFolder("Assets/_Project/Combat", "Data");
+            foreach (var folder in new[] { "Skills", "Enemies", "Stages" }) EnsureFolder(CombatData, folder);
+
+            var basic = AssetDatabase.LoadAssetAtPath<SkillDefinition>($"{SkillsFolder}/Skill_BasicStrike.asset");
+            var enemySkills = EnemySkillTable.ToDictionary(row => row.File,
+                row => CreateSkill(row, $"{CombatData}/Skills/EnemySkill_{row.File}.asset"));
+
+            var enemies = EnemyTable.ToDictionary(row => row.File, row =>
+                GetOrCreateAsset<EnemyDefinition>($"{CombatData}/Enemies/{row.File}.asset", asset => Apply(asset, so =>
+                {
+                    so.FindProperty("_displayName").stringValue = row.Name;
+                    var stats = so.FindProperty("_stats");
+                    stats.FindPropertyRelative("HP").intValue = row.Hp;
+                    stats.FindPropertyRelative("Attack").intValue = row.Atk;
+                    stats.FindPropertyRelative("Defense").intValue = row.Def;
+                    stats.FindPropertyRelative("Speed").intValue = row.Spd;
+                    so.FindProperty("_basicAttack").objectReferenceValue = basic;
+                    so.FindProperty("_skill").objectReferenceValue = row.Skill == null ? null : enemySkills[row.Skill];
+                    so.FindProperty("_isBoss").boolValue = row.Boss;
+                })));
+
+            var stages = StageTable.Select(row =>
+                GetOrCreateAsset<StageDefinition>($"{CombatData}/Stages/{row.Id}.asset", asset => Apply(asset, so =>
+                {
+                    so.FindProperty("_id").stringValue = row.Id;
+                    so.FindProperty("_displayName").stringValue = row.Name;
+                    so.FindProperty("_kind").enumValueIndex = (int)row.Kind;
+                    so.FindProperty("_staminaCost").intValue = row.Stamina;
+
+                    var waves = so.FindProperty("_waves");
+                    waves.arraySize = row.Waves.Length;
+                    for (var i = 0; i < row.Waves.Length; i++)
+                        SetObjects(waves.GetArrayElementAtIndex(i).FindPropertyRelative("_enemies"),
+                            row.Waves[i].Select(file => (Object)enemies[file]).ToArray());
+
+                    if (row.Kind == StageKind.Story) return;
+                    SetRewards(so.FindProperty("_firstClearReward"), row.FirstMaterial, row.FirstGem);
+                    SetRewards(so.FindProperty("_repeatReward"), row.RepeatMaterial, row.RepeatGem);
+                }))).ToArray();
+
+            var catalog = GetOrCreateAsset<StageCatalog>(StageCatalogPath, asset =>
+                Apply(asset, so => SetObjects(so.FindProperty("_items"), stages)));
+
+            GetOrCreateAsset<CombatConfig>(CombatConfigPath, asset =>
+                Apply(asset, so => so.FindProperty("_stages").objectReferenceValue = catalog));
+
+            MigrateStaminaRule();
+        }
+
+        // Luật thể lực đổi 2026-11-03 (D-008): tối đa 60 → 100, màn 1-5 từ 15 → 10. Setup không ghi đè asset đã sinh nên đổi riêng;
+        // chỉ đổi đúng giá trị cũ nguyên văn, số user đã sửa tay giữ nguyên.
+        public static void MigrateStaminaRule()
+        {
+            MigrateInt(AssetDatabase.LoadAssetAtPath<CombatConfig>(CombatConfigPath), "_maxStamina", 60, 100);
+            MigrateInt(AssetDatabase.LoadAssetAtPath<StageDefinition>($"{CombatData}/Stages/st_1_5.asset"), "_staminaCost", 15, 10);
+        }
+
+        private static void MigrateInt(Object asset, string field, int oldValue, int newValue)
+        {
+            if (asset == null) return;
+
+            var so = new SerializedObject(asset);
+            var property = so.FindProperty(field);
+            if (property.intValue != oldValue) return;
+
+            property.intValue = newValue;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+        }
+
+        private static void SetRewards(SerializedProperty array, long material, long gem)
+        {
+            array.arraySize = 2;
+            SetCost(array.GetArrayElementAtIndex(0), CurrencyType.Material, material);
+            SetCost(array.GetArrayElementAtIndex(1), CurrencyType.Gem, gem);
+        }
+
         private static void SetCost(SerializedProperty line, CurrencyType type, long amount)
         {
             line.FindPropertyRelative("Type").enumValueIndex = (int)type;
@@ -278,8 +410,9 @@ namespace BunDauPeo.EditorTools
         }
 
         private static SkillDefinition CreateSkill(
-            (string File, string Display, SkillKind Kind, SkillTarget Target, SkillEffect Effect, float Power, int Cooldown, int Energy) row) =>
-            GetOrCreateAsset<SkillDefinition>($"{SkillsFolder}/Skill_{row.File}.asset", asset => Apply(asset, so =>
+            (string File, string Display, SkillKind Kind, SkillTarget Target, SkillEffect Effect, float Power, int Cooldown, int Energy) row,
+            string path) =>
+            GetOrCreateAsset<SkillDefinition>(path, asset => Apply(asset, so =>
             {
                 so.FindProperty("_displayName").stringValue = row.Display;
                 so.FindProperty("_icon").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(IconSprite);
@@ -293,7 +426,7 @@ namespace BunDauPeo.EditorTools
             }));
 
         private static CharacterDefinition CreateCharacter(
-            (string Id, string Name, Rarity Rarity, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill) row,
+            (string Id, string Name, Rarity Rarity, CharacterClass Class, int Hp, int Atk, int Def, int Spd, int Cook, int Serve, int Cashier, string Skill) row,
             Dictionary<string, SkillDefinition> skills) =>
             GetOrCreateAsset<CharacterDefinition>($"{CharactersFolder}/{row.Id}.asset", asset => Apply(asset, so =>
             {
@@ -301,6 +434,7 @@ namespace BunDauPeo.EditorTools
                 so.FindProperty("_displayName").stringValue = row.Name;
                 so.FindProperty("_rarity").enumValueIndex = (int)row.Rarity;
                 so.FindProperty("_stars").intValue = StarsFor(row.Rarity);
+                so.FindProperty("_class").enumValueIndex = (int)row.Class;
                 so.FindProperty("_portrait").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(PortraitSprite);
                 so.FindProperty("_battleSprite").objectReferenceValue = AssetDatabase.GetBuiltinExtraResource<Sprite>(IconSprite);
 
@@ -353,10 +487,20 @@ namespace BunDauPeo.EditorTools
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(RestaurantScenePath) == null) RestaurantSceneBuilder.Create(RestaurantScenePath);
         }
 
-        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Gacha, rồi Restaurant.
+        private static void CreateStageSelectScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(StageSelectScenePath) == null) StageSelectSceneBuilder.Create(StageSelectScenePath);
+        }
+
+        private static void CreateBattleScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(BattleScenePath) == null) BattleSceneBuilder.Create(BattleScenePath);
+        }
+
+        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Gacha, Restaurant, StageSelect, Battle.
         private static void PutScenesInBuildOrder()
         {
-            var ordered = new[] { BootScenePath, GachaScenePath, RestaurantScenePath };
+            var ordered = new[] { BootScenePath, GachaScenePath, RestaurantScenePath, StageSelectScenePath, BattleScenePath };
             var scenes = EditorBuildSettings.scenes;
             if (scenes.Length >= ordered.Length && ordered.Select((path, i) => scenes[i].path == path && scenes[i].enabled).All(ok => ok)) return;
 
@@ -391,6 +535,21 @@ namespace BunDauPeo.EditorTools
                 var stars = so.FindProperty("_stars");
                 if (stars.intValue != 0) continue;
                 stars.intValue = StarsFor(character.Rarity);
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        // Cùng khuôn FillMissingStars: chỉ điền khi còn Unset; Id lạ (đã đổi tên) thì bỏ qua.
+        private static void FillMissingClass(CharacterDefinition[] characters)
+        {
+            foreach (var character in characters)
+            {
+                var so = new SerializedObject(character);
+                var cls = so.FindProperty("_class");
+                if (cls.enumValueIndex != (int)CharacterClass.Unset) continue;
+                var row = CharacterTable.FirstOrDefault(r => r.Id == character.Id);
+                if (row.Id == null) continue;
+                cls.enumValueIndex = (int)row.Class;
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
         }

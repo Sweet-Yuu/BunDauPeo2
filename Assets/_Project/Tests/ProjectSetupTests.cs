@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
+using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.EditorTools;
 using BunDauPeo.Gacha;
@@ -225,6 +226,57 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void SampleCharacters_ClassMatchSpecTable()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<CharacterCatalog>(ProjectSetup.CatalogPath);
+            // Viết thẳng theo spec Combat 3.2, tra theo Id, không dùng lại bảng của ProjectSetup.
+            var expected = new System.Collections.Generic.Dictionary<string, CharacterClass>
+            {
+                ["char_nem_chua"] = CharacterClass.Fighter, ["char_cha_com"] = CharacterClass.Marksman,
+                ["char_dau_phu"] = CharacterClass.Support, ["char_mam_tom"] = CharacterClass.Mage,
+                ["char_long_doi"] = CharacterClass.Tank, ["char_bun_la"] = CharacterClass.Fighter,
+            };
+            foreach (var pair in expected)
+            {
+                Assert.IsTrue(catalog.TryGet(pair.Key, out var c), pair.Key);
+                Assert.AreEqual(pair.Value, c.Class, pair.Key);
+            }
+
+            foreach (var cls in new[] { CharacterClass.Tank, CharacterClass.Fighter, CharacterClass.Support, CharacterClass.Marksman, CharacterClass.Mage })
+                Assert.Contains(cls, new System.Collections.Generic.List<CharacterClass>(expected.Values), $"no sample character of class {cls}");
+        }
+
+        [Test]
+        public void Run_FillsUnsetClass_AndKeepsUserValues()
+        {
+            const string unsetPath = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
+            const string keepPath = "Assets/_Project/Characters/Data/Characters/char_bun_la.asset";
+            var unset = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(unsetPath);
+            var keep = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(keepPath);
+            SetClass(unset, CharacterClass.Unset);
+            SetClass(keep, CharacterClass.Mage);
+            try
+            {
+                ProjectSetup.Run();
+                Assert.AreEqual(CharacterClass.Fighter, unset.Class, "unset class is filled from the sample table");
+                Assert.AreEqual(CharacterClass.Mage, keep.Class, "a user-set class is never overwritten");
+            }
+            finally
+            {
+                SetClass(unset, CharacterClass.Fighter);
+                SetClass(keep, CharacterClass.Fighter);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetClass(CharacterDefinition c, CharacterClass cls)
+        {
+            var so = new SerializedObject(c);
+            so.FindProperty("_class").enumValueIndex = (int)cls;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        [Test]
         public void Run_AfterSampleIdWasRenamed_DoesNotThrow()
         {
             const string path = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
@@ -303,6 +355,14 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void BootScene_HasCombatConfig()
+        {
+            var config = ReadBootReference("_combatConfig");
+            Assert.IsNotNull(config);
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<CombatConfig>(ProjectSetup.CombatConfigPath), config);
+        }
+
+        [Test]
         public void Setup_RerunKeepsEditedRestaurantValues()
         {
             var config = AssetDatabase.LoadAssetAtPath<RestaurantConfig>(ProjectSetup.RestaurantConfigPath);
@@ -325,6 +385,118 @@ namespace BunDauPeo.Tests
         {
             var so = new SerializedObject(config);
             so.FindProperty("_baseTables").intValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static CombatConfig SampleCombatConfig() =>
+            AssetDatabase.LoadAssetAtPath<CombatConfig>(ProjectSetup.CombatConfigPath);
+
+        private static EnemyDefinition SampleEnemy(string file) =>
+            AssetDatabase.LoadAssetAtPath<EnemyDefinition>($"Assets/_Project/Combat/Data/Enemies/{file}.asset");
+
+        [Test]
+        public void SampleCombatConfig_IsValid()
+        {
+            var config = SampleCombatConfig();
+            Assert.IsNotNull(config);
+            CollectionAssert.IsEmpty(config.Validate());
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<StageCatalog>(ProjectSetup.StageCatalogPath), config.Stages);
+            Assert.AreEqual(7, config.Stages.Items.Count);
+        }
+
+        [Test]
+        public void SampleStages_MatchSpecTable()
+        {
+            const string F = "Ruồi Bàn", R = "Chuột Bếp", G = "Gián Kho", K = "Chuột Chúa";
+            CurrencyAmount M(long n) => new CurrencyAmount(CurrencyType.Material, n);
+            CurrencyAmount Gem(long n) => new CurrencyAmount(CurrencyType.Gem, n);
+            // Viết thẳng theo spec Combat 3.5, theo đúng thứ tự nút.
+            var expected = new (string Id, StageKind Kind, string[][] Waves, int Cost, CurrencyAmount[] First, CurrencyAmount[] Repeat)[]
+            {
+                ("st_1_story1", StageKind.Story, new string[0][], 0, new CurrencyAmount[0], new CurrencyAmount[0]),
+                ("st_1_1", StageKind.Battle, new[] { new[] { F, F } }, 10, new[] { M(30), Gem(150) }, new[] { M(30), Gem(30) }),
+                ("st_1_2", StageKind.Battle, new[] { new[] { F, F }, new[] { F, F, F } }, 10, new[] { M(40), Gem(150) }, new[] { M(40), Gem(30) }),
+                ("st_1_story2", StageKind.Story, new string[0][], 0, new CurrencyAmount[0], new CurrencyAmount[0]),
+                ("st_1_3", StageKind.Battle, new[] { new[] { F, R }, new[] { R, R }, new[] { F, R, R } }, 10, new[] { M(50), Gem(200) }, new[] { M(50), Gem(40) }),
+                ("st_1_4", StageKind.Battle, new[] { new[] { R, R }, new[] { G, R }, new[] { G, G, R } }, 10, new[] { M(60), Gem(200) }, new[] { M(60), Gem(40) }),
+                ("st_1_5", StageKind.Battle, new[] { new[] { R, G }, new[] { G, G, R }, new[] { K } }, 10, new[] { M(100), Gem(500) }, new[] { M(100), Gem(100) }),
+            };
+
+            var items = SampleCombatConfig().Stages.Items;
+            Assert.AreEqual(expected.Length, items.Count);
+            for (var i = 0; i < expected.Length; i++)
+            {
+                var (id, kind, waves, cost, first, repeat) = expected[i];
+                var stage = items[i];
+                Assert.AreEqual(id, stage.Id, $"order {i}");
+                Assert.AreEqual(kind, stage.Kind, id);
+                Assert.AreEqual(cost, stage.StaminaCost, id);
+                Assert.AreEqual(waves.Length, stage.Waves.Count, $"{id} waves");
+                for (var w = 0; w < waves.Length; w++)
+                    CollectionAssert.AreEqual(waves[w], stage.Waves[w].Enemies.Select(e => e.DisplayName).ToArray(), $"{id} wave {w}");
+                CollectionAssert.AreEqual(first.Select(a => (a.Type, a.Amount)).ToArray(), stage.FirstClearReward.Select(a => (a.Type, a.Amount)).ToArray(), $"{id} first");
+                CollectionAssert.AreEqual(repeat.Select(a => (a.Type, a.Amount)).ToArray(), stage.RepeatReward.Select(a => (a.Type, a.Amount)).ToArray(), $"{id} repeat");
+            }
+        }
+
+        [Test]
+        public void SampleEnemies_MatchSpecTable()
+        {
+            // (file, name, hp, attack, defense, speed, boss, skill: Target, Power, Cooldown hoặc null)
+            var expected = new (string File, string Name, int Hp, int Atk, int Def, int Spd, bool Boss, (SkillTarget Target, float Power, int Cooldown)? Skill)[]
+            {
+                ("Enemy_Fly", "Ruồi Bàn", 500, 60, 30, 90, false, null),
+                ("Enemy_Rat", "Chuột Bếp", 900, 85, 45, 100, false, null),
+                ("Enemy_Roach", "Gián Kho", 1300, 110, 60, 85, false, (SkillTarget.SingleEnemy, 1.8f, 3)),
+                ("Enemy_RatKing", "Chuột Chúa", 7000, 135, 70, 105, true, (SkillTarget.AllEnemies, 1.0f, 3)),
+            };
+            var basic = AssetDatabase.LoadAssetAtPath<SkillDefinition>("Assets/_Project/Characters/Data/Skills/Skill_BasicStrike.asset");
+            foreach (var row in expected)
+            {
+                var e = SampleEnemy(row.File);
+                Assert.IsNotNull(e, row.File);
+                Assert.AreEqual(row.Name, e.DisplayName, row.File);
+                Assert.AreEqual((row.Hp, row.Atk, row.Def, row.Spd), (e.Stats.HP, e.Stats.Attack, e.Stats.Defense, e.Stats.Speed), row.File);
+                Assert.AreEqual(row.Boss, e.IsBoss, row.File);
+                Assert.AreSame(basic, e.BasicAttack, row.File);
+                if (row.Skill == null)
+                {
+                    Assert.IsNull(e.Skill, row.File);
+                    continue;
+                }
+
+                Assert.IsNotNull(e.Skill, row.File);
+                Assert.AreEqual(SkillKind.Skill, e.Skill.Kind, row.File);
+                Assert.AreEqual(SkillEffect.Damage, e.Skill.Effect, row.File);
+                Assert.AreEqual(row.Skill.Value.Target, e.Skill.Target, row.File);
+                Assert.AreEqual(row.Skill.Value.Power, e.Skill.Power, 0.0001f, row.File);
+                Assert.AreEqual(row.Skill.Value.Cooldown, e.Skill.Cooldown, row.File);
+            }
+        }
+
+        [Test]
+        public void Setup_RerunKeepsEditedCombatValues()
+        {
+            var config = SampleCombatConfig();
+            var original = config.MaxRounds;
+            SetMaxRounds(config, 61);
+            try
+            {
+                ProjectSetup.Run();
+                Assert.AreEqual(61, config.MaxRounds);
+            }
+            finally
+            {
+                SetMaxRounds(config, original);
+                EditorUtility.SetDirty(config);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetMaxRounds(CombatConfig config, int value)
+        {
+            var so = new SerializedObject(config);
+            so.FindProperty("_maxRounds").intValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -358,6 +530,43 @@ namespace BunDauPeo.Tests
             // Đường dẫn save phụ thuộc hai tên này; đổi sau khi có save thật thì save cũ bị bỏ lại.
             Assert.AreEqual("Sweet-Yuu", PlayerSettings.companyName);
             Assert.AreEqual("BunDauPeo", PlayerSettings.productName);
+        }
+
+        // Asset sinh theo luật thể lực cũ (tối đa 60, boss 15) được chuyển, giá trị đã sửa tay thì giữ nguyên.
+        [Test]
+        public void Run_MigratesOldStaminaRule_KeepsEditedValues()
+        {
+            var config = SampleCombatConfig();
+            var boss = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/_Project/Combat/Data/Stages/st_1_5.asset");
+            // Trả đúng số đang có (người chơi có thể đã chỉnh cân bằng), không phải số mặc định.
+            var originalMax = config.MaxStamina;
+            var originalCost = boss.StaminaCost;
+            try
+            {
+                SetInt(config, "_maxStamina", 60);
+                SetInt(boss, "_staminaCost", 15);
+                ProjectSetup.Run();
+                Assert.AreEqual((100, 10), (config.MaxStamina, boss.StaminaCost), "the old rule's own numbers move to the new rule");
+
+                SetInt(config, "_maxStamina", 80);
+                SetInt(boss, "_staminaCost", 12);
+                ProjectSetup.Run();
+                Assert.AreEqual((80, 12), (config.MaxStamina, boss.StaminaCost), "edited values are left alone");
+            }
+            finally
+            {
+                SetInt(config, "_maxStamina", originalMax);
+                SetInt(boss, "_staminaCost", originalCost);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private static void SetInt(Object asset, string field, int value)
+        {
+            var so = new SerializedObject(asset);
+            so.FindProperty(field).intValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
         }
     }
 }

@@ -144,5 +144,46 @@ namespace BunDauPeo.Tests
                 Directory.Delete(dir, true);
             }
         }
+
+        [Test]
+        public void OldSave_WithoutCombatFields_LoadsWithDefaults()
+        {
+            var loaded = JsonUtility.FromJson<PlayerSave>(
+                "{\"Version\":1,\"Balances\":[{\"Type\":0,\"Amount\":7}],\"OwnedCharacterIds\":[\"a\"],\"IncidentScores\":[2,1]}");
+
+            Assert.IsNotNull(loaded.ClearedStages);
+            Assert.IsEmpty(loaded.ClearedStages);
+            Assert.IsNotNull(loaded.Stamina);
+            Assert.AreEqual(0L, loaded.Stamina.AnchorUtcTicks, "anchor 0 means a full bar");
+            Assert.AreEqual(7, loaded.Balances[0].Amount);
+            Assert.AreEqual("a", loaded.OwnedCharacterIds[0]);
+            CollectionAssert.AreEqual(new[] { 2, 1 }, loaded.IncidentScores);
+        }
+
+        [Test]
+        public void CombatFields_RoundTripThroughSaveService()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            try
+            {
+                var service = new SaveService(Path.Combine(dir, "save.json"));
+                var save = new PlayerSave();
+                save.ClearedStages.Add("st_1_1");
+                save.ClearedStages.Add("lạ");
+                save.Stamina = new StaminaState { Current = 37, AnchorUtcTicks = 638_000_000_000_000_000 };
+                Assert.IsTrue(service.Save(save));
+
+                var loaded = service.Load();
+
+                CollectionAssert.AreEqual(new[] { "st_1_1", "lạ" }, loaded.ClearedStages);
+                Assert.AreEqual(37, loaded.Stamina.Current);
+                Assert.AreEqual(638_000_000_000_000_000, loaded.Stamina.AnchorUtcTicks, "a 64-bit tick count survives JsonUtility");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        }
     }
 }

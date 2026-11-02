@@ -1,0 +1,6 @@
+{
+  "name": "BunDauPeo.Combat",
+  "rootNamespace": "BunDauPeo.Combat",
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters"],
+  "autoReferenced": true
+}

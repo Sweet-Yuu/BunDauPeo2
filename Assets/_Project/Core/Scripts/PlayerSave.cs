@@ -28,5 +28,8 @@ namespace BunDauPeo.Core
         // Tối đa 10 mục, giá trị 0 bỏ lỡ, 1 trễ, 2 kịp.
         public List<int> IncidentScores = new();
         public AfkState Afk = new();
+        // Id các màn đã thắng lần đầu; id lạ (màn đã bị xoá khỏi catalog) được giữ nguyên.
+        public List<string> ClearedStages = new();
+        public StaminaState Stamina = new();
     }
 }

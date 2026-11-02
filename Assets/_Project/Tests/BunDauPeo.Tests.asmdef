@@ -1,7 +1,7 @@
 {
   "name": "BunDauPeo.Tests",
   "rootNamespace": "BunDauPeo.Tests",
-  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Gacha", "BunDauPeo.Restaurant", "BunDauPeo.UI", "BunDauPeo.Boot", "BunDauPeo.Editor", "Unity.InputSystem", "UnityEngine.UI", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Combat", "BunDauPeo.Gacha", "BunDauPeo.Restaurant", "BunDauPeo.UI", "BunDauPeo.Boot", "BunDauPeo.Editor", "Unity.InputSystem", "UnityEngine.UI", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
   "includePlatforms": ["Editor"],
   "overrideReferences": true,
   "precompiledReferences": ["nunit.framework.dll"],

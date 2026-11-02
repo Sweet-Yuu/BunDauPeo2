@@ -259,5 +259,20 @@ namespace BunDauPeo.Tests
             var session = new GameSession(_service, _catalog, config);
             Assert.AreEqual(0, session.Wallet.Get(CurrencyType.Coin));
         }
+
+        [Test]
+        public void ResetToDefaults_ClearsCombatFields()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            session.Save.ClearedStages.Add("st_1_1");
+            session.Save.Stamina.Current = 5;
+            session.Save.Stamina.AnchorUtcTicks = 638_000_000_000_000_000;
+
+            Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.AreEqual(0, session.Save.ClearedStages.Count);
+            Assert.IsNotNull(session.Save.Stamina);
+            Assert.AreEqual((0, 0L), (session.Save.Stamina.Current, session.Save.Stamina.AnchorUtcTicks), "anchor 0 reads as a full bar");
+        }
     }
 }

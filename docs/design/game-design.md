@@ -11,7 +11,7 @@ Mục ghi *khởi điểm* là giá trị tạm để bắt đầu cân bằng, 
 |---|---|---|
 | Coin | Khách trả tiền ở quán, thu thập AFK | Mua nâng cấp quán |
 | Material | Thưởng màn chơi | Mua nâng cấp quán |
-| Gem | Thưởng màn chơi | Quay gacha |
+| Gem | Thưởng màn chơi; mua trong game; quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
 
 Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để quán chạy vừa đi đánh.
 
@@ -21,9 +21,8 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - Độ hiếm: R, SR, SSR.
 - Một nhân vật chỉ ở một nơi: **trong đội chiến đấu thì không làm quán, dù đang đánh hay không.** Đưa vào đội thì tự rời quán, và ngược lại.
 - Đội chiến đấu tối đa 5 người (user chốt 2026-10-31). **Vào trận cần tối thiểu 1 người; dưới 5 người thì phải qua hộp xác nhận** để tránh bấm nhầm (user chốt 2026-11-01, thuộc spec Combat).
-- **Vị trí:** đội hình có 3 vị trí là front, mid và back.
-- **Class:** 5 class chính là đỡ đòn, đấu sĩ, hỗ trợ, xạ thủ, pháp sư. Mỗi nhân vật thuộc một class.
-- `TODO(user)`: mỗi class đứng vị trí nào, mỗi vị trí có mấy ô trong 5 ô, và vị trí là cố định theo nhân vật hay người chơi tự xếp. Chốt trong spec Combat. `CharacterDefinition` và `Roster` hiện chưa có class hay vị trí; `Roster` đang giữ đội là một danh sách phẳng.
+- **Vị trí:** đội hình có 3 vị trí, 5 ô: **front 2, mid 2, back 1** (user chốt 2026-11-02). Vị trí chỉ ảnh hưởng quái nhắm ai: trọng số *khởi điểm* front 3, mid 2, back 1.
+- **Class:** 5 class là đỡ đòn, đấu sĩ, hỗ trợ, xạ thủ, pháp sư; mỗi nhân vật một class, đặt trong `CharacterDefinition`. **Class quyết định vị trí, hệ thống tự xếp** (user chốt 2026-11-02): đỡ đòn và đấu sĩ đứng front, hỗ trợ và xạ thủ đứng mid, pháp sư đứng back; hàng đầy thì người thừa sang hàng gần nhất. Người chơi chỉ chọn ai vào đội, chưa tự xếp ô (để dành, làm thì phải đổi save). Ngoài vị trí, class không có luật riêng; khác nhau ở chỉ số và skill.
 - Game mới được cấp sẵn một ít tiền và vài nhân vật, chỉ một lần.
 - **Nhân vật trùng** (user chốt 2026-10-31): quay ra nhân vật đã có thì nhận **mảnh** của nhân vật đó, không đổi kho nhân vật. Số mảnh theo độ hiếm, *khởi điểm* R/SR/SSR đều **1**, đặt trong banner SO. Mảnh nằm trong save (qua `Roster`) và bị Reset Save Data xoá. Mảnh dùng để nâng sao (tối đa 5★, mảnh dư vào kho) ở spec riêng sau Combat; cho đến lúc đó mảnh chỉ được cộng; màn Gacha chỉ hiện số mảnh nhận được ở mỗi lượt, chưa có màn kho.
 - **Số sao khởi điểm** (user chốt 2026-10-31): mỗi nhân vật có số sao khởi điểm 1..5 đặt trong `CharacterDefinition`, mẫu R = 1, SR = 2, SSR = 3, chỉnh riêng từng nhân vật. Chỉ để hiển thị; chưa có luật nâng sao.
@@ -63,10 +62,36 @@ Save cần lưu: thời điểm hoạt động cuối, thu nhập lý thuyết m
 
 ## Chiến đấu
 
-- Turn-based, xếp lượt theo tốc độ.
-- Mỗi nhân vật có đúng 3 hành động: đánh thường, skill (có hồi chiêu), ultimate (cần năng lượng).
-- Đội đánh nhiều quái theo wave trong từng màn. Thắng màn được Material và Gem, mở màn tiếp theo.
+Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-02-combat-design.md) (user chốt 2026-11-02).
+
+- **Lượt:** mỗi vòng, ai còn sống đánh đúng 1 lần theo tốc độ giảm dần; hoà thì phe ta trước, rồi theo ô. Sát thương không ngẫu nhiên, không chí mạng, không né; ngẫu nhiên duy nhất là quái chọn mục tiêu theo trọng số vị trí.
+- Mỗi nhân vật có đúng 3 hành động: đánh thường, skill (hồi chiêu tính theo lượt của chính nhân vật), ultimate (cần năng lượng; năng lượng có từ đánh thường, skill và khi bị đánh, mỗi trận bắt đầu từ 0). Quái có đánh thường và tối đa một skill, không có ultimate.
+- **Công thức:** sát thương = max(1, làm tròn(tấn công × hệ số × 100 / (100 + thủ))); hồi máu = tấn công × hệ số, không vượt máu tối đa, không hồi sinh.
+- Đội đánh nhiều quái theo wave trong từng màn; máu, năng lượng, hồi chiêu giữ qua các wave. Quá số vòng tối đa (*khởi điểm* 60) thì thua. Trận đang đánh không được lưu: thoát giữa trận là bỏ trận, không có thưởng và thể lực đã trừ lúc vào không hoàn ([Thể lực](#thể-lực)).
+- **Công cụ trong trận:** AUTO, tốc độ x1/x2, tạm dừng và bỏ cuộc (tính thua, không hoàn thể lực). Không có nút SET, thống kê sát thương, 3 sao, MVP.
+- **Thưởng:** thắng lần đầu được Material và Gem (*khởi điểm* màn đầu 30 Material, 150 Gem, tăng dần); đánh lại được Material như cũ và khoảng 1/5 Gem, để cày Gem chậm hơn cày Material. Thắng mới mở màn tiếp theo.
 - **Màn hình** (user chốt 2026-11-01): phe ta đứng bên trái. Nhân vật giữ khoảng cách, **không đứng chồng lên nhau**. Vì đội có 5 người nên bố trí theo kiểu Princess Connect; chọn chiêu theo kiểu Fate/Grand Order. Chỉ lấy giao diện chọn chiêu; luật giữ nguyên, từng nhân vật đánh theo tốc độ. Ảnh: [ui-screens.md](../references/ui-screens.md).
+
+## Màn chơi
+
+(user chốt 2026-11-02)
+
+- MVP có **1 chương: 5 màn đánh và 2 màn cốt truyện**, 7 nút nối nhau trên bản đồ. Màn mở theo thứ tự; màn đã clear luôn mở.
+- **Màn cốt truyện** hiện chỉ là nút giữ chỗ: bấm Tiếp tục là clear, không thưởng, không tốn thể lực. Hội thoại thật làm sau MVP ([vision](../vision/vision.md)).
+- Vào một màn đánh cần: màn đã mở, đủ thể lực, đội có ít nhất 1 người (dưới 5 người thì hỏi xác nhận, xem [Nhân vật](#nhân-vật)). Thể lực bị trừ ngay khi vào, xem [Thể lực](#thể-lực).
+- Chưa làm: nhiều chương, độ khó Hard, quét nhanh, tự tiến màn tiếp theo.
+
+## Thể lực
+
+(user chốt 2026-11-03, theo master plan mục 20.7, thay luật 2026-11-02; [D-008](../decisions/decisions.md). Luật mới so với [vision](../vision/vision.md), `TODO(user)` cập nhật vision)
+
+- Tối đa **100**, hồi **1 điểm mỗi 5 phút theo giờ máy, kể cả khi tắt game** (từ 0 lên đầy mất 8 giờ 20). Đầy thì không tích thêm.
+- Mỗi màn đánh tốn **10**, kể cả màn boss; màn cốt truyện tốn 0.
+- **Trừ một lần ngay khi vào trận hợp lệ**, và lưu ngay. Thua, bỏ cuộc, tắt app giữa trận đều **không hoàn**. "Thử lại" sau khi thua là một lần vào mới, trừ lại. Chỉ trừ sau khi mọi kiểm tra (màn, mở khoá, đội, cấu hình) đã qua, nên bị từ chối vào thì không mất thể lực. Nếu không lưu được thì không vào trận và không mất thể lực.
+- Dải DEV "Chiến đấu thử" vào thẳng, không trừ thể lực và không có thưởng.
+- Không mua thể lực bằng Gem, không có vật phẩm hồi thể lực.
+- Đồng hồ máy chạy lùi thì không hồi và không mất thể lực. Chỉnh đồng hồ tiến để gian lận thì chấp nhận, như [AFK](#afk).
+- Reset Save Data đưa thể lực về đầy.
 
 ## Gacha
 
@@ -80,3 +105,14 @@ Save cần lưu: thời điểm hoạt động cuối, thu nhập lý thuyết m
 - **Quay tiếp:** bấm OK hiện popup Quay tiếp (cùng số lượt vừa quay) hoặc Thôi (về trang roll). Không đủ Gem thì popup cảnh báo và nút Quay tiếp mờ.
 - **Lịch sử quay:** lưu trong save, 50 lượt gần nhất (mỗi lần bấm Quay 1 hoặc Quay 10 là một mục), Reset Save Data xoá. Trang roll có nút Lịch sử mở popup chỉ đọc, mới nhất trên cùng.
 - Nhân vật trùng thành mảnh: xem mục [Nhân vật](#nhân-vật). Thiết kế đầy đủ: [spec Gacha](../superpowers/specs/2026-10-31-gacha-design.md).
+
+## Kiếm tiền
+
+(user duyệt hướng 2026-11-02, [D-007](../decisions/decisions.md); chưa có spec, làm sau Combat và UI hub)
+
+- Game tải miễn phí. Năm nguồn thu: **gói Gem**, **thẻ tháng**, **gói tân thủ**, **gói nhân vật khởi đầu**, **quảng cáo thưởng** (xem quảng cáo để nhận Gem).
+- Luật hiện hành không đổi: thể lực không mua được bằng Gem ([Thể lực](#thể-lực)); gacha giữ nguyên số khởi điểm.
+- `TODO(user)`, chốt trong spec riêng: nội dung và giá từng gói (số Gem mỗi gói; thẻ tháng nhận bao nhiêu Gem mỗi ngày; gói nhân vật khởi đầu gồm mấy nhân vật; gói tân thủ khác gói nhân vật khởi đầu ở đâu); quảng cáo thưởng cho bao nhiêu Gem mỗi lượt và tối đa mấy lượt mỗi ngày.
+- `TODO(user)`: Reset Save Data có xoá quyền lợi đã mua hay không. [D-005](../decisions/decisions.md) đang nói xoá toàn bộ, trong khi quyền lợi mua gắn với tài khoản cửa hàng và thường khôi phục được.
+- `TODO(user)`: save và roll gacha nằm trên máy, người chơi sửa được; khi có tiền thật phải quyết định chống gian lận tới mức nào ([D-003](../decisions/decisions.md) từng chấp nhận vì không có tiền thật).
+- Giá và tỉ lệ mua trong sheet master plan (tab *Giả định KD*) chỉ là ước lượng để dự báo doanh thu 2027, không phải luật chơi.

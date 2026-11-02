@@ -47,6 +47,25 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Validate_UnsetClass_Reported()
+        {
+            var c = TestData.Character("a");
+            TestData.Edit(c, so => so.FindProperty("_class").enumValueIndex = (int)CharacterClass.Unset);
+            Assert.That(c.Validate(), Has.Some.Contains("Class"));
+        }
+
+        [Test]
+        public void CharacterClass_NumericValuesArePinned()
+        {
+            Assert.AreEqual(0, (int)CharacterClass.Unset);
+            Assert.AreEqual(1, (int)CharacterClass.Tank);
+            Assert.AreEqual(2, (int)CharacterClass.Fighter);
+            Assert.AreEqual(3, (int)CharacterClass.Support);
+            Assert.AreEqual(4, (int)CharacterClass.Marksman);
+            Assert.AreEqual(5, (int)CharacterClass.Mage);
+        }
+
+        [Test]
         public void Validate_UnsetStars_Reported()
         {
             var c = TestData.Character("a");

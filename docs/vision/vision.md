@@ -5,7 +5,7 @@
 
 ## Một câu mô tả
 
-BunDauPeo là game RPG gacha 2D turn-based kết hợp quản lý quán bún đậu mắm tôm, chơi offline trên mobile màn ngang.
+BunDauPeo là game RPG gacha 2D turn-based kết hợp quản lý quán bún đậu mắm tôm, chơi trên Android màn ngang, tải miễn phí, có mua trong game và quảng cáo thưởng; phần chơi cốt lõi chạy offline.
 
 ## Trải nghiệm cốt lõi
 
@@ -18,7 +18,7 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 ## Đối tượng & nền tảng
 
 - Đối tượng: TODO(user)
-- Nền tảng mục tiêu: Mobile, màn ngang, offline hoàn toàn, không nạp tiền thật.
+- Nền tảng mục tiêu: Android trước, màn ngang. Tải miễn phí; có mua trong game và quảng cáo thưởng (user duyệt hướng này 2026-11-02, [D-007](../decisions/decisions.md)). Quán, chiến đấu và gacha chạy offline; mua và xem quảng cáo cần mạng.
 
 ## Phong cách
 
@@ -32,11 +32,12 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - Chiến đấu turn-based theo màn chơi: mỗi nhân vật có 1 đánh thường, 1 skill, 1 ultimate.
 - UI hub có thanh điều hướng dưới.
 - Lưu game cục bộ.
+- Mua trong game (gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu) và quảng cáo thưởng nhận Gem. Luật và `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
 - Nhân vật trùng thành mảnh để nâng sao (tối đa 5★, spec riêng sau Combat).
 
 ## Ngoài phạm vi (chưa làm)
 
-- Nạp tiền thật, tính năng online, server.
+- Tính năng online (xếp hạng, PvP, đồng bộ nhiều máy) và server riêng.
 - Hệ nguyên tố, trang bị.
 - Chỉ số nhân vật theo sao và cấp nhân vật (chưa thiết kế).
 - Cốt truyện và hội thoại (sẽ làm sau MVP).
