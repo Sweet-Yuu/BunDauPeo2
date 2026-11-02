@@ -1,5 +1,8 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
+using System.Linq;
+using BunDauPeo.Characters;
+using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Restaurant;
 using UnityEngine;
@@ -20,19 +23,27 @@ namespace BunDauPeo.UI
         public static readonly string[] SceneNames = { RestaurantScene, GachaScene };
 
         private static GameObject _root;
+        // Màn mà nút "Chiến đấu thử" dùng; nút "Màn thử" xoay vòng nó.
+        private static string _trialStageId;
 
         // Tắt domain reload thì static còn nguyên sang lần Play sau.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => _root = null;
+        private static void ResetStatics()
+        {
+            _root = null;
+            _trialStageId = null;
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Build()
         {
             if (_root != null) return;
 
+            CombatService combat;
             try
             {
                 ServiceLocator.Get<RestaurantService>();
+                combat = ServiceLocator.Get<CombatService>();
             }
             catch (InvalidOperationException)
             {
@@ -48,10 +59,12 @@ namespace BunDauPeo.UI
             var scaler = _root.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Khớp theo chiều cao như các màn khác, để dải không lấn lên thẻ trận ở màn rộng.
+            scaler.matchWidthOrHeight = 1f;
 
+            _trialStageId = NextBattleStageId(combat.Config.Stages, null);
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(946, 76));
+            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(1422, 76));
             var stripImage = strip.gameObject.AddComponent<Image>();
             stripImage.color = new Color(0f, 0f, 0f, 0.6f);
             stripImage.raycastTarget = false;
@@ -61,6 +74,50 @@ namespace BunDauPeo.UI
             AddButton(strip, font, $"+{MaterialGrant} Material", new Vector2(360, 8), 240,
                 () => ServiceLocator.Get<Wallet>().Add(CurrencyType.Material, MaterialGrant));
             AddButton(strip, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(608, 8), 330, RewindAfk);
+            AddButton(strip, font, "Chiến đấu thử", new Vector2(946, 8), 230, () => StartTrialBattle(combat));
+            Text stageLabel = null;
+            stageLabel = AddButton(strip, font, StageLabel(combat), new Vector2(1184, 8), 230, () =>
+            {
+                _trialStageId = NextBattleStageId(combat.Config.Stages, _trialStageId);
+                stageLabel.text = StageLabel(combat);
+            });
+        }
+
+        // Đội trống thì thêm tối đa một đội đầy từ người đã sở hữu, theo thứ tự sở hữu; trả số người thêm.
+        public static int FillTeamIfEmpty(Roster roster)
+        {
+            if (roster.GetBattleTeam().Count > 0) return 0;
+
+            var added = 0;
+            foreach (var character in roster.GetOwned())
+            {
+                if (added >= Roster.MaxBattleTeamSize) break;
+                if (roster.AddToTeam(character.Id)) added++;
+            }
+
+            return added;
+        }
+
+        // Màn Battle kế sau currentId, vòng lại; null hoặc không thấy (kể cả màn Story) thì màn Battle đầu tiên.
+        public static string NextBattleStageId(StageCatalog catalog, string currentId)
+        {
+            if (catalog == null) return null;
+
+            var ids = catalog.Items.Where(s => s != null && s.Kind == StageKind.Battle).Select(s => s.Id).ToList();
+            if (ids.Count == 0) return null;
+
+            var index = ids.IndexOf(currentId);
+            return ids[(index + 1) % ids.Count];
+        }
+
+        private static string StageLabel(CombatService combat) =>
+            $"Màn thử: {(combat.Config.Stages != null && combat.Config.Stages.TryGet(_trialStageId, out var stage) ? stage.DisplayName : "-")}";
+
+        private static void StartTrialBattle(CombatService combat)
+        {
+            FillTeamIfEmpty(ServiceLocator.Get<Roster>());
+            var result = combat.StartBattle(_trialStageId);
+            Debug.Log($"DevOverlay: StartBattle({_trialStageId}) = {result.Status}");
         }
 
         // Heartbeat trước để chốt rate hiện tại (game mới chưa có Heartbeat nào thì rate là 0); sau Rewind phải CatchUp ngay,
@@ -84,7 +141,7 @@ namespace BunDauPeo.UI
             return rect;
         }
 
-        private static void AddButton(RectTransform parent, Font font, string label, Vector2 position, float width, Action onClick)
+        private static Text AddButton(RectTransform parent, Font font, string label, Vector2 position, float width, Action onClick)
         {
             var rect = NewRect(label + "Button", parent, position, new Vector2(width, 60));
             var image = rect.gameObject.AddComponent<Image>();
@@ -101,6 +158,7 @@ namespace BunDauPeo.UI
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;
+            return text;
         }
     }
 }

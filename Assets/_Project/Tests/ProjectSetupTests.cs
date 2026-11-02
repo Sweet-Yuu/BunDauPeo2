@@ -355,6 +355,14 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void BootScene_HasCombatConfig()
+        {
+            var config = ReadBootReference("_combatConfig");
+            Assert.IsNotNull(config);
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<CombatConfig>(ProjectSetup.CombatConfigPath), config);
+        }
+
+        [Test]
         public void Setup_RerunKeepsEditedRestaurantValues()
         {
             var config = AssetDatabase.LoadAssetAtPath<RestaurantConfig>(ProjectSetup.RestaurantConfigPath);

@@ -226,6 +226,13 @@ namespace BunDauPeo.EditorTools
                         changed = true;
                     }
 
+                    var combat = so.FindProperty("_combatConfig");
+                    if (combat.objectReferenceValue == null)
+                    {
+                        combat.objectReferenceValue = AssetDatabase.LoadAssetAtPath<CombatConfig>(CombatConfigPath);
+                        changed = true;
+                    }
+
                     // Chỉ đổi giá trị trống hoặc "Gacha" (mặc định cũ): lựa chọn khác của user được giữ.
                     var start = so.FindProperty("_startScene");
                     if (string.IsNullOrEmpty(start.stringValue) || start.stringValue == Path.GetFileNameWithoutExtension(GachaScenePath))

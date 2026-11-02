@@ -84,6 +84,11 @@ namespace BunDauPeo.Tests
             CombatConfig config = null, System.Random random = null) =>
             new BattleSession(team, stage, config ?? Config(), random ?? new ScriptedRandom());
 
+        // Mọi test tạo CombatService qua đây, để task thể lực và tiến độ đổi chữ ký ở một chỗ.
+        public static CombatService Service(CombatConfig config = null, Roster roster = null, Func<bool> persist = null) =>
+            new CombatService(config ?? Config(), roster ?? new Roster(new PlayerSave(), TestData.Catalog()),
+                new ScriptedRandom(), persist ?? (() => true));
+
         // Màn Battle: thể lực 10, lần đầu 30 Material + 150 Gem, đánh lại 30 Material + 30 Gem.
         public static StageDefinition Stage(string id, params EnemyDefinition[][] waves)
         {
