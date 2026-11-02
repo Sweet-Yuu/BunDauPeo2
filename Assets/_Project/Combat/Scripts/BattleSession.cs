@@ -55,24 +55,44 @@ namespace BunDauPeo.Combat
         {
             if (IsEnded) return ActionAvailability.Ended;
             if (State != BattleState.PlayerTurn) return ActionAvailability.NotYourTurn;
-            return kind == BattleActionKind.Basic ? ActionAvailability.Available : ActionAvailability.NoSuchSkill;
+            var skill = SkillOf(Current, kind);
+            if (skill == null) return ActionAvailability.NoSuchSkill;
+            if (kind == BattleActionKind.Skill && Current.SkillCooldown > 0) return ActionAvailability.OnCooldown;
+            if (kind == BattleActionKind.Ultimate && Current.Energy < UltimateCost(skill)) return ActionAvailability.NotEnoughEnergy;
+            return ActionAvailability.Available;
         }
 
-        // null nếu kỹ năng không cần mục tiêu (hoặc trận đã hết).
-        public BattleUnit DefaultTarget(BattleActionKind kind) =>
-            !IsEnded && kind == BattleActionKind.Basic ? _enemies.FirstOrDefault(e => e.IsAlive) : null;
+        // null nếu kỹ năng không cần mục tiêu, không có kỹ năng đó, hoặc không phải lượt người chơi.
+        public BattleUnit DefaultTarget(BattleActionKind kind)
+        {
+            if (State != BattleState.PlayerTurn) return null;
+            var skill = SkillOf(Current, kind);
+            return skill == null ? null : DefaultTarget(skill);
+        }
 
         public BattleActionResult PlayerAct(BattleActionKind kind, BattleUnit target = null)
         {
             if (IsEnded) return Rejected(BattleActionStatus.Ended);
             if (State != BattleState.PlayerTurn) return Rejected(BattleActionStatus.NotYourTurn);
-            if (kind != BattleActionKind.Basic) return Rejected(BattleActionStatus.Unavailable);
-
-            var chosen = target ?? DefaultTarget(kind);
-            if (chosen == null || !chosen.IsAlive || !_enemies.Contains(chosen)) return Rejected(BattleActionStatus.InvalidTarget);
+            if (GetAvailability(kind) != ActionAvailability.Available) return Rejected(BattleActionStatus.Unavailable);
 
             var actor = Current;
-            return Finish(actor, actor.BasicAttack, Strike(actor, actor.BasicAttack, chosen));
+            var skill = SkillOf(actor, kind);
+            var targets = PlayerTargets(actor, skill, target);
+            if (targets == null) return Rejected(BattleActionStatus.InvalidTarget);
+
+            if (kind == BattleActionKind.Ultimate) actor.SpendEnergy(UltimateCost(skill));
+            else if (kind == BattleActionKind.Skill)
+            {
+                actor.StartCooldown(skill.Cooldown);
+                actor.AddEnergy(_config.EnergyOnSkill, _config.MaxEnergy);
+            }
+            else
+            {
+                actor.AddEnergy(_config.EnergyOnBasic, _config.MaxEnergy);
+            }
+
+            return Finish(actor, skill, Apply(actor, skill, targets));
         }
 
         public BattleActionResult EnemyAct()
@@ -81,7 +101,13 @@ namespace BunDauPeo.Combat
             if (State != BattleState.EnemyTurn) return Rejected(BattleActionStatus.NotYourTurn);
 
             var actor = Current;
-            return Finish(actor, actor.BasicAttack, Strike(actor, actor.BasicAttack, PickAllyTarget()));
+            var useSkill = actor.Skill != null && actor.SkillCooldown == 0;
+            var skill = useSkill ? actor.Skill : actor.BasicAttack;
+            if (useSkill) actor.StartCooldown(skill.Cooldown);
+
+            // Đánh cả phe ta thì không gọi RNG; đánh một người thì đúng một lần (PickAllyTarget).
+            var targets = skill.Target == SkillTarget.AllEnemies ? AliveOf(_allies) : new List<BattleUnit> { PickAllyTarget() };
+            return Finish(actor, skill, Apply(actor, skill, targets));
         }
 
         public BattleActionResult Surrender()
@@ -94,10 +120,57 @@ namespace BunDauPeo.Combat
 
         private BattleActionResult Rejected(BattleActionStatus status) => new BattleActionResult(status, State);
 
-        private static BattleHit Strike(BattleUnit actor, SkillDefinition skill, BattleUnit target)
+        private static SkillDefinition SkillOf(BattleUnit unit, BattleActionKind kind) => kind switch
         {
+            BattleActionKind.Basic => unit.BasicAttack,
+            BattleActionKind.Skill => unit.Skill,
+            _ => unit.Ultimate,
+        };
+
+        // Giá vượt năng lượng tối đa thì chỉ cần đầy thanh.
+        private int UltimateCost(SkillDefinition ultimate) => Math.Min(ultimate.EnergyCost, _config.MaxEnergy);
+
+        private static List<BattleUnit> AliveOf(IEnumerable<BattleUnit> units) => units.Where(u => u.IsAlive).ToList();
+
+        private BattleUnit DefaultTarget(SkillDefinition skill) => skill.Target switch
+        {
+            SkillTarget.SingleEnemy => _enemies.FirstOrDefault(e => e.IsAlive),
+            // _allies đã theo SlotIndex và OrderBy ổn định, nên hoà tỉ lệ thì ô thấp trước.
+            SkillTarget.SingleAlly => _allies.Where(a => a.IsAlive).OrderBy(a => a.HpRatio).FirstOrDefault(),
+            _ => null,
+        };
+
+        // null nếu mục tiêu người chơi truyền vào sai (chết, sai phe). Chiêu không cần chọn thì bỏ qua `chosen`.
+        private List<BattleUnit> PlayerTargets(BattleUnit actor, SkillDefinition skill, BattleUnit chosen)
+        {
+            switch (skill.Target)
+            {
+                case SkillTarget.AllEnemies: return AliveOf(_enemies);
+                case SkillTarget.AllAllies: return AliveOf(_allies);
+                case SkillTarget.Self: return new List<BattleUnit> { actor };
+            }
+
+            var side = skill.Target == SkillTarget.SingleEnemy ? _enemies : (IReadOnlyList<BattleUnit>)_allies;
+            var target = chosen ?? DefaultTarget(skill);
+            return target != null && target.IsAlive && side.Contains(target) ? new List<BattleUnit> { target } : null;
+        }
+
+        private List<BattleHit> Apply(BattleUnit actor, SkillDefinition skill, IEnumerable<BattleUnit> targets) =>
+            targets.Select(t => ApplyTo(actor, skill, t)).ToList();
+
+        private BattleHit ApplyTo(BattleUnit actor, SkillDefinition skill, BattleUnit target)
+        {
+            if (skill.Effect == SkillEffect.Heal)
+            {
+                var healed = DamageCalculator.Heal(actor.Attack, skill.Power, target.Hp, target.MaxHp);
+                target.Heal(healed);
+                return new BattleHit(target, healed, true, false);
+            }
+
             var amount = DamageCalculator.Damage(actor.Attack, skill.Power, target.Defense);
             target.TakeDamage(amount);
+            // Sát thương luôn >= 1, nên mỗi lần trúng đều cộng.
+            if (target.IsAlly) target.AddEnergy(_config.EnergyOnHit, _config.MaxEnergy);
             return new BattleHit(target, amount, false, !target.IsAlive);
         }
 
@@ -117,7 +190,7 @@ namespace BunDauPeo.Combat
             return alive[alive.Count - 1];
         }
 
-        private BattleActionResult Finish(BattleUnit actor, SkillDefinition skill, BattleHit hit)
+        private BattleActionResult Finish(BattleUnit actor, SkillDefinition skill, IReadOnlyList<BattleHit> hits)
         {
             var waveCleared = false;
             var nextWave = false;
@@ -147,7 +220,7 @@ namespace BunDauPeo.Combat
                 AdvanceQueue();
             }
 
-            return new BattleActionResult(BattleActionStatus.Success, State, actor, skill, new[] { hit }, waveCleared, nextWave);
+            return new BattleActionResult(BattleActionStatus.Success, State, actor, skill, hits, waveCleared, nextWave);
         }
 
         private void End(BattleState outcome)
@@ -188,6 +261,11 @@ namespace BunDauPeo.Combat
             UpdateTurnState();
         }
 
-        private void UpdateTurnState() => State = Current.IsAlly ? BattleState.PlayerTurn : BattleState.EnemyTurn;
+        // Mỗi lần có người thành Current đúng một lần, nên đây là chỗ hồi chiêu giảm (spec 4.3 bước 2).
+        private void UpdateTurnState()
+        {
+            State = Current.IsAlly ? BattleState.PlayerTurn : BattleState.EnemyTurn;
+            Current.TickCooldown();
+        }
     }
 }

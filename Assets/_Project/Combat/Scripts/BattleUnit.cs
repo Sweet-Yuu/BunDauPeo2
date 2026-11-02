@@ -75,6 +75,21 @@ namespace BunDauPeo.Combat
         // Máu kẹp ở 0. Chỉ BattleSession gọi.
         internal void TakeDamage(int amount) => Hp = Math.Max(0, Hp - amount);
 
+        // amount là số máu thực sự hồi (DamageCalculator.Heal đã kẹp theo máu thiếu).
+        internal void Heal(int amount) => Hp = Math.Min(MaxHp, Hp + amount);
+
+        internal void AddEnergy(int amount, int max) => Energy = Math.Min(max, Energy + amount);
+
+        internal void SpendEnergy(int amount) => Energy -= amount;
+
+        internal void StartCooldown(int turns) => SkillCooldown = turns;
+
+        // Gọi khi tới lượt của chính nó, trước khi chọn chiêu.
+        internal void TickCooldown()
+        {
+            if (SkillCooldown > 0) SkillCooldown--;
+        }
+
         public bool IsAlive => Hp > 0;
         public float HpRatio => MaxHp > 0 ? (float)Hp / MaxHp : 0f;
     }
