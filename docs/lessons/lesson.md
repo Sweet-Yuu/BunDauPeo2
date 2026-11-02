@@ -25,6 +25,11 @@
 
 ## Danh sách
 
+### L-019 — Play không qua Boot khi Editor mở bằng CLI: không có dịch vụ, không có dải DEV (2026-11-03)  #process #unity-files
+- Triệu chứng: `unity open .` rồi `editor.playmode start` chạy scene Untitled; `eval` báo "Service CombatService is not registered", không có `DevOverlay`. Nạp `Boot` bằng `SceneManager.LoadScene` trong Play thì có dịch vụ nhưng vẫn không có dải DEV (nó chỉ dựng ở lần nạp scene đầu tiên).
+- Nguyên nhân gốc: Editor mới mở chưa đặt Boot làm scene khởi động cho Play; `DevOverlay` dựng ở `AfterSceneLoad` đầu tiên và thoát sớm nếu chưa có dịch vụ.
+- Luật từ nay: trước khi Play, `unity command scene open Assets/_Project/Scenes/Boot.unity` rồi `unity command editor.playmode start`; kiểm `GameObject.Find("DevOverlay")` có trước khi thử gì.
+
 ### L-018 — `Random` mơ hồ khi file test có cả `using System` và `using UnityEngine` (2026-11-02)  #script
 - Triệu chứng: `CombatTestData` khai báo tham số `Random random = null` và báo `CS0104: 'Random' is an ambiguous reference between 'UnityEngine.Random' and 'System.Random'`, làm cả assembly test không biên dịch.
 - Nguyên nhân gốc: helper test cần `UnityEngine` (`ScriptableObject`) và nhận RNG của `BattleSession` (`System.Random`), nên cả hai namespace cùng được import.
