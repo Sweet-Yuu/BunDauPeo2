@@ -1,6 +1,6 @@
 # Spec: Công cụ thử tự động
 
-> Ngày: 2026-11-03 · Trạng thái: **chờ user duyệt bản viết** (thiết kế đã duyệt trong kênh 📐 cùng ngày, gồm ba lựa chọn ở mục 1) · Phạm vi: `PlaytestTools` (assembly Editor), `PlaytestKit` (assembly runtime nhỏ), một seam ở `Boot`, một smoke test PlayMode chạy trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm.
+> Ngày: 2026-11-03 · Trạng thái: **đã duyệt** (user, 2026-11-03, cả thiết kế lẫn bản viết; ba lựa chọn ở mục 1) · Phạm vi: `PlaytestTools` (assembly Editor), `PlaytestKit` (assembly runtime nhỏ), một seam ở `Boot`, một smoke test PlayMode chạy trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm.
 > Nguồn các bẫy cần gom: [unity-workflow.md](../../guides/unity-workflow.md) (L-004, L-007, L-009, L-011, L-014, L-019, L-020). Luật save: [D-005](../../decisions/decisions.md). Vòng chơi cần chạy: [spec Combat](2026-11-02-combat-design.md). Kế hoạch: [plans/2026-11-03-playtest-tools.md](../plans/2026-11-03-playtest-tools.md).
 
 ## 1. Mục tiêu
@@ -23,8 +23,8 @@ Thành công khi: (1) agent thử một vòng bằng vài lệnh `unity command 
 | Assembly | Nội dung | Nền tảng / tham chiếu |
 |---|---|---|
 | `Boot` (có sẵn) | `GameBootstrap.SavePathOverride` | không đổi asmdef |
-| `PlaytestKit` (**mới**, `Assets/_Project/Playtest/`) | `UiDriver`: tìm, bấm, chờ nút | mọi nền tảng, `defineConstraints: ["UNITY_EDITOR \|\| DEVELOPMENT_BUILD"]` (cùng kiểu `DevOverlay`: bản phát hành không chứa nó); tham chiếu `UnityEngine.UI`, `Unity.InputSystem` |
-| `Editor` (có sẵn) | `PlaytestTools`, `SaveBackup`, `BackgroundPlay`, `ScreenCapture1080` | thêm tham chiếu `PlaytestKit` |
+| `PlaytestKit` (**mới**, `Assets/_Project/Playtest/`) | `UiDriver`: tìm, bấm, chờ nút; `ScreenCapture1080`: chụp 1920×1080 (chỉ dùng API runtime, để smoke test PlayMode gọi được; `PlaytestTools.Capture1080` chỉ chuyển tiếp) | mọi nền tảng, `defineConstraints: ["UNITY_EDITOR \|\| DEVELOPMENT_BUILD"]` (cùng kiểu `DevOverlay`: bản phát hành không chứa nó); tham chiếu `UnityEngine.UI`, `Unity.InputSystem` |
+| `Editor` (có sẵn) | `PlaytestTools`, `SaveBackup`, `BackgroundPlay` | thêm tham chiếu `PlaytestKit` |
 | `PlayModeTests` (**mới**, `Assets/_Project/Tests/PlayMode/`) | `SmokeLoopTests` | mọi nền tảng, `defineConstraints: ["UNITY_INCLUDE_TESTS"]`; tham chiếu `Core`, `Characters`, `Combat`, `Boot`, `UI`, `PlaytestKit`, `UnityEngine.UI`, `Unity.InputSystem`, `UnityEngine.TestRunner`, `UnityEditor.TestRunner`; `nunit.framework.dll` |
 | `Tests` (có sẵn, EditMode) | test cho seam, `SaveBackup`, `BackgroundPlay`, `UiDriver.Find…` | thêm tham chiếu `PlaytestKit` |
 
@@ -70,7 +70,7 @@ Thư mục save lấy từ `Path.GetDirectoryName(GameBootstrap.SavePath)`, nên
 
 `EnableBackgroundPlay` dùng `SessionState` vì Vào Play nạp lại domain và làm mất mọi static (L-007 ghi nhận `runInBackground` có thể lọt vào `ProjectSettings.asset`). Hoàn tác tự động là lớp bảo vệ; kiểm `git status` ở cuối vẫn là bước của kế hoạch.
 
-### 3.4 `Capture1080`
+### 3.4 `Capture1080` (logic ở `PlaytestKit.ScreenCapture1080`)
 
 Làm đúng công thức đã chứng minh ở L-011, trong **một** lần gọi:
 
@@ -116,6 +116,7 @@ TearDown: SavePathOverride = null; huỷ GameBootstrap (DontDestroyOnLoad); Serv
 | `BackgroundPlay` | EditMode | bật rồi hoàn tác trả đúng giá trị gốc cả khi gốc là `true` và `false`; **gọi bật hai lần vẫn hoàn tác về giá trị gốc ban đầu**; hoàn tác khi chưa bật không đổi gì |
 | `UiDriver.FindButtons` | EditMode, GameObject dựng bằng code | khớp theo tên rồi theo chữ; bỏ nút ẩn và nút `interactable = false`; nhiều nút khớp → `Ambiguous`; không khớp → `NotFound` |
 | `UiDriver.Click` | được phủ bởi smoke test | `Blocked` và đường bấm thật chạy ở bước 2–8 |
+| `ScreenCapture1080` | PlayMode | PNG đúng 1920×1080; Canvas Overlay được trả về Overlay sau khi chụp (cả khi chụp ném lỗi) |
 | Smoke loop | PlayMode | cả vòng ở mục 3.5; thêm ca chứng minh test **đỏ có lý do** khi một bước kẹt không tự động hoá được (dùng timeout ngắn trên nút không tồn tại, kiểm thông điệp có danh sách nút) |
 
 Theo [code-style](../../guides/code-style.md#test): không `[TestCase]` (L-012); mỗi test tự hỏi "cài đặt sai nào vẫn qua" (L-006).
@@ -139,7 +140,7 @@ Hai phiên 🔨 theo [kế hoạch](../plans/2026-11-03-playtest-tools.md): phi�
 |---|---|
 | `unity command eval` có thấy kiểu trong assembly `BunDauPeo.Editor` không | gọi `PlaytestTools` rỗng từ `eval` với Editor mở. Nếu không thấy thì dùng `[MenuItem]` + `unity command menu` (hoặc lệnh tương đương `unity commands --grep menu`) và sửa spec trước khi làm tiếp |
 | Assembly có `defineConstraints` `UNITY_EDITOR \|\| DEVELOPMENT_BUILD` được cả `Editor` lẫn `PlayModeTests` tham chiếu | tạo asmdef rỗng + một lớp, compile, chạy test mẫu |
-| `unity test --mode PlayMode` ở batch mode có dựng hình để chụp ảnh được không | chạy một PlayMode test chỉ gọi `Capture1080` (sau Task 6); nếu cần cờ `-nographics` bị tắt thì ghi vào kế hoạch |
+| `unity test --mode PlayMode` ở batch mode có dựng hình để chụp ảnh được không | chạy một PlayMode test chỉ gọi `ScreenCapture1080` (Task 7 của kế hoạch); nếu cần cờ `-nographics` bị tắt thì ghi vào kế hoạch |
 | Domain reload sau khi `unity test` vào Play làm mất `SavePathOverride` | `SavePathOverride` đặt **trong** test sau khi Play đã chạy, trước khi nạp Boot |
 | Test ghi nhầm vào save thật | `SavePathOverride` đặt trước khi nạp Boot; băm save thật so ở TearDown |
 | Lượt thử tay bỏ quên `RestoreSave` | `RestoreSave` từ chối khi chưa có bản sao lưu; `BackupSave` từ chối khi đã có (thông điệp nhắc chạy Restore trước) |
@@ -151,4 +152,4 @@ Không có.
 ## 9. Việc cần người khác làm (agent không đụng)
 
 - User duyệt bản viết này và kế hoạch.
-- User chạy thử tay các mục menu `Tools/BunDauPeo/Playtest/…` lần đầu sau Task 5 (một lần, vài phút) và xác nhận chúng dùng được.
+- User chạy thử tay các mục menu `Tools/BunDauPeo/Playtest/…` lần đầu sau Task 6 (một lần, vài phút) và xác nhận chúng dùng được.
