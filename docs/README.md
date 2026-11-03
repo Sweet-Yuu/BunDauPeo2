@@ -11,6 +11,9 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 | Cân bằng số liệu, hỏi luật chơi | [design/game-design.md](design/game-design.md) |
 | Triển khai theo spec / kế hoạch | `superpowers/specs/`, `superpowers/plans/` (xem link trong [roadmap.md](roadmap.md)) |
 | Chọn model, effort, subagent hay native | [guides/agent-routing.md](guides/agent-routing.md) |
+| Mở kênh, chia phiên, vai các kênh chat | [studio/README.md](studio/README.md) |
+| Nạp lịch sử điều phối, bắt đầu lại từ đâu | [studio/history.md](studio/history.md) |
+| Viết prompt mở kênh con | [guides/session-brief.md](guides/session-brief.md) |
 | Viết hoặc sửa script C# | [guides/code-style.md](guides/code-style.md) → [project/structure.md](project/structure.md) |
 | Chạy Unity: test, build, mở/đóng Editor, lệnh CLI | [guides/unity-workflow.md](guides/unity-workflow.md) (Unity CLI) |
 | Sửa scene / prefab / asset / ProjectSettings, chọn skill của plugin Unity | [guides/unity-workflow.md](guides/unity-workflow.md) |
@@ -26,9 +29,13 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 
 ```
 CLAUDE.md                  cổng vào, luật cứng (ngắn)
+.claude/settings.json      quyền: lệnh tự chạy và luật chặn cứng (.meta, Library/, force push…)
+.claude/skills/            /coordinator, /secretary, /worker: vai của từng kênh
 docs/
   README.md                file này
   roadmap.md               việc đang làm / sắp làm / đã xong
+  studio/README.md         vai các kênh chat, icon, luật chia phiên, subagent song song
+  studio/history.md        lịch sử điều phối: đã làm gì, bắt đầu lại từ đâu
   vision/vision.md         ý tưởng, mục tiêu, phạm vi dự án
   design/game-design.md    luật chơi: tiền tệ, nhân vật, quán, AFK, chiến đấu, gacha
   superpowers/             spec và kế hoạch triển khai theo từng đợt
@@ -40,6 +47,7 @@ docs/
     unity-workflow.md      Unity CLI, skills plugin Unity, thao tác an toàn với file Unity
     doc-maintenance.md     khi nào đọc / sửa doc nào
     agent-routing.md       chọn model, effort, subagent hay native
+    session-brief.md       mẫu prompt mở session code
   decisions/decisions.md   quyết định kỹ thuật + lý do (ADR gọn)
   references/README.md     mục lục nguồn tham khảo ngoài
   references/ui-screens.md mục lục ảnh tham khảo UI trong Mota/

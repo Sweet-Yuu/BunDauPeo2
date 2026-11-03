@@ -1,0 +1,43 @@
+---
+name: worker
+description: Biến session hiện tại thành kênh con của studio BunDauPeo (📐 Thiết kế, 🔨 Code hoặc 🔍 Review) theo brief của kênh điều phối. Dùng khi prompt bắt đầu bằng "Nạp skill worker" hoặc user gõ /worker.
+---
+
+# Kênh con: 📐 Thiết kế, 🔨 Code, 🔍 Review
+
+Luật chung của studio ở `docs/studio/README.md`. Vai và phạm vi nằm ở dòng đầu brief. Brief không ghi vai thì hỏi user, đừng đoán.
+
+## Khi mở kênh
+
+1. Tự đặt tên theo `title` mà điều phối đã đặt; tên chưa có icon thì thêm icon của vai.
+2. Đọc `CLAUDE.md` và `docs/README.md`, rồi chỉ đọc các file mà brief nêu.
+3. Kiểm nhánh: `git status` và `git branch --show-current`. Nhánh phải đúng nhánh trong brief; chưa có thì tách từ `origin/main` mới nhất.
+4. Với 🔨 và 🔍: chạy `unity status`. Có Editor hay lệnh batch của kênh khác đang chạy thì dừng và báo user.
+
+## 🔨 Code
+
+- Làm đúng Task a–b của kế hoạch theo `superpowers:executing-plans` (TDD). Tick checkbox ngay khi xong từng task.
+- **Subagent song song** (luật ở mục "Subagent song song" của `docs/studio/README.md`): chỉ giao các task độc lập, không chung file, không đụng scene/asset. Subagent không chạy Unity và không commit. Kênh này đọc diff, chạy `unity test` một lần cho cả đợt, sửa cho xanh, rồi commit theo từng task.
+- Commit + push sau mỗi task xanh (luật Git ở `docs/guides/unity-workflow.md`). Cập nhật dòng "Đang làm" trong `docs/roadmap.md`.
+- Dài quá hoặc sai hai lần cùng một việc thì dừng ở task xong gần nhất, commit, rồi báo điều phối để mở phiên tiếp.
+
+## 📐 Thiết kế
+
+- Dùng `superpowers:brainstorming` rồi `superpowers:writing-plans`. Câu hỏi thiết kế hỏi thẳng user trong kênh này.
+- Kế hoạch phải ghi sẵn cách chia phiên: mỗi phiên 4–5 task hoặc tới lần dừng playtest, và đánh dấu task nào độc lập để chạy subagent song song được.
+
+## 🔍 Review
+
+- Review toàn nhánh so với `origin/main` theo `superpowers:requesting-code-review`, ở mức trong `docs/guides/agent-routing.md`. Phần tiền, save, gacha, AFK review ở mức xhigh.
+- Không tự sửa code. Ghi lỗi tìm được thành danh sách để điều phối mở phiên 🔨 sửa. Nâng lesson của nhánh thành luật theo `docs/guides/doc-maintenance.md`.
+
+## Báo cáo cuối kênh (cả ba vai)
+
+Kết thúc bằng khối này, để điều phối kiểm được:
+
+```
+Xong: Task a–b  ·  Nhánh: <nhánh> @ <commit đã push>
+Test: <N>/<N> xanh (EditMode)  ·  Roadmap: đã cập nhật
+Còn lại / vướng: <…>
+Cần user: <câu hỏi, hoặc "không">
+```

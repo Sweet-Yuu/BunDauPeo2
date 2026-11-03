@@ -22,13 +22,17 @@ Mọi thao tác với Unity đi qua `unity` (bản ghi nhận: 1.0.0-beta.15) tr
 
 Quy tắc:
 
-- Lệnh batch (`test`, `run`, `build`) không chạy được khi project đang mở trong Editor; lệnh nối vào Editor (`command`, `recompile`) cần Editor đang mở. Chạy `unity status` trước khi chọn. Không kill process Unity; nhờ user đóng Editor.
+- Lệnh batch (`test`, `run`, `build`) không chạy được khi project đang mở trong Editor; lệnh nối vào Editor (`command`, `recompile`) cần Editor đang mở. Chạy `unity status` trước khi chọn, **thành một lệnh riêng**: nó thoát mã 12 khi không có Editor nên `unity status && unity run …` không chạy vế sau (L-020). Không kill process Unity; nhờ user đóng Editor.
+- Sau `unity run`, kiểm `git status` (hoặc giờ sửa của file log) trước khi tin log: log cũ trông y như log mới (L-020).
 - Mã thoát (theo `unity -h`): `0` thành công, `8` test chạy xong nhưng có test đỏ, `6` lệnh hỏng vì lý do khác (kể cả lỗi compile), `12` không có Editor nào trả lời, `10`/`14` quá thời gian. Luôn **đọc file kết quả và log thật**, không dựa mỗi mã thoát.
 - Điều khiển Editor qua MCP (`Unity_RunCommand`):
   - Vào Play mất 10–25 giây vì nạp lại domain, và cổng MCP rớt trong lúc đó; `isPlaying` báo `False` suốt quãng này. Bắn `EnterPlaymode` ở lệnh riêng, chờ, rồi kiểm `isPlaying` trước khi làm gì.
   - Công cụ đọc mã lệnh: nếu có `ExitPlaymode()` hoặc `isPlaying = false` thì nó **thoát Play trước khi chạy lệnh**, nên việc khác trong cùng lệnh chạy trên session đã chết. Dừng Play bằng một lệnh riêng, chỉ chứa việc dừng.
   - Không dùng `System.Reflection` trong lệnh (bị chặn). Lớp lồng trong lệnh bị kéo ra ngoài, nên đừng để nó dùng hằng của lớp bao.
   - Chạy test ngay trong Editor đang mở: `TestRunnerApi.Execute` với `ICallbacks` ghi kết quả ra file (không cần đóng Editor). Sửa `.cs` làm Editor biên dịch và rớt cổng MCP vài chục giây; chờ rồi mới gọi lại.
+- Trước khi Play: `unity command scene open Assets/_Project/Scenes/Boot.unity` rồi mới `editor.playmode start`; Editor mở bằng CLI không tự chạy Boot, nên không có dịch vụ và không có `DevOverlay`. Kiểm `GameObject.Find("DevOverlay")` có trước khi thử gì (L-019).
+- Mỗi lệnh thử Play đổi trạng thái (gỡ nhân viên, tắt AUTO…) thì ghi một dòng "đã đổi X" và đặt lại ngay lệnh kế; đầu mỗi kịch bản in các số nền (vd. `Estimate.CoinsPerSecond`, `MissingRole`) trước khi tin con số nào (L-014).
+- Hành vi công cụ lạ: đọc mã nguồn của công cụ trong `Library/PackageCache` trước khi đặt giả thuyết; mỗi phép thử chỉ đổi một thứ (L-004).
 - Điều khiển Play qua `unity command` (Editor mở): `editor.playmode start|stop`, `capture game_view --save_path`, `console get --level error`, `eval '<câu lệnh C#>;'` (phải là câu lệnh, ví dụ `Debug.Log(...)`; đọc kết quả ở `console get`).
   - `capture --save_path` chỉ nhận đường dẫn trong thư mục project và đường dẫn dạng `D:/.../x.png` lại ghi vào `Assets/`, sinh thêm `.meta`: xoá cả hai khi xong, đừng commit.
   - `runtime simulate_pointer` báo thành công nhưng không đổi `Mouse.current` (vẫn 0,0), nên không bấm được UI. Kiểm nút bằng `EventSystem.RaycastAll` tại tâm nút rồi `ExecuteEvents.Execute(nút, new PointerEventData(es), ExecuteEvents.pointerClickHandler)`.
@@ -88,7 +92,9 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 - **Session code:** commit và **push** sau mỗi nhiệm vụ nhỏ đã xong (một cụm bước có test xanh) và sau mỗi task lớn của kế hoạch. Push lên `origin` (`https://github.com/Sweet-Yuu/BunDauPeo2.git`); nhánh chưa có upstream thì `git push -u origin <nhánh>`. Không force push, không sửa lịch sử đã push. Chỉ push khi test của phần đó đã xanh; test đỏ thì sửa trước.
 - **Session điều phối và việc không phải code:** chỉ commit/push khi user yêu cầu.
 - Cuối ngày làm việc, user tự kiểm tra và push các commit còn sót; không có lịch tự động.
-- `.gitignore` đã chặn `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. `git add` theo đường dẫn cụ thể, không `git add -A`.
+- `.gitignore` đã chặn `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. `git add` theo đường dẫn cụ thể, không `git add -A` (đã chặn trong `.claude/settings.json`).
+- File mới trong `Assets/` thì add theo thư mục hoặc add cả `<file>.meta`; trước mỗi commit chạy `git status --short`, không để sót `?? *.meta` (L-005).
+- Message commit nhiều dòng: ghi ra file trong scratchpad rồi `git commit -F <file>`. Windows PowerShell 5.1 cắt chuỗi có `"` thành pathspec (L-017).
 
 ## Kiểm tra sau thay đổi
 

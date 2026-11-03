@@ -2,6 +2,7 @@
 
 > Ngày: 2026-10-30 · Trạng thái: **đã duyệt** · Phạm vi: **nền móng**, chưa có gameplay.
 > Luật chơi nằm ở [game-design.md](../../design/game-design.md), kế hoạch ở [plans/2026-10-30-foundation.md](../plans/2026-10-30-foundation.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code hoặc [game-design.md](../../design/game-design.md), code và game-design thắng; không sửa spec này để theo kịp.
 
 ## 1. Mục tiêu và bối cảnh
 
