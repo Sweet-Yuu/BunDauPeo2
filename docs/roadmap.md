@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- [ ] Quy trình studio (nhánh `docs/workflow-tuning`, chưa merge): các kênh 🎯 📋 📐 🔨 🔍, skill `/coordinator` `/secretary` `/worker`, [docs/studio](studio/README.md). Merge vào `main` trước khi mở kênh con đầu tiên.
+_(Không có task nào đang làm. Task kế tiếp là mục đầu tiên của "Tiếp theo".)_
 
 ## Tiếp theo
 
@@ -28,6 +28,8 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 - [ ] Kiểm save trên Android thật (`File.Replace`, lưu khi vào nền): user tạm hoãn (2026-11-01), làm sau khi user nối điện thoại.
 
 ## Đã xong
+
+- 2026-11-03 — Quy trình studio: các kênh 🎯 📋 📐 🔨 🔍, skill `/coordinator` `/secretary` `/worker`, [docs/studio](studio/README.md), luật chặn cứng trong `.claude/settings.json`, lesson nâng thành luật. PR #7.
 
 - 2026-11-03 — Combat: lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí: [spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md). 15 task, 4 session, 692 test EditMode xanh, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh), đã merge vào `main` (PR #5). `TODO(user)`: xác nhận đã làm playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực).
 

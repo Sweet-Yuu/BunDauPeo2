@@ -7,8 +7,8 @@
 
 _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 
-- **Nhánh `main`** có Foundation, Gacha, Gacha reveal, Restaurant, Combat (PR #5 đã merge). Nhánh mặc định trên GitHub đã đổi sang `main`.
-- **Đang treo:** nhánh `docs/workflow-tuning` có quy trình studio mới (settings, skill, docs/studio), chưa merge. Phải merge vào `main` trước khi mở kênh con đầu tiên: kênh con tách nhánh từ `main`, thiếu file này thì không nạp được skill `/worker`.
+- **Nhánh `main`** có Foundation, Gacha, Gacha reveal, Restaurant, Combat (PR #5) và quy trình studio (PR #7, `abd34bd`). Nhánh mặc định trên GitHub là `main`. Không có kênh con nào đang chạy.
+- **Chưa thử thật:** `/coordinator` trong một session mới, và luật chặn sửa `.meta` của `.claude/settings.json`.
 - **Việc tiếp theo** (theo roadmap, user chốt 2026-11-03): (1) Công cụ thử tự động `PlaytestTools` + PlayMode smoke test, (2) Build Android thử sớm, (3) Song ngữ Việt–Anh. Cả ba chưa có spec, nên bắt đầu bằng kênh 📐.
 - **Chờ user:** xác nhận playtest 3 của Combat đã làm chưa (Combat merge khi roadmap còn ghi "chờ playtest 3"); mở `Assets/_Recovery/0.unity` xem có việc chưa lưu không.
 
@@ -30,7 +30,8 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
   - công cụ thử tự động và build Android làm **ngay sau Combat, trước Song ngữ**.
 - Đã xoá `docs/finance/BunDauPeo_DuBao_2027_v2.xlsx` theo yêu cầu, chỉ giữ v3.
 - Dựng mô hình studio: các kênh 🎯 📋 📐 🔨 🔍, skill `/coordinator`, `/secretary`, `/worker`, file này, hai mục sidebar. Subagent song song được phép trong kênh 🔨 theo luật ở [README studio](README.md).
-- Mở kênh 📋 Thư ký đầu tiên.
+- Mở kênh 📋 Thư ký đầu tiên: nạp được skill và báo cáo đúng khung.
+- User duyệt, nên đã commit `b797d9c`, mở PR #7 và merge vào `main` (`abd34bd`). Checkout trên máy đã chuyển về `main`.
 
 ### #0 — 2026-10-30 → 2026-11-02 — trước khi có file này
 
