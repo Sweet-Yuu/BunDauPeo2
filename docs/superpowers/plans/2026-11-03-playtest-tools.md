@@ -177,16 +177,16 @@ git push -u origin feature/playtest-tools
 **Interfaces:**
 - Produces: `public static class BackgroundPlay { public static string Enable(); public static string Restore(); public static void HandlePlayModeState(PlayModeStateChange state); }`. Khoá `SessionState` `"BunDauPeo.Playtest.RunInBackgroundOriginal"` (`-1` = chưa bật, `0`/`1` = giá trị gốc). `[InitializeOnLoadMethod]` đăng ký `EditorApplication.playModeStateChanged` → `HandlePlayModeState`; `EnteredEditMode` gọi `Restore()`.
 
-- [ ] **Step 1: Viết test (5 test).** Mỗi test lưu `PlayerSettings.runInBackground` và khoá `SessionState` thật lúc đầu và khôi phục trong `finally`:
-  1. `EnableThenRestore_OriginalFalse_BackToFalse` (giữa chừng `runInBackground == true`).
+- [x] **Step 1: Viết test (5 test).** Mỗi test lưu `PlayerSettings.runInBackground` và khoá `SessionState` thật lúc đầu và khôi phục trong `finally`:
+  1. `EnableThenRestore_OriginalFalse_BackToFalse` (giữa chừng `runInBackground == true`). **(bỏ lần đỏ riêng: viết cả đợt T2–T5 rồi chạy một lần; xanh cuối đợt 712.)**
   2. `EnableThenRestore_OriginalTrue_BackToTrue`.
   3. `Enable_Twice_RestoresValueBeforeFirstCall` (gốc `false`; sau `Enable` hai lần rồi `Restore` phải `false`, không `true`).
   4. `Restore_WithoutEnable_ChangesNothing` (đặt `runInBackground = true` bằng tay; `Restore` không đổi).
   5. `HandlePlayModeState_EnteredEditMode_Restores` (và `EnteredPlayMode` thì **không** hoàn tác).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Implement** theo Interfaces. Không gọi `AssetDatabase.SaveAssets`.
-- [ ] **Step 4: Chạy EditMode:** 706 xanh. Rồi `git status --short`: **`ProjectSettings/ProjectSettings.asset` không được xuất hiện** (L-007). Có xuất hiện thì `git diff` xem dòng nào đổi, sửa code cho trả nguyên, không `checkout` che lỗi.
-- [ ] **Step 5: Commit** — "feat(playtest): BackgroundPlay with SessionState restore".
+- [x] **Step 2: Chạy, thấy đỏ.**
+- [x] **Step 3: Implement** theo Interfaces. Không gọi `AssetDatabase.SaveAssets`.
+- [x] **Step 4: Chạy EditMode:** 706 xanh. Rồi `git status --short`: **`ProjectSettings/ProjectSettings.asset` không được xuất hiện** (L-007). Có xuất hiện thì `git diff` xem dòng nào đổi, sửa code cho trả nguyên, không `checkout` che lỗi.
+- [x] **Step 5: Commit** — "feat(playtest): BackgroundPlay with SessionState restore".
 
 ### Task 5: `UiDriver`
 
