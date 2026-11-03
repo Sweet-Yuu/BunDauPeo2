@@ -1,7 +1,7 @@
 # Điều hướng agent: model, effort, subagent hay native
 
 > **Đọc khi:** bắt đầu một đợt triển khai, chuẩn bị gọi subagent, hoặc đang sửa mãi không xong.
-> **Cập nhật khi:** dùng thực tế thấy một mức quá yếu hoặc quá tốn. Đây là khuyến nghị ban đầu, chưa đo chi phí thật.
+> **Cập nhật khi:** dùng thực tế thấy một mức quá yếu hoặc quá tốn, và cuối mỗi session code (mục Sổ chi phí). Bảng dưới là khuyến nghị ban đầu, chưa đo chi phí thật.
 
 ## Native hay subagent
 
@@ -61,3 +61,11 @@ Fable 5.1 và effort `max` không dùng mặc định: chỉ dùng khi Opus `xhi
 2. Phát hiện kế hoạch sai hoặc thiếu: dừng, quay lại Opus sửa kế hoạch, không tự thiết kế lại trong lúc code.
 3. Việc đụng tới mất dữ liệu hoặc tiền trong game: không dùng Haiku, kể cả khi trông nhỏ.
 4. Việc đã rõ và lặp lại: giảm mức, không giữ mức cao theo thói quen.
+
+## Sổ chi phí
+
+Cuối mỗi session code, chạy `/explain-usage` và ghi một dòng ở đây (mới nhất trên cùng). Đủ 3–4 dòng thì xem lại bảng chọn model ở trên.
+
+| Ngày | Việc | Model / effort | Chi phí | Ghi chú (sai mấy lần, có phải tăng mức không) |
+|---|---|---|---|---|
+| | | | | |

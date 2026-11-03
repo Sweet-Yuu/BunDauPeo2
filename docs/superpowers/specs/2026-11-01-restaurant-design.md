@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-01 · Trạng thái: **đã duyệt (2026-11-01, user trả lời qua session điều phối)** · Phạm vi: mô phỏng quán, xếp nhân viên, nâng cấp quán, chất lượng quán, sự cố, AFK, màn quán tối thiểu để thử.
 > Kiến trúc, `Wallet`, `Roster`, `SaveService`, luật phụ thuộc asmdef: xem [spec nền móng](2026-10-30-foundation-architecture-design.md). Luật chơi: [game-design.md](../../design/game-design.md#quán). Mẫu định dạng và cách nối vào `Boot`: [spec Gacha](2026-10-31-gacha-design.md). Kế hoạch: [plans/2026-11-01-restaurant.md](../plans/2026-11-01-restaurant.md) (viết sau khi duyệt).
+> **Đã xong, đây là lịch sử.** Khi spec khác code hoặc [game-design.md](../../design/game-design.md), code và game-design thắng; không sửa spec này để theo kịp.
 
 ## 1. Mục tiêu
 

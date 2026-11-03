@@ -2,6 +2,7 @@
 
 > Ngày: 2026-10-31 · Trạng thái: **đã triển khai (2026-11-01)** · Phạm vi: luồng hiển thị sau khi bấm Quay, không đổi cách roll.
 > Nền: [spec Gacha](2026-10-31-gacha-design.md) (mục 8 loại trừ "hiệu ứng, animation quay"; spec này đưa một phần vào phạm vi). Luật chơi: [game-design.md](../../design/game-design.md#gacha).
+> **Đã xong, đây là lịch sử.** Khi spec khác code hoặc [game-design.md](../../design/game-design.md), code và game-design thắng; không sửa spec này để theo kịp.
 
 ## 1. Mục tiêu
 

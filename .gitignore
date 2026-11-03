@@ -112,3 +112,11 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# BunDauPeo: scene Unity tự khôi phục sau crash (mở xem, đừng commit)
+/[Aa]ssets/_Recovery/
+/[Aa]ssets/_Recovery.meta
+# BunDauPeo: cấu hình cầu nối Unity CLI, máy nào tự sinh của máy đó
+/ProjectSettings/Packages/com.unity.pipeline/
+# BunDauPeo: thư mục riêng của user, agent không đụng
+/Không động tới/

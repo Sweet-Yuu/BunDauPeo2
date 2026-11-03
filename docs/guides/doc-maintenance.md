@@ -11,6 +11,7 @@
 | Thêm thư mục/quy ước đặt tên | `project/structure.md` |
 | Chốt quy ước code mới | `guides/code-style.md` |
 | Bắt đầu / xong một task | `roadmap.md` |
+| Xong một feature (trước khi hỏi PR) | thêm dòng "Đã xong, đây là lịch sử" vào đầu spec của nó; nâng các lesson của nhánh thành luật (xem `lessons/lesson.md`, mục Cách ghi) |
 | Phát hiện lệnh Unity CLI mới/sai, skill Unity cần thêm vào bảng chọn | `guides/unity-workflow.md` |
 | Thêm nguồn tham khảo | `references/README.md` |
 | Thêm hoặc đổi tên ảnh trong `Mota/` | `references/ui-screens.md` |

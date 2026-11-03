@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- [ ] Combat: xong Task 1–15/15 (nhánh `feature/combat`, 692 test xanh, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh, lỗi đã sửa)), chờ review độc lập cuối nhánh và playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực), rồi mới hỏi PR. Lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
+- [ ] Combat: xong Task 1–15/15 (nhánh `feature/combat`, 692 test xanh, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh, lỗi đã sửa ở commit `dbcf0d6`)), chờ playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực), rồi mới hỏi PR. Lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
 
 ## Tiếp theo
 
@@ -13,7 +13,9 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
-- [ ] Song ngữ Việt–Anh (master plan, user chốt 2026-11-03): mọi chữ trong game có bản tiếng Anh. Làm ngay sau Combat, vì mỗi màn mới làm thêm đều phải sửa lại chữ.
+- [ ] Công cụ thử tự động (user chốt 2026-11-03: làm ngay sau Combat, trước Song ngữ; chưa có spec): `PlaytestTools` trong assembly Editor (mở Boot, sao lưu/khôi phục save, bật chạy nền rồi hoàn tác ProjectSettings, chụp màn 1920×1080, bấm nút theo tên) và một PlayMode smoke test chạy trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm. Mục đích: gom các bẫy ở [unity-workflow](guides/unity-workflow.md) thành code, giảm thời gian mỗi lần playtest.
+- [ ] Build Android thử sớm (user chốt 2026-11-03: ngay sau Combat, cùng đợt với công cụ thử): method `BuildAndroid` chạy bằng `-executeMethod`, build lại sau mỗi feature để bắt lỗi riêng của nền tảng trước hạn 31/12. Không thay mục "Build Android, test trên máy thật, Closed Test" ở dưới.
+- [ ] Song ngữ Việt–Anh (master plan, user chốt 2026-11-03): mọi chữ trong game có bản tiếng Anh. Làm ngay sau hai việc trên, vì mỗi màn mới làm thêm đều phải sửa lại chữ.
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
 - [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game, gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
 - [ ] Thời tiết (master plan): ngẫu nhiên, chỉ giảm lượng khách, mỗi đợt tối đa 30 phút; xác suất tăng sau hơn 90 phút chơi liên tục. Nhỏ, ghép vào mô phỏng quán hiện có.

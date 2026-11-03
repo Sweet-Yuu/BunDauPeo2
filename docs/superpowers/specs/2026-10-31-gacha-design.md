@@ -2,6 +2,7 @@
 
 > Ngày: 2026-10-31 · Trạng thái: **đã duyệt (2026-10-31)** · Phạm vi: banner, roll, đảm bảo (pity), nhân vật trùng thành mảnh, UI tối thiểu để thử.
 > Kiến trúc, `Wallet`, `Roster`, `SaveService`, luật phụ thuộc asmdef: xem [spec nền móng](2026-10-30-foundation-architecture-design.md). Luật chơi: [game-design.md](../../design/game-design.md#gacha). Kế hoạch: [plans/2026-10-31-gacha.md](../plans/2026-10-31-gacha.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code hoặc [game-design.md](../../design/game-design.md), code và game-design thắng; không sửa spec này để theo kịp.
 
 ## 1. Mục tiêu
 

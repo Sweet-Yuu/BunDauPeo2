@@ -11,6 +11,7 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 | Cân bằng số liệu, hỏi luật chơi | [design/game-design.md](design/game-design.md) |
 | Triển khai theo spec / kế hoạch | `superpowers/specs/`, `superpowers/plans/` (xem link trong [roadmap.md](roadmap.md)) |
 | Chọn model, effort, subagent hay native | [guides/agent-routing.md](guides/agent-routing.md) |
+| Viết prompt mở session code | [guides/session-brief.md](guides/session-brief.md) |
 | Viết hoặc sửa script C# | [guides/code-style.md](guides/code-style.md) → [project/structure.md](project/structure.md) |
 | Chạy Unity: test, build, mở/đóng Editor, lệnh CLI | [guides/unity-workflow.md](guides/unity-workflow.md) (Unity CLI) |
 | Sửa scene / prefab / asset / ProjectSettings, chọn skill của plugin Unity | [guides/unity-workflow.md](guides/unity-workflow.md) |
@@ -26,6 +27,7 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 
 ```
 CLAUDE.md                  cổng vào, luật cứng (ngắn)
+.claude/settings.json      quyền: lệnh tự chạy và luật chặn cứng (.meta, Library/, force push…)
 docs/
   README.md                file này
   roadmap.md               việc đang làm / sắp làm / đã xong
@@ -40,6 +42,7 @@ docs/
     unity-workflow.md      Unity CLI, skills plugin Unity, thao tác an toàn với file Unity
     doc-maintenance.md     khi nào đọc / sửa doc nào
     agent-routing.md       chọn model, effort, subagent hay native
+    session-brief.md       mẫu prompt mở session code
   decisions/decisions.md   quyết định kỹ thuật + lý do (ADR gọn)
   references/README.md     mục lục nguồn tham khảo ngoài
   references/ui-screens.md mục lục ảnh tham khảo UI trong Mota/
