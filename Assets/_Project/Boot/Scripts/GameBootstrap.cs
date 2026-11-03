@@ -25,7 +25,10 @@ namespace BunDauPeo.Boot
         private RestaurantService _restaurant;
 
         // Dùng chung cho game và công cụ Editor để cả hai luôn trỏ tới cùng một file save.
-        public static string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
+        public static string SavePath => SavePathOverride ?? Path.Combine(Application.persistentDataPath, "save.json");
+
+        // Không đặt lại trong ResetStatics: tắt domain reload thì giá trị sống tiếp, nên người đặt phải tự trả về null.
+        public static string SavePathOverride { get; set; }
 
         public GameSession Session => _session;
 

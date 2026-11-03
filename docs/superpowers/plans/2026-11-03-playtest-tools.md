@@ -140,12 +140,12 @@ git push -u origin feature/playtest-tools
 **Interfaces:**
 - Produces: `public static string SavePathOverride { get; set; }`; `SavePath` trả `SavePathOverride ?? Path.Combine(Application.persistentDataPath, "save.json")`.
 
-- [ ] **Step 1: Viết test (3 test).** Mỗi test đặt override trong `try` và trả `null` trong `finally`:
-  `SavePath_NoOverride_IsPersistentDataPathSaveJson` (so với `Path.Combine(Application.persistentDataPath, "save.json")`), `SavePath_WithOverride_ReturnsOverride` (override `Path.Combine(Path.GetTempPath(), "x", "save.json")`), `SavePath_OverrideSetBackToNull_IsRealPathAgain`.
-- [ ] **Step 2: Chạy, thấy đỏ** (`error CS0117`: chưa có thành viên).
-- [ ] **Step 3: Thêm property** như Interfaces. Không đặt lại trong `ResetStatics`. Một dòng comment nói vì sao (người đặt phải trả `null`; domain reload tắt thì giá trị sống tiếp).
-- [ ] **Step 4: Chạy EditMode:** 695 xanh.
-- [ ] **Step 5: Commit** `git add Assets/_Project/Boot Assets/_Project/Tests/GameBootstrapSavePathTests.cs Assets/_Project/Tests/GameBootstrapSavePathTests.cs.meta` — "feat(boot): SavePathOverride seam for temp saves".
+- [x] **Step 1: Viết test (3 test).** Mỗi test đặt override trong `try` và trả `null` trong `finally`:
+  `SavePath_NoOverride_IsPersistentDataPathSaveJson` (so với `Path.Combine(Application.persistentDataPath, "save.json")`), `SavePath_WithOverride_ReturnsOverride` (override `Path.Combine(Path.GetTempPath(), "x", "save.json")`), `SavePath_OverrideSetBackToNull_IsRealPathAgain`. **(bỏ lần đỏ riêng: viết cả đợt T2–T5 rồi chạy một lần; xanh cuối đợt 712.)**
+- [x] **Step 2: Chạy, thấy đỏ** (`error CS0117`: chưa có thành viên).
+- [x] **Step 3: Thêm property** như Interfaces. Không đặt lại trong `ResetStatics`. Một dòng comment nói vì sao (người đặt phải trả `null`; domain reload tắt thì giá trị sống tiếp).
+- [x] **Step 4: Chạy EditMode:** 695 xanh.
+- [x] **Step 5: Commit** `git add Assets/_Project/Boot Assets/_Project/Tests/GameBootstrapSavePathTests.cs Assets/_Project/Tests/GameBootstrapSavePathTests.cs.meta` — "feat(boot): SavePathOverride seam for temp saves".
 
 ### Task 3: `SaveBackup`
 
