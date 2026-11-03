@@ -92,6 +92,7 @@ namespace BunDauPeo.Boot
             DontDestroyOnLoad(gameObject);
             ServiceLocator.Register(_session.Wallet);
             ServiceLocator.Register(_session.Roster);
+            ServiceLocator.Register(new GameResetter(_session.ResetToDefaults));
             ServiceLocator.Register(new GachaService(_session.Save, _session.Wallet, _session.Roster, _catalog,
                 _bannerCatalog, new System.Random(), _session.Persist));
 

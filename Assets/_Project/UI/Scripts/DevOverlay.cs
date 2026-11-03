@@ -18,6 +18,7 @@ namespace BunDauPeo.UI
         public const string RestaurantScene = "Restaurant";
         public const string GachaScene = "Gacha";
         public const long MaterialGrant = 50;
+        public const long GemGrant = 1000;
         public const int AfkRewindHours = 1;
 
         public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.StageSelectScene, BattleView.BattleScene };
@@ -83,6 +84,68 @@ namespace BunDauPeo.UI
             });
             AddButton(strip, font, "Hồi đầy thể lực", new Vector2(1422, 8), 250, combat.Stamina.Refill);
             AddButton(strip, font, "Màn chơi", new Vector2(1680, 8), 168, () => SceneManager.LoadScene(BattleView.StageSelectScene));
+            BuildSettings(font);
+        }
+
+        // Qua ví như +Material: không chạm file save, Changed bắn và Reset Save Data xoá sạch như thường.
+        public static void GrantGems(Wallet wallet) => wallet.Add(CurrencyType.Gem, GemGrant);
+
+        // Nút Cài đặt ở góc trên phải (dải DEV nằm dưới, đã đầy). Reset luôn qua hộp xác nhận (D-005).
+        private static void BuildSettings(Font font)
+        {
+            var open = AddButton((RectTransform)_root.transform, font, "Cài đặt", Vector2.zero, 200, () => { });
+            var openRect = (RectTransform)open.transform.parent;
+            openRect.anchorMin = openRect.anchorMax = openRect.pivot = Vector2.one;
+            openRect.anchoredPosition = new Vector2(-16, -16);
+
+            // Nền mờ chặn bấm xuyên xuống game khi panel mở.
+            var dim = NewRect("SettingsPanel", _root.transform, Vector2.zero, Vector2.zero);
+            dim.anchorMin = Vector2.zero;
+            dim.anchorMax = Vector2.one;
+            dim.offsetMin = dim.offsetMax = Vector2.zero;
+            dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
+
+            var box = NewRect("Box", dim, Vector2.zero, new Vector2(900, 560));
+            box.anchorMin = box.anchorMax = box.pivot = new Vector2(0.5f, 0.5f);
+            box.anchoredPosition = Vector2.zero;
+            box.gameObject.AddComponent<Image>().color = new Color(0.12f, 0.12f, 0.16f, 1f);
+
+            AddLabel(box, font, "Cài đặt (DEV)", new Vector2(0, 485), new Vector2(900, 60), 40);
+            AddButton(box, font, $"+{GemGrant} Gem", new Vector2(50, 360), 800,
+                () => GrantGems(ServiceLocator.Get<Wallet>()));
+
+            var confirm = NewRect("ResetConfirm", box, new Vector2(50, 40), new Vector2(800, 220));
+            confirm.gameObject.AddComponent<Image>().color = new Color(0.35f, 0.1f, 0.1f, 1f);
+            AddLabel(confirm, font, "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.",
+                new Vector2(20, 110), new Vector2(760, 100), 32);
+            var yes = AddButton(confirm, font, "Xoá hết", new Vector2(40, 20), 340, () =>
+            {
+                Debug.Log($"DevOverlay: Reset Save Data = {ServiceLocator.Get<GameResetter>().Reset()}");
+                dim.gameObject.SetActive(false);
+            });
+            yes.GetComponentInParent<Image>().color = new Color(0.85f, 0.2f, 0.2f);
+            AddButton(confirm, font, "Huỷ", new Vector2(420, 20), 340, () => confirm.gameObject.SetActive(false));
+            confirm.gameObject.SetActive(false);
+
+            AddButton(box, font, "Reset dữ liệu", new Vector2(50, 270), 800, () => confirm.gameObject.SetActive(true));
+            AddButton(box, font, "Đóng", new Vector2(690, 485), 180, () => dim.gameObject.SetActive(false));
+            dim.gameObject.SetActive(false);
+            open.GetComponentInParent<Button>().onClick.AddListener(() =>
+            {
+                confirm.gameObject.SetActive(false);
+                dim.gameObject.SetActive(true);
+            });
+        }
+
+        private static void AddLabel(RectTransform parent, Font font, string text, Vector2 position, Vector2 size, int fontSize)
+        {
+            var label = NewRect("Label", parent, position, size).gameObject.AddComponent<Text>();
+            label.font = font;
+            label.text = text;
+            label.fontSize = fontSize;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.color = Color.white;
+            label.raycastTarget = false;
         }
 
         // Đội trống thì thêm tối đa một đội đầy từ người đã sở hữu, theo thứ tự sở hữu; trả số người thêm.
