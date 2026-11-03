@@ -7,10 +7,9 @@
 
 **Mặc định: Native + một reviewer độc lập ở cuối nhánh.** Mỗi việc lớn có một session code riêng, tự làm từng task theo kế hoạch, rồi một subagent mới review toàn nhánh trước khi coi là xong.
 
-**Cách chia session (user chốt 2026-10-30):**
-- **Session điều phối:** hỏi đáp tổng quan và viết prompt cho session code. Không viết code game.
-- **Session code:** mỗi session nhận một prompt từ session điều phối. Chỉ chạy **một session đụng Unity tại một thời điểm**.
-- Session không chia sẻ trí nhớ. Tiến độ truyền qua checkbox trong kế hoạch, `docs/roadmap.md` và git.
+**Cách chia session:** các vai (🎯 Điều phối, 📋 Thư ký, 📐 Thiết kế, 🔨 Code, 🔍 Review), luật chia phiên và cách kênh điều phối tự mở kênh con nằm ở [docs/studio/README.md](../studio/README.md) (user chốt 2026-11-03, thay bản 2026-10-30). Tóm lại:
+- Chỉ chạy **một session đụng Unity tại một thời điểm**.
+- Session không chia sẻ trí nhớ. Tiến độ truyền qua checkbox trong kế hoạch, `docs/roadmap.md`, [docs/studio/history.md](../studio/history.md) và git.
 
 Lý do riêng của dự án này:
 - Một project Unity chỉ mở được một Editor hoặc một lệnh batch cùng lúc. Các agent song song sẽ tranh project khi chạy test.
@@ -23,8 +22,9 @@ Lý do riêng của dự án này:
 | Tìm kiếm rộng, chỉ cần kết luận | Agent `Explore` |
 | Review độc lập cuối nhánh | Subagent mới, không biết quá trình code |
 | Kế hoạch trên 10 task, có logic dễ sai (AFK, combat), và bạn muốn review sau từng task | `superpowers:subagent-driven-development`, nhưng vẫn chạy tuần tự |
+| Trong kênh 🔨, 2–3 task độc lập (không chung file, không đụng scene/asset) | `superpowers:dispatching-parallel-agents`; subagent viết code và test, không chạy Unity, không commit; kênh 🔨 chạy `unity test` một lần cho cả đợt (user chốt 2026-11-03, luật ở [studio](../studio/README.md#subagent-song-song-trong-kênh-)) |
 
-**Không dùng subagent để:** chạy song song nhiều task đụng Unity, hoặc làm việc nhỏ vài lệnh.
+**Không dùng subagent để:** chạy Unity song song (test, batch, Editor), sửa scene/prefab/asset song song, hoặc làm việc nhỏ vài lệnh.
 
 ## Bảng chọn model và effort
 
@@ -32,7 +32,8 @@ Mức effort: `low`, `medium`, `high`, `xhigh`, `max`.
 
 | Loại việc | Model | Effort | Ví dụ trong dự án |
 |---|---|---|---|
-| Điều phối, viết prompt, hỏi đáp tổng quan | Sonnet 5.5 | medium | Session điều phối |
+| Điều phối, viết prompt, hỏi đáp tổng quan | Sonnet 5.5 | medium | Kênh 🎯 Điều phối |
+| Báo cáo tiến độ | Haiku 5.5 | low | Kênh 📋 Thư ký |
 | Tra cứu, đọc log, tìm file | Haiku 5.5 | low | Tìm nơi dùng `Wallet`, đọc log Unity |
 | Sửa docs nhỏ, cập nhật roadmap | Haiku 5.5 | low | Đánh dấu task xong |
 | Tạo SO, thêm số liệu, asmdef, cây thư mục | Sonnet 5.5 | low | Thêm nhân vật mới, chỉnh `ProjectSetup` |

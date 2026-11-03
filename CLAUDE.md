@@ -10,6 +10,7 @@ Game Unity 6 (2D, URP). Mọi thông tin chi tiết nằm trong `docs/` — file
 4. Khi agent làm sai hoặc user sửa lại: ghi 1 mục vào [docs/lessons/lesson.md](docs/lessons/lesson.md) **ngay trong task đó**.
 5. Khi task làm thay đổi sự thật đã ghi trong docs: sửa đúng file đó (xem [docs/guides/doc-maintenance.md](docs/guides/doc-maintenance.md)).
 6. Khi gọi subagent: chọn model và effort theo [docs/guides/agent-routing.md](docs/guides/agent-routing.md).
+7. Studio có các kênh 🎯 Điều phối, 📋 Thư ký, 📐 Thiết kế, 🔨 Code, 🔍 Review. Mở kênh bằng `/coordinator`, `/secretary`, `/worker`. Luật ở [docs/studio/README.md](docs/studio/README.md), lịch sử ở [docs/studio/history.md](docs/studio/history.md).
 
 ## Công cụ (luôn áp dụng)
 

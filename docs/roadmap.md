@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- [ ] Combat: xong Task 1–15/15 (nhánh `feature/combat`, 692 test xanh, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh, lỗi đã sửa ở commit `dbcf0d6`)), chờ playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực), rồi mới hỏi PR. Lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí. [Spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md): 15 task, 4 session, 3 lần dừng playtest.
+- [ ] Quy trình studio (nhánh `docs/workflow-tuning`, chưa merge): các kênh 🎯 📋 📐 🔨 🔍, skill `/coordinator` `/secretary` `/worker`, [docs/studio](studio/README.md). Merge vào `main` trước khi mở kênh con đầu tiên.
 
 ## Tiếp theo
 
@@ -28,6 +28,8 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 - [ ] Kiểm save trên Android thật (`File.Replace`, lưu khi vào nền): user tạm hoãn (2026-11-01), làm sau khi user nối điện thoại.
 
 ## Đã xong
+
+- 2026-11-03 — Combat: lượt, 3 hành động, quái, wave, bản đồ 7 màn, chọn đội, thể lực (trừ khi vào trận), phần thưởng; class và đội hình 3 vị trí: [spec](superpowers/specs/2026-11-02-combat-design.md), [kế hoạch](superpowers/plans/2026-11-02-combat.md). 15 task, 4 session, 692 test EditMode xanh, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh), đã merge vào `main` (PR #5). `TODO(user)`: xác nhận đã làm playtest 3 (trọn vòng bản đồ → đội → trận → thưởng → màn mở → thoát và mở lại vẫn giữ tiến độ và thể lực).
 
 - 2026-11-02 — Restaurant: mô phỏng quán, xếp nhân viên, nâng cấp (UI bản thử), chất lượng, sự cố, AFK, popup AFK và chất lượng, màn quán `Restaurant.unity` bố cục theo ba ảnh tham khảo: [spec](superpowers/specs/2026-11-01-restaurant-design.md), [kế hoạch](superpowers/plans/2026-11-01-restaurant.md). 425 test EditMode xanh; nhánh `feature/restaurant`, đã qua review độc lập cuối nhánh (Opus 5.5 xhigh), user đã thử, đã merge vào `main` (PR #3). Còn `TODO(user)`: UI nâng cấp hoàn chỉnh, cân bằng Coin/Material (spec mục 9), kiểm save trên Android.
 - 2026-10-31 — Gacha: banner, roll, đảm bảo (pity), nhân vật trùng thành mảnh, màn thử (`Gacha.unity`): [spec](superpowers/specs/2026-10-31-gacha-design.md), [kế hoạch](superpowers/plans/2026-10-31-gacha.md). 148 test EditMode xanh; nhánh `feature/gacha`, đã qua review độc lập cuối nhánh.

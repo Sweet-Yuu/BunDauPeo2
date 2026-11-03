@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-02 · Trạng thái: **đã duyệt** (user, 2026-11-02, gồm nút cốt truyện giữ chỗ) · **sửa 2026-11-03**: luật thể lực mới do user chốt (tối đa 100, mỗi màn đánh 10 kể cả boss, trừ một lần ngay khi vào trận và lưu ngay, không hoàn; thay luật "chỉ trừ khi thắng" đã duyệt hôm trước; nguồn [D-008](../../decisions/decisions.md)) · Phạm vi: trận đánh theo lượt, 5 class và 3 vị trí, quái và đợt (wave), màn chơi (chọn màn, bản đồ, màn cốt truyện giữ chỗ), thể lực, phần thưởng Material và Gem, tiến độ màn, các màn hình để chơi thử trọn vòng.
 > Kiến trúc, `Wallet`, `Roster`, `SaveService`, luật phụ thuộc asmdef: [spec nền móng](2026-10-30-foundation-architecture-design.md). Luật chơi: [game-design.md](../../design/game-design.md#chiến-đấu). Mẫu định dạng và cách nối vào `Boot`: [spec Restaurant](2026-11-01-restaurant-design.md). Kế hoạch: [plans/2026-11-02-combat.md](../plans/2026-11-02-combat.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code hoặc [game-design.md](../../design/game-design.md), code và game-design thắng; không sửa spec này để theo kịp.
 
 ## 1. Mục tiêu
 
