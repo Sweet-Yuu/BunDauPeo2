@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Công cụ thử tự động, phiên 1/2 (🔨, Task 1–5 nền), nhánh `feature/playtest-tools`: xong Task 1–2 (asmdef, `Ping`, seam `SavePathOverride`). Kế hoạch: [playtest-tools](superpowers/plans/2026-11-03-playtest-tools.md).
+- Công cụ thử tự động, phiên 1/2 (🔨, Task 1–5 nền), nhánh `feature/playtest-tools`: xong Task 1–3 (+ `SaveBackup`). Kế hoạch: [playtest-tools](superpowers/plans/2026-11-03-playtest-tools.md).
 
 ## Tiếp theo
 

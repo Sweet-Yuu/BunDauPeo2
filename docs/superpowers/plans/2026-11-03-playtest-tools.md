@@ -156,17 +156,17 @@ git push -u origin feature/playtest-tools
 **Interfaces:**
 - Produces: `public static class SaveBackup { public const string FolderName = "playtest-backup"; public const string NoSaveMarker = "NO_SAVE"; public static string Backup(string saveDirectory); public static string Restore(string saveDirectory); }`. Thông điệp bắt đầu `ERROR:` khi từ chối. "File save" = `save.json` và `save.json.*` ở thư mục `saveDirectory` (không đệ quy; **không** tính thư mục `FolderName`).
 
-- [ ] **Step 1: Viết test (6 test, thư mục tạm riêng mỗi test, dọn ở `finally`):**
-  1. `BackupThenRestore_BringsBackOriginalFiles`: tạo `save.json`, `save.json.bak`, `save.json.corrupt` với nội dung khác nhau; `Backup`; ghi đè `save.json`, thêm `save.json.tmp`; `Restore`; ba file gốc về đúng nội dung, `save.json.tmp` biến mất, thư mục sao lưu biến mất.
+- [x] **Step 1: Viết test (6 test, thư mục tạm riêng mỗi test, dọn ở `finally`):**
+  1. `BackupThenRestore_BringsBackOriginalFiles`: tạo `save.json`, `save.json.bak`, `save.json.corrupt` với nội dung khác nhau; `Backup`; ghi đè `save.json`, thêm `save.json.tmp`; `Restore`; ba file gốc về đúng nội dung, `save.json.tmp` biến mất, thư mục sao lưu biến mất. **(bỏ lần đỏ riêng: viết cả đợt T2–T5 rồi chạy một lần; xanh cuối đợt 712.)**
   2. `Backup_Twice_RefusesAndKeepsFirstBackup`: lần hai trả `ERROR:` kèm nhắc chạy Restore; nội dung bản sao lưu vẫn là của lần đầu (đã đổi `save.json` giữa hai lần gọi).
   3. `Backup_NoSaveYet_ThenRestore_DeletesSaveCreatedMeanwhile`: không có file nào lúc Backup (thư mục có thể chưa tồn tại); tạo `save.json`; `Restore` xoá nó.
   4. `Restore_WithoutBackup_ReturnsError_AndTouchesNothing`.
   5. `Restore_ReplacesFilesPresentNow_NotMerges`: save hiện tại có `save.json.bak` mà bản sao lưu không có → sau Restore `.bak` không còn.
   6. `Backup_FileLocked_ReturnsError_AndLeavesNoBackupFolder`: mở `save.json` bằng `FileStream` với `FileShare.None`, `Backup` trả `ERROR:`, không còn thư mục `FolderName` lẫn thư mục tạm.
-- [ ] **Step 2: Chạy, thấy đỏ** (chưa có lớp).
-- [ ] **Step 3: Implement.** Backup chép vào thư mục tạm `FolderName + ".tmp"` rồi `Directory.Move` thành `FolderName` (nguyên tử); lỗi thì xoá thư mục tạm và trả `ERROR:`. Restore: chép lại **trước khi** xoá thư mục sao lưu, chỉ xoá thư mục sao lưu khi chép xong. Lỗi `IOException`/`UnauthorizedAccessException` bắt ở biên hàm và trả `ERROR:` kèm `Message` (L-003: không nuốt thành thành công).
-- [ ] **Step 4: Chạy EditMode:** 701 xanh.
-- [ ] **Step 5: Commit** — "feat(playtest): SaveBackup (backup and restore save files)".
+- [x] **Step 2: Chạy, thấy đỏ** (chưa có lớp).
+- [x] **Step 3: Implement.** Backup chép vào thư mục tạm `FolderName + ".tmp"` rồi `Directory.Move` thành `FolderName` (nguyên tử); lỗi thì xoá thư mục tạm và trả `ERROR:`. Restore: chép lại **trước khi** xoá thư mục sao lưu, chỉ xoá thư mục sao lưu khi chép xong. Lỗi `IOException`/`UnauthorizedAccessException` bắt ở biên hàm và trả `ERROR:` kèm `Message` (L-003: không nuốt thành thành công).
+- [x] **Step 4: Chạy EditMode:** 701 xanh.
+- [x] **Step 5: Commit** — "feat(playtest): SaveBackup (backup and restore save files)".
 
 ### Task 4: `BackgroundPlay`
 
