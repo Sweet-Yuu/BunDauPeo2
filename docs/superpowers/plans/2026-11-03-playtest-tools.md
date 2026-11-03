@@ -207,11 +207,11 @@ git push -u origin feature/playtest-tools
   }
   ```
 
-- [ ] **Step 1: Viết `UiDriverTests` (6 test, GameObject dựng bằng code, `DestroyImmediate` ở `finally`):** `FindButtons_ByGameObjectName`; `FindButtons_NoNameMatch_FallsBackToChildTextLabel`; `FindButtons_IgnoresInactiveAndNonInteractable`; `FindButtons_NameMatchWinsOverLabelMatch` (nút A tên "X", nút B chữ "X" → chỉ A); `Click_TwoMatches_ReturnsAmbiguousAndClicksNeither` (kèm đường dẫn cả hai trong `Message`, cả hai `onClick` chưa được gọi); `Click_NoMatch_ReturnsNotFound` (và `NotInteractable` khi chỉ có nút bị tắt: gộp vào cùng method với hai `Assert`).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Implement.** `Click` theo spec 3.2: điểm bấm là tâm nút (`RectTransformUtility.WorldToScreenPoint(canvas.worldCamera nếu ScreenSpaceCamera, null nếu Overlay, …)`), `EventSystem.current.RaycastAll`, hit rỗng → `Blocked` ("toạ độ sai"), hit đầu không thuộc nút (không phải nút hay con của nút) → `Blocked` kèm tên vật che, đúng → `ExecuteEvents.Execute(button.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerClickHandler)`. `WaitForButton` dùng `Time.realtimeSinceStartup`; thông điệp `TimeoutException` gồm tên cần và `DescribeVisibleButtons()`. Đường `Blocked`/`Clicked` cần EventSystem sống nên chỉ được phủ ở Task 8.
-- [ ] **Step 4: Chạy EditMode:** 712 xanh (mốc cuối phiên 1: **712**).
-- [ ] **Step 5: Commit** — "feat(playtest): UiDriver (find, click, wait for buttons)".
+- [x] **Step 1: Viết `UiDriverTests` (6 test, GameObject dựng bằng code, `DestroyImmediate` ở `finally`):** `FindButtons_ByGameObjectName`; `FindButtons_NoNameMatch_FallsBackToChildTextLabel`; `FindButtons_IgnoresInactiveAndNonInteractable`; `FindButtons_NameMatchWinsOverLabelMatch` (nút A tên "X", nút B chữ "X" → chỉ A); `Click_TwoMatches_ReturnsAmbiguousAndClicksNeither` (kèm đường dẫn cả hai trong `Message`, cả hai `onClick` chưa được gọi); `Click_NoMatch_ReturnsNotFound` (và `NotInteractable` khi chỉ có nút bị tắt: gộp vào cùng method với hai `Assert`).
+- [x] **Step 2: Chạy, thấy đỏ.** **(bỏ lần đỏ riêng: viết cả đợt T2–T5 rồi chạy một lần; xanh cuối đợt 712.)**
+- [x] **Step 3: Implement.** `Click` theo spec 3.2: điểm bấm là tâm nút (`RectTransformUtility.WorldToScreenPoint(canvas.worldCamera nếu ScreenSpaceCamera, null nếu Overlay, …)`), `EventSystem.current.RaycastAll`, hit rỗng → `Blocked` ("toạ độ sai"), hit đầu không thuộc nút (không phải nút hay con của nút) → `Blocked` kèm tên vật che, đúng → `ExecuteEvents.Execute(button.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerClickHandler)`. `WaitForButton` dùng `Time.realtimeSinceStartup`; thông điệp `TimeoutException` gồm tên cần và `DescribeVisibleButtons()`. Đường `Blocked`/`Clicked` cần EventSystem sống nên chỉ được phủ ở Task 8.
+- [x] **Step 4: Chạy EditMode:** 712 xanh (mốc cuối phiên 1: **712**).
+- [x] **Step 5: Commit** — "feat(playtest): UiDriver (find, click, wait for buttons)".
 
 ## Giai đoạn B: nối và kiểm chứng (Phiên 2)
 

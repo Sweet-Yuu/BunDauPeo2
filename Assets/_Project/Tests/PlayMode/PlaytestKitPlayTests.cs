@@ -13,7 +13,7 @@ namespace BunDauPeo.PlayModeTests
         {
             yield return null;
             Assert.IsTrue(Application.isPlaying);
-            Assert.AreEqual("UiDriver", UiDriver.Name);
+            Assert.AreEqual("UiDriver", typeof(UiDriver).Name);
         }
     }
 }

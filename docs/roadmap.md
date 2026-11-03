@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Công cụ thử tự động, phiên 1/2 (🔨, Task 1–5 nền), nhánh `feature/playtest-tools`: xong Task 1–4 (+ `BackgroundPlay`). Kế hoạch: [playtest-tools](superpowers/plans/2026-11-03-playtest-tools.md).
+- Công cụ thử tự động, phiên 1/2 (🔨, Task 1–5 nền), nhánh `feature/playtest-tools`: xong Task 1–5 (+ `UiDriver`); chờ 🎯 kiểm trước phiên 2. Kế hoạch: [playtest-tools](superpowers/plans/2026-11-03-playtest-tools.md).
 
 ## Tiếp theo
 
