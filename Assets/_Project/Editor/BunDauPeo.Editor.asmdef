@@ -1,7 +1,7 @@
 {
   "name": "BunDauPeo.Editor",
   "rootNamespace": "BunDauPeo.EditorTools",
-  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Combat", "BunDauPeo.Gacha", "BunDauPeo.Restaurant", "BunDauPeo.UI", "BunDauPeo.Boot", "Unity.InputSystem", "UnityEngine.UI"],
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Combat", "BunDauPeo.Gacha", "BunDauPeo.Restaurant", "BunDauPeo.UI", "BunDauPeo.Boot", "BunDauPeo.PlaytestKit", "Unity.InputSystem", "UnityEngine.UI"],
   "includePlatforms": ["Editor"],
   "autoReferenced": false
 }

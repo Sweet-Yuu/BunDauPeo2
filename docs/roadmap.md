@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-_(Không có task nào đang làm. Task kế tiếp là mục đầu tiên của "Tiếp theo".)_
+- Công cụ thử tự động, phiên 1/2 (🔨, Task 1–5 nền), nhánh `feature/playtest-tools`: xong Task 1 (asmdef `PlaytestKit`, `PlayModeTests`, `Ping` qua `eval`). Kế hoạch: [playtest-tools](superpowers/plans/2026-11-03-playtest-tools.md).
 
 ## Tiếp theo
 

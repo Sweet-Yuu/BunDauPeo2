@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-023 — `BootScenePlayMode` làm `unity test --mode PlayMode` treo vì Play vào Boot thay cho scene của test (2026-11-03)  #unity-files #process
+- Triệu chứng: lượt PlayMode đầu tiên chạy 15 phút không có file kết quả rồi bị `unity` tắt; log chỉ thấy nạp scene Boot và Restaurant, không có test nào chạy; save thật bị ghi lại (10:59) vì `GameBootstrap` chạy với `persistentDataPath` thật.
+- Nguyên nhân gốc: `BootScenePlayMode` đặt `EditorSceneManager.playModeStartScene = Boot` sau mỗi lần nạp lại domain, đè scene khởi tạo của Test Runner. Tách biến: thêm một guard `-runTests` trong `Init` thì cùng test xanh ngay (1/1).
+- Luật từ nay: `BootScenePlayMode` đặt `playModeStartScene = null` khi dòng lệnh có `-runTests`. Chạy PlayMode từ cửa sổ Test Runner trong Editor thì guard này không phủ; nếu hay chạy kiểu đó, đổi sang đăng ký `TestRunnerApi` callbacks. Mọi lượt PlayMode chạy khi chưa có guard đều có thể đã ghi vào save thật: sao lưu `save.json*` trước (Task 3 `SaveBackup`).
+
 ### L-022 — Lệnh Bash dài có heredoc Python lẫn tiếng Việt báo `unexpected EOF` và không chạy gì (2026-11-03)  #process
 - Triệu chứng: ba lần `python - <<'EOF'` sửa nhiều file một lượt thoát mã 2 ("unexpected EOF while looking for matching `''`"), không file nào đổi; chỉ thấy khi kiểm `git status`.
 - Nguyên nhân gốc: lệnh Bash nhiều chục dòng chứa chuỗi ba nháy, nháy đơn và tiếng Việt bị shell phân tích sai trước khi tới Python.

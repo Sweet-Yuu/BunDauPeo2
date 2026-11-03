@@ -9,9 +9,14 @@ namespace BunDauPeo.EditorTools
         [InitializeOnLoadMethod]
         private static void Init()
         {
+            // Chạy test bằng dòng lệnh: Unity sẽ Play Boot thay vì scene khởi tạo của test, test không bao giờ bắt đầu.
+            var runningTests = System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-runTests") >= 0;
+
             // delayCall tránh load asset giữa lúc đang import.
             EditorApplication.delayCall += () =>
-                EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.BootScenePath);
+                EditorSceneManager.playModeStartScene = runningTests
+                    ? null
+                    : AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.BootScenePath);
         }
     }
 }
