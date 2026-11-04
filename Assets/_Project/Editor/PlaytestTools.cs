@@ -30,11 +30,7 @@ namespace BunDauPeo.EditorTools
 
         public static string RestoreBackgroundPlay() => Log(BackgroundPlay.Restore());
 
-        public static string Capture1080(string fileName = null)
-        {
-            if (!EditorApplication.isPlaying) return Log("ERROR: Chỉ chụp được khi đang Play.");
-            throw new System.NotImplementedException(); // Task 7 nối ScreenCapture1080
-        }
+        public static string Capture1080(string fileName = null) => Log(ScreenCapture1080.Capture(fileName));
 
         public static string ClickButton(string name) => Log(UiDriver.Click(name).ToString());
 

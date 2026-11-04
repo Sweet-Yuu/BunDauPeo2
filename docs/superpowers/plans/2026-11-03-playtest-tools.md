@@ -243,11 +243,11 @@ git push -u origin feature/playtest-tools
 **Interfaces:**
 - Produces: `public static class ScreenCapture1080 { public static string Capture(string fileName = null, string directory = null); }` (trả đường dẫn PNG; `directory` mặc định `<cha của thư mục project>/bdp-shots`).
 
-- [ ] **Step 1: Viết test PlayMode** `Capture_Overlay_WritesPng1920x1080_AndRestoresOverlay`: dựng Canvas Overlay có `Image` đỏ và một `Camera`, gọi `Capture(null, <thư mục tạm>)`; `Texture2D.LoadImage` thấy 1920×1080; `canvas.renderMode == RenderMode.ScreenSpaceOverlay` sau khi chụp. Thêm `Capture_RenderFails_StillRestoresOverlay` (camera bị `Destroy` trước nên chụp ném lỗi; Canvas vẫn trả về Overlay: bằng chứng của `finally`).
-- [ ] **Step 2: Chạy PlayMode, thấy đỏ.**
-- [ ] **Step 3: Implement** theo spec 3.4: camera tạm `HideAndDontSave` có `targetTexture` 1920×1080; mọi `Canvas` gốc đang `ScreenSpaceOverlay` đổi sang `ScreenSpaceCamera` rồi trả lại trong `finally`; `Canvas.ForceUpdateCanvases()`, `Render()`, `ReadPixels`, `EncodeToPNG`, ghi file; huỷ camera và texture tạm trong `finally`. Nối `PlaytestTools.Capture1080`.
-- [ ] **Step 4: Chạy PlayMode:** 2 xanh (test mẫu T1 đã thay). Chạy EditMode: 715 xanh (`Capture1080_NotPlaying_ReturnsError` vẫn xanh).
-- [ ] **Step 5: Commit** — "feat(playtest): ScreenCapture1080".
+- [x] **Step 1: Viết test PlayMode** `Capture_Overlay_WritesPng1920x1080_AndRestoresOverlay`: dựng Canvas Overlay có `Image` đỏ và một `Camera`, gọi `Capture(null, <thư mục tạm>)`; `Texture2D.LoadImage` thấy 1920×1080; `canvas.renderMode == RenderMode.ScreenSpaceOverlay` sau khi chụp. Thêm `Capture_RenderFails_StillRestoresOverlay` (camera bị `Destroy` trước nên chụp ném lỗi; Canvas vẫn trả về Overlay: bằng chứng của `finally`).
+- [x] **Step 2: Chạy PlayMode, thấy đỏ.** **(bỏ lần đỏ riêng: viết cả test và hàm rồi chạy một lần.)**
+- [x] **Step 3: Implement** theo spec 3.4: camera tạm `HideAndDontSave` có `targetTexture` 1920×1080; mọi `Canvas` gốc đang `ScreenSpaceOverlay` đổi sang `ScreenSpaceCamera` rồi trả lại trong `finally`; `Canvas.ForceUpdateCanvases()`, `Render()`, `ReadPixels`, `EncodeToPNG`, ghi file; huỷ camera và texture tạm trong `finally`. Nối `PlaytestTools.Capture1080`.
+- [x] **Step 4: Chạy PlayMode:** 2 xanh (test mẫu T1 đã thay). Chạy EditMode: 715 xanh (`Capture1080_NotPlaying_ReturnsError` vẫn xanh). **Đã chạy: PlayMode 2/2 (batch có dựng hình D3D11, không cần bỏ `-nographics`), EditMode 715/715. Ca lỗi dùng thư mục ghi trùng một file (camera tạm nằm trong hàm nên test không huỷ được); ca chính kiểm thêm điểm ảnh giữa màn là đỏ.**
+- [x] **Step 5: Commit** — "feat(playtest): ScreenCapture1080".
 
 ### Task 8: Smoke test PlayMode trọn vòng
 
