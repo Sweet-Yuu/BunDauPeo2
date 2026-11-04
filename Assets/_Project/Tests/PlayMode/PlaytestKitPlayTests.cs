@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using BunDauPeo.Playtest;
@@ -5,6 +6,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace BunDauPeo.PlayModeTests
 {
@@ -32,6 +34,22 @@ namespace BunDauPeo.PlayModeTests
         {
             Object.Destroy(_canvasObject);
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
+        }
+
+        [UnityTest]
+        public IEnumerator WaitForButton_Timeout_ListsVisibleButtons()
+        {
+            var button = new GameObject("Present", typeof(RectTransform), typeof(Image), typeof(Button));
+            button.transform.SetParent(_canvasObject.transform, false);
+            yield return null;
+
+            var ex = Assert.Throws<TimeoutException>(() =>
+            {
+                var wait = UiDriver.WaitForButton("Missing", 0.5f);
+                while (wait.MoveNext()) { } // hết giờ thì ném; MoveNext chạy thẳng vì không có gì để chờ khung
+            }, "phải hết giờ khi nút không có");
+            Assert.That(ex.Message, Does.Contain("Missing"));
+            Assert.That(ex.Message, Does.Contain("Present"), "thông điệp phải liệt kê nút đang hiện");
         }
 
         [UnityTest]

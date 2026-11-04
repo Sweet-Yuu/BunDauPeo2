@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Công cụ thử tự động, phiên 2/2 (🔨, Task 6–9), nhánh `feature/playtest-tools`: xong Task 6 (`PlaytestTools` + menu, EditMode 715) và Task 7 (`ScreenCapture1080`, PlayMode 2); đang Task 8 (smoke test); dừng playtest sau Task 8 cho user xem ảnh. Kế hoạch: [playtest-tools](superpowers/plans/2026-11-03-playtest-tools.md).
+- Công cụ thử tự động, phiên 2/2 (🔨, Task 6–9), nhánh `feature/playtest-tools`: xong Task 6 (`PlaytestTools` + menu, EditMode 715) Task 7 (`ScreenCapture1080`) và Task 8 (smoke test PlayMode trọn vòng, PlayMode 4/4); **đang dừng playtest sau Task 8**: chờ user xem ảnh `D:/Unity/bdp-shots/smoke-result.png` và thử menu `Tools/BunDauPeo/Playtest/*` trước Task 9 (docs). Kế hoạch: [playtest-tools](superpowers/plans/2026-11-03-playtest-tools.md).
 
 ## Tiếp theo
 
