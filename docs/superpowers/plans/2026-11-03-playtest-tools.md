@@ -263,18 +263,18 @@ git push -u origin feature/playtest-tools
 - [x] **Step 3: SetUp/TearDown** đúng spec: thư mục tạm, băm `save.json*` thật trước (không có thì băm rỗng), `SavePathOverride` đặt **sau khi Play đã chạy và trước khi nạp Boot**; TearDown trả `null`, `Object.Destroy` đối tượng `GameBootstrap` (DontDestroyOnLoad), `ServiceLocator.Clear()`, xoá thư mục tạm, khẳng định băm save thật không đổi. TearDown chạy cả khi test đỏ.
 - [x] **Step 4: Chạy PlayMode** (Editor đóng, `unity status` riêng): 4 xanh. Đỏ vì thua màn 1 hay không dựng được hình → ghi vào báo cáo: thua là lỗi cân bằng thật (báo 🎯), không dựng được hình thì thử bỏ `-nographics` rồi ghi cờ chạy được vào [unity-workflow.md](../../guides/unity-workflow.md) ở Task 9. Ảnh chụp bước 7 được giữ ở `D:/Unity/bdp-shots/` để user xem. **Đã chạy: PlayMode 4/4 (vòng chạy ~10 giây, batch có dựng hình, không cần cờ riêng), EditMode 715/715, `ProjectSettings/` sạch, băm save thật không đổi; ảnh `D:/Unity/bdp-shots/smoke-result.png` đúng 1920×1080. Hai chỗ kế hoạch lệch thực tế (L-024): (1) `Stages[0]` là màn Truyện, nên "màn 1" là màn Battle đầu tiên và test phải qua các màn Truyện trước (`Node{i}` rồi `ContinueButton`); (2) `DevOverlay` chỉ dựng lúc Play khởi động, test PlayMode không có nó nên bước 2 nạp `StageSelect` bằng `SceneManager.LoadScene`. Bước 9 so từng trường (ví, ClearedStages, nhân vật, đội, thể lực) thay vì cả JSON vì quán còn chạy ngầm.**
 - [x] **Step 5: Chạy EditMode** (715 xanh) rồi **`git status --short`**: `ProjectSettings/` sạch, save thật không đổi. Commit — "test(playtest): PlayMode smoke test for Boot to reward loop".
-- [ ] **Dừng playtest:** user xem ảnh chụp, thử tay `Tools/BunDauPeo/Playtest/*`, báo 🎯 trước khi sang Task 9.
+- [x] **Dừng playtest:** user xem ảnh chụp, thử tay `Tools/BunDauPeo/Playtest/*`, báo 🎯 trước khi sang Task 9.
 
 ### Task 9: Docs
 
 **Files:**
 - Modify: `docs/guides/unity-workflow.md`, `docs/project/structure.md`, `docs/decisions/decisions.md`, `docs/roadmap.md`, `docs/lessons/lesson.md` (chỉ nếu phát sinh bài học), `docs/superpowers/plans/2026-11-03-playtest-tools.md` (tick)
 
-- [ ] **Step 1: `unity-workflow.md`.** Thêm mục "Công cụ thử tự động" (bảng hàm `PlaytestTools` → việc, cách gọi qua `eval`, lệnh `unity test --mode PlayMode`, cờ batch đã chạy được ở Task 8). Thu gọn các bullet bẫy đã có hàm thay (chạy nền, chụp 1920×1080, bấm nút, mở Boot, sao lưu save) thành một dòng trỏ tới hàm, **giữ lại một câu lý do** và số lesson.
-- [ ] **Step 2: `structure.md`** thêm `Playtest/` (`BunDauPeo.PlaytestKit`), `Tests/PlayMode/` (`BunDauPeo.PlayModeTests`) và các lớp Editor mới; cập nhật số test (715 EditMode, 4 PlayMode).
-- [ ] **Step 3: `decisions.md`** thêm **D-009** (seam `SavePathOverride`; hai asmdef mới; công cụ mượn `runInBackground` rồi trả; chỉ vòng Combat). Trạng thái Accepted.
-- [ ] **Step 4: `roadmap.md`** chuyển mục "Công cụ thử tự động" sang "Đã xong" (số test, nhánh, link spec và kế hoạch); xoá dòng "Đang làm" của task này.
-- [ ] **Step 5: Commit** — "docs: playtest tools in unity-workflow, structure, D-009, roadmap".
+- [x] **Step 1: `unity-workflow.md`.** Thêm mục "Công cụ thử tự động" (bảng hàm `PlaytestTools` → việc, cách gọi qua `eval`, lệnh `unity test --mode PlayMode`, cờ batch đã chạy được ở Task 8). Thu gọn các bullet bẫy đã có hàm thay (chạy nền, chụp 1920×1080, bấm nút, mở Boot, sao lưu save) thành một dòng trỏ tới hàm, **giữ lại một câu lý do** và số lesson.
+- [x] **Step 2: `structure.md`** thêm `Playtest/` (`BunDauPeo.PlaytestKit`), `Tests/PlayMode/` (`BunDauPeo.PlayModeTests`) và các lớp Editor mới; cập nhật số test (715 EditMode, 4 PlayMode).
+- [x] **Step 3: `decisions.md`** thêm **D-009** (seam `SavePathOverride`; hai asmdef mới; công cụ mượn `runInBackground` rồi trả; chỉ vòng Combat). Trạng thái Accepted.
+- [x] **Step 4: `roadmap.md`** chuyển mục "Công cụ thử tự động" sang "Đã xong" (số test, nhánh, link spec và kế hoạch); xoá dòng "Đang làm" của task này.
+- [x] **Step 5: Commit** — "docs: playtest tools in unity-workflow, structure, D-009, roadmap".
 
 ## Hoàn tất đợt
 
