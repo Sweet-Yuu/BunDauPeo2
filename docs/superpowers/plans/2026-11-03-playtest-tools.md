@@ -225,14 +225,14 @@ git push -u origin feature/playtest-tools
 - Consumes: `SaveBackup.Backup/Restore(string)` (T3), `BackgroundPlay.Enable/Restore()` (T4), `UiDriver.Click` (T5), `ScreenCapture1080.Capture` (T7: ở task này `Capture1080` gọi một hàm khung ném `NotImplementedException`, thay ở T7), `ProjectSetup.BootScenePath`, `GameBootstrap.SavePath`.
 - Produces: `public static class PlaytestTools { string OpenBoot(); string BackupSave(); string RestoreSave(); string EnableBackgroundPlay(); string RestoreBackgroundPlay(); string Capture1080(string fileName = null); string ClickButton(string name); }`. Menu `Tools/BunDauPeo/Playtest/` cho `OpenBoot`, `BackupSave`, `RestoreSave` (hộp xác nhận `EditorUtility.DisplayDialog`, theo mẫu `ResetSaveData`), `Capture1080`.
 
-- [ ] **Step 1: Viết `PlaytestToolsTests` (3 test):**
+- [x] **Step 1: Viết `PlaytestToolsTests` (3 test):**
   1. `BackupAndRestore_FollowSavePathOverride`: đặt `GameBootstrap.SavePathOverride` vào thư mục tạm có `save.json`; `BackupSave` rồi `RestoreSave` chạy trên đúng thư mục đó (bản sao lưu nằm cạnh file tạm; không có gì xuất hiện ở thư mục save thật); trả `null` ở `finally`.
   2. `ClickButton_UnknownName_ReportsNotFound` (chuỗi trả về chứa `NotFound`).
   3. `Capture1080_NotPlaying_ReturnsError` (bắt đầu `ERROR:`).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Implement** theo spec 3.3. `OpenBoot` từ chối khi `EditorApplication.isPlaying` hoặc `SceneManager.GetActiveScene().isDirty`, ngược lại `EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Single)`. `RestoreSave` từ chối khi `EditorApplication.isPlaying`. Menu chỉ gọi hàm tương ứng rồi `Debug.Log` kết quả.
-- [ ] **Step 4: Chạy EditMode:** 715 xanh. Rồi kiểm tay với Editor mở: `unity command eval 'Debug.Log(BunDauPeo.EditorTools.PlaytestTools.BackupSave());'` rồi `RestoreSave()`: đọc log, và `git status --short` không có file nào của `ProjectSettings/`.
-- [ ] **Step 5: Commit** — "feat(playtest): PlaytestTools static facade and menu".
+- [x] **Step 2: Chạy, thấy đỏ.** **(bỏ lần đỏ riêng: test chỉ dùng hàm đã có nên biên dịch và xanh ngay; `Capture1080` kiểm `isPlaying` trước khi tới hàm khung.)**
+- [x] **Step 3: Implement** theo spec 3.3. `OpenBoot` từ chối khi `EditorApplication.isPlaying` hoặc `SceneManager.GetActiveScene().isDirty`, ngược lại `EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Single)`. `RestoreSave` từ chối khi `EditorApplication.isPlaying`. Menu chỉ gọi hàm tương ứng rồi `Debug.Log` kết quả.
+- [x] **Step 4: Chạy EditMode:** 715 xanh. **Đã chạy: 715/715; `eval` `BackupSave` rồi `RestoreSave` trên save thật: băm `save.json*` không đổi, `ProjectSettings/` sạch.** Rồi kiểm tay với Editor mở: `unity command eval 'Debug.Log(BunDauPeo.EditorTools.PlaytestTools.BackupSave());'` rồi `RestoreSave()`: đọc log, và `git status --short` không có file nào của `ProjectSettings/`.
+- [x] **Step 5: Commit** — "feat(playtest): PlaytestTools static facade and menu".
 
 ### Task 7: `ScreenCapture1080`
 
