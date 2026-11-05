@@ -14,6 +14,25 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 
 ## Nhật ký (mới nhất trên cùng)
 
+### #2 — 2026-11-03 — 🎯 Điều phối #2
+
+- Bắt đầu từ: `main` ở `67d6c0c`, không có kênh con nào chạy; việc kế tiếp theo roadmap là `PlaytestTools` + PlayMode smoke test (chưa có spec, mở kênh 📐).
+- User xác nhận. Mở [📐 Spec Công cụ thử tự động 1/1](#local_88a87be4-081d-4ebd-a39a-1af207417c4b) (Opus 5.5 high, nhánh `docs/playtest-tools-spec`, chỉ docs). Chờ spec và kế hoạch được user duyệt rồi mới mở 🔨.
+- 📐 xong: user duyệt spec + kế hoạch (9 task, 2 phiên 🔨: Task 1–5, Task 6–9), commit cuối `30bc401` đã push lên `origin/docs/playtest-tools-spec`. Đã kiểm: 2 commit, file spec/plan có, roadmap trỏ tới. Checkout chung đang ở nhánh này; history.md chưa commit.
+- User xác nhận. Mở [🔨 Công cụ thử 1/2 (Task 1–5)](#local_ab30ab5f-241e-4312-ac6f-49b56aeb6eb0) (Sonnet 5.5 high, nhánh `feature/playtest-tools` cắt từ nhánh docs spec, được subagent song song cho Task 2–4).
+- 🔨 đang ở Task 1, chưa commit: lượt `unity test --mode PlayMode` đầu tiên treo ~15 phút ở scene Boot (nghi L-009 Editor không focus, hoặc `BootScenePlayMode` ép vào Boot). Kênh chờ timeout 900s rồi xử lý.
+- 🔨 qua được Task 1, commit `4dace54` đã push. Đang làm đợt Task 2–5 bằng subagent (BackgroundPlay đã đọc xong, còn chờ SaveBackup), chưa chạy `unity test` cho cả đợt.
+- 🔨 phiên 1 xong Task 1–5, commit cuối `520d1f2` trên `origin/feature/playtest-tools` (5 commit, mỗi task một). Đã kiểm: EditMode 712/712 khớp mốc kế hoạch, PlayMode 1/1, checkbox T1–5 đã tick, roadmap "Đang làm" đã cập nhật, `ProjectSettings` sạch. Treo PlayMode gỡ bằng guard `-runTests` ở `BootScenePlayMode` (L-023). Lệch nhỏ: bỏ bước "thấy đỏ" riêng từng task vì chạy cả đợt một lần.
+- Ngoài kế hoạch: user cho kênh 🔨 phiên 1 làm thêm panel DEV Cài đặt (+1000 Gem, Reset dữ liệu có xác nhận), nhánh `feature/dev-settings` (= `feature/playtest-tools` + `4783ede`), 715 test, chưa PR. Chưa 🔍 review.
+- 2026-11-04 — User xác nhận. Mở [🔨 Công cụ thử 2/2 (Task 6–9)](#local_4041cac9-309e-4944-bf05-e19fb1aade4a) (Sonnet 5.5 high) trên `feature/playtest-tools`, dừng playtest sau Task 8. `feature/dev-settings` để riêng.
+- 2026-11-06 — 🔨 phiên 2 xong Task 6–9, commit cuối `6c97132` trên `origin/feature/playtest-tools`. Đã kiểm: 4 commit (mỗi task một), EditMode 715/715, PlayMode 4/4 khớp kế hoạch, roadmap "Đang làm" ghi chờ 🔍. Còn 2 checkbox chưa tick trong kế hoạch (chưa xem là bước nào). Chưa mở 🔍.
+- User yêu cầu mới: cài MCP CoplayDev (`unity-mcp`), bỏ MCP Unity cũ, rồi sửa layout game theo `Mota/` bằng MCP mới. Phía Claude, `~/.claude.json` đã trỏ `unity-mcp` sang `mcpforunityserver==10.3.0` (bản CoplayDev); phía Unity chưa có package CoplayDev, `Packages/manifest.json` vẫn có `com.unity.ai.assistant` (MCP cũ). Việc này không có trong roadmap.
+- User chốt thứ tự: (1) 🔍 review + PR playtest-tools trước, (2) 🔨 cài MCP CoplayDev trên nhánh mới từ `main`, (3) 📐 rà mọi màn đang có so với `Mota/`, lập danh sách chỗ lệch cho user chọn, rồi chia phiên 🔨. Mở [🔍 Review Công cụ thử 1/1](#local_0dd31cab-06fd-495a-a711-04f1067ccc70) (Opus 5.5 xhigh), review cả `feature/playtest-tools` và commit `4783ede` của `feature/dev-settings` (D-005).
+- 🔍 xong, docs review ở `3ad7b3e` (L-023/L-024 nâng thành luật, thêm L-025). 715/715 + 4/4, save thật không đổi. Không lỗi chặn PR. Trung bình: A1 nhánh `Blocked` của `UiDriver` không có test; A2 smoke test chạy trong Editor (không `-runTests`) đụng save thật trước SetUp; B1 nút DEV "Cài đặt" che `MenuButton` của Battle và ô Gem ở StageSelect. Thấp: A3 `interactable` thay `IsInteractable()`, A5 Restore không báo giờ bản sao lưu, B2 luồng xác nhận Reset không có test, B3 Reset lỗi vẫn đóng panel. Chờ user: A6 (`playtest-backup/` có là ngoại lệ D-005 không). dev-settings tách từ `520d1f2`, merge sẽ xung đột `structure.md`/`roadmap.md`, chưa chạy test nhánh đó.
+- User chốt: sửa trong một phiên 🔨, gộp một PR (`feature/dev-settings` sau khi merge `feature/playtest-tools` vào) → `main`; A6 giữ `playtest-backup/` khi Reset, ghi ngoại lệ vào D-005/D-009. Mở [🔨 Sửa review Công cụ thử 1/1](#local_cf1944c0-99b5-4d55-9939-9ab61d978653) (Sonnet 5.5 high): A1–A3, A5, A6, B1–B3; A4/A7 chỉ ghi chú.
+- 🔨 sửa review xong và (theo luật cũ) tự commit, push, mở [PR #8](https://github.com/Sweet-Yuu/BunDauPeo2/pull/8) `feature/dev-settings` → `main`, đang OPEN. Còn: user playtest tay rồi merge. 🎯 chưa kiểm số test của phiên này.
+- User đổi luật Git (2026-11-06): **chỉ 📋 Thư ký commit + push**. Worker xong thì tự nhắn 📋; 📋 commit toàn bộ, ghi thay đổi trong kênh 📋, hỏi user rồi nhắn 🎯 làm tiếp. 📋 dùng Sonnet 5.5 low. Đã sửa: `CLAUDE.md`, skill `coordinator`/`secretary`/`worker`, `docs/studio/README.md` (mục mới "Commit và push"), `unity-workflow.md`, `session-brief.md`, `agent-routing.md`, `doc-maintenance.md`. Chưa commit.
+
 ### #1 — 2026-11-03 — 🎯 Điều phối #1 (quy trình studio)
 
 - User hỏi agent phải đọc file nào trước khi làm và mình đã cấp quyền gì; trả lời từ `CLAUDE.md`.

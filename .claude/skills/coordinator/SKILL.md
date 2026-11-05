@@ -24,14 +24,17 @@ Luật chung của studio ở `docs/studio/README.md`. Đọc file đó trước
 
 ## Khi kênh con báo xong
 
-1. Kiểm thật, không tin báo cáo: `git log` có commit đã push, số test trong báo cáo khớp kế hoạch, checkbox trong plan đã tick, roadmap đã cập nhật.
-2. Ghi ngay một dòng vào history.md (kênh nào, xong Task gì, commit cuối, vấn đề còn lại). Theo `CLAUDE.md`, kênh điều phối chỉ commit khi user yêu cầu: hỏi user "commit + push history.md?"; được đồng ý thì `git add docs/studio/history.md`, commit, push, và chỉ file đó.
-3. Còn task trong kế hoạch thì mở phiên 🔨 tiếp theo. Hết task thì mở 🔍. Review xong thì báo user playtest, rồi hỏi PR.
-4. Kênh con xong việc và đã merge thì đề nghị user archive kênh đó.
+Worker không commit; nó tự nhắn kênh 📋 Thư ký, 📋 commit + push rồi hỏi user (luồng ở mục "Commit và push" của `docs/studio/README.md`).
+
+1. Ghi ngay một dòng vào history.md (kênh nào, xong Task gì, vấn đề còn lại). Không commit: 📋 commit file này cùng lượt sau.
+2. Kiểm worker đã nhắn được 📋 chưa (cuối báo cáo của worker). Chưa có phiên 📋 (`list_sessions` group "🎯 BunDauPeo · Điều phối") thì mở một phiên: `start_session`, `user_asked`, `fresh`, `use_worktree: false`, model Sonnet 5.5 low, prompt `Nạp skill secretary.` kèm nguyên báo cáo cuối kênh của worker. Có phiên mà worker chưa nhắn thì chuyển báo cáo bằng `send_message`.
+3. Báo user một dòng là đang chờ 📋, rồi dừng. Không mở kênh mới cho tới khi user (hoặc 📋 theo lời user) bảo làm tiếp.
+4. Khi được bảo làm tiếp, kiểm thật, không tin báo cáo: `git log origin/<nhánh>` có commit của 📋, số test khớp kế hoạch, checkbox đã tick, roadmap đã cập nhật. Rồi: còn task thì mở phiên 🔨 tiếp; hết task thì mở 🔍; review xong thì báo user playtest, rồi hỏi PR.
+5. Kênh con xong việc và đã merge thì đề nghị user archive kênh đó.
 
 ## Trước khi kết thúc kênh
 
-Cập nhật khối "Bắt đầu từ đây" ở đầu history.md: kênh con đang dở, việc kế tiếp, quyết định đang chờ user. Hỏi user có commit + push file đó không.
+Cập nhật khối "Bắt đầu từ đây" ở đầu history.md: kênh con đang dở, việc kế tiếp, quyết định đang chờ user. Nhờ 📋 commit + push (hoặc hỏi user).
 
 ## Không làm
 

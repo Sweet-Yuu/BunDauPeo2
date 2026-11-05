@@ -107,8 +107,8 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 
 ## Git
 
-- **Session code:** commit và **push** sau mỗi nhiệm vụ nhỏ đã xong (một cụm bước có test xanh) và sau mỗi task lớn của kế hoạch. Push lên `origin` (`https://github.com/Sweet-Yuu/BunDauPeo2.git`); nhánh chưa có upstream thì `git push -u origin <nhánh>`. Không force push, không sửa lịch sử đã push. Chỉ push khi test của phần đó đã xanh; test đỏ thì sửa trước.
-- **Session điều phối và việc không phải code:** chỉ commit/push khi user yêu cầu.
+- **Ai commit:** chỉ kênh 📋 Thư ký, khi worker (📐 🔨 🔍) nhắn báo xong (user chốt 2026-11-06, luồng ở [studio](../studio/README.md#commit-và-push)). Worker tạo và chuyển nhánh được, nhưng không commit. Push lên `origin` (`https://github.com/Sweet-Yuu/BunDauPeo2.git`); nhánh chưa có upstream thì `git push -u origin <nhánh>`. Không force push, không sửa lịch sử đã push. Chỉ push khi báo cáo của worker ghi test xanh; test đỏ thì trả lại worker sửa.
+- **Session khác** (🎯, không có vai): chỉ commit/push khi user yêu cầu.
 - Cuối ngày làm việc, user tự kiểm tra và push các commit còn sót; không có lịch tự động.
 - `.gitignore` đã chặn `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. `git add` theo đường dẫn cụ thể, không `git add -A` (đã chặn trong `.claude/settings.json`).
 - File mới trong `Assets/` thì add theo thư mục hoặc add cả `<file>.meta`; trước mỗi commit chạy `git status --short`, không để sót `?? *.meta` (L-005).

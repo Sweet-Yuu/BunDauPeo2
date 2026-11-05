@@ -17,14 +17,15 @@ Luật chung của studio ở `docs/studio/README.md`. Vai và phạm vi nằm �
 ## 🔨 Code
 
 - Làm đúng Task a–b của kế hoạch theo `superpowers:executing-plans` (TDD). Tick checkbox ngay khi xong từng task.
-- **Subagent song song** (luật ở mục "Subagent song song" của `docs/studio/README.md`): chỉ giao các task độc lập, không chung file, không đụng scene/asset. Subagent không chạy Unity và không commit. Kênh này đọc diff, chạy `unity test` một lần cho cả đợt, sửa cho xanh, rồi commit theo từng task.
-- Commit + push sau mỗi task xanh (luật Git ở `docs/guides/unity-workflow.md`). Cập nhật dòng "Đang làm" trong `docs/roadmap.md`.
-- Dài quá hoặc sai hai lần cùng một việc thì dừng ở task xong gần nhất, commit, rồi báo điều phối để mở phiên tiếp.
+- **Subagent song song** (luật ở mục "Subagent song song" của `docs/studio/README.md`): chỉ giao các task độc lập, không chung file, không đụng scene/asset. Subagent không chạy Unity và không commit. Kênh này đọc diff, chạy `unity test` một lần cho cả đợt, sửa cho xanh.
+- **Không commit, không push** (chỉ 📋 Thư ký làm, user chốt 2026-11-06). Được tạo và chuyển nhánh. Cập nhật dòng "Đang làm" trong `docs/roadmap.md`.
+- Dài quá hoặc sai hai lần cùng một việc thì dừng ở task xong gần nhất, rồi báo xong như mục cuối để 📋 commit và điều phối mở phiên tiếp.
 
 ## 📐 Thiết kế
 
 - Dùng `superpowers:brainstorming` rồi `superpowers:writing-plans`. Câu hỏi thiết kế hỏi thẳng user trong kênh này.
 - Kế hoạch phải ghi sẵn cách chia phiên: mỗi phiên 4–5 task hoặc tới lần dừng playtest, và đánh dấu task nào độc lập để chạy subagent song song được.
+- Kế hoạch không có bước commit: mỗi task kết thúc bằng test xanh và tick checkbox; 📋 commit khi phiên báo xong.
 
 ## 🔍 Review
 
@@ -33,11 +34,14 @@ Luật chung của studio ở `docs/studio/README.md`. Vai và phạm vi nằm �
 
 ## Báo cáo cuối kênh (cả ba vai)
 
-Kết thúc bằng khối này, để điều phối kiểm được:
+Kết thúc bằng khối này, để 📋 commit và điều phối kiểm được:
 
 ```
-Xong: Task a–b  ·  Nhánh: <nhánh> @ <commit đã push>
-Test: <N>/<N> xanh (EditMode)  ·  Roadmap: đã cập nhật
+Xong: Task a–b  ·  Nhánh: <nhánh> (chưa commit)  ·  Kênh: <tên kênh> (<session id>)
+Test: <N>/<N> xanh (EditMode), <M>/<M> (PlayMode)  ·  Roadmap: đã cập nhật
+File đã đổi: <nhóm và đường dẫn chính>
 Còn lại / vướng: <…>
 Cần user: <câu hỏi, hoặc "không">
 ```
+
+Rồi gửi nguyên khối cho kênh 📋 Thư ký: `list_sessions` với group "🎯 BunDauPeo · Điều phối", tìm phiên có tên bắt đầu bằng "📋 Thư ký", `send_message` tới id đó. Không thấy phiên 📋 thì ghi "Chưa nhắn được 📋" ở cuối báo cáo để 🎯 mở một phiên.
