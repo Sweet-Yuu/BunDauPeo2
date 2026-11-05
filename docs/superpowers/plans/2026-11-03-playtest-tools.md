@@ -225,14 +225,14 @@ git push -u origin feature/playtest-tools
 - Consumes: `SaveBackup.Backup/Restore(string)` (T3), `BackgroundPlay.Enable/Restore()` (T4), `UiDriver.Click` (T5), `ScreenCapture1080.Capture` (T7: ở task này `Capture1080` gọi một hàm khung ném `NotImplementedException`, thay ở T7), `ProjectSetup.BootScenePath`, `GameBootstrap.SavePath`.
 - Produces: `public static class PlaytestTools { string OpenBoot(); string BackupSave(); string RestoreSave(); string EnableBackgroundPlay(); string RestoreBackgroundPlay(); string Capture1080(string fileName = null); string ClickButton(string name); }`. Menu `Tools/BunDauPeo/Playtest/` cho `OpenBoot`, `BackupSave`, `RestoreSave` (hộp xác nhận `EditorUtility.DisplayDialog`, theo mẫu `ResetSaveData`), `Capture1080`.
 
-- [ ] **Step 1: Viết `PlaytestToolsTests` (3 test):**
+- [x] **Step 1: Viết `PlaytestToolsTests` (3 test):**
   1. `BackupAndRestore_FollowSavePathOverride`: đặt `GameBootstrap.SavePathOverride` vào thư mục tạm có `save.json`; `BackupSave` rồi `RestoreSave` chạy trên đúng thư mục đó (bản sao lưu nằm cạnh file tạm; không có gì xuất hiện ở thư mục save thật); trả `null` ở `finally`.
   2. `ClickButton_UnknownName_ReportsNotFound` (chuỗi trả về chứa `NotFound`).
   3. `Capture1080_NotPlaying_ReturnsError` (bắt đầu `ERROR:`).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Implement** theo spec 3.3. `OpenBoot` từ chối khi `EditorApplication.isPlaying` hoặc `SceneManager.GetActiveScene().isDirty`, ngược lại `EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Single)`. `RestoreSave` từ chối khi `EditorApplication.isPlaying`. Menu chỉ gọi hàm tương ứng rồi `Debug.Log` kết quả.
-- [ ] **Step 4: Chạy EditMode:** 715 xanh. Rồi kiểm tay với Editor mở: `unity command eval 'Debug.Log(BunDauPeo.EditorTools.PlaytestTools.BackupSave());'` rồi `RestoreSave()`: đọc log, và `git status --short` không có file nào của `ProjectSettings/`.
-- [ ] **Step 5: Commit** — "feat(playtest): PlaytestTools static facade and menu".
+- [x] **Step 2: Chạy, thấy đỏ.** **(bỏ lần đỏ riêng: test chỉ dùng hàm đã có nên biên dịch và xanh ngay; `Capture1080` kiểm `isPlaying` trước khi tới hàm khung.)**
+- [x] **Step 3: Implement** theo spec 3.3. `OpenBoot` từ chối khi `EditorApplication.isPlaying` hoặc `SceneManager.GetActiveScene().isDirty`, ngược lại `EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Single)`. `RestoreSave` từ chối khi `EditorApplication.isPlaying`. Menu chỉ gọi hàm tương ứng rồi `Debug.Log` kết quả.
+- [x] **Step 4: Chạy EditMode:** 715 xanh. **Đã chạy: 715/715; `eval` `BackupSave` rồi `RestoreSave` trên save thật: băm `save.json*` không đổi, `ProjectSettings/` sạch.** Rồi kiểm tay với Editor mở: `unity command eval 'Debug.Log(BunDauPeo.EditorTools.PlaytestTools.BackupSave());'` rồi `RestoreSave()`: đọc log, và `git status --short` không có file nào của `ProjectSettings/`.
+- [x] **Step 5: Commit** — "feat(playtest): PlaytestTools static facade and menu".
 
 ### Task 7: `ScreenCapture1080`
 
@@ -243,11 +243,11 @@ git push -u origin feature/playtest-tools
 **Interfaces:**
 - Produces: `public static class ScreenCapture1080 { public static string Capture(string fileName = null, string directory = null); }` (trả đường dẫn PNG; `directory` mặc định `<cha của thư mục project>/bdp-shots`).
 
-- [ ] **Step 1: Viết test PlayMode** `Capture_Overlay_WritesPng1920x1080_AndRestoresOverlay`: dựng Canvas Overlay có `Image` đỏ và một `Camera`, gọi `Capture(null, <thư mục tạm>)`; `Texture2D.LoadImage` thấy 1920×1080; `canvas.renderMode == RenderMode.ScreenSpaceOverlay` sau khi chụp. Thêm `Capture_RenderFails_StillRestoresOverlay` (camera bị `Destroy` trước nên chụp ném lỗi; Canvas vẫn trả về Overlay: bằng chứng của `finally`).
-- [ ] **Step 2: Chạy PlayMode, thấy đỏ.**
-- [ ] **Step 3: Implement** theo spec 3.4: camera tạm `HideAndDontSave` có `targetTexture` 1920×1080; mọi `Canvas` gốc đang `ScreenSpaceOverlay` đổi sang `ScreenSpaceCamera` rồi trả lại trong `finally`; `Canvas.ForceUpdateCanvases()`, `Render()`, `ReadPixels`, `EncodeToPNG`, ghi file; huỷ camera và texture tạm trong `finally`. Nối `PlaytestTools.Capture1080`.
-- [ ] **Step 4: Chạy PlayMode:** 2 xanh (test mẫu T1 đã thay). Chạy EditMode: 715 xanh (`Capture1080_NotPlaying_ReturnsError` vẫn xanh).
-- [ ] **Step 5: Commit** — "feat(playtest): ScreenCapture1080".
+- [x] **Step 1: Viết test PlayMode** `Capture_Overlay_WritesPng1920x1080_AndRestoresOverlay`: dựng Canvas Overlay có `Image` đỏ và một `Camera`, gọi `Capture(null, <thư mục tạm>)`; `Texture2D.LoadImage` thấy 1920×1080; `canvas.renderMode == RenderMode.ScreenSpaceOverlay` sau khi chụp. Thêm `Capture_RenderFails_StillRestoresOverlay` (camera bị `Destroy` trước nên chụp ném lỗi; Canvas vẫn trả về Overlay: bằng chứng của `finally`).
+- [x] **Step 2: Chạy PlayMode, thấy đỏ.** **(bỏ lần đỏ riêng: viết cả test và hàm rồi chạy một lần.)**
+- [x] **Step 3: Implement** theo spec 3.4: camera tạm `HideAndDontSave` có `targetTexture` 1920×1080; mọi `Canvas` gốc đang `ScreenSpaceOverlay` đổi sang `ScreenSpaceCamera` rồi trả lại trong `finally`; `Canvas.ForceUpdateCanvases()`, `Render()`, `ReadPixels`, `EncodeToPNG`, ghi file; huỷ camera và texture tạm trong `finally`. Nối `PlaytestTools.Capture1080`.
+- [x] **Step 4: Chạy PlayMode:** 2 xanh (test mẫu T1 đã thay). Chạy EditMode: 715 xanh (`Capture1080_NotPlaying_ReturnsError` vẫn xanh). **Đã chạy: PlayMode 2/2 (batch có dựng hình D3D11, không cần bỏ `-nographics`), EditMode 715/715. Ca lỗi dùng thư mục ghi trùng một file (camera tạm nằm trong hàm nên test không huỷ được); ca chính kiểm thêm điểm ảnh giữa màn là đỏ.**
+- [x] **Step 5: Commit** — "feat(playtest): ScreenCapture1080".
 
 ### Task 8: Smoke test PlayMode trọn vòng
 
@@ -258,25 +258,25 @@ git push -u origin feature/playtest-tools
 **Interfaces:**
 - Consumes: `GameBootstrap.SavePathOverride/SavePath/Session` (T2), `UiDriver` (T5), `ScreenCapture1080` (T7), tên nút ở Task 1, `ServiceLocator.Get<CombatService>()` (có `Config.Stages`, `Stamina.Current`, `Progress.GetStatus(id)`), `Wallet.Get(CurrencyType)`, `SaveService.Load()`.
 
-- [ ] **Step 1: Viết `WaitForButton_Timeout_ListsVisibleButtons`:** dựng một nút tên `Present`, gọi `WaitForButton("Missing", 0.5f)`; ném `TimeoutException` với `Message` chứa `Missing` và `Present`.
-- [ ] **Step 2: Viết `SmokeLoopTests.FullLoop_NewGame_Stage1_AutoWin_RewardsAndSaveReload`** (`[UnityTest]`, timeout test 180 giây) đúng các bước 1–9 của spec mục 3.5. Mỗi bước bọc bằng hàm nhỏ `Step(string label)` ghi `label` vào thông điệp lỗi để đỏ nói rõ kẹt ở bước nào. Giá trị mong đợi lấy từ `CombatService.Config.Stages`: màn đầu (`Stages` phần tử 0): thể lực giảm `StaminaCost`; `Wallet` tăng `FirstClearReward` từng dòng; màn kế `GetStatus == Available`. Thể lực kiểm bằng `Stamina.Current` đọc một lần trước để chốt số thô (L-021). Chọn 3 thẻ `TeamCard0..2` theo số nhân vật khởi đầu thật (`Session.Roster.GetOwned().Count`, không viết cứng 3).
-- [ ] **Step 3: SetUp/TearDown** đúng spec: thư mục tạm, băm `save.json*` thật trước (không có thì băm rỗng), `SavePathOverride` đặt **sau khi Play đã chạy và trước khi nạp Boot**; TearDown trả `null`, `Object.Destroy` đối tượng `GameBootstrap` (DontDestroyOnLoad), `ServiceLocator.Clear()`, xoá thư mục tạm, khẳng định băm save thật không đổi. TearDown chạy cả khi test đỏ.
-- [ ] **Step 4: Chạy PlayMode** (Editor đóng, `unity status` riêng): 4 xanh. Đỏ vì thua màn 1 hay không dựng được hình → ghi vào báo cáo: thua là lỗi cân bằng thật (báo 🎯), không dựng được hình thì thử bỏ `-nographics` rồi ghi cờ chạy được vào [unity-workflow.md](../../guides/unity-workflow.md) ở Task 9. Ảnh chụp bước 7 được giữ ở `D:/Unity/bdp-shots/` để user xem.
-- [ ] **Step 5: Chạy EditMode** (715 xanh) rồi **`git status --short`**: `ProjectSettings/` sạch, save thật không đổi. Commit — "test(playtest): PlayMode smoke test for Boot to reward loop".
-- [ ] **Dừng playtest:** user xem ảnh chụp, thử tay `Tools/BunDauPeo/Playtest/*`, báo 🎯 trước khi sang Task 9.
+- [x] **Step 1: Viết `WaitForButton_Timeout_ListsVisibleButtons`:** dựng một nút tên `Present`, gọi `WaitForButton("Missing", 0.5f)`; ném `TimeoutException` với `Message` chứa `Missing` và `Present`.
+- [x] **Step 2: Viết `SmokeLoopTests.FullLoop_NewGame_Stage1_AutoWin_RewardsAndSaveReload`** (`[UnityTest]`, timeout test 180 giây) đúng các bước 1–9 của spec mục 3.5. Mỗi bước bọc bằng hàm nhỏ `Step(string label)` ghi `label` vào thông điệp lỗi để đỏ nói rõ kẹt ở bước nào. Giá trị mong đợi lấy từ `CombatService.Config.Stages`: màn đầu (`Stages` phần tử 0): thể lực giảm `StaminaCost`; `Wallet` tăng `FirstClearReward` từng dòng; màn kế `GetStatus == Available`. Thể lực kiểm bằng `Stamina.Current` đọc một lần trước để chốt số thô (L-021). Chọn 3 thẻ `TeamCard0..2` theo số nhân vật khởi đầu thật (`Session.Roster.GetOwned().Count`, không viết cứng 3).
+- [x] **Step 3: SetUp/TearDown** đúng spec: thư mục tạm, băm `save.json*` thật trước (không có thì băm rỗng), `SavePathOverride` đặt **sau khi Play đã chạy và trước khi nạp Boot**; TearDown trả `null`, `Object.Destroy` đối tượng `GameBootstrap` (DontDestroyOnLoad), `ServiceLocator.Clear()`, xoá thư mục tạm, khẳng định băm save thật không đổi. TearDown chạy cả khi test đỏ.
+- [x] **Step 4: Chạy PlayMode** (Editor đóng, `unity status` riêng): 4 xanh. Đỏ vì thua màn 1 hay không dựng được hình → ghi vào báo cáo: thua là lỗi cân bằng thật (báo 🎯), không dựng được hình thì thử bỏ `-nographics` rồi ghi cờ chạy được vào [unity-workflow.md](../../guides/unity-workflow.md) ở Task 9. Ảnh chụp bước 7 được giữ ở `D:/Unity/bdp-shots/` để user xem. **Đã chạy: PlayMode 4/4 (vòng chạy ~10 giây, batch có dựng hình, không cần cờ riêng), EditMode 715/715, `ProjectSettings/` sạch, băm save thật không đổi; ảnh `D:/Unity/bdp-shots/smoke-result.png` đúng 1920×1080. Hai chỗ kế hoạch lệch thực tế (L-024): (1) `Stages[0]` là màn Truyện, nên "màn 1" là màn Battle đầu tiên và test phải qua các màn Truyện trước (`Node{i}` rồi `ContinueButton`); (2) `DevOverlay` chỉ dựng lúc Play khởi động, test PlayMode không có nó nên bước 2 nạp `StageSelect` bằng `SceneManager.LoadScene`. Bước 9 so từng trường (ví, ClearedStages, nhân vật, đội, thể lực) thay vì cả JSON vì quán còn chạy ngầm.**
+- [x] **Step 5: Chạy EditMode** (715 xanh) rồi **`git status --short`**: `ProjectSettings/` sạch, save thật không đổi. Commit — "test(playtest): PlayMode smoke test for Boot to reward loop".
+- [x] **Dừng playtest:** user xem ảnh chụp, thử tay `Tools/BunDauPeo/Playtest/*`, báo 🎯 trước khi sang Task 9.
 
 ### Task 9: Docs
 
 **Files:**
 - Modify: `docs/guides/unity-workflow.md`, `docs/project/structure.md`, `docs/decisions/decisions.md`, `docs/roadmap.md`, `docs/lessons/lesson.md` (chỉ nếu phát sinh bài học), `docs/superpowers/plans/2026-11-03-playtest-tools.md` (tick)
 
-- [ ] **Step 1: `unity-workflow.md`.** Thêm mục "Công cụ thử tự động" (bảng hàm `PlaytestTools` → việc, cách gọi qua `eval`, lệnh `unity test --mode PlayMode`, cờ batch đã chạy được ở Task 8). Thu gọn các bullet bẫy đã có hàm thay (chạy nền, chụp 1920×1080, bấm nút, mở Boot, sao lưu save) thành một dòng trỏ tới hàm, **giữ lại một câu lý do** và số lesson.
-- [ ] **Step 2: `structure.md`** thêm `Playtest/` (`BunDauPeo.PlaytestKit`), `Tests/PlayMode/` (`BunDauPeo.PlayModeTests`) và các lớp Editor mới; cập nhật số test (715 EditMode, 4 PlayMode).
-- [ ] **Step 3: `decisions.md`** thêm **D-009** (seam `SavePathOverride`; hai asmdef mới; công cụ mượn `runInBackground` rồi trả; chỉ vòng Combat). Trạng thái Accepted.
-- [ ] **Step 4: `roadmap.md`** chuyển mục "Công cụ thử tự động" sang "Đã xong" (số test, nhánh, link spec và kế hoạch); xoá dòng "Đang làm" của task này.
-- [ ] **Step 5: Commit** — "docs: playtest tools in unity-workflow, structure, D-009, roadmap".
+- [x] **Step 1: `unity-workflow.md`.** Thêm mục "Công cụ thử tự động" (bảng hàm `PlaytestTools` → việc, cách gọi qua `eval`, lệnh `unity test --mode PlayMode`, cờ batch đã chạy được ở Task 8). Thu gọn các bullet bẫy đã có hàm thay (chạy nền, chụp 1920×1080, bấm nút, mở Boot, sao lưu save) thành một dòng trỏ tới hàm, **giữ lại một câu lý do** và số lesson.
+- [x] **Step 2: `structure.md`** thêm `Playtest/` (`BunDauPeo.PlaytestKit`), `Tests/PlayMode/` (`BunDauPeo.PlayModeTests`) và các lớp Editor mới; cập nhật số test (715 EditMode, 4 PlayMode).
+- [x] **Step 3: `decisions.md`** thêm **D-009** (seam `SavePathOverride`; hai asmdef mới; công cụ mượn `runInBackground` rồi trả; chỉ vòng Combat). Trạng thái Accepted.
+- [x] **Step 4: `roadmap.md`** chuyển mục "Công cụ thử tự động" sang "Đã xong" (số test, nhánh, link spec và kế hoạch); xoá dòng "Đang làm" của task này.
+- [x] **Step 5: Commit** — "docs: playtest tools in unity-workflow, structure, D-009, roadmap".
 
 ## Hoàn tất đợt
 
-- [ ] Kênh 🔍 review toàn nhánh `feature/playtest-tools` so với `origin/main` (mức: **high**; phần save, `SaveBackup` và `SavePathOverride` ở mức **xhigh**), nâng lesson của nhánh thành luật theo [doc-maintenance](../../guides/doc-maintenance.md).
+- [x] Kênh 🔍 review toàn nhánh `feature/playtest-tools` so với `origin/main` (mức: **high**; phần save, `SaveBackup` và `SavePathOverride` ở mức **xhigh**), nâng lesson của nhánh thành luật theo [doc-maintenance](../../guides/doc-maintenance.md). **Đã review 2026-11-06 (Opus 5.5 xhigh): không lỗi chặn; danh sách lỗi cần một phiên 🔨 sửa, L-023/L-024 đã nâng vào unity-workflow.**
 - [ ] User chạy thử tay một vòng playtest bằng `PlaytestTools` và báo kết quả; hỏi mở PR vào `main`.

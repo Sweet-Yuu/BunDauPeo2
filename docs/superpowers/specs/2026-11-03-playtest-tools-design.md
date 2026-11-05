@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-03 · Trạng thái: **đã duyệt** (user, 2026-11-03, cả thiết kế lẫn bản viết; ba lựa chọn ở mục 1) · Phạm vi: `PlaytestTools` (assembly Editor), `PlaytestKit` (assembly runtime nhỏ), một seam ở `Boot`, một smoke test PlayMode chạy trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm.
 > Nguồn các bẫy cần gom: [unity-workflow.md](../../guides/unity-workflow.md) (L-004, L-007, L-009, L-011, L-014, L-019, L-020). Luật save: [D-005](../../decisions/decisions.md). Vòng chơi cần chạy: [spec Combat](2026-11-02-combat-design.md). Kế hoạch: [plans/2026-11-03-playtest-tools.md](../plans/2026-11-03-playtest-tools.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code hoặc [unity-workflow.md](../../guides/unity-workflow.md), code và unity-workflow thắng; không sửa spec này để theo kịp.
 
 ## 1. Mục tiêu
 

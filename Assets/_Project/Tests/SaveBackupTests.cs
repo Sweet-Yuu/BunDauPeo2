@@ -61,6 +61,32 @@ namespace BunDauPeo.Tests
         });
 
         [Test]
+        public void Backup_Twice_RefusalNamesBackupCreationTime() => WithDir(dir =>
+        {
+            Assert.IsNull(SaveBackup.BackupTime(dir), "chưa sao lưu thì không có giờ");
+            Write(dir, "save.json", "first");
+            Assert.IsFalse(SaveBackup.Backup(dir).StartsWith("ERROR:"));
+            Directory.SetCreationTime(Path.Combine(dir, SaveBackup.FolderName), new DateTime(2026, 1, 2, 3, 4, 5));
+
+            Assert.AreEqual("2026-01-02 03:04", SaveBackup.BackupTime(dir));
+            StringAssert.Contains("2026-01-02 03:04", SaveBackup.Backup(dir));
+        });
+
+        // Ngoại lệ có chủ ý của D-005 (ghi ở D-009): Reset Save Data giữ bản sao lưu playtest làm lưới an toàn cho người thử.
+        [Test]
+        public void ResetDeleteAll_KeepsPlaytestBackup() => WithDir(dir =>
+        {
+            Write(dir, "save.json", "real");
+            Assert.IsFalse(SaveBackup.Backup(dir).StartsWith("ERROR:"));
+            Write(dir, "save.json", "played");
+
+            Assert.IsTrue(new BunDauPeo.Core.SaveService(Path.Combine(dir, "save.json")).DeleteAll());
+
+            Assert.IsFalse(Has(dir, "save.json"));
+            Assert.AreEqual("real", Read(Path.Combine(dir, SaveBackup.FolderName), "save.json"), "Reset xoá nhầm bản sao lưu");
+        });
+
+        [Test]
         public void Backup_NoSaveYet_ThenRestore_DeletesSaveCreatedMeanwhile() => WithDir(dir =>
         {
             var saveDir = Path.Combine(dir, "not-created-yet");
