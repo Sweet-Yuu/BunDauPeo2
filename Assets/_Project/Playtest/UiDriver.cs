@@ -28,14 +28,14 @@ namespace BunDauPeo.Playtest
     // Bấm nút như người chơi: qua raycast tại tâm nút, nên nút bị popup che sẽ báo Blocked thay vì bị bấm xuyên.
     public static class UiDriver
     {
-        public static IReadOnlyList<Button> FindButtons(string name) => Match(name).Where(b => b.interactable).ToList();
+        public static IReadOnlyList<Button> FindButtons(string name) => Match(name).Where(Usable).ToList();
 
         public static ClickResult Click(string name)
         {
             var matches = Match(name);
             if (matches.Count == 0) return new ClickResult(ClickStatus.NotFound, $"không có nút '{name}'. Nút đang hiện: {DescribeVisibleButtons()}");
 
-            var usable = matches.Where(b => b.interactable).ToList();
+            var usable = matches.Where(Usable).ToList();
             if (usable.Count == 0) return new ClickResult(ClickStatus.NotInteractable, $"nút '{name}' đang bị tắt (interactable = false): {PathOf(matches[0].transform)}");
             if (usable.Count > 1) return new ClickResult(ClickStatus.Ambiguous, $"{usable.Count} nút khớp '{name}': {string.Join(" | ", usable.Select(b => PathOf(b.transform)))}");
 
@@ -96,6 +96,9 @@ namespace BunDauPeo.Playtest
                 .Where(b => b.gameObject.activeInHierarchy)
                 .OrderBy(b => PathOf(b.transform), StringComparer.Ordinal)
                 .ToList();
+
+        // IsInteractable tính cả CanvasGroup; IsActive loại Button bị tắt. Cờ interactable riêng của nút không đủ.
+        private static bool Usable(Button b) => b.IsActive() && b.IsInteractable();
 
         private static string LabelOf(Button b) => b.GetComponentInChildren<Text>()?.text ?? "";
 

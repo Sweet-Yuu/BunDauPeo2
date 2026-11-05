@@ -81,5 +81,33 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(ClickStatus.Blocked, result.Status, result.ToString());
             Assert.AreEqual(0, _clicks);
         }
+
+        [UnityTest]
+        public IEnumerator Click_UnderCanvasGroupNotInteractable_NotInteractable_AndFindButtonsSkipsIt()
+        {
+            var group = new GameObject("Group", typeof(RectTransform), typeof(CanvasGroup));
+            group.transform.SetParent(CanvasTransform, false);
+            group.GetComponent<CanvasGroup>().interactable = false;
+            MakeButton("Locked", group.transform);
+            yield return null;
+
+            var result = UiDriver.Click("Locked");
+
+            Assert.AreEqual(ClickStatus.NotInteractable, result.Status, result.ToString());
+            Assert.AreEqual(0, _clicks);
+            Assert.AreEqual(0, UiDriver.FindButtons("Locked").Count);
+        }
+
+        [UnityTest]
+        public IEnumerator Click_DisabledButtonComponent_NotInteractable()
+        {
+            MakeButton("Off").enabled = false;
+            yield return null;
+
+            var result = UiDriver.Click("Off");
+
+            Assert.AreEqual(ClickStatus.NotInteractable, result.Status, result.ToString());
+            Assert.AreEqual(0, _clicks);
+        }
     }
 }
