@@ -57,8 +57,8 @@ Gom các bẫy playtest ở trên thành code có test ([D-009](../decisions/dec
 | Hàm | Việc | Menu `Tools/BunDauPeo/Playtest/` |
 |---|---|---|
 | `OpenBoot()` | mở `Boot.unity`; từ chối khi đang Play hoặc scene sửa dở | Open Boot |
-| `BackupSave()` | chép `save.json*` vào `<thư mục save>/playtest-backup/`; từ chối nếu đã có bản sao lưu | Backup Save |
-| `RestoreSave()` | thay save hiện tại bằng bản sao lưu rồi xoá bản sao lưu; từ chối khi đang Play hoặc chưa có bản sao lưu | Restore Save... (hỏi xác nhận) |
+| `BackupSave()` | chép `save.json*` vào `<thư mục save>/playtest-backup/`; từ chối nếu đã có bản sao lưu (thông điệp ghi giờ tạo); Reset Save Data không xoá thư mục này ([D-009](../decisions/decisions.md)) | Backup Save |
+| `RestoreSave()` | thay save hiện tại bằng bản sao lưu rồi xoá bản sao lưu; từ chối khi đang Play hoặc chưa có bản sao lưu | Restore Save... (hỏi xác nhận, ghi giờ tạo bản sao lưu) |
 | `EnableBackgroundPlay()` / `RestoreBackgroundPlay()` | bật rồi trả `runInBackground` | không |
 | `Capture1080(tên)` | chụp màn đang Play 1920×1080 ra `D:/Unity/bdp-shots/` | Capture 1920x1080 |
 | `ClickButton(tên)` | bấm nút qua raycast; báo `Clicked`, `NotFound`, `Ambiguous`, `NotInteractable`, `Blocked` | không |

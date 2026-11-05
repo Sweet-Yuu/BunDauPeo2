@@ -72,6 +72,20 @@ namespace BunDauPeo.Tests
             StringAssert.Contains("2026-01-02 03:04", SaveBackup.Backup(dir));
         });
 
+        // Ngoại lệ có chủ ý của D-005 (ghi ở D-009): Reset Save Data giữ bản sao lưu playtest làm lưới an toàn cho người thử.
+        [Test]
+        public void ResetDeleteAll_KeepsPlaytestBackup() => WithDir(dir =>
+        {
+            Write(dir, "save.json", "real");
+            Assert.IsFalse(SaveBackup.Backup(dir).StartsWith("ERROR:"));
+            Write(dir, "save.json", "played");
+
+            Assert.IsTrue(new BunDauPeo.Core.SaveService(Path.Combine(dir, "save.json")).DeleteAll());
+
+            Assert.IsFalse(Has(dir, "save.json"));
+            Assert.AreEqual("real", Read(Path.Combine(dir, SaveBackup.FolderName), "save.json"), "Reset xoá nhầm bản sao lưu");
+        });
+
         [Test]
         public void Backup_NoSaveYet_ThenRestore_DeletesSaveCreatedMeanwhile() => WithDir(dir =>
         {

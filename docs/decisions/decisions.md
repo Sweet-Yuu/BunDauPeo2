@@ -18,6 +18,7 @@
 ### D-009 — Công cụ thử tự động: seam save, hai assembly mới, chỉ vòng Combat (2026-11-04)
 - Bối cảnh: mỗi lần playtest tay phải nhớ nhiều bẫy (save thật bị ghi, `runInBackground` lọt vào `ProjectSettings`, ảnh 16:9 méo, bấm xuyên popup). Roadmap chốt làm công cụ ngay sau Combat; spec và kế hoạch user duyệt 2026-11-03.
 - Quyết định: (1) `GameBootstrap.SavePathOverride` là chỗ duy nhất trong mã game cho phép đổi nơi lưu (null = đường dẫn thật; người đặt phải tự trả null). (2) Hai assembly mới: `BunDauPeo.PlaytestKit` (`Playtest/`, `UiDriver` và `ScreenCapture1080`, không tham chiếu assembly game, `defineConstraints` `UNITY_EDITOR || DEVELOPMENT_BUILD` nên bản phát hành không chứa nó) và `BunDauPeo.PlayModeTests` (tách khỏi `Tests` vì Test Framework chỉ coi assembly Editor-only là EditMode). (3) Công cụ chỉ mượn `PlayerSettings.runInBackground` rồi trả (giá trị gốc nằm trong `SessionState`, trả khi về Edit Mode); không đổi `ProjectSettings`. (4) `BootScenePlayMode` đặt `playModeStartScene = null` khi có `-runTests` (L-023). (5) Smoke test chỉ phủ vòng Combat, không phủ Gacha, Restaurant, AFK, Reset Save Data.
+- Ngoại lệ với [D-005](#d-005--reset-save-data-xoá-toàn-bộ-dữ-liệu-đã-lưu-luôn-hỏi-xác-nhận-2026-10-31) (user chốt 2026-11-06): Reset Save Data (menu Editor và panel DEV) **giữ** thư mục `playtest-backup/`. Nó là lưới an toàn của người thử, không phải dữ liệu của người chơi; `Restore Save` sau Reset hồi lại save cũ, đó là chủ ý. Có test `ResetDeleteAll_KeepsPlaytestBackup`.
 - Lý do / đánh đổi: seam là cách nhỏ nhất để test không chạm save thật, kiểm bằng băm save thật ở TearDown. Đánh đổi: static `SavePathOverride` sống qua lần Play khi tắt domain reload; `DevOverlay` không có trong test PlayMode nên cú bấm nút DEV chưa được phủ (L-024); smoke test phụ thuộc thứ tự màn trong catalog. Thoát hẳn Play rồi mở lại để kiểm save vẫn là việc của người thử. Chi tiết: [spec](../superpowers/specs/2026-11-03-playtest-tools-design.md).
 - Trạng thái: Accepted
 
@@ -48,6 +49,7 @@
   3. Trạng thái chạy nằm ngoài `PlayerSave` (ví dụ simulation của quán, bộ đếm AFK trong bộ nhớ) phải tự reset khi `ResetToDefaults()` chạy; thêm cách nghe sự kiện reset khi các tính năng đó ra đời.
   4. Đang Play thì phải reset qua session đang chạy, không xoá file ngầm, nếu không `OnApplicationQuit` ghi lại dữ liệu cũ.
 - Lý do / đánh đổi: phải xoá `.bak`, nếu không `Load` hồi sinh dữ liệu cũ; xoá luôn `.corrupt` nên mất bản cứu hộ cuối, hộp xác nhận nói rõ điều này. File chính xoá sau cùng để lỗi giữa chừng không để lại `.bak` mà mất file chính; xoá thất bại thì bộ nhớ giữ nguyên.
+- Ngoại lệ (user chốt 2026-11-06, [D-009](#d-009--công-cụ-thử-tự-động-seam-save-hai-assembly-mới-chỉ-vòng-combat-2026-11-04)): thư mục `playtest-backup/` của công cụ thử (Editor) không bị reset xoá. Chỉ áp dụng cho thư mục đó, nằm ngoài `PlayerSave`; không mở rộng cho file riêng của tính năng.
 - Trạng thái: Accepted
 
 ### D-004 — Company `Sweet-Yuu`, product `BunDauPeo` (2026-10-30)
