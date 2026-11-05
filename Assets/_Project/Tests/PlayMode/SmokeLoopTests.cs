@@ -28,10 +28,14 @@ namespace BunDauPeo.PlayModeTests
         private string _savePath;
         private string _realSaveHash;
         private string _step = "SetUp";
+        private bool _refused;
 
         [UnitySetUp]
         public IEnumerator SetUp()
         {
+            // Chạy từ Test Runner trong Editor không có -runTests nên Boot đã chạy với save thật (L-023): dừng trước khi đụng gì.
+            _refused = Object.FindFirstObjectByType<GameBootstrap>() != null;
+            Assert.IsFalse(_refused, "Đã có GameBootstrap chạy với save thật (Play từ Boot trong Editor). Chạy smoke test bằng `unity test --mode PlayMode` (Editor đóng), không chạy từ Test Runner.");
             _dir = Path.Combine(Path.GetTempPath(), "bdp-smoke-" + Path.GetRandomFileName());
             _savePath = Path.Combine(_dir, "save.json");
             _realSaveHash = HashRealSave();
@@ -42,6 +46,7 @@ namespace BunDauPeo.PlayModeTests
         [UnityTearDown]
         public IEnumerator TearDown()
         {
+            if (_refused) yield break; // bản Boot đang chạy là của người chơi, không phải của test: không huỷ, không xoá
             GameBootstrap.SavePathOverride = null;
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
             if (bootstrap != null) Object.Destroy(bootstrap.gameObject); // DontDestroyOnLoad nên không tự mất
