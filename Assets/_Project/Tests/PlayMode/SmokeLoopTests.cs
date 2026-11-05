@@ -21,7 +21,7 @@ using Object = UnityEngine.Object;
 namespace BunDauPeo.PlayModeTests
 {
     // Vòng Combat trọn vẹn qua UI thật: Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save. Chạy trên save tạm.
-    // Cùng fixture (chung save tạm và guard) có thêm ba test dải DEV: nút Cài đặt không che nút game, luồng xác nhận Reset, Reset thất bại.
+    // Cùng fixture (chung save tạm và guard) có thêm ba test panel DEV: nút Cài đặt không che nút game, luồng xác nhận Reset, Reset thất bại.
     public class SmokeLoopTests
     {
         private const float SceneTimeout = 30f;
@@ -54,7 +54,7 @@ namespace BunDauPeo.PlayModeTests
             GameBootstrap.SavePathOverride = null;
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
             if (bootstrap != null) Object.Destroy(bootstrap.gameObject); // DontDestroyOnLoad nên không tự mất
-            var overlay = GameObject.Find("DevOverlay"); // test dải DEV dựng tay, cũng DontDestroyOnLoad
+            var overlay = GameObject.Find("DevOverlay"); // test panel DEV dựng tay, cũng DontDestroyOnLoad
             if (overlay != null) Object.Destroy(overlay);
             ServiceLocator.Clear();
             yield return null;
@@ -159,7 +159,7 @@ namespace BunDauPeo.PlayModeTests
         }
 
 #if UNITY_EDITOR
-        // --- Dải DEV (DevOverlay): chỉ tự dựng lúc Play khởi động khi chưa có service (L-024), nên test dựng tay sau khi Boot xong.
+        // --- Panel DEV (DevOverlay): chỉ tự dựng lúc Play khởi động khi chưa có service (L-024), nên test dựng tay sau khi Boot xong.
 
         private IEnumerator BootWithDevOverlay()
         {
@@ -212,6 +212,7 @@ namespace BunDauPeo.PlayModeTests
             AssertSettingsButtonClear("StageSelect");
 
             _step = "D4 trận";
+            yield return ClickWhenReady("Cài đặt"); // mọi nút DEV nằm trong panel Cài đặt
             yield return ClickWhenReady("Chiến đấu thử");
             yield return WaitForScene(BattleView.BattleScene);
             yield return WaitForButtonStep("MenuButton");
