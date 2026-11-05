@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-025 — Nút DEV mới đè lên nút của màn game vì `DevOverlay` vẽ trên cùng (2026-11-06)  #ui #process
+- Triệu chứng: review thấy nút "Cài đặt" (góc trên phải, 200×60) che tâm nút `MenuButton` của Battle; `ClickButton("MenuButton")` sẽ báo `Blocked`, bấm nửa trên nút Menu lại mở Cài đặt. Smoke test không bắt được vì test PlayMode không có `DevOverlay` (L-024).
+- Nguyên nhân gốc: Canvas `DevOverlay` có `sortingOrder = 1000` và khớp chiều cao như mọi màn, nhưng vị trí nút chọn mà không đối chiếu builder của các màn.
+- Luật từ nay: thêm hay dời nút trong `DevOverlay` thì đối chiếu toạ độ với nút ở cùng góc trong mọi builder (`*SceneBuilder.cs`), hoặc chạy `ClickButton` trên các nút đó ở mỗi màn khi Play có Boot. Đã xử lý (2026-11-06): nút Cài đặt neo góc dưới phải; test `DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks` so hình chữ nhật với mọi nút ở Restaurant, Gacha, StageSelect, Battle.  Sau đó (user yêu cầu, để sắp xếp bố cục theo Mota) mọi nút DEV chuyển vào panel Cài đặt, ngoài panel chỉ còn nút Cài đặt neo góc dưới phải.
+
 ### L-022 — Lệnh Bash dài có heredoc Python lẫn tiếng Việt báo `unexpected EOF` và không chạy gì (2026-11-03)  #process
 - Triệu chứng: ba lần `python - <<'EOF'` sửa nhiều file một lượt thoát mã 2 ("unexpected EOF while looking for matching `''`"), không file nào đổi; chỉ thấy khi kiểm `git status`.
 - Nguyên nhân gốc: lệnh Bash nhiều chục dòng chứa chuỗi ba nháy, nháy đơn và tiếng Việt bị shell phân tích sai trước khi tới Python.
@@ -45,6 +50,8 @@
 
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03). Luật hiện hành ở file được trỏ tới.
 
+- L-024 (2026-11-04) Kịch bản smoke test đoán theo builder: màn đầu là Truyện, `DevOverlay` không có trong test PlayMode  #process #ui → [unity-workflow, Công cụ thử tự động](../guides/unity-workflow.md#công-cụ-thử-tự-động)
+- L-023 (2026-11-03) `BootScenePlayMode` làm `unity test --mode PlayMode` treo và ghi save thật  #unity-files #process → [unity-workflow, Công cụ thử tự động](../guides/unity-workflow.md#công-cụ-thử-tự-động), [D-009](../decisions/decisions.md)
 - L-020 (2026-11-03) `unity status && unity run` cắt vế sau; log cũ trông như mới  #process #unity-files → [unity-workflow](../guides/unity-workflow.md#công-cụ-chính-unity-cli-unity)
 - L-019 (2026-11-03) Play không qua Boot khi Editor mở bằng CLI  #process #unity-files → [unity-workflow](../guides/unity-workflow.md)
 - L-018 (2026-11-02) `Random` mơ hồ giữa `System` và `UnityEngine`  #script → [code-style](../guides/code-style.md)

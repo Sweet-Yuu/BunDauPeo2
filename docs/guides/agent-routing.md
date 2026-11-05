@@ -33,7 +33,7 @@ Mức effort: `low`, `medium`, `high`, `xhigh`, `max`.
 | Loại việc | Model | Effort | Ví dụ trong dự án |
 |---|---|---|---|
 | Điều phối, viết prompt, hỏi đáp tổng quan | Sonnet 5.5 | medium | Kênh 🎯 Điều phối |
-| Báo cáo tiến độ | Haiku 5.5 | low | Kênh 📋 Thư ký |
+| Báo cáo tiến độ, commit + push | Sonnet 5.5 | low | Kênh 📋 Thư ký (ghi git nên không dùng Haiku, user chốt 2026-11-06) |
 | Tra cứu, đọc log, tìm file | Haiku 5.5 | low | Tìm nơi dùng `Wallet`, đọc log Unity |
 | Sửa docs nhỏ, cập nhật roadmap | Haiku 5.5 | low | Đánh dấu task xong |
 | Tạo SO, thêm số liệu, asmdef, cây thư mục | Sonnet 5.5 | low | Thêm nhân vật mới, chỉnh `ProjectSetup` |

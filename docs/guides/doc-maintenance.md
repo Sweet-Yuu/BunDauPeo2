@@ -11,7 +11,7 @@
 | Thêm thư mục/quy ước đặt tên | `project/structure.md` |
 | Chốt quy ước code mới | `guides/code-style.md` |
 | Bắt đầu / xong một task | `roadmap.md` |
-| Kênh điều phối mở/đóng kênh con, user chốt quyết định | `studio/history.md` (chỉ kênh 🎯 ghi; commit khi user đồng ý) |
+| Kênh điều phối mở/đóng kênh con, user chốt quyết định | `studio/history.md` (chỉ kênh 🎯 ghi; 📋 commit) |
 | Xong một feature (trước khi hỏi PR) | thêm dòng "Đã xong, đây là lịch sử" vào đầu spec của nó; nâng các lesson của nhánh thành luật (xem `lessons/lesson.md`, mục Cách ghi) |
 | Phát hiện lệnh Unity CLI mới/sai, skill Unity cần thêm vào bảng chọn | `guides/unity-workflow.md` |
 | Thêm nguồn tham khảo | `references/README.md` |

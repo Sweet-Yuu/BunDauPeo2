@@ -1,0 +1,8 @@
+{
+  "name": "BunDauPeo.PlaytestKit",
+  "rootNamespace": "BunDauPeo.Playtest",
+  "references": ["UnityEngine.UI", "Unity.InputSystem"],
+  "includePlatforms": [],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_EDITOR || DEVELOPMENT_BUILD"]
+}

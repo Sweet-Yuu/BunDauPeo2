@@ -1,0 +1,10 @@
+{
+  "name": "BunDauPeo.PlayModeTests",
+  "rootNamespace": "BunDauPeo.PlayModeTests",
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Combat", "BunDauPeo.Boot", "BunDauPeo.UI", "BunDauPeo.PlaytestKit", "UnityEngine.UI", "Unity.InputSystem", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "includePlatforms": [],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}

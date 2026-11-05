@@ -88,7 +88,7 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 - Tối đa **100**, hồi **1 điểm mỗi 5 phút theo giờ máy, kể cả khi tắt game** (từ 0 lên đầy mất 8 giờ 20). Đầy thì không tích thêm.
 - Mỗi màn đánh tốn **10**, kể cả màn boss; màn cốt truyện tốn 0.
 - **Trừ một lần ngay khi vào trận hợp lệ**, và lưu ngay. Thua, bỏ cuộc, tắt app giữa trận đều **không hoàn**. "Thử lại" sau khi thua là một lần vào mới, trừ lại. Chỉ trừ sau khi mọi kiểm tra (màn, mở khoá, đội, cấu hình) đã qua, nên bị từ chối vào thì không mất thể lực. Nếu không lưu được thì không vào trận và không mất thể lực.
-- Dải DEV "Chiến đấu thử" vào thẳng, không trừ thể lực và không có thưởng.
+- Nút DEV "Chiến đấu thử" (panel Cài đặt) vào thẳng, không trừ thể lực và không có thưởng.
 - Không mua thể lực bằng Gem, không có vật phẩm hồi thể lực.
 - Đồng hồ máy chạy lùi thì không hồi và không mất thể lực. Chỉnh đồng hồ tiến để gian lận thì chấp nhận, như [AFK](#afk).
 - Reset Save Data đưa thể lực về đầy.
