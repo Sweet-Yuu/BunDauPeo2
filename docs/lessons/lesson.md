@@ -26,15 +26,10 @@
 
 ## Đang hiệu lực
 
-### L-024 — Kế hoạch smoke test viết theo builder mà không xem scene chạy thật: màn đầu là Truyện, `DevOverlay` không có trong test (2026-11-04)  #process #ui
-- Triệu chứng: lượt PlayMode đầu của smoke test đỏ ở bước 3: sau `Node0` không có `ChallengeButton`, chỉ có `ContinueButton` (popup Truyện); và nút "Màn chơi" của `DevOverlay` không tồn tại khi test chạy.
-- Nguyên nhân gốc: `Stages[0]` là màn Truyện (Kind Story) và màn Battle sau nó chỉ mở khi Truyện clear; `DevOverlay.Build` chạy ở `AfterSceneLoad` lúc Play khởi động, khi test PlayMode chưa nạp Boot nên chưa có service và nó bỏ qua.
-- Luật từ nay: kế hoạch có kịch bản UI thì tra thứ tự màn trong asset (`Kind` từng màn) và đọc thông điệp lỗi `UiDriver` (nó liệt kê nút đang hiện) trước khi kết luận; test PlayMode vào màn bằng `SceneManager.LoadScene`, không trông chờ `DevOverlay`.
-
-### L-023 — `BootScenePlayMode` làm `unity test --mode PlayMode` treo vì Play vào Boot thay cho scene của test (2026-11-03)  #unity-files #process
-- Triệu chứng: lượt PlayMode đầu tiên chạy 15 phút không có file kết quả rồi bị `unity` tắt; log chỉ thấy nạp scene Boot và Restaurant, không có test nào chạy; save thật bị ghi lại (10:59) vì `GameBootstrap` chạy với `persistentDataPath` thật.
-- Nguyên nhân gốc: `BootScenePlayMode` đặt `EditorSceneManager.playModeStartScene = Boot` sau mỗi lần nạp lại domain, đè scene khởi tạo của Test Runner. Tách biến: thêm một guard `-runTests` trong `Init` thì cùng test xanh ngay (1/1).
-- Luật từ nay: `BootScenePlayMode` đặt `playModeStartScene = null` khi dòng lệnh có `-runTests`. Chạy PlayMode từ cửa sổ Test Runner trong Editor thì guard này không phủ; nếu hay chạy kiểu đó, đổi sang đăng ký `TestRunnerApi` callbacks. Mọi lượt PlayMode chạy khi chưa có guard đều có thể đã ghi vào save thật: sao lưu `save.json*` trước (Task 3 `SaveBackup`).
+### L-025 — Nút DEV mới đè lên nút của màn game vì `DevOverlay` vẽ trên cùng (2026-11-06)  #ui #process
+- Triệu chứng: review thấy nút "Cài đặt" (góc trên phải, 200×60) che tâm nút `MenuButton` của Battle; `ClickButton("MenuButton")` sẽ báo `Blocked`, bấm nửa trên nút Menu lại mở Cài đặt. Smoke test không bắt được vì test PlayMode không có `DevOverlay` (L-024).
+- Nguyên nhân gốc: Canvas `DevOverlay` có `sortingOrder = 1000` và khớp chiều cao như mọi màn, nhưng vị trí nút chọn mà không đối chiếu builder của các màn.
+- Luật từ nay: thêm hay dời nút trong `DevOverlay` thì đối chiếu toạ độ với nút ở cùng góc trong mọi builder (`*SceneBuilder.cs`), hoặc chạy `ClickButton` trên các nút đó ở mỗi màn khi Play có Boot.
 
 ### L-022 — Lệnh Bash dài có heredoc Python lẫn tiếng Việt báo `unexpected EOF` và không chạy gì (2026-11-03)  #process
 - Triệu chứng: ba lần `python - <<'EOF'` sửa nhiều file một lượt thoát mã 2 ("unexpected EOF while looking for matching `''`"), không file nào đổi; chỉ thấy khi kiểm `git status`.
@@ -55,6 +50,8 @@
 
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03). Luật hiện hành ở file được trỏ tới.
 
+- L-024 (2026-11-04) Kịch bản smoke test đoán theo builder: màn đầu là Truyện, `DevOverlay` không có trong test PlayMode  #process #ui → [unity-workflow, Công cụ thử tự động](../guides/unity-workflow.md#công-cụ-thử-tự-động)
+- L-023 (2026-11-03) `BootScenePlayMode` làm `unity test --mode PlayMode` treo và ghi save thật  #unity-files #process → [unity-workflow, Công cụ thử tự động](../guides/unity-workflow.md#công-cụ-thử-tự-động), [D-009](../decisions/decisions.md)
 - L-020 (2026-11-03) `unity status && unity run` cắt vế sau; log cũ trông như mới  #process #unity-files → [unity-workflow](../guides/unity-workflow.md#công-cụ-chính-unity-cli-unity)
 - L-019 (2026-11-03) Play không qua Boot khi Editor mở bằng CLI  #process #unity-files → [unity-workflow](../guides/unity-workflow.md)
 - L-018 (2026-11-02) `Random` mơ hồ giữa `System` và `UnityEngine`  #script → [code-style](../guides/code-style.md)

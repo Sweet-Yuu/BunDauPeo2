@@ -278,5 +278,5 @@ git push -u origin feature/playtest-tools
 
 ## Hoàn tất đợt
 
-- [ ] Kênh 🔍 review toàn nhánh `feature/playtest-tools` so với `origin/main` (mức: **high**; phần save, `SaveBackup` và `SavePathOverride` ở mức **xhigh**), nâng lesson của nhánh thành luật theo [doc-maintenance](../../guides/doc-maintenance.md).
+- [x] Kênh 🔍 review toàn nhánh `feature/playtest-tools` so với `origin/main` (mức: **high**; phần save, `SaveBackup` và `SavePathOverride` ở mức **xhigh**), nâng lesson của nhánh thành luật theo [doc-maintenance](../../guides/doc-maintenance.md). **Đã review 2026-11-06 (Opus 5.5 xhigh): không lỗi chặn; danh sách lỗi cần một phiên 🔨 sửa, L-023/L-024 đã nâng vào unity-workflow.**
 - [ ] User chạy thử tay một vòng playtest bằng `PlaytestTools` và báo kết quả; hỏi mở PR vào `main`.
