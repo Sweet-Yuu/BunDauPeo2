@@ -20,6 +20,8 @@ namespace BunDauPeo.UI
         public const long MaterialGrant = 50;
         public const long GemGrant = 1000;
         public const int AfkRewindHours = 1;
+        private const string ConfirmPrompt = "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.";
+        private const string ResetFailedMessage = "RESET THẤT BẠI: không xoá được file save (đang bị khoá?).\nDữ liệu giữ nguyên.";
 
         public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.StageSelectScene, BattleView.BattleScene };
 
@@ -36,7 +38,7 @@ namespace BunDauPeo.UI
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void Build()
+        public static void Build()
         {
             if (_root != null) return;
 
@@ -65,38 +67,42 @@ namespace BunDauPeo.UI
 
             _trialStageId = NextBattleStageId(combat.Config.Stages, null);
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(1856, 76));
+            var strip = NewRect("Strip", _root.transform, new Vector2(16, 16), new Vector2(1660, 76));
             var stripImage = strip.gameObject.AddComponent<Image>();
             stripImage.color = new Color(0f, 0f, 0f, 0.6f);
             stripImage.raycastTarget = false;
-            AddButton(strip, font, "Quán", new Vector2(8, 8), 168, () => SceneManager.LoadScene(RestaurantScene));
-            AddButton(strip, font, "Gacha", new Vector2(184, 8), 168, () => SceneManager.LoadScene(GachaScene));
+            AddButton(strip, font, "Quán", new Vector2(8, 8), 140, () => SceneManager.LoadScene(RestaurantScene));
+            AddButton(strip, font, "Gacha", new Vector2(156, 8), 140, () => SceneManager.LoadScene(GachaScene));
             // Qua ví như mọi nguồn thu khác (không chạm file save), nên Changed bắn và Reset Save Data xoá sạch như thường.
-            AddButton(strip, font, $"+{MaterialGrant} Material", new Vector2(360, 8), 240,
+            AddButton(strip, font, $"+{MaterialGrant} Material", new Vector2(304, 8), 210,
                 () => ServiceLocator.Get<Wallet>().Add(CurrencyType.Material, MaterialGrant));
-            AddButton(strip, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(608, 8), 330, RewindAfk);
-            AddButton(strip, font, "Chiến đấu thử", new Vector2(946, 8), 230, () => StartTrialBattle(combat));
+            AddButton(strip, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(522, 8), 270, RewindAfk);
+            AddButton(strip, font, "Chiến đấu thử", new Vector2(800, 8), 210, () => StartTrialBattle(combat));
             Text stageLabel = null;
-            stageLabel = AddButton(strip, font, StageLabel(combat), new Vector2(1184, 8), 230, () =>
+            stageLabel = AddButton(strip, font, StageLabel(combat), new Vector2(1018, 8), 230, () =>
             {
                 _trialStageId = NextBattleStageId(combat.Config.Stages, _trialStageId);
                 stageLabel.text = StageLabel(combat);
             });
-            AddButton(strip, font, "Hồi đầy thể lực", new Vector2(1422, 8), 250, combat.Stamina.Refill);
-            AddButton(strip, font, "Màn chơi", new Vector2(1680, 8), 168, () => SceneManager.LoadScene(BattleView.StageSelectScene));
+            AddButton(strip, font, "Hồi đầy thể lực", new Vector2(1256, 8), 235, combat.Stamina.Refill);
+            AddButton(strip, font, "Màn chơi", new Vector2(1499, 8), 150, () => SceneManager.LoadScene(BattleView.StageSelectScene));
             BuildSettings(font);
+            // Chữ nhỏ hơn mặc định để dải thu hẹp lại, chừa góc dưới phải cho nút Cài đặt.
+            foreach (var label in strip.GetComponentsInChildren<Text>()) label.fontSize = 28;
         }
 
         // Qua ví như +Material: không chạm file save, Changed bắn và Reset Save Data xoá sạch như thường.
         public static void GrantGems(Wallet wallet) => wallet.Add(CurrencyType.Gem, GemGrant);
 
-        // Nút Cài đặt ở góc trên phải (dải DEV nằm dưới, đã đầy). Reset luôn qua hộp xác nhận (D-005).
+        // Nút Cài đặt neo góc dưới phải, cạnh dải DEV: mọi góc trên đều có nút hoặc ô số của game (Menu, Gem...), còn neo cạnh phải thì
+        // màn hẹp (4:3) vẫn thấy nút, khác nút nằm trong dải. Reset luôn qua hộp xác nhận (D-005).
         private static void BuildSettings(Font font)
         {
-            var open = AddButton((RectTransform)_root.transform, font, "Cài đặt", Vector2.zero, 200, () => { });
+            var open = AddButton((RectTransform)_root.transform, font, "Cài đặt", Vector2.zero, 150, () => { });
             var openRect = (RectTransform)open.transform.parent;
-            openRect.anchorMin = openRect.anchorMax = openRect.pivot = Vector2.one;
-            openRect.anchoredPosition = new Vector2(-16, -16);
+            openRect.anchorMin = openRect.anchorMax = openRect.pivot = new Vector2(1, 0);
+            openRect.anchoredPosition = new Vector2(-16, 24);
+            open.fontSize = 28;
 
             // Nền mờ chặn bấm xuyên xuống game khi panel mở.
             var dim = NewRect("SettingsPanel", _root.transform, Vector2.zero, Vector2.zero);
@@ -116,18 +122,31 @@ namespace BunDauPeo.UI
 
             var confirm = NewRect("ResetConfirm", box, new Vector2(50, 40), new Vector2(800, 220));
             confirm.gameObject.AddComponent<Image>().color = new Color(0.35f, 0.1f, 0.1f, 1f);
-            AddLabel(confirm, font, "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.",
-                new Vector2(20, 110), new Vector2(760, 100), 32);
+            var prompt = AddLabel(confirm, font, ConfirmPrompt, new Vector2(20, 110), new Vector2(760, 100), 32);
             var yes = AddButton(confirm, font, "Xoá hết", new Vector2(40, 20), 340, () =>
             {
-                Debug.Log($"DevOverlay: Reset Save Data = {ServiceLocator.Get<GameResetter>().Reset()}");
-                dim.gameObject.SetActive(false);
+                // Thất bại (file bị khoá...) thì giữ panel mở và báo rõ, không đóng như thành công; dữ liệu còn nguyên (GameSession).
+                if (ServiceLocator.Get<GameResetter>().Reset())
+                {
+                    Debug.Log("DevOverlay: Reset Save Data = True");
+                    dim.gameObject.SetActive(false);
+                    return;
+                }
+
+                prompt.text = ResetFailedMessage;
+                prompt.color = new Color(1f, 0.9f, 0.3f);
+                Debug.LogError("DevOverlay: Reset Save Data FAILED, data kept.");
             });
             yes.GetComponentInParent<Image>().color = new Color(0.85f, 0.2f, 0.2f);
             AddButton(confirm, font, "Huỷ", new Vector2(420, 20), 340, () => confirm.gameObject.SetActive(false));
             confirm.gameObject.SetActive(false);
 
-            AddButton(box, font, "Reset dữ liệu", new Vector2(50, 270), 800, () => confirm.gameObject.SetActive(true));
+            AddButton(box, font, "Reset dữ liệu", new Vector2(50, 270), 800, () =>
+            {
+                prompt.text = ConfirmPrompt;
+                prompt.color = Color.white;
+                confirm.gameObject.SetActive(true);
+            });
             AddButton(box, font, "Đóng", new Vector2(690, 485), 180, () => dim.gameObject.SetActive(false));
             dim.gameObject.SetActive(false);
             open.GetComponentInParent<Button>().onClick.AddListener(() =>
@@ -137,7 +156,7 @@ namespace BunDauPeo.UI
             });
         }
 
-        private static void AddLabel(RectTransform parent, Font font, string text, Vector2 position, Vector2 size, int fontSize)
+        private static Text AddLabel(RectTransform parent, Font font, string text, Vector2 position, Vector2 size, int fontSize)
         {
             var label = NewRect("Label", parent, position, size).gameObject.AddComponent<Text>();
             label.font = font;
@@ -146,6 +165,7 @@ namespace BunDauPeo.UI
             label.alignment = TextAnchor.MiddleCenter;
             label.color = Color.white;
             label.raycastTarget = false;
+            return label;
         }
 
         // Đội trống thì thêm tối đa một đội đầy từ người đã sở hữu, theo thứ tự sở hữu; trả số người thêm.

@@ -3,6 +3,8 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
@@ -13,11 +15,13 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace BunDauPeo.PlayModeTests
 {
     // Vòng Combat trọn vẹn qua UI thật: Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save. Chạy trên save tạm.
+    // Cùng fixture (chung save tạm và guard) có thêm ba test dải DEV: nút Cài đặt không che nút game, luồng xác nhận Reset, Reset thất bại.
     public class SmokeLoopTests
     {
         private const float SceneTimeout = 30f;
@@ -50,6 +54,8 @@ namespace BunDauPeo.PlayModeTests
             GameBootstrap.SavePathOverride = null;
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
             if (bootstrap != null) Object.Destroy(bootstrap.gameObject); // DontDestroyOnLoad nên không tự mất
+            var overlay = GameObject.Find("DevOverlay"); // test dải DEV dựng tay, cũng DontDestroyOnLoad
+            if (overlay != null) Object.Destroy(overlay);
             ServiceLocator.Clear();
             yield return null;
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
@@ -151,6 +157,140 @@ namespace BunDauPeo.PlayModeTests
             CollectionAssert.AreEqual(session.Save.BattleTeam, loaded.BattleTeam, Where("đội trong save"));
             Assert.AreEqual(staminaBefore - stage1.StaminaCost, loaded.Stamina.Current, Where("thể lực trong save"));
         }
+
+#if UNITY_EDITOR
+        // --- Dải DEV (DevOverlay): chỉ tự dựng lúc Play khởi động khi chưa có service (L-024), nên test dựng tay sau khi Boot xong.
+
+        private IEnumerator BootWithDevOverlay()
+        {
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            DevOverlay.Build();
+            Assert.IsNotNull(GameObject.Find("DevOverlay"), Where("DevOverlay không dựng được"));
+        }
+
+        // Nút Cài đặt phải không đè lên nút nào của game (L-025): so hình chữ nhật trên màn hình với mọi nút đang hiện ngoài DevOverlay.
+        private void AssertSettingsButtonClear(string screen)
+        {
+            var buttons = Object.FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var settings = buttons.Single(b => b.name == "Cài đặtButton");
+            var settingsRect = ScreenRect(settings);
+            foreach (var b in buttons)
+            {
+                if (b == settings || b.GetComponentInParent<Canvas>().rootCanvas.name == "DevOverlay") continue;
+                Assert.IsFalse(settingsRect.Overlaps(ScreenRect(b)),
+                    Where($"nút Cài đặt {settingsRect} đè lên '{b.name}' {ScreenRect(b)} ở màn {screen}"));
+            }
+        }
+
+        private static Rect ScreenRect(Button button)
+        {
+            var corners = new Vector3[4];
+            ((RectTransform)button.transform).GetWorldCorners(corners);
+            var canvas = button.GetComponentInParent<Canvas>().rootCanvas;
+            var camera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+            var a = RectTransformUtility.WorldToScreenPoint(camera, corners[0]);
+            var b = RectTransformUtility.WorldToScreenPoint(camera, corners[2]);
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks()
+        {
+            _step = "D1 Boot";
+            yield return BootWithDevOverlay();
+            AssertSettingsButtonClear("Restaurant");
+
+            _step = "D2 Gacha";
+            SceneManager.LoadScene("Gacha");
+            yield return WaitForScene("Gacha");
+            AssertSettingsButtonClear("Gacha");
+
+            _step = "D3 bản đồ";
+            SceneManager.LoadScene(BattleView.StageSelectScene);
+            yield return WaitForScene(BattleView.StageSelectScene);
+            AssertSettingsButtonClear("StageSelect");
+
+            _step = "D4 trận";
+            yield return ClickWhenReady("Chiến đấu thử");
+            yield return WaitForScene(BattleView.BattleScene);
+            yield return WaitForButtonStep("MenuButton");
+            AssertSettingsButtonClear("Battle");
+            yield return ClickWhenReady("MenuButton"); // Clicked chứ không Blocked bởi nút Cài đặt
+            yield return ClickWhenReady("ResumeButton");
+        }
+
+        private static IEnumerable<Text> AllTexts() => Object.FindObjectsByType<Text>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DevOverlay_Reset_NeedsConfirmation_CancelKeepsData()
+        {
+            _step = "D1 Boot";
+            yield return BootWithDevOverlay();
+            var wallet = Object.FindFirstObjectByType<GameBootstrap>().Session.Wallet;
+            var startGems = wallet.Get(CurrencyType.Gem);
+
+            _step = "D2 +Gem";
+            yield return ClickWhenReady("Cài đặt");
+            yield return ClickWhenReady($"+{DevOverlay.GemGrant} Gem");
+            var played = startGems + DevOverlay.GemGrant;
+            Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("Gem sau khi cộng"));
+
+            _step = "D3 bấm Reset dữ liệu";
+            yield return ClickWhenReady("Reset dữ liệu");
+            Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("mới bấm Reset dữ liệu mà đã reset: bỏ qua bước xác nhận (D-005)"));
+            Assert.AreEqual(1, UiDriver.FindButtons("Xoá hết").Count, Where("hộp xác nhận phải hiện"));
+
+            _step = "D4 Huỷ";
+            yield return ClickWhenReady("Huỷ");
+            Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("Huỷ mà vẫn reset"));
+            Assert.AreEqual(0, UiDriver.FindButtons("Xoá hết").Count, Where("Huỷ phải đóng hộp xác nhận"));
+
+            _step = "D5 Xoá hết";
+            yield return ClickWhenReady("Reset dữ liệu");
+            Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("bấm Reset lần hai mà đã reset"));
+            yield return ClickWhenReady("Xoá hết");
+            Assert.AreEqual(startGems, wallet.Get(CurrencyType.Gem), Where("Xoá hết phải đưa Gem về lúc mới"));
+            Assert.AreEqual(0, UiDriver.FindButtons("Reset dữ liệu").Count, Where("reset thành công thì panel phải đóng"));
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DevOverlay_ResetFails_KeepsPanelOpen_ShowsError_KeepsData()
+        {
+            _step = "D1 Boot";
+            yield return BootWithDevOverlay();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var wallet = session.Wallet;
+            var startGems = wallet.Get(CurrencyType.Gem);
+
+            _step = "D2 +Gem và khoá file save";
+            yield return ClickWhenReady("Cài đặt");
+            yield return ClickWhenReady($"+{DevOverlay.GemGrant} Gem");
+            var played = startGems + DevOverlay.GemGrant;
+            Assert.IsTrue(session.Persist(), Where("ghi save tạm"));
+            var locked = new FileStream(_savePath, FileMode.Open, FileAccess.Read, FileShare.None); // File.Delete sẽ ném IOException
+            try
+            {
+                _step = "D3 Xoá hết khi file bị khoá";
+                yield return ClickWhenReady("Reset dữ liệu");
+                LogAssert.Expect(LogType.Error, new Regex("Reset failed"));
+                LogAssert.Expect(LogType.Error, new Regex("DevOverlay: Reset Save Data FAILED"));
+                yield return ClickWhenReady("Xoá hết");
+                Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("reset thất bại mà bộ nhớ vẫn đổi"));
+                Assert.AreEqual(1, UiDriver.FindButtons("Xoá hết").Count, Where("reset thất bại thì không được đóng panel như thành công"));
+                Assert.IsTrue(AllTexts().Any(t => t.text.Contains("RESET THẤT BẠI")), Where("phải báo lỗi trên panel"));
+            }
+            finally
+            {
+                locked.Dispose();
+            }
+
+            _step = "D4 thử lại sau khi nhả khoá";
+            yield return ClickWhenReady("Xoá hết");
+            Assert.AreEqual(startGems, wallet.Get(CurrencyType.Gem), Where("thử lại phải reset được"));
+            Assert.AreEqual(0, UiDriver.FindButtons("Reset dữ liệu").Count, Where("reset thành công thì panel phải đóng"));
+        }
+#endif
 
         private string Where(string message) => $"[bước {_step}] {message}";
 

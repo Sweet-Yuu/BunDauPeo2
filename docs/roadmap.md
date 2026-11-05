@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Công cụ thử tự động đã xong code; chờ 🔍 review toàn nhánh `feature/playtest-tools` rồi PR. Việc kế: Build Android thử sớm, Song ngữ.
+- Công cụ thử tự động và panel DEV Cài đặt đã gộp trên `feature/dev-settings`, đã sửa các lỗi review (A1–A3, A5, A6, B1–B3; A4/A7 chỉ ghi chú). Chờ user playtest tay một vòng bằng `PlaytestTools`, rồi PR `feature/dev-settings` → `main`. Việc kế: cài MCP CoplayDev, 📐 rà layout theo Mota, Build Android thử sớm, Song ngữ.
 
 ## Tiếp theo
 
