@@ -61,6 +61,18 @@ namespace BunDauPeo.Tests
         });
 
         [Test]
+        public void Backup_Twice_RefusalNamesBackupCreationTime() => WithDir(dir =>
+        {
+            Assert.IsNull(SaveBackup.BackupTime(dir), "chưa sao lưu thì không có giờ");
+            Write(dir, "save.json", "first");
+            Assert.IsFalse(SaveBackup.Backup(dir).StartsWith("ERROR:"));
+            Directory.SetCreationTime(Path.Combine(dir, SaveBackup.FolderName), new DateTime(2026, 1, 2, 3, 4, 5));
+
+            Assert.AreEqual("2026-01-02 03:04", SaveBackup.BackupTime(dir));
+            StringAssert.Contains("2026-01-02 03:04", SaveBackup.Backup(dir));
+        });
+
+        [Test]
         public void Backup_NoSaveYet_ThenRestore_DeletesSaveCreatedMeanwhile() => WithDir(dir =>
         {
             var saveDir = Path.Combine(dir, "not-created-yet");

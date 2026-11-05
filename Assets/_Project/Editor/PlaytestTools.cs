@@ -54,7 +54,8 @@ namespace BunDauPeo.EditorTools
         private static void RestoreSaveMenu()
         {
             if (!EditorUtility.DisplayDialog("Restore Save",
-                    "Xoá save hiện tại và chép lại bản sao lưu:\n\n" + SaveDirectory() + "\n\nKhông thể hoàn tác.", "Khôi phục", "Huỷ"))
+                    "Xoá save hiện tại và chép lại bản sao lưu tạo lúc " + (SaveBackup.BackupTime(SaveDirectory()) ?? "(chưa có bản sao lưu)") +
+                    ":\n\n" + SaveDirectory() + "\n\nTiến độ chơi sau thời điểm đó sẽ mất. Không thể hoàn tác.", "Khôi phục", "Huỷ"))
                 return;
             RestoreSave();
         }

@@ -17,7 +17,7 @@ namespace BunDauPeo.EditorTools
             var backup = Path.Combine(saveDirectory, FolderName);
             var tmp = backup + ".tmp";
             if (Directory.Exists(backup))
-                return "ERROR: Đã có bản sao lưu (" + FolderName + "). Chạy Restore trước, nếu không save gốc sẽ bị mất.";
+                return "ERROR: Đã có bản sao lưu (" + FolderName + ") tạo lúc " + BackupTime(saveDirectory) + ". Chạy Restore trước, nếu không save gốc sẽ bị mất.";
             try
             {
                 if (Directory.Exists(tmp)) Directory.Delete(tmp, true); // rác từ lần crash trước
@@ -34,6 +34,13 @@ namespace BunDauPeo.EditorTools
                 try { if (Directory.Exists(tmp)) Directory.Delete(tmp, true); } catch (Exception) { /* dọn không được thì thôi, lỗi gốc mới quan trọng */ }
                 return "ERROR: " + e.Message;
             }
+        }
+
+        // Giờ tạo bản sao lưu (null nếu chưa có), để người dùng biết bản cũ đến đâu trước khi Restore thay save hiện tại. Directory.Move giữ nguyên giờ tạo của thư mục tạm.
+        public static string BackupTime(string saveDirectory)
+        {
+            var backup = Path.Combine(saveDirectory, FolderName);
+            return Directory.Exists(backup) ? Directory.GetCreationTime(backup).ToString("yyyy-MM-dd HH:mm") : null;
         }
 
         public static string Restore(string saveDirectory)
