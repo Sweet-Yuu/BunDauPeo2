@@ -15,6 +15,12 @@
 
 ## Danh sách
 
+### D-010 — Điều khiển Editor bằng MCP for Unity của CoplayDev, gỡ MCP cũ (2026-11-06)
+- Bối cảnh: MCP cũ (`com.unity.ai.assistant`, tool `Unity_RunCommand`) rớt cổng mỗi lần compile hoặc vào Play và chỉ chạy được lệnh C#. User yêu cầu đổi sang CoplayDev để có tool riêng cho scene, GameObject, console, camera.
+- Quyết định: thêm `com.coplaydev.unity-mcp` từ `https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v10.3.0` (khớp server `mcpforunityserver==10.3.0`), gỡ `com.unity.ai.assistant`. Không package nào khác phụ thuộc nó (kiểm `packages-lock.json`). CLI `unity` (`com.unity.pipeline`) vẫn là công cụ chính.
+- Lý do / đánh đổi: tool có kiểu rõ hơn. Đánh đổi: package git cần mạng khi cài; cầu nối phải bật lại sau khi Editor mở; `run_tests` PlayMode của MCP không chạy được ở đây. Nâng bản thì đổi tag và `mcpforunityserver` cùng lúc.
+- Trạng thái: Accepted
+
 ### D-009 — Công cụ thử tự động: seam save, hai assembly mới, chỉ vòng Combat (2026-11-04)
 - Bối cảnh: mỗi lần playtest tay phải nhớ nhiều bẫy (save thật bị ghi, `runInBackground` lọt vào `ProjectSettings`, ảnh 16:9 méo, bấm xuyên popup). Roadmap chốt làm công cụ ngay sau Combat; spec và kế hoạch user duyệt 2026-11-03.
 - Quyết định: (1) `GameBootstrap.SavePathOverride` là chỗ duy nhất trong mã game cho phép đổi nơi lưu (null = đường dẫn thật; người đặt phải tự trả null). (2) Hai assembly mới: `BunDauPeo.PlaytestKit` (`Playtest/`, `UiDriver` và `ScreenCapture1080`, không tham chiếu assembly game, `defineConstraints` `UNITY_EDITOR || DEVELOPMENT_BUILD` nên bản phát hành không chứa nó) và `BunDauPeo.PlayModeTests` (tách khỏi `Tests` vì Test Framework chỉ coi assembly Editor-only là EditMode). (3) Công cụ chỉ mượn `PlayerSettings.runInBackground` rồi trả (giá trị gốc nằm trong `SessionState`, trả khi về Edit Mode); không đổi `ProjectSettings`. (4) `BootScenePlayMode` đặt `playModeStartScene = null` khi có `-runTests` (L-023). (5) Smoke test chỉ phủ vòng Combat, không phủ Gacha, Restaurant, AFK, Reset Save Data.
