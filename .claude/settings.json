@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(unity status)",
+      "Bash(unity command package add --identifier \"https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v10.3.0\" *)",
       "Bash(unity -h)",
       "Bash(unity recompile)",
       "Bash(unity test:*)",

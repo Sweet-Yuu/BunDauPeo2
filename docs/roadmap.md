@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Công cụ thử tự động và panel DEV Cài đặt đã gộp trên `feature/dev-settings`, đã sửa các lỗi review (A1–A3, A5, A6, B1–B3; A4/A7 chỉ ghi chú). Chờ user playtest tay một vòng bằng `PlaytestTools`, rồi PR `feature/dev-settings` → `main`. Việc kế: cài MCP CoplayDev, 📐 rà layout theo Mota, Build Android thử sớm, Song ngữ.
+- Cài MCP for Unity của CoplayDev trên `chore/coplay-mcp` ([D-010](decisions/decisions.md)): package đã thêm, MCP cũ đã gỡ; chờ 📋 commit và PR. Việc kế: 📐 rà layout theo Mota bằng MCP mới, Build Android thử sớm, Song ngữ.
 
 ## Tiếp theo
 
@@ -28,6 +28,7 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 
 ## Đã xong
 
+- 2026-11-06 — Công cụ thử tự động và panel DEV Cài đặt (PR #8, đã merge vào `main` ở `6ec636e`): mọi nút DEV gom vào panel Cài đặt, sửa lỗi review A1–A3, A5, A6, B1–B3; 720 EditMode + 12 PlayMode xanh. Công cụ gốc ghi ở dòng 2026-11-04 bên dưới.
 - 2026-11-04 — Công cụ thử tự động: `PlaytestTools` (mở Boot, sao lưu/khôi phục save, chạy nền rồi trả `ProjectSettings`, chụp 1920×1080, bấm nút theo tên) + menu `Tools/BunDauPeo/Playtest/`, `UiDriver`, `ScreenCapture1080`, smoke test PlayMode trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm: [spec](superpowers/specs/2026-11-03-playtest-tools-design.md), [kế hoạch](superpowers/plans/2026-11-03-playtest-tools.md), [D-009](decisions/decisions.md). 715 EditMode + 4 PlayMode xanh; nhánh `feature/playtest-tools`, 9 task, 2 phiên 🔨; user đã xem ảnh chụp và thử menu 2026-11-04. Còn chờ review độc lập cuối nhánh và PR.
 
 - 2026-11-03 — Quy trình studio: các kênh 🎯 📋 📐 🔨 🔍, skill `/coordinator` `/secretary` `/worker`, [docs/studio](studio/README.md), luật chặn cứng trong `.claude/settings.json`, lesson nâng thành luật. PR #7.
