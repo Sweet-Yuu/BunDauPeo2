@@ -26,6 +26,9 @@ namespace BunDauPeo.UI
         public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.StageSelectScene, BattleView.BattleScene };
 
         private static GameObject _root;
+        // Nút Cài đặt góc dưới phải (ẩn ở màn trận, nơi Menu có nút Cài đặt) và việc mở panel.
+        private static GameObject _openButton;
+        private static Action _openPanel;
         // Màn mà nút "Chiến đấu thử" dùng; nút "Màn thử" xoay vòng nó.
         private static string _trialStageId;
 
@@ -33,7 +36,10 @@ namespace BunDauPeo.UI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
+            SceneManager.activeSceneChanged -= OnSceneChanged;
             _root = null;
+            _openButton = null;
+            _openPanel = null;
             _trialStageId = null;
         }
 
@@ -68,7 +74,17 @@ namespace BunDauPeo.UI
             _trialStageId = NextBattleStageId(combat.Config.Stages, null);
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             BuildSettings(font, combat);
+            SceneManager.activeSceneChanged += OnSceneChanged;
+            _openButton.SetActive(SceneManager.GetActiveScene().name != BattleView.BattleScene);
         }
+
+        private static void OnSceneChanged(Scene _, Scene next)
+        {
+            if (_openButton != null) _openButton.SetActive(next.name != BattleView.BattleScene);
+        }
+
+        // Menu tạm dừng của màn trận gọi hàm này thay cho nút Cài đặt góc màn.
+        public static void OpenSettings() => _openPanel?.Invoke();
 
         // Qua ví như +Material: không chạm file save, Changed bắn và Reset Save Data xoá sạch như thường.
         public static void GrantGems(Wallet wallet) => wallet.Add(CurrencyType.Gem, GemGrant);
@@ -157,11 +173,13 @@ namespace BunDauPeo.UI
                 confirm.gameObject.SetActive(true);
             });
             dim.gameObject.SetActive(false);
-            open.GetComponentInParent<Button>().onClick.AddListener(() =>
+            _openButton = open.transform.parent.gameObject;
+            _openPanel = () =>
             {
                 confirm.gameObject.SetActive(false);
                 dim.gameObject.SetActive(true);
-            });
+            };
+            open.GetComponentInParent<Button>().onClick.AddListener(() => _openPanel());
         }
 
         private static Text AddLabel(RectTransform parent, Font font, string text, Vector2 position, Vector2 size, int fontSize)

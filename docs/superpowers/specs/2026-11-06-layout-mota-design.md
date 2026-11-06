@@ -85,6 +85,8 @@ Component mới trong assembly `UI`: một hàng tối đa 4 ô vuông 96×96, m
 
 ### 4.3 Phiên B
 
+> **Sửa 2026-11-06 (user, sau khi xem ảnh Phiên B):** màn trận (B1, B2) đổi lại như sau, thắng các toạ độ cũ bên dưới: mỗi phe là lưới 3×3 (cột x 320/540/760 và 1180/1400/1620; hàng y 280/520/760; Front và Mid ở hàng trên và dưới, Back ở giữa; người 130×130; boss 280×320 tại (1180, 400)), giãn dọc để sau có chỗ hiện buff/debuff dưới mỗi người; **bỏ hàng thẻ dưới màn**, số HP dưới tên cả hai phe; x1, AUTO, Menu một hàng ở góc trên phải; nút Cài đặt DEV ẩn ở màn trận và chuyển vào Menu tạm dừng (nút "Cài đặt"). Chi tiết ở spec Combat 5.4.
+
 **T1 — Chọn đội** (`StageSelectSceneBuilder.BuildTeamPopup`, `BuildTeamCard`, `TeamCardView`, `TeamSelectPopup`)
 
 - Hộp 1700×880 giữ nguyên. Lưới **chân dung vuông** 150×190 (ô màu class 150×150, tên dưới, dòng sao trong ô), **8 cột × 2 hàng = 16 thẻ mỗi trang**: `TeamSelectPopup.CardsPerPage` 12 → 16. Người trong đội: viền vàng và dấu tích góc trên phải (dựng như dấu tích nút bản đồ); nhân viên quán: nhãn "Quán: <vai>" thu gọn trong ô.

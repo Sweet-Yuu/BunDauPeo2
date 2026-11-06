@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using BunDauPeo.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -7,8 +8,9 @@ namespace BunDauPeo.Tests
 {
     public class BattleLayoutTests
     {
-        private static readonly Vector2[] AllyCenters = { new(760, 360), new(760, 600), new(540, 300), new(540, 540), new(320, 450) };
-        private static readonly Vector2[] EnemyCenters = { new(1180, 360), new(1180, 600), new(1400, 300), new(1400, 540), new(1620, 450) };
+        // Lưới 3×3 mỗi phe: cột Front/Mid/Back, hàng 280/520/760; Front và Mid ở hàng trên và dưới, Back ở hàng giữa.
+        private static readonly Vector2[] AllyCenters = { new(760, 280), new(760, 760), new(540, 280), new(540, 760), new(320, 520) };
+        private static readonly Vector2[] EnemyCenters = { new(1180, 280), new(1180, 760), new(1400, 280), new(1400, 760), new(1620, 520) };
 
         [Test]
         public void AllyRects_MatchSpecCenters()
@@ -17,7 +19,7 @@ namespace BunDauPeo.Tests
             {
                 var rect = BattleLayout.AllyRect(slot);
                 Assert.AreEqual(AllyCenters[slot], rect.center, $"slot {slot}");
-                Assert.AreEqual(new Vector2(140, 170), rect.size, $"slot {slot}");
+                Assert.AreEqual(new Vector2(130, 130), rect.size, $"slot {slot}");
             }
         }
 
@@ -36,7 +38,7 @@ namespace BunDauPeo.Tests
         public void BossRect_OnlyAtSlotZero()
         {
             var boss = BattleLayout.EnemyRect(0, true);
-            Assert.AreEqual(new Vector2(1180, 340), boss.center);
+            Assert.AreEqual(new Vector2(1180, 400), boss.center);
             Assert.AreEqual(BattleLayout.BossSize, boss.size);
             Assert.AreEqual(new Vector2(280, 320), boss.size);
 
@@ -69,7 +71,7 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void AllRects_InsideCanvas_AboveCardArea()
+        public void AllRects_InsideCanvas_BelowTopBar()
         {
             var canvas = new Rect(0, 0, 1920, 1080);
             var all = new List<(string Name, Rect Rect)> { ("boss", BattleLayout.EnemyRect(0, true)) };
@@ -79,11 +81,33 @@ namespace BunDauPeo.Tests
             foreach (var (name, rect) in all)
             {
                 Assert.IsTrue(canvas.Contains(rect.min) && canvas.Contains(rect.max), $"{name} {rect} leaves the canvas");
-                Assert.LessOrEqual(rect.yMax, BattleLayout.CardAreaTop, $"{name} reaches into the card area");
+                // Dòng "Lượt của X" ở góc trên trái kết thúc ở y 200.
+                Assert.GreaterOrEqual(rect.yMin, 205f, $"{name} reaches into the top bar");
+                // Dưới thân còn tên, số HP và hàng buff (~110 px): không chạm mép dưới màn.
+                Assert.LessOrEqual(rect.yMax + 110f, 1080f, $"{name} has no room for its labels");
+            }
+        }
+
+        // User chốt 2026-11-06: lưới 3×3 mỗi phe, trừ boss; giãn dọc để sau còn chỗ hiện buff/debuff dưới mỗi người.
+        [Test]
+        public void Grid_ThreeColumnsThreeRowsPerSide_RoomForBuffRowBelowEachUnit()
+        {
+            foreach (var rects in new[] { Enumerable.Range(0, 5).Select(BattleLayout.AllyRect).ToArray(), Enumerable.Range(0, 5).Select(i => BattleLayout.EnemyRect(i, false)).ToArray() })
+            {
+                Assert.AreEqual(3, rects.Select(r => r.center.x).Distinct().Count(), "three columns per side");
+                CollectionAssert.AreEquivalent(new[] { 280f, 520f, 760f }, rects.Select(r => r.center.y).Distinct().ToArray(), "three rows per side");
+
+                for (var i = 0; i < rects.Length; i++)
+                for (var j = 0; j < rects.Length; j++)
+                {
+                    if (i == j || rects[i].center.x != rects[j].center.x || rects[j].center.y <= rects[i].center.y) continue;
+                    Assert.GreaterOrEqual(rects[j].yMin - rects[i].yMax, 110f, $"column x={rects[i].center.x}: no room for name, HP and buff row between units");
+                }
             }
 
-            Assert.AreEqual(820f, BattleLayout.CardAreaTop);
-            Assert.AreEqual(980f, BattleLayout.CardAreaBottom);
+            // Hai phe đối xứng quanh giữa màn.
+            for (var slot = 0; slot < 5; slot++)
+                Assert.AreEqual(1940f - BattleLayout.AllyRect(slot).center.x, BattleLayout.EnemyRect(slot, false).center.x, 1f, $"slot {slot} mirrors");
         }
 
         [Test]

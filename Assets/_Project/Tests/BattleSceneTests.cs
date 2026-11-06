@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using BunDauPeo.Combat;
 using BunDauPeo.EditorTools;
@@ -15,6 +16,22 @@ namespace BunDauPeo.Tests
     {
         private static void WithBattleScene(System.Action<UnityEngine.SceneManagement.Scene> check) =>
             RestaurantSceneTests.WithScene(ProjectSetup.BattleScenePath, check);
+
+        // Thẻ chỉ còn trong popup tạm dừng (user bỏ hàng thẻ dưới màn 2026-11-06).
+        private static BattleCardView[] BattleCards(UnityEngine.SceneManagement.Scene scene) =>
+            RestaurantSceneTests.All<BattleCardView>(scene).Where(c => c.GetComponentInParent<BattlePausePopup>(true) == null).ToArray();
+
+        // Hộp của mọi người và quái ở mọi tổ hợp, kéo dài xuống 110 px cho tên, số HP và hàng buff (hệ gốc trái trên).
+        private static IEnumerable<(string Name, Rect Rect)> UnitZones()
+        {
+            for (var slot = 0; slot < 5; slot++)
+            {
+                yield return ($"Ally{slot}", WithLabels(BattleLayout.AllyRect(slot)));
+                foreach (var boss in new[] { false, true }) yield return ($"Enemy{slot}(boss {boss})", WithLabels(BattleLayout.EnemyRect(slot, boss)));
+            }
+        }
+
+        private static Rect WithLabels(Rect r) => new(r.xMin, r.yMin, r.width, r.height + 110f);
 
         [Test]
         public void BattleScene_HasCameraAndEventSystemWithInputSystemModule() =>
@@ -46,57 +63,46 @@ namespace BunDauPeo.Tests
             });
 
         [Test]
-        public void BattleScene_ActionPanelAndCardsWired() =>
+        public void BattleScene_ActionPanelWired_NoCardRowUnderTheBattle() =>
             WithBattleScene(scene =>
             {
                 var panels = RestaurantSceneTests.All<BattleActionPanel>(scene);
                 Assert.AreEqual(1, panels.Length);
                 RestaurantSceneTests.AssertAllReferencesAssigned(panels[0]);
                 Assert.AreEqual(3, panels[0].GetComponentsInChildren<Button>(true).Length, "Basic, Skill, Ultimate");
-
-                var cards = RestaurantSceneTests.All<BattleCardView>(scene);
-                Assert.AreEqual(5, cards.Length);
-                foreach (var card in cards) RestaurantSceneTests.AssertAllReferencesAssigned(card);
+                Assert.IsEmpty(BattleCards(scene), "the card row under the battle is gone; cards live only in the pause popup");
             });
 
+        // Ba nút chiêu ở góc phải dưới, không đè ai (kể cả vùng chữ dưới mỗi người); dòng "Lượt của X" ở góc trên trái.
         [Test]
-        public void BattleScene_CardsAndButtonsInCardArea() =>
+        public void BattleScene_ActionButtonsClearOfUnits_TurnLineTopLeft() =>
             WithBattleScene(scene =>
             {
-                var rects = RestaurantSceneTests.All<BattleCardView>(scene)
-                    .Select(c => (c.name, (RectTransform)c.transform))
-                    .Concat(RestaurantSceneTests.All<BattleActionPanel>(scene).Single().GetComponentsInChildren<Button>(true)
-                        .Select(b => (b.name, (RectTransform)b.transform)))
-                    .Select(x => (Name: x.Item1, Rect: RestaurantSceneTests.InReferenceCanvas(x.Item2)))
-                    .ToArray();
-                Assert.AreEqual(8, rects.Length);
-
+                var panel = RestaurantSceneTests.All<BattleActionPanel>(scene).Single();
                 var canvas = new Rect(0, 0, 1920, 1080);
-                foreach (var (name, rect) in rects)
+                var buttons = panel.GetComponentsInChildren<Button>(true)
+                    .Select(b => (Name: b.name, Rect: RestaurantSceneTests.InReferenceCanvas((RectTransform)b.transform)))
+                    .ToArray();
+                Assert.AreEqual(3, buttons.Length);
+
+                foreach (var (name, rect) in buttons)
                 {
                     Assert.IsTrue(canvas.Contains(rect.min) && canvas.Contains(rect.max), $"{name} {rect} leaves the canvas");
-                    // InReferenceCanvas có gốc dưới trái; kế hoạch tính y từ trên.
-                    Assert.GreaterOrEqual(1080f - rect.yMax, BattleLayout.CardAreaTop, $"{name} starts above the card area");
-                    Assert.LessOrEqual(1080f - rect.yMin, BattleLayout.CardAreaBottom, $"{name} ends below the card area");
+                    Assert.GreaterOrEqual(Mathf.Min(rect.width, rect.height), 110f, $"{name} is too small to tap");
+                    Assert.GreaterOrEqual(rect.xMin, 1400f, $"{name} is not in the bottom-right corner");
+                    Assert.LessOrEqual(rect.yMax, 400f, $"{name} is not at the bottom");
+                    var top = new Rect(rect.xMin, 1080f - rect.yMax, rect.width, rect.height);
+                    foreach (var (zone, unit) in UnitZones()) Assert.IsFalse(Overlap(top, unit), $"{name} overlaps {zone}");
                 }
 
-                for (var i = 0; i < rects.Length; i++)
-                {
-                    for (var j = i + 1; j < rects.Length; j++)
-                    {
-                        var a = rects[i].Rect;
-                        var b = rects[j].Rect;
-                        var overlapX = Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin);
-                        var overlapY = Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin);
-                        Assert.IsFalse(overlapX > 1f && overlapY > 1f, $"{rects[i].Name} overlaps {rects[j].Name}");
-                    }
-                }
+                for (var i = 0; i < buttons.Length; i++)
+                for (var j = i + 1; j < buttons.Length; j++) Assert.IsFalse(Overlap(buttons[i].Rect, buttons[j].Rect), $"{buttons[i].Name} overlaps {buttons[j].Name}");
 
-                foreach (var button in RestaurantSceneTests.All<BattleActionPanel>(scene).Single().GetComponentsInChildren<Button>(true))
-                {
-                    var size = RestaurantSceneTests.InReferenceCanvas((RectTransform)button.transform).size;
-                    Assert.GreaterOrEqual(Mathf.Min(size.x, size.y), 110f, $"{button.name} is too small to tap");
-                }
+                var turnLine = (Text)new SerializedObject(panel).FindProperty("_turnLine").objectReferenceValue;
+                var turnRect = RestaurantSceneTests.InReferenceCanvas(turnLine.rectTransform);
+                Assert.LessOrEqual(1080f - turnRect.yMin, 200f, "TurnLine reaches into the units");
+                Assert.Less(turnRect.xMax, 700f, "TurnLine is not in the top-left corner");
+                Assert.AreEqual(TextAnchor.MiddleLeft, turnLine.alignment);
             });
 
         [Test]
@@ -201,42 +207,167 @@ namespace BunDauPeo.Tests
             Assert.IsTrue(scenes[4].enabled);
         }
 
+        // B1 (user chốt 2026-11-06): Đợt và thanh lượt ở góc trên trái; góc trên phải một hàng x1, AUTO, Menu.
         [Test]
         public void BattleScene_TopBarWired_InsideCanvas() =>
             WithBattleScene(scene =>
             {
                 var view = RestaurantSceneTests.All<BattleView>(scene).Single();
                 var so = new SerializedObject(view);
-                var buttons = new[] { "_menuButton", "_autoButton", "_speedButton" }
-                    .Select(f => (Name: f, Rect: RestaurantSceneTests.InReferenceCanvas((RectTransform)((Button)so.FindProperty(f).objectReferenceValue).transform)))
-                    .ToArray();
+                // Đổi sang hệ gốc trái trên như BattleLayout.
+                static Rect TopBased(Rect r) => new(r.xMin, 1080f - r.yMax, r.width, r.height);
+                Rect Of(Component c) => TopBased(RestaurantSceneTests.InReferenceCanvas((RectTransform)c.transform));
+
+                var waveText = (Text)so.FindProperty("_waveText").objectReferenceValue;
+                var menu = Of((Button)so.FindProperty("_menuButton").objectReferenceValue);
+                var auto = Of((Button)so.FindProperty("_autoButton").objectReferenceValue);
+                var speed = Of((Button)so.FindProperty("_speedButton").objectReferenceValue);
                 var cellsProperty = so.FindProperty("_turnCells");
                 Assert.AreEqual(10, cellsProperty.arraySize, "5 allies + 5 enemies");
                 var cells = Enumerable.Range(0, 10)
-                    .Select(i => (Name: $"cell {i}", Rect: RestaurantSceneTests.InReferenceCanvas((RectTransform)((Image)cellsProperty.GetArrayElementAtIndex(i).objectReferenceValue).transform)))
+                    .Select(i => (Name: $"cell {i}", Rect: Of((Image)cellsProperty.GetArrayElementAtIndex(i).objectReferenceValue)))
                     .ToArray();
+                var named = cells.Concat(new[] { (Name: "WaveText", Rect: Of(waveText)), (Name: "MenuButton", Rect: menu), (Name: "AutoButton", Rect: auto), (Name: "SpeedButton", Rect: speed) }).ToArray();
 
                 var canvas = new Rect(0, 0, 1920, 1080);
-                var all = buttons.Concat(cells).ToArray();
-                foreach (var (name, rect) in all)
+                foreach (var (name, rect) in named)
                 {
-                    Assert.IsTrue(canvas.Contains(rect.min) && canvas.Contains(rect.max), $"{name} {rect} leaves the canvas");
-                    // Gốc dưới trái: thanh trên cùng phải nằm trên quái (đỉnh quái thường ở y 215, boss 180 từ trên xuống).
-                    Assert.LessOrEqual(1080f - rect.yMin, 180f, $"{name} reaches into the units");
+                    Assert.IsTrue(canvas.Contains(rect.min) && canvas.Contains(rect.max - Vector2.one), $"{name} {rect} leaves the canvas");
+                    Assert.LessOrEqual(rect.yMax, 180f, $"{name} reaches into the units");
                 }
 
-                foreach (var (name, rect) in buttons)
+                // Góc trên trái: chữ Đợt và mọi ô lượt.
+                foreach (var (name, rect) in cells.Append(("WaveText", Of(waveText))))
+                    Assert.Less(rect.xMax, 700f, $"{name} is not in the top-left corner");
+
+                // Góc trên phải: một hàng x1, AUTO, Menu (Menu ngoài cùng bên phải), cùng độ cao.
+                foreach (var (name, rect) in new[] { ("MenuButton", menu), ("AutoButton", auto), ("SpeedButton", speed) })
+                {
+                    Assert.GreaterOrEqual(rect.xMin, 1300f, $"{name} is not in the top-right corner");
+                    Assert.AreEqual(menu.center.y, rect.center.y, 1f, $"{name} shares the row with Menu");
                     Assert.GreaterOrEqual(Mathf.Min(rect.width, rect.height), 110f, $"{name} is too small to tap");
-
-                for (var i = 0; i < all.Length; i++)
-                for (var j = i + 1; j < all.Length; j++)
-                {
-                    var a = all[i].Rect;
-                    var b = all[j].Rect;
-                    var overlapX = Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin);
-                    var overlapY = Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin);
-                    Assert.IsFalse(overlapX > 1f && overlapY > 1f, $"{all[i].Name} overlaps {all[j].Name}");
                 }
+
+                Assert.Less(speed.xMax, auto.xMin + 1f, "x1 sits left of AUTO");
+                Assert.Less(auto.xMax, menu.xMin + 1f, "AUTO sits left of Menu");
+
+                for (var i = 0; i < named.Length; i++)
+                {
+                    for (var j = i + 1; j < named.Length; j++) Assert.IsFalse(Overlap(named[i].Rect, named[j].Rect), $"{named[i].Name} overlaps {named[j].Name}");
+                    foreach (var (zone, unit) in UnitZones()) Assert.IsFalse(Overlap(named[i].Rect, unit), $"{named[i].Name} overlaps {zone}");
+                }
+            });
+
+        // Đè hơn 1 px cả hai chiều mới tính (khuôn BattleScene_CardsAndButtonsInCardArea).
+        private static bool Overlap(Rect a, Rect b) =>
+            Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin) > 1f && Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin) > 1f;
+
+        [Test]
+        public void BattleScene_PauseCards_InsideBox() =>
+            WithBattleScene(scene =>
+            {
+                var popup = RestaurantSceneTests.All<BattlePausePopup>(scene).Single();
+                var so = new SerializedObject(popup);
+                var root = (GameObject)so.FindProperty("_root").objectReferenceValue;
+                var box = RestaurantSceneTests.InReferenceCanvas((RectTransform)root.transform.Find("PauseBox"));
+                Assert.AreEqual(new Vector2(1100, 760), box.size);
+
+                var cards = Enumerable.Range(0, 5).Select(i => (BattleCardView)so.FindProperty("_cards").GetArrayElementAtIndex(i).objectReferenceValue).ToArray();
+                var rects = cards.Select((c, i) => (Name: $"PauseCard{i}", Rect: RestaurantSceneTests.InReferenceCanvas((RectTransform)c.transform))).ToArray();
+                for (var i = 0; i < rects.Length; i++)
+                {
+                    Assert.AreEqual(rects[i].Name, cards[i].name);
+                    Assert.IsTrue(cards[i].transform.IsChildOf(root.transform), $"{rects[i].Name} must sit inside the popup");
+                    var rect = rects[i].Rect;
+                    Assert.IsTrue(rect.xMin >= box.xMin && rect.xMax <= box.xMax && rect.yMin >= box.yMin && rect.yMax <= box.yMax, $"{rects[i].Name} leaves the box");
+                    Assert.AreEqual(rects[0].Rect.center.y, rect.center.y, 1f, $"{rects[i].Name} shares the row");
+                    for (var j = i + 1; j < rects.Length; j++) Assert.IsFalse(rect.Overlaps(rects[j].Rect), $"{rects[i].Name} overlaps {rects[j].Name}");
+                }
+
+                var stageName = (Text)so.FindProperty("_stageName").objectReferenceValue;
+                Assert.IsNotNull(stageName, "the stage name is wired");
+                var nameRect = RestaurantSceneTests.InReferenceCanvas(stageName.rectTransform);
+                Assert.IsTrue(nameRect.yMin >= rects[0].Rect.yMax, "the stage name sits above the cards");
+                Assert.IsTrue(nameRect.xMin >= box.xMin && nameRect.xMax <= box.xMax && nameRect.yMax <= box.yMax);
+                Assert.IsFalse(root.activeSelf, "the popup starts closed");
+            });
+
+        [Test]
+        public void BattlePausePopup_Open_ShowsStageNameAndLiveCards() =>
+            WithBattleScene(scene =>
+            {
+                var popup = RestaurantSceneTests.All<BattlePausePopup>(scene).Single();
+                var so = new SerializedObject(popup);
+                var stage = CombatTestData.Stage("1-1", new[] { CombatTestData.Enemy("e", 100000, 160, 0, 500) });
+                var session = CombatTestData.Battle(new[] { CombatTestData.Hero("Nem Chua", hp: 800, speed: 100) }, stage);
+                session.EnemyAct();
+                var cards = Enumerable.Range(0, 5).Select(i => (BattleCardView)so.FindProperty("_cards").GetArrayElementAtIndex(i).objectReferenceValue).ToArray();
+
+                popup.Open(session, 100);
+
+                Assert.AreEqual("1-1", ((Text)so.FindProperty("_stageName").objectReferenceValue).text);
+                Assert.IsTrue(cards[0].gameObject.activeSelf);
+                for (var i = 1; i < cards.Length; i++) Assert.IsFalse(cards[i].gameObject.activeSelf, $"PauseCard{i} has nobody to show");
+                Assert.AreEqual("640/800", cards[0].transform.Find("HpText").GetComponent<Text>().text);
+                Assert.AreEqual("Nem Chua", cards[0].transform.Find("Name").GetComponent<Text>().text);
+                Assert.IsFalse(cards[0].Button.interactable, "pause cards are read-only");
+                popup.Close();
+            });
+
+        // Review Focus 2: UiDriver báo Ambiguous khi hai nút trùng tên (kể cả nút đang tắt).
+        // B2 (user chốt 2026-11-06, bỏ hàng thẻ): số HP dưới tên ở cả hai phe, còn chỗ cho hàng buff bên dưới.
+        [Test]
+        public void BattleScene_EveryUnitHasHpTextUnderItsName() =>
+            WithBattleScene(scene =>
+            {
+                var units = RestaurantSceneTests.All<BattleUnitView>(scene);
+                Assert.AreEqual(10, units.Length);
+                var canvas = new Rect(0, 0, 1920, 1080);
+                foreach (var unit in units)
+                {
+                    var hp = (Text)new SerializedObject(unit).FindProperty("_hpText").objectReferenceValue;
+                    Assert.IsNotNull(hp, $"{unit.name} needs HpText");
+                    Assert.AreSame(unit.transform.Find("HpText").GetComponent<Text>(), hp);
+                    var hpRect = RestaurantSceneTests.InReferenceCanvas(hp.rectTransform);
+                    var nameRect = RestaurantSceneTests.InReferenceCanvas(unit.transform.Find("Name").GetComponent<RectTransform>());
+                    var bodyRect = RestaurantSceneTests.InReferenceCanvas((RectTransform)unit.transform);
+                    Assert.Less(hpRect.center.y, nameRect.center.y, $"{unit.name}: HpText sits under Name");
+                    Assert.Less(hpRect.yMax, bodyRect.yMin, $"{unit.name}: HpText sits under the body");
+                    Assert.IsTrue(canvas.Contains(hpRect.min) && canvas.Contains(hpRect.max), $"{unit.name} HpText {hpRect} leaves the canvas");
+                    Assert.LessOrEqual(bodyRect.yMin - hpRect.yMin, 80f, $"{unit.name}: HpText hangs too far below the body");
+                }
+            });
+
+        [Test]
+        public void BattleUnitView_HpText_FollowsDelta() =>
+            WithBattleScene(scene =>
+            {
+                var view = RestaurantSceneTests.All<BattleUnitView>(scene).Single(v => v.name == "Enemy0");
+                var hp = (Text)new SerializedObject(view).FindProperty("_hpText").objectReferenceValue;
+                var unit = BattleUnit.ForEnemy(CombatTestData.Enemy("e", hp: 1000), 0);
+
+                view.Bind(unit, BattleLayout.EnemyRect(0, false));
+                Assert.AreEqual(CombatViewText.UnitHp(1000, 1000), hp.text);
+
+                view.ApplyDelta(-200);
+                for (var i = 0; i < 20; i++) view.Tick(0.1f);
+                Assert.AreEqual(CombatViewText.UnitHp(800, 1000), hp.text);
+                Assert.AreEqual("800/1000", hp.text);
+
+                view.ApplyDelta(+100);
+                Assert.AreEqual("900/1000", hp.text, "healing updates the text too");
+                view.ApplyDelta(-5000);
+                Assert.AreEqual("0/1000", hp.text, "the text clamps at 0 like the bar");
+            });
+
+        [Test]
+        public void BattleScene_ButtonNamesUnique() =>
+            WithBattleScene(scene =>
+            {
+                var buttons = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Button>(true)).ToArray();
+                Assert.Greater(buttons.Length, 20);
+                var duplicate = buttons.GroupBy(b => b.name).FirstOrDefault(g => g.Count() > 1);
+                Assert.IsNull(duplicate, duplicate == null ? "" : $"{duplicate.Count()} buttons are named {duplicate.Key}");
             });
 
         [Test]
@@ -253,13 +384,14 @@ namespace BunDauPeo.Tests
                 Assert.IsFalse(confirm.activeSelf, "the confirm box starts closed");
                 Assert.IsTrue(root.GetComponent<Image>().raycastTarget, "must block clicks behind it");
                 Assert.IsTrue(confirm.GetComponent<Image>().raycastTarget, "must block the pause buttons behind it");
-                Assert.AreEqual(5, so.FindProperty("_hpLines").arraySize);
+                Assert.AreEqual(5, so.FindProperty("_cards").arraySize);
                 Assert.IsTrue(confirm.transform.IsChildOf(root.transform), "confirm opens inside the popup");
 
                 // Nhánh đang tắt nên phải tìm cả đối tượng tắt (L-013). Mọi nút của popup đủ lớn để chạm và nằm trong Canvas.
                 var canvas = new Rect(0, 0, 1920, 1080);
-                var buttons = root.GetComponentsInChildren<Button>(true);
-                Assert.AreEqual(4, buttons.Length, "Resume, Surrender, Yes, No");
+                // Năm thẻ chỉ xem (PauseCard{i}) cũng là Button nhưng không phải nút điều khiển.
+                var buttons = root.GetComponentsInChildren<Button>(true).Where(b => b.GetComponent<BattleCardView>() == null).ToArray();
+                Assert.AreEqual(5, buttons.Length, "Resume, Settings, Surrender, Yes, No");
                 foreach (var button in buttons)
                 {
                     var rect = RestaurantSceneTests.InReferenceCanvas((RectTransform)button.transform);

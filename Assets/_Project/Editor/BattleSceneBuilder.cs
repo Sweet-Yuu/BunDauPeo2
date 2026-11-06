@@ -68,9 +68,6 @@ namespace BunDauPeo.EditorTools
             Place(floatTemplate.rectTransform, Center, Center, Vector2.zero, new Vector2(200, 60));
             floatTemplate.gameObject.SetActive(false);
 
-            var cards = new BattleCardView[5];
-            for (var i = 0; i < cards.Length; i++) cards[i] = BuildCard(canvas, i, sprite, font);
-
             var panel = BuildActionPanel(canvas, knob, font);
 
             var topBar = BuildTopBar(canvas, sprite, font, out var waveText, out var turnCells, out var menu, out var auto, out var speed);
@@ -102,7 +99,6 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_emptyRoot").objectReferenceValue = empty.gameObject;
             so.FindProperty("_emptyBackButton").objectReferenceValue = emptyBack;
             so.FindProperty("_panel").objectReferenceValue = panel;
-            SetRefs(so.FindProperty("_cards"), cards);
             so.FindProperty("_result").objectReferenceValue = result;
             so.FindProperty("_topBar").objectReferenceValue = topBar.gameObject;
             so.FindProperty("_waveText").objectReferenceValue = waveText;
@@ -143,6 +139,15 @@ namespace BunDauPeo.EditorTools
             label.rectTransform.anchoredPosition = new Vector2(0, -4);
             label.rectTransform.sizeDelta = new Vector2(0, 40);
 
+            // Số HP dưới tên, cả hai phe (màn trận không còn hàng thẻ). Dưới đó còn ~40 px trống cho hàng buff/debuff sau này.
+            var hpText = NewText("HpText", root, font, "", 22, TextAnchor.UpperCenter, Color.white);
+            hpText.verticalOverflow = VerticalWrapMode.Overflow;
+            hpText.rectTransform.anchorMin = Vector2.zero;
+            hpText.rectTransform.anchorMax = new Vector2(1, 0);
+            hpText.rectTransform.pivot = new Vector2(0.5f, 1);
+            hpText.rectTransform.anchoredPosition = new Vector2(0, -42);
+            hpText.rectTransform.sizeDelta = new Vector2(0, 26);
+
             var hpBack = NewRect("HpBack", root);
             hpBack.anchorMin = TopCenter - new Vector2(0.5f, 0);
             hpBack.anchorMax = TopCenter + new Vector2(0.5f, 0);
@@ -170,6 +175,7 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_body").objectReferenceValue = body;
             so.FindProperty("_name").objectReferenceValue = label;
             so.FindProperty("_hpFill").objectReferenceValue = fill;
+            so.FindProperty("_hpText").objectReferenceValue = hpText;
             so.FindProperty("_targetMarker").objectReferenceValue = markerImage;
             so.FindProperty("_button").objectReferenceValue = button;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -178,11 +184,11 @@ namespace BunDauPeo.EditorTools
             return view;
         }
 
-        // Thẻ dưới trái trong dải y 820-980 (cao 150, đáy cách mép dưới 105): viền là nền thẻ, thân thẻ thụt vào 5 px.
-        private static BattleCardView BuildCard(RectTransform canvas, int index, Sprite sprite, Font font)
+        // Thẻ 180×150: viền là nền thẻ, thân thẻ thụt vào 5 px. Chỉ còn dùng trong popup tạm dừng (PauseCard{i}).
+        private static BattleCardView BuildCard(RectTransform parent, string cardName, Vector2 anchor, Vector2 position, Sprite sprite, Font font)
         {
-            var root = NewRect($"Card{index}", canvas);
-            Place(root, BottomLeft, BottomLeft, new Vector2(40 + index * 192, 105), new Vector2(180, 150));
+            var root = NewRect(cardName, parent);
+            Place(root, anchor, anchor, position, new Vector2(180, 150));
             var frame = AddImage(root, sprite, CardFrame, raycast: true);
             var button = root.gameObject.AddComponent<Button>();
             button.targetGraphic = frame;
@@ -245,8 +251,8 @@ namespace BunDauPeo.EditorTools
             var root = NewRect("ActionPanel", canvas);
             Stretch(root);
 
-            var turnLine = NewText("TurnLine", root, font, "", 30, TextAnchor.MiddleRight, Color.white);
-            Place(turnLine.rectTransform, BottomRight, BottomRight, new Vector2(-472, 105), new Vector2(380, 120));
+            var turnLine = NewText("TurnLine", root, font, "", 30, TextAnchor.MiddleLeft, Color.white);
+            Place(turnLine.rectTransform, TopLeft, TopLeft, new Vector2(40, -150), new Vector2(600, 50));
 
             var basic = ActionButton(root, "BasicButton", "Đánh", knob, font, new Color(0.30f, 0.55f, 0.95f), -328);
             var skill = ActionButton(root, "SkillButton", "Skill", knob, font, new Color(0.30f, 0.70f, 0.45f), -184);
@@ -274,19 +280,20 @@ namespace BunDauPeo.EditorTools
             return panel;
         }
 
-        // Thanh trên trong dải y 0-150 (quái bắt đầu từ y 180): chữ đợt và thanh lượt giữa, ba nút 150×110 góc phải.
+        // B1: chữ đợt và thanh lượt góc trên trái (dải y 0-150, người và quái bắt đầu từ y 215); góc trên phải một hàng ba nút
+        // 150×110: x1, AUTO, Menu (user chốt 2026-11-06, thay cho cột phải của spec).
         private static RectTransform BuildTopBar(RectTransform canvas, Sprite sprite, Font font, out Text waveText, out Image[] turnCells,
             out Button menu, out Button auto, out Button speed)
         {
             var bar = NewRect("TopBar", canvas);
             Stretch(bar);
 
-            waveText = NewText("WaveText", bar, font, "", 44, TextAnchor.MiddleCenter, Color.white);
+            waveText = NewText("WaveText", bar, font, "", 44, TextAnchor.MiddleLeft, Color.white);
             waveText.fontStyle = FontStyle.Bold;
-            Place(waveText.rectTransform, TopCenter, TopCenter, new Vector2(0, -20), new Vector2(400, 60));
+            Place(waveText.rectTransform, TopLeft, TopLeft, new Vector2(40, -20), new Vector2(400, 60));
 
             var strip = NewRect("TurnBar", bar);
-            Place(strip, TopCenter, TopCenter, new Vector2(0, -90), new Vector2(632, 56));
+            Place(strip, TopLeft, TopLeft, new Vector2(40, -90), new Vector2(632, 56));
             turnCells = new Image[10];
             for (var i = 0; i < turnCells.Length; i++)
             {
@@ -305,7 +312,8 @@ namespace BunDauPeo.EditorTools
             return bar;
         }
 
-        // Nền tối chặn chạm; hộp giữa có 5 dòng HP, Tiếp tục, Bỏ cuộc; hộp xác nhận nằm trong cùng nền.
+        // Nền tối chặn chạm; hộp giữa 1100×760: tiêu đề, tên màn, nhãn "Tình trạng đội", 5 thẻ (chỉ xem), Tiếp tục,
+        // Cài đặt (DEV), Bỏ cuộc; hộp xác nhận nằm trong cùng nền.
         private static BattlePausePopup BuildPausePopup(RectTransform canvas, Sprite sprite, Font font)
         {
             var holder = NewRect("BattlePausePopup", canvas);
@@ -316,21 +324,23 @@ namespace BunDauPeo.EditorTools
             AddImage(root, null, new Color(0f, 0f, 0f, 0.65f), raycast: true);
 
             var box = NewRect("PauseBox", root);
-            Place(box, Center, Center, Vector2.zero, new Vector2(800, 760));
+            Place(box, Center, Center, Vector2.zero, new Vector2(1100, 760));
             AddImage(box, sprite, CardColor, raycast: false);
             var title = NewText("Title", box, font, "Tạm dừng", 52, TextAnchor.MiddleCenter, Gold);
             title.fontStyle = FontStyle.Bold;
             Place(title.rectTransform, Center, Center, new Vector2(0, 320), new Vector2(700, 70));
+            var stageName = NewText("StageName", box, font, "", 40, TextAnchor.MiddleLeft, Color.white);
+            Place(stageName.rectTransform, Center, Center, new Vector2(0, 245), new Vector2(980, 56));
+            var teamLabel = NewText("TeamLabel", box, font, "Tình trạng đội", 32, TextAnchor.MiddleLeft, Gold);
+            Place(teamLabel.rectTransform, Center, Center, new Vector2(0, 175), new Vector2(980, 44));
 
-            var lines = new Text[5];
-            for (var i = 0; i < lines.Length; i++)
-            {
-                lines[i] = NewText($"HpLine{i}", box, font, "", 36, TextAnchor.MiddleCenter, Color.white);
-                Place(lines[i].rectTransform, Center, Center, new Vector2(0, 230 - i * 56), new Vector2(700, 50));
-            }
+            var cards = new BattleCardView[5];
+            for (var i = 0; i < cards.Length; i++)
+                cards[i] = BuildCard(box, $"PauseCard{i}", Center, new Vector2(-400 + i * 200, 60), sprite, font);
 
-            var resume = NewButton("ResumeButton", box, sprite, font, "Tiếp tục", ButtonColor, Center, new Vector2(-200, -250), new Vector2(340, 110));
-            var surrender = NewButton("SurrenderButton", box, sprite, font, "Bỏ cuộc", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(200, -250), new Vector2(340, 110));
+            var resume = NewButton("ResumeButton", box, sprite, font, "Tiếp tục", ButtonColor, Center, new Vector2(-360, -250), new Vector2(320, 110));
+            var settings = NewButton("SettingsButton", box, sprite, font, "Cài đặt", CardFrame, Center, new Vector2(0, -250), new Vector2(320, 110));
+            var surrender = NewButton("SurrenderButton", box, sprite, font, "Bỏ cuộc", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(360, -250), new Vector2(320, 110));
 
             var confirm = NewRect("ConfirmRoot", root);
             Stretch(confirm);
@@ -348,8 +358,10 @@ namespace BunDauPeo.EditorTools
             var popup = holder.gameObject.AddComponent<BattlePausePopup>();
             var so = new SerializedObject(popup);
             so.FindProperty("_root").objectReferenceValue = root.gameObject;
-            SetRefs(so.FindProperty("_hpLines"), lines);
+            so.FindProperty("_stageName").objectReferenceValue = stageName;
+            SetRefs(so.FindProperty("_cards"), cards);
             so.FindProperty("_resumeButton").objectReferenceValue = resume;
+            so.FindProperty("_settingsButton").objectReferenceValue = settings;
             so.FindProperty("_surrenderButton").objectReferenceValue = surrender;
             so.FindProperty("_confirmRoot").objectReferenceValue = confirm.gameObject;
             so.FindProperty("_confirmText").objectReferenceValue = confirmText;

@@ -169,7 +169,7 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 - [x] **Step 2: Chạy, thấy đỏ.**
 - [x] **Step 3: Sửa builder và view** theo spec 4.2 S1. `CombatViewText.RewardLine` còn dùng ở chỗ khác thì giữ, không còn thì xoá cùng test của nó (ghi số test).
 - [x] **Step 4: Dựng lại StageSelect, chạy EditMode và PlayMode.** Expected: 726/726 (+1, trừ đi nếu xoá `RewardLine`), 12/12. Thực tế: 729/729 EditMode, 12/12 PlayMode (+1; `RewardLine` xoá, test `RewardHeaderAndLine` đổi tên `RewardHeader_FirstClearOrRepeat`, số test giữ). Tổng cộng dồn 729.
-- [ ] **Step 5: Dừng playtest Phiên A**: quy trình "Công cụ thử tự động" ([unity-workflow](../../guides/unity-workflow.md#công-cụ-thử-tự-động)), chụp `Capture1080` kết quả thắng, kết quả thua (tắt AUTO rồi Bỏ cuộc), popup màn 1-1, mở 10 lượt Gacha (lúc có nút Bỏ qua). `RestoreSave`, `git status` sạch `ProjectSettings/`. Gửi user đường dẫn ảnh trong báo cáo.
+- [x] **Step 5: Dừng playtest Phiên A**: quy trình "Công cụ thử tự động" ([unity-workflow](../../guides/unity-workflow.md#công-cụ-thử-tự-động)), chụp `Capture1080` kết quả thắng, kết quả thua (tắt AUTO rồi Bỏ cuộc), popup màn 1-1, mở 10 lượt Gacha (lúc có nút Bỏ qua). `RestoreSave`, `git status` sạch `ProjectSettings/`. Gửi user đường dẫn ảnh trong báo cáo. (User duyệt ảnh Phiên A 2026-11-06.)
 
 ## Giai đoạn B: chọn đội, tạm dừng, màn trận (Phiên B)
 
@@ -182,10 +182,10 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 **Interfaces:**
 - Produces: `TeamSelectPopup.CardsPerPage = 16`; `TeamCardView` thêm `[SerializeField] GameObject _check;` bật khi `row.InTeam`.
 
-- [ ] **Step 1: Test đỏ**: `StageSelectScene_TeamPopup_SixteenCards_NoOverlap_ButtonsBesideChips` (16 `TeamCard{i}` 150×190 trong `TeamBox`, 8 cột × 2 hàng, không đè; 5 chip 150×120 cùng hàng; `CancelButton`, `StartButton` cùng hàng chip, bên phải chip cuối, không đè nhau); `TeamSelect_CardTexts_FitInsideCard` (Review Focus 5); `TeamSelect_SeventeenCharacters_SecondPageShowsSeventeenth` (Review Focus 3, khuôn test phân trang đang có). Sửa test phân trang cũ đang giả định 12.
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa builder** theo spec 4.3 T1 (chân dung vuông, sao trong ô, nhãn "Quán: <vai>" thu gọn, dấu tích dựng như `CheckIcon` của nút bản đồ; chữ bật `resizeTextForBestFit` min 16, wrap). Sửa `CardsPerPage`, `TeamCardView.Bind` bật `_check`, thêm `_check` vào kiểm tham chiếu.
-- [ ] **Step 4: Dựng lại StageSelect, chạy EditMode và PlayMode** (smoke test bấm `TeamCard0…4`). Expected: 729/729 (+3), 12/12.
+- [x] **Step 1: Test đỏ**: `StageSelectScene_TeamPopup_SixteenCards_NoOverlap_ButtonsBesideChips` (16 `TeamCard{i}` 150×190 trong `TeamBox`, 8 cột × 2 hàng, không đè; 5 chip 150×120 cùng hàng; `CancelButton`, `StartButton` cùng hàng chip, bên phải chip cuối, không đè nhau); `TeamSelect_CardTexts_FitInsideCard` (Review Focus 5); `TeamSelect_SeventeenCharacters_SecondPageShowsSeventeenth` (Review Focus 3, khuôn test phân trang đang có). Sửa test phân trang cũ đang giả định 12.
+- [x] **Step 2: Chạy, thấy đỏ.**
+- [x] **Step 3: Sửa builder** theo spec 4.3 T1 (chân dung vuông, sao trong ô, nhãn "Quán: <vai>" thu gọn, dấu tích dựng như `CheckIcon` của nút bản đồ; chữ bật `resizeTextForBestFit` min 16, wrap). Sửa `CardsPerPage`, `TeamCardView.Bind` bật `_check`, thêm `_check` vào kiểm tham chiếu.
+- [x] **Step 4: Dựng lại StageSelect, chạy EditMode và PlayMode** (smoke test bấm `TeamCard0…4`). Expected: 729/729 (+3), 12/12. Thực tế: 732 (+3), tổng cộng dồn 732 (cộng theo task; đo thật một lần sau Task 8).
 
 ### Task 6: P1 — Tạm dừng
 
@@ -196,10 +196,10 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 **Interfaces:**
 - Produces: `BuildCard(RectTransform parent, string name, Vector2 anchor, Vector2 position, Sprite sprite, Font font) -> BattleCardView` (thẻ dưới trận gọi với `canvas, $"Card{i}", BottomLeft, …`); `BattlePausePopup` field `[SerializeField] BattleCardView[] _cards;` (5, tên `PauseCard{i}`) thay `_hpLines`, `[SerializeField] Text _stageName;`. `Open(BattleSession session)` không đổi chữ ký; `maxEnergy` lấy như `BattleView` đang tính khi gọi `Refresh`.
 
-- [ ] **Step 1: Test đỏ**: `BattleScene_PauseCards_InsideBox` (`PauseBox` 1100×760, 5 `PauseCard{i}` trong hộp, cùng hàng, không đè; nút của thẻ `interactable == false`; `_stageName` nối dây; popup tắt sẵn, nền chặn chạm như test cũ); `BattleScene_ButtonNamesUnique` (mọi `Button` trong scene, kể cả tắt, tên khác nhau từng đôi — Review Focus 2).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa** builder và `BattlePausePopup.Open` (`_stageName.text = session.Stage.DisplayName`; thẻ `i < Allies.Count` thì `Bind` + `Refresh(unit.Hp, maxEnergy, false)`, còn lại `Hide`). Xoá `CombatViewText.PauseHpLine` và test `PauseHpLine_AliveAndFallen`.
-- [ ] **Step 4: Dựng lại Battle, chạy EditMode và PlayMode.** Expected: 730/730 (+2 −1), 12/12.
+- [x] **Step 1: Test đỏ**: `BattleScene_PauseCards_InsideBox` (`PauseBox` 1100×760, 5 `PauseCard{i}` trong hộp, cùng hàng, không đè; nút của thẻ `interactable == false`; `_stageName` nối dây; popup tắt sẵn, nền chặn chạm như test cũ); `BattleScene_ButtonNamesUnique` (mọi `Button` trong scene, kể cả tắt, tên khác nhau từng đôi — Review Focus 2).
+- [x] **Step 2: Chạy, thấy đỏ.**
+- [x] **Step 3: Sửa** builder và `BattlePausePopup.Open` (`_stageName.text = session.Stage.DisplayName`; thẻ `i < Allies.Count` thì `Bind` + `Refresh(unit.Hp, maxEnergy, false)`, còn lại `Hide`). Xoá `CombatViewText.PauseHpLine` và test `PauseHpLine_AliveAndFallen`.
+- [x] **Step 4: Dựng lại Battle, chạy EditMode và PlayMode.** Expected: 730/730 (+2 −1), 12/12. Thực tế: 734 (+3 test mới −1 xoá; thêm `BattlePausePopup_Open_ShowsStageNameAndLiveCards`), tổng cộng dồn 734.
 
 ### Task 7: B1 — Bố cục màn trận
 
@@ -207,11 +207,11 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 - Modify: `Assets/_Project/Editor/BattleSceneBuilder.cs` (`BuildTopBar`, vị trí thẻ, `BuildActionPanel` cho `_turnLine`), `Assets/_Project/Tests/BattleSceneTests.cs`, `docs/superpowers/specs/2026-11-02-combat-design.md` (mục 5.4)
 - Scene: `Battle.unity`
 
-- [ ] **Step 1: Sửa test cho đỏ** theo spec 4.3 B1: `BattleScene_TopBarWired_InsideCanvas` — `WaveText` và ô lượt ở góc trên trái (x < 700, đáy ≤ 180); `MenuButton` góc trên phải (đáy ≤ 180); `AutoButton`, `SpeedButton` có `xMin >= 1720`, nằm trong dải y 540–820, không đè hộp nào của `BattleLayout.EnemyRect(slot, boss)` với mọi slot và boss; không đè ba nút chiêu. `BattleScene_CardsAndButtonsInCardArea` — thẻ i có `xMin == 480 + i × 192` (±2), không đè nút chiêu; `TurnLine` ở trên trái (đáy ≤ 200). `BattleLayout` và test của nó không đổi.
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa builder** theo toạ độ spec 4.3 B1. AUTO/x2 neo `BottomRight` (cùng neo ba nút chiêu) để ở màn rộng hơn 16:9 cột này đi cùng bảng chiêu.
-- [ ] **Step 4: Dựng lại Battle, chạy EditMode và PlayMode.** Expected: 730/730, 12/12.
-- [ ] **Step 5: Docs**: phác thảo spec Combat 5.4 vẽ lại theo bố cục mới, thêm câu trỏ về spec layout; mục 5.3, 5.5 thêm một dòng trỏ về spec layout.
+- [x] **Step 1: Sửa test cho đỏ** theo spec 4.3 B1: `BattleScene_TopBarWired_InsideCanvas` — `WaveText` và ô lượt ở góc trên trái (x < 700, đáy ≤ 180); `MenuButton` góc trên phải (đáy ≤ 180); `AutoButton`, `SpeedButton` có `xMin >= 1720`, nằm trong dải y 540–820, không đè hộp nào của `BattleLayout.EnemyRect(slot, boss)` với mọi slot và boss; không đè ba nút chiêu. `BattleScene_CardsAndButtonsInCardArea` — thẻ i có `xMin == 480 + i × 192` (±2), không đè nút chiêu; `TurnLine` ở trên trái (đáy ≤ 200). `BattleLayout` và test của nó không đổi.
+- [x] **Step 2: Chạy, thấy đỏ.**
+- [x] **Step 3: Sửa builder** theo toạ độ spec 4.3 B1. AUTO/x2 neo `BottomRight` (cùng neo ba nút chiêu) để ở màn rộng hơn 16:9 cột này đi cùng bảng chiêu.
+- [x] **Step 4: Dựng lại Battle, chạy EditMode và PlayMode.** Expected: 730/730, 12/12. Thực tế: 734 (+0), tổng cộng dồn 734.
+- [x] **Step 5: Docs**: phác thảo spec Combat 5.4 vẽ lại theo bố cục mới, thêm câu trỏ về spec layout; mục 5.3, 5.5 thêm một dòng trỏ về spec layout.
 
 ### Task 8: B2 — Số HP quái
 
@@ -222,11 +222,11 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 **Interfaces:**
 - Produces: `BattleUnitView` field `[SerializeField] Text _hpText;` (chỉ quái có, đồng minh để `null`); chữ `CombatViewText.UnitHp(ShownHp, Unit.MaxHp)` mỗi khi `ShownHp` đổi và trong `Bind`.
 
-- [ ] **Step 1: Test đỏ**: `BattleScene_OnlyEnemiesHaveHpText` (`Enemy{i}` có `HpText` nối dây, nằm dưới `Name`, trong khung 1920×1080 khi đặt ở `EnemyRect`; `Ally{i}` không có); `BattleUnitView_EnemyHpText_FollowsDelta` (khuôn `BattleUnitTests`: `Bind` quái 1000 HP, `ApplyDelta(-200)`, `Tick` tới hết hoạt hình, chữ == `UnitHp(800, 1000)`).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Cài** (`BuildUnit` thêm `HpText` 22 px chỉ khi `!ally`; view ghi khi `_hpText != null`; kiểm tham chiếu không đòi `_hpText`).
-- [ ] **Step 4: Dựng lại Battle, chạy EditMode và PlayMode.** Expected: 732/732 (+2), 12/12. Lệch kỳ vọng ở bất kỳ task nào thì ghi lý do cạnh số.
-- [ ] **Step 5: Dừng playtest Phiên B**: chụp chọn đội (đủ 5 người), màn trận lúc tới lượt phe ta, popup tạm dừng.
+- [x] **Step 1: Test đỏ**: `BattleScene_OnlyEnemiesHaveHpText` (`Enemy{i}` có `HpText` nối dây, nằm dưới `Name`, trong khung 1920×1080 khi đặt ở `EnemyRect`; `Ally{i}` không có); `BattleUnitView_EnemyHpText_FollowsDelta` (khuôn `BattleUnitTests`: `Bind` quái 1000 HP, `ApplyDelta(-200)`, `Tick` tới hết hoạt hình, chữ == `UnitHp(800, 1000)`).
+- [x] **Step 2: Chạy, thấy đỏ.**
+- [x] **Step 3: Cài** (`BuildUnit` thêm `HpText` 22 px chỉ khi `!ally`; view ghi khi `_hpText != null`; kiểm tham chiếu không đòi `_hpText`).
+- [x] **Step 4: Dựng lại Battle, chạy EditMode và PlayMode.** Expected: 732/732 (+2), 12/12. Lệch kỳ vọng ở bất kỳ task nào thì ghi lý do cạnh số. Thực tế: **736/736 EditMode, 12/12 PlayMode** (đo thật sau Task 8, `bdp-tests.xml` / `bdp-playtests.xml`). Tổng cộng dồn 736.
+- [x] **Step 5: Dừng playtest Phiên B**: chụp chọn đội (đủ 5 người), màn trận lúc tới lượt phe ta, popup tạm dừng. Ảnh: `D:/Unity/bdp-shots/lm-b-team.png`, `lm-b-battle.png`, `lm-b-pause.png`; `RestoreSave` xong, `ProjectSettings/` sạch. Chờ user nhận xét. **Sửa theo nhận xét user (2026-11-06):** lưới 3×3 mỗi phe, bỏ hàng thẻ dưới màn, HP dưới tên cả hai phe, x1/AUTO/Menu một hàng, Cài đặt DEV vào Menu (ảnh mới `lm-b2-battle.png`, `lm-b2-pause.png`, `lm-b2-settings.png`); tổng cộng dồn sau sửa **737 EditMode, 12 PlayMode**.
 
 ## Giai đoạn C: Gacha, bản đồ, quán (Phiên C)
 

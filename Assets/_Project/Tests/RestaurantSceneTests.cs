@@ -35,14 +35,15 @@ namespace BunDauPeo.Tests
             scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<T>(true)).ToArray();
 
         // Mọi tham chiếu [SerializeField] của component phải có giá trị; mảng không rỗng và không phần tử null.
-        internal static void AssertAllReferencesAssigned(Component component)
+        // optionalFields: field được phép để trống (ví dụ _hpText của phe ta).
+        internal static void AssertAllReferencesAssigned(Component component, params string[] optionalFields)
         {
             var so = new SerializedObject(component);
             var property = so.GetIterator();
             var checkedAny = false;
             for (var enter = true; property.NextVisible(enter); enter = false)
             {
-                if (property.propertyPath == "m_Script") continue;
+                if (property.propertyPath == "m_Script" || System.Array.IndexOf(optionalFields, property.propertyPath) >= 0) continue;
                 checkedAny = true;
                 if (property.isArray)
                 {

@@ -12,7 +12,7 @@ namespace BunDauPeo.UI
     // cả đội một lần. Thể lực chỉ bị trừ khi bấm Vào trận (hoặc Có ở hộp xác nhận), không phải lúc mở popup hay hộp.
     public class TeamSelectPopup : MonoBehaviour
     {
-        public const int CardsPerPage = 12;
+        public const int CardsPerPage = 16;
         private static readonly Color OnChip = new(0.20f, 0.23f, 0.32f);
 
         // _root chặn chạm; component nằm ở object luôn bật để còn nhận Open.
@@ -144,7 +144,7 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
-        // shortcut: lưới phân trang 12 thẻ mỗi trang, đủ cho vài chục nhân vật; nhiều hơn nữa thì đổi sang cuộn.
+        // shortcut: lưới phân trang 16 thẻ mỗi trang, đủ cho vài chục nhân vật; nhiều hơn nữa thì đổi sang cuộn.
         private void Refresh()
         {
             if (_roster == null || _stage == null) return;

@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Sửa layout theo Mota, phiên A (Task 1–4: hàng ô thưởng, kết quả trận, nút Bỏ qua Gacha, popup màn) trên `feature/layout-mota`: code và test xong (729 EditMode, 12 PlayMode), đang chờ user xem ảnh playtest và 📋 commit. Kế: phiên B (Task 5–8), phiên C (9–12) ([spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md)); sau đó Build Android thử sớm, Song ngữ.
+- Sửa layout theo Mota, phiên B (Task 5–8: chọn đội, popup tạm dừng, bố cục màn trận, số HP quái) trên `feature/layout-mota`: phiên A đã xong và commit (729 EditMode, 12 PlayMode). Kế: phiên C (9–12) ([spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md)); sau đó Build Android thử sớm, Song ngữ.
 
 ## Tiếp theo
 

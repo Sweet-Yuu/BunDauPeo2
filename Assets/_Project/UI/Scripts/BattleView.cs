@@ -33,7 +33,6 @@ namespace BunDauPeo.UI
         [SerializeField] private GameObject _emptyRoot;
         [SerializeField] private Button _emptyBackButton;
         [SerializeField] private BattleActionPanel _panel;
-        [SerializeField] private BattleCardView[] _cards;
         [SerializeField] private BattleResultView _result;
         // Thanh trên: chữ đợt, thanh lượt 10 ô, Menu / AUTO / tốc độ, banner đợt mới, popup tạm dừng.
         [SerializeField] private GameObject _topBar;
@@ -112,10 +111,9 @@ namespace BunDauPeo.UI
             Listen(_speedButton, OnSpeedClicked);
             _speedLabel = _speedButton.GetComponentInChildren<Text>(true);
             _cellLabels = System.Array.ConvertAll(_turnCells, c => c.GetComponentInChildren<Text>(true));
-            // Chạm quái hoặc người phe ta đặt mục tiêu; thẻ chỉ chọn đồng minh. Đọc Unit lúc chạm vì hình được dùng lại giữa các đợt.
+            // Chạm quái hoặc người phe ta đặt mục tiêu (đồng minh cho chiêu hồi máu). Đọc Unit lúc chạm vì hình được dùng lại giữa các đợt.
             foreach (var view in _enemies) Listen(view.Button, () => _panel.ChooseEnemy(view.Unit));
             foreach (var view in _allies) Listen(view.Button, () => _panel.ChooseAlly(view.Unit));
-            foreach (var card in _cards) Listen(card.Button, () => _panel.ChooseAlly(card.Unit));
             _hasDrawn = false;
             _ready = true;
         }
@@ -142,8 +140,7 @@ namespace BunDauPeo.UI
                      && _topBar != null && _waveText != null && _menuButton != null && _autoButton != null && _speedButton != null
                      && _waveBanner != null && _waveBannerText != null && _pause != null
                      && _turnCells != null && _turnCells.Length == TurnCellCount && System.Array.TrueForAll(_turnCells, c => c != null)
-                     && Complete(_allies) && Complete(_enemies) && _cards != null && _cards.Length == SlotCount
-                     && System.Array.TrueForAll(_cards, c => c != null);
+                     && Complete(_allies) && Complete(_enemies);
             if (!ok) Debug.LogError($"{nameof(BattleView)}: references are not assigned.", this);
             return ok;
         }
@@ -161,7 +158,7 @@ namespace BunDauPeo.UI
         private void OnMenuClicked()
         {
             var session = _service?.Current;
-            if (session != null && session.State != BattleState.Won && session.State != BattleState.Lost) _pause.Open(session);
+            if (session != null && session.State != BattleState.Won && session.State != BattleState.Lost) _pause.Open(session, _service.Config.MaxEnergy);
         }
 
         private void OnAutoClicked()
@@ -223,16 +220,9 @@ namespace BunDauPeo.UI
             }
         }
 
-        // Thẻ theo máu hoạt hình; banner chỉ hiện khi đòn cuối đã phát xong.
+        // Màn kết quả chỉ hiện khi đòn cuối đã phát xong.
         private void RefreshHud(BattleSession session)
         {
-            var current = session.State == BattleState.PlayerTurn && !IsBusy ? session.Current : null;
-            foreach (var card in _cards)
-            {
-                if (card.Unit == null) continue;
-                card.Refresh(_allies[card.Unit.SlotIndex].ShownHp, _service.Config.MaxEnergy, ReferenceEquals(card.Unit, current));
-            }
-
             // Show chỉ làm việc ở lần đầu của mỗi trận (CompleteBattle đúng một lần).
             var ended = (session.State == BattleState.Won || session.State == BattleState.Lost) && !IsBusy;
             if (ended) _result.Show(_service, session);
@@ -257,11 +247,9 @@ namespace BunDauPeo.UI
             _panel.gameObject.SetActive(session != null);
             foreach (var view in _allies) view.Hide();
             foreach (var view in _enemies) view.Hide();
-            foreach (var card in _cards) card.Hide();
             if (session == null) return;
 
             foreach (var ally in session.Allies) _allies[ally.SlotIndex].Bind(ally, BattleLayout.AllyRect(ally.SlotIndex));
-            for (var i = 0; i < session.Allies.Count; i++) _cards[i].Bind(session.Allies[i]);
             BindEnemies(session);
         }
 

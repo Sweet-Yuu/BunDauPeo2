@@ -81,19 +81,6 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void PauseHpLine_AliveAndFallen()
-        {
-            // Quái nhanh hơn nên đánh trước: 160 sát thương làm Nem Chua còn 640/800, rồi 5000 sát thương hạ gục.
-            foreach (var (attack, expected) in new[] { (160, "Nem Chua 640/800"), (5000, "Nem Chua: đã ngã") })
-            {
-                var s = CombatTestData.Battle(new[] { CombatTestData.Hero("Nem Chua", hp: 800, speed: 100) },
-                    CombatTestData.Stage("s", new[] { CombatTestData.Enemy("e", 100000, attack, 0, 500) }));
-                s.EnemyAct();
-                Assert.AreEqual(expected, CombatViewText.PauseHpLine(s.Allies[0]), $"attack {attack}");
-            }
-        }
-
-        [Test]
         public void SurrenderConfirm_SaysStaminaIsNotRefunded()
         {
             StringAssert.Contains("không được hoàn", CombatViewText.SurrenderConfirm());

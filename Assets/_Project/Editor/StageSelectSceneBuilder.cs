@@ -75,7 +75,7 @@ namespace BunDauPeo.EditorTools
 
             var info = BuildInfoPopup(canvas, sprite, font);
             var story = BuildStoryPopup(canvas, sprite, font);
-            var team = BuildTeamPopup(canvas, sprite, font);
+            var team = BuildTeamPopup(canvas, sprite, knob, font);
 
             var viewObject = NewRect("StageMapView", canvas);
             var view = viewObject.gameObject.AddComponent<StageMapView>();
@@ -135,18 +135,7 @@ namespace BunDauPeo.EditorTools
             Place(lockBody, Center, Center, new Vector2(0, -8), new Vector2(44, 32));
             AddImage(lockBody, null, Dark, raycast: false);
 
-            var check = NewRect("CheckIcon", root);
-            Place(check, Center, Center, new Vector2(42, 42), new Vector2(50, 50));
-            var badge = AddImage(check, knob, Color.white, raycast: false);
-            badge.type = Image.Type.Simple;
-            var shortStroke = NewRect("ShortStroke", check);
-            Place(shortStroke, Center, Center, new Vector2(-7, -3), new Vector2(7, 16));
-            shortStroke.localRotation = Quaternion.Euler(0f, 0f, 45f);
-            AddImage(shortStroke, null, new Color(0.20f, 0.60f, 0.30f), raycast: false);
-            var longStroke = NewRect("LongStroke", check);
-            Place(longStroke, Center, Center, new Vector2(4, 1), new Vector2(7, 30));
-            longStroke.localRotation = Quaternion.Euler(0f, 0f, -45f);
-            AddImage(longStroke, null, new Color(0.20f, 0.60f, 0.30f), raycast: false);
+            var check = BuildCheckBadge(root, knob, new Vector2(42, 42));
 
             var view = root.gameObject.AddComponent<StageNodeView>();
             var so = new SerializedObject(view);
@@ -157,6 +146,24 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_button").objectReferenceValue = button;
             so.ApplyModifiedPropertiesWithoutUndo();
             return view;
+        }
+
+        // Huy hiệu trắng 50×50 với dấu tích xanh ghép từ hai hình vuông xoay; dùng cho nút bản đồ và thẻ chọn đội.
+        private static RectTransform BuildCheckBadge(RectTransform parent, Sprite knob, Vector2 position)
+        {
+            var check = NewRect("CheckIcon", parent);
+            Place(check, Center, Center, position, new Vector2(50, 50));
+            var badge = AddImage(check, knob, Color.white, raycast: false);
+            badge.type = Image.Type.Simple;
+            var shortStroke = NewRect("ShortStroke", check);
+            Place(shortStroke, Center, Center, new Vector2(-7, -3), new Vector2(7, 16));
+            shortStroke.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            AddImage(shortStroke, null, new Color(0.20f, 0.60f, 0.30f), raycast: false);
+            var longStroke = NewRect("LongStroke", check);
+            Place(longStroke, Center, Center, new Vector2(4, 1), new Vector2(7, 30));
+            longStroke.localRotation = Quaternion.Euler(0f, 0f, -45f);
+            AddImage(longStroke, null, new Color(0.20f, 0.60f, 0.30f), raycast: false);
+            return check;
         }
 
         // Không có sprite tam giác có sẵn: mũi tên là hình thoi (vuông xoay 45°) trên chữ NEXT, nhấp nháy qua CanvasGroup.
@@ -269,9 +276,10 @@ namespace BunDauPeo.EditorTools
             return popup;
         }
 
-        // Hộp 1700×880: lưới 12 thẻ (4×3, phân trang), hàng "Thành viên hiện tại" chia theo đội hình tự xếp, Hủy / Vào trận;
-        // hai hộp xác nhận nằm trong cùng nền chặn chạm và tắt sẵn (thể lực chưa bị trừ khi hộp mở).
-        private static TeamSelectPopup BuildTeamPopup(RectTransform canvas, Sprite sprite, Font font)
+        // Hộp 1700×880 (T1): lưới 16 thẻ chân dung 150×190 (8×2, phân trang); hàng dưới: 5 chip 150×120 chia theo đội hình tự xếp
+        // bên trái, Hủy / Vào trận cạnh nhau bên phải. Toạ độ từ tâm hộp, y hướng lên.
+        // Hai hộp xác nhận nằm trong cùng nền chặn chạm và tắt sẵn (thể lực chưa bị trừ khi hộp mở).
+        private static TeamSelectPopup BuildTeamPopup(RectTransform canvas, Sprite sprite, Sprite knob, Font font)
         {
             var holder = NewRect("TeamSelectPopup", canvas);
             Stretch(holder);
@@ -289,7 +297,7 @@ namespace BunDauPeo.EditorTools
 
             var cards = new TeamCardView[TeamSelectPopup.CardsPerPage];
             for (var i = 0; i < cards.Length; i++)
-                cards[i] = BuildTeamCard(box, i, sprite, font);
+                cards[i] = BuildTeamCard(box, i, sprite, knob, font);
 
             var prev = NewButton("PrevButton", box, sprite, font, "<", CardFrame, Center, new Vector2(-130, -75), new Vector2(100, 60));
             var next = NewButton("NextButton", box, sprite, font, ">", CardFrame, Center, new Vector2(130, -75), new Vector2(100, 60));
@@ -297,14 +305,15 @@ namespace BunDauPeo.EditorTools
             Place(page.rectTransform, Center, Center, new Vector2(0, -75), new Vector2(120, 50));
 
             var header = NewText("TeamHeader", box, font, "", 34, TextAnchor.MiddleCenter, Gold);
-            Place(header.rectTransform, Center, Center, new Vector2(0, -130), new Vector2(900, 46));
+            Place(header.rectTransform, Center, Center, new Vector2(-405, -130), new Vector2(790, 46));
             // Ô 0-1 hàng trước, 2-3 hàng giữa, 4 hàng sau (BattleFormation): nhãn nằm giữa nhóm của nó.
-            var positions = new[] { -480f, 160f, 640f };
+            var positions = new[] { -645f, -325f, -85f };
+            var widths = new[] { 310f, 310f, 150f };
             var labels = new Text[3];
             for (var i = 0; i < labels.Length; i++)
             {
                 labels[i] = NewText($"PositionLabel{i}", box, font, "", 26, TextAnchor.MiddleCenter, Color.white);
-                Place(labels[i].rectTransform, Center, Center, new Vector2(positions[i], -170), new Vector2(400, 34));
+                Place(labels[i].rectTransform, Center, Center, new Vector2(positions[i], -178), new Vector2(widths[i], 34));
             }
 
             var chips = new Image[5];
@@ -312,16 +321,17 @@ namespace BunDauPeo.EditorTools
             for (var i = 0; i < chips.Length; i++)
             {
                 var chip = NewRect($"Chip{i}", box);
-                Place(chip, Center, Center, new Vector2(-640 + i * 320, -225), new Vector2(300, 70));
+                Place(chip, Center, Center, new Vector2(-725 + i * 160, -255), new Vector2(150, 120));
                 chips[i] = AddImage(chip, sprite, CardFrame, raycast: false);
                 chipTexts[i] = NewText("Text", chip, font, "-", 24, TextAnchor.MiddleCenter, Color.white);
-                Stretch(chipTexts[i].rectTransform);
+                Stretch(chipTexts[i].rectTransform, 4);
+                FitText(chipTexts[i], 24);
             }
 
             var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
-            Place(message.rectTransform, Center, Center, new Vector2(0, -292), new Vector2(1200, 40));
-            var cancel = NewButton("CancelButton", box, sprite, font, "Hủy", CardFrame, Center, new Vector2(-220, -375), new Vector2(380, 100));
-            var start = NewButton("StartButton", box, sprite, font, "Vào trận", ButtonColor, Center, new Vector2(220, -375), new Vector2(380, 100));
+            Place(message.rectTransform, Center, Center, new Vector2(0, -385), new Vector2(1200, 40));
+            var cancel = NewButton("CancelButton", box, sprite, font, "Hủy", CardFrame, Center, new Vector2(370, -255), new Vector2(300, 100));
+            var start = NewButton("StartButton", box, sprite, font, "Vào trận", ButtonColor, Center, new Vector2(690, -255), new Vector2(300, 100));
 
             var small = BuildConfirm(root, sprite, font, "SmallConfirm", "Vào trận", "Không", out var smallText, out var smallYes, out var smallNo);
             var staff = BuildConfirm(root, sprite, font, "StaffConfirm", "Chuyển", "Không", out var staffText, out var staffYes, out var staffNo);
@@ -354,11 +364,12 @@ namespace BunDauPeo.EditorTools
             return popup;
         }
 
-        // Thẻ 380×130 ở lưới 4 cột (x -600..600) × 3 hàng (y 300, 160, 20): chân dung vuông bên trái, ba dòng chữ bên phải.
-        private static TeamCardView BuildTeamCard(RectTransform box, int index, Sprite sprite, Font font)
+        // Thẻ chân dung 150×190 ở lưới 8 cột (x -665..665, cách 190) × 2 hàng (y 260, 55): ô màu class 140×140 phía trên chứa
+        // nhãn quán (trên) và dòng độ hiếm kèm sao (dưới); tên dưới ô; dấu tích góc trên phải khi đang trong đội.
+        private static TeamCardView BuildTeamCard(RectTransform box, int index, Sprite sprite, Sprite knob, Font font)
         {
             var root = NewRect($"TeamCard{index}", box);
-            Place(root, Center, Center, new Vector2(-600 + index % 4 * 400, 300 - index / 4 * 140), new Vector2(380, 130));
+            Place(root, Center, Center, new Vector2(-665 + index % 8 * 190, 260 - index / 8 * 205), new Vector2(150, 190));
             var frame = AddImage(root, sprite, CardFrame, raycast: true);
             var button = root.gameObject.AddComponent<Button>();
             button.targetGraphic = frame;
@@ -367,16 +378,20 @@ namespace BunDauPeo.EditorTools
             Stretch(body, 5);
             AddImage(body, sprite, CardColor, raycast: false);
             var portraitRect = NewRect("Portrait", root);
-            Place(portraitRect, Center, Center, new Vector2(-135, 0), new Vector2(96, 96));
+            Place(portraitRect, Center, Center, new Vector2(0, 20), new Vector2(140, 140));
             var portrait = AddImage(portraitRect, null, Color.white, raycast: false);
 
-            var name = NewText("Name", root, font, "", 30, TextAnchor.MiddleLeft, Color.white);
+            var tag = NewText("Tag", root, font, "", 22, TextAnchor.MiddleCenter, Gold);
+            Place(tag.rectTransform, Center, Center, new Vector2(0, 62), new Vector2(130, 44));
+            FitText(tag, 22);
+            var info = NewText("Info", root, font, "", 22, TextAnchor.MiddleCenter, Color.white);
+            Place(info.rectTransform, Center, Center, new Vector2(0, -30), new Vector2(130, 30));
+            FitText(info, 22);
+            var name = NewText("Name", root, font, "", 26, TextAnchor.MiddleCenter, Color.white);
             name.fontStyle = FontStyle.Bold;
-            Place(name.rectTransform, Center, Center, new Vector2(55, 36), new Vector2(260, 36));
-            var info = NewText("Info", root, font, "", 22, TextAnchor.MiddleLeft, Color.white);
-            Place(info.rectTransform, Center, Center, new Vector2(55, 0), new Vector2(260, 32));
-            var tag = NewText("Tag", root, font, "", 24, TextAnchor.MiddleLeft, Gold);
-            Place(tag.rectTransform, Center, Center, new Vector2(55, -34), new Vector2(260, 32));
+            Place(name.rectTransform, Center, Center, new Vector2(0, -72), new Vector2(140, 36));
+            FitText(name, 26);
+            var check = BuildCheckBadge(root, knob, new Vector2(50, 70));
 
             var view = root.gameObject.AddComponent<TeamCardView>();
             var so = new SerializedObject(view);
@@ -386,9 +401,20 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_name").objectReferenceValue = name;
             so.FindProperty("_info").objectReferenceValue = info;
             so.FindProperty("_tag").objectReferenceValue = tag;
+            so.FindProperty("_check").objectReferenceValue = check.gameObject;
             so.ApplyModifiedPropertiesWithoutUndo();
             root.gameObject.SetActive(false);
             return view;
+        }
+
+        // Tên dài không được tràn ô: thu chữ tới 16 rồi mới xuống dòng/cắt.
+        private static void FitText(Text text, int maxSize)
+        {
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 16;
+            text.resizeTextMaxSize = maxSize;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
         }
 
         // Hộp xác nhận Có/Không nằm trong nền popup, có nền tối riêng chặn chạm; tắt sẵn.
