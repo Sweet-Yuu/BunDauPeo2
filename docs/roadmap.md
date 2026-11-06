@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Sửa layout theo Mota, phiên B (Task 5–8: chọn đội, popup tạm dừng, bố cục màn trận, số HP quái) trên `feature/layout-mota`: phiên A đã xong và commit (729 EditMode, 12 PlayMode). Kế: phiên C (9–12) ([spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md)); sau đó Build Android thử sớm, Song ngữ.
+- Sửa layout theo Mota: code xong cả 12 task (phiên A, B, C) trên `feature/layout-mota`, chờ 🔍 review cuối nhánh ([spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md)); sau đó Build Android thử sớm, Song ngữ.
 
 ## Tiếp theo
 

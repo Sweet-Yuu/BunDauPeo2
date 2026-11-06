@@ -249,6 +249,72 @@ namespace BunDauPeo.Tests
                 Assert.Less(room.xMin + 90f * 12, InReferenceCanvas(column).xMin, "floor must not run under the right column");
             });
 
+        // Hình chữ nhật có cắt tứ giác lồi (tường, sàn đã xoay) không: trục tách là hai trục chữ nhật và hai pháp tuyến của tứ giác.
+        private static bool QuadOverlapsRect(Vector2[] quad, Rect rect)
+        {
+            var rectCorners = new[] { rect.min, new Vector2(rect.xMax, rect.yMin), rect.max, new Vector2(rect.xMin, rect.yMax) };
+            var axes = new[] { Vector2.right, Vector2.up, Perp(quad[1] - quad[0]), Perp(quad[2] - quad[1]) };
+            foreach (var axis in axes)
+            {
+                Project(quad, axis, out var minA, out var maxA);
+                Project(rectCorners, axis, out var minB, out var maxB);
+                if (maxA <= minB + 1f || maxB <= minA + 1f) return false;
+            }
+
+            return true;
+        }
+
+        private static Vector2 Perp(Vector2 v) => new(-v.y, v.x);
+
+        private static void Project(Vector2[] points, Vector2 axis, out float min, out float max)
+        {
+            min = float.MaxValue;
+            max = float.MinValue;
+            foreach (var p in points)
+            {
+                var d = Vector2.Dot(p, axis.normalized);
+                min = Mathf.Min(min, d);
+                max = Mathf.Max(max, d);
+            }
+        }
+
+        // R1: ba thẻ tiền rộng 260; thanh thông tin và thông báo AFK ở hàng trên, bên phải thẻ tiền, không đè sàn, tường và cột phải.
+        [Test]
+        public void RestaurantScene_InfoBarClearOfRoomAndColumn() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                foreach (var name in new[] { "CoinCard", "MaterialCard", "GemCard" })
+                    Assert.AreEqual(260f, InReferenceCanvas(Named(scene, name)).width, name);
+
+                var bar = InReferenceCanvas(Named(scene, "InfoBar"));
+                var message = InReferenceCanvas(Named(scene, "AfkMessage"));
+                var gem = InReferenceCanvas(Named(scene, "GemCard"));
+                var column = InReferenceCanvas(Named(scene, "RightColumn"));
+                Assert.LessOrEqual(1080f - bar.yMax, 30f, "InfoBar hugs the top edge");
+                Assert.GreaterOrEqual(bar.xMin, gem.xMax, "InfoBar is right of the money cards");
+                Assert.Less(bar.xMax, column.xMin, "InfoBar stops before the right column");
+                Assert.AreEqual(bar.xMin, message.xMin, 1f);
+                Assert.AreEqual(bar.width, message.width, 1f);
+                Assert.GreaterOrEqual(bar.yMin, message.yMax, "AfkMessage sits right under InfoBar");
+                Assert.Less(bar.yMin - message.yMax, 20f);
+
+                var roomNode = Named(scene, "Room");
+                var origin = InReferenceCanvas(roomNode).position;
+                var blocks = new[] { "Floor", "WallBackTop", "WallBack", "WallLeftTop", "WallLeft" };
+                foreach (var block in blocks)
+                {
+                    var target = Named(scene, block);
+                    var corners = new Vector3[4];
+                    target.GetWorldCorners(corners);
+                    var quad = corners.Select(c => origin + (Vector2)roomNode.InverseTransformPoint(c)).ToArray();
+                    Assert.IsFalse(QuadOverlapsRect(quad, bar), $"InfoBar overlaps {block}");
+                    Assert.IsFalse(QuadOverlapsRect(quad, message), $"AfkMessage overlaps {block}");
+                }
+
+                Assert.IsFalse(bar.Overlaps(column));
+                Assert.IsFalse(message.Overlaps(column));
+            });
+
         [Test]
         public void RestaurantScene_IsThirdInBuildSettings()
         {

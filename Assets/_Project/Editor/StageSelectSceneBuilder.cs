@@ -109,7 +109,7 @@ namespace BunDauPeo.EditorTools
             return text;
         }
 
-        // Nút tròn 120 px: nhãn giữa, ổ khoá góc dưới phải khi khoá, dấu tích trong huy hiệu trắng góc trên phải khi đã clear.
+        // Nút tròn 120 px: nhãn giữa, ổ khoá ở đỉnh giữa khi khoá, dấu tích trong huy hiệu trắng góc trên phải khi đã clear.
         private static StageNodeView BuildNode(RectTransform parent, Sprite sprite, Sprite knob, Font font)
         {
             var root = NewRect("NodeTemplate", parent);
@@ -124,7 +124,7 @@ namespace BunDauPeo.EditorTools
             Stretch(label.rectTransform);
 
             var lockIcon = NewRect("LockIcon", root);
-            Place(lockIcon, Center, Center, new Vector2(40, -40), new Vector2(44, 52));
+            Place(lockIcon, Center, Center, new Vector2(0, 60), new Vector2(44, 52));
             var shackle = NewRect("Shackle", lockIcon);
             Place(shackle, Center, Center, new Vector2(0, 14), new Vector2(24, 26));
             AddImage(shackle, null, Dark, raycast: false);
@@ -133,7 +133,7 @@ namespace BunDauPeo.EditorTools
             AddImage(shackleHole, null, LockedColor, raycast: false);
             var lockBody = NewRect("LockBody", lockIcon);
             Place(lockBody, Center, Center, new Vector2(0, -8), new Vector2(44, 32));
-            AddImage(lockBody, null, Dark, raycast: false);
+            AddImage(lockBody, null, Gold, raycast: false);
 
             var check = BuildCheckBadge(root, knob, new Vector2(42, 42));
 

@@ -274,9 +274,37 @@ namespace BunDauPeo.Tests
             for (var j = i + 1; j < rects.Length; j++)
                 Assert.IsFalse(rects[i].Overlaps(rects[j]), $"node {i} overlaps node {j}");
 
-            Assert.AreEqual(new Vector2(240, 640), StageMapView.NodeCenter(0));
-            Assert.AreEqual(new Vector2(480, 440), StageMapView.NodeCenter(1));
+            Assert.AreEqual(new Vector2(240, 720), StageMapView.NodeCenter(0));
+            Assert.AreEqual(new Vector2(480, 400), StageMapView.NodeCenter(1));
         }
+
+        // M1: ổ khoá ở đỉnh giữa nút; ở mọi vị trí nút nó nằm trong màn, dưới thanh trên và không chạm nút khác.
+        [Test]
+        public void StageSelectScene_LockIconOnTopOfNode() =>
+            WithStageSelect(scene =>
+            {
+                var node = (RectTransform)RestaurantSceneTests.All<StageNodeView>(scene).Single().transform;
+                var lockIcon = (RectTransform)node.Find("LockIcon");
+                var nodeRect = RestaurantSceneTests.InReferenceCanvas(node);
+                var lockRect = RestaurantSceneTests.InReferenceCanvas(lockIcon);
+                Assert.Less((lockRect.center - (nodeRect.center + new Vector2(0, 60))).magnitude, 4f, "LockIcon sits 60 px above the node centre");
+                var body = lockIcon.Find("LockBody").GetComponent<Image>();
+                Assert.AreEqual(new Color(1f, 0.85f, 0.4f), body.color, "lock body is Gold");
+
+                // NodeCenter dùng gốc trái trên; đổi sang y hướng lên như InReferenceCanvas.
+                var offset = lockRect.center - nodeRect.center;
+                var nodes = Enumerable.Range(0, 7).Select(i => new Vector2(StageMapView.NodeCenter(i).x, 1080f - StageMapView.NodeCenter(i).y)).ToArray();
+                for (var i = 0; i < nodes.Length; i++)
+                {
+                    var rect = new Rect(nodes[i] + offset - lockRect.size / 2f, lockRect.size);
+                    Assert.IsTrue(new Rect(0, 0, 1920, 1080).Contains(rect.min) && rect.yMax <= 1080f - 180f, $"lock {i} {rect} leaves the map area");
+                    for (var j = 0; j < nodes.Length; j++)
+                    {
+                        if (j == i) continue;
+                        Assert.IsFalse(rect.Overlaps(new Rect(nodes[j] - nodeRect.size / 2f, nodeRect.size)), $"lock {i} overlaps node {j}");
+                    }
+                }
+            });
 
         [Test]
         public void BuildSettings_Order_IsBootGachaRestaurantStageSelectBattle()

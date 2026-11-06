@@ -112,6 +112,10 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void StarsText_ShowsCount() => StringAssert.Contains("3 sao", GachaViewText.StarsText(3));
+        public void StarsText_ShowsCount() => Assert.AreEqual("★★★", GachaViewText.StarsText(3));
+
+        [Test]
+        public void PullLabel_TwoLines() =>
+            Assert.AreEqual("Quay 1\n100 Gem", GachaViewText.PullLabel(1, new[] { new CurrencyAmount(CurrencyType.Gem, 100) }));
     }
 }

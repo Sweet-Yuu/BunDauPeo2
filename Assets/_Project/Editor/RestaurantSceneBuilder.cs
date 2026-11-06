@@ -262,25 +262,35 @@ namespace BunDauPeo.EditorTools
         private static Text Card(RectTransform canvas, Font font, Sprite sprite, string name, string textName, string text, Vector2 position)
         {
             var card = NewRect(name, canvas);
-            Place(card, TopLeft, TopLeft, position, new Vector2(340, 76));
+            Place(card, TopLeft, TopLeft, position, new Vector2(260, 76));
             AddImage(card, sprite, CardColor, raycast: false);
             var label = NewText(textName, card, font, text, 40, TextAnchor.MiddleLeft, DarkText);
             Stretch(label.rectTransform);
             label.rectTransform.offsetMin = new Vector2(26, 0);
             label.rectTransform.offsetMax = new Vector2(-12, 0);
+            FitText(label, 24, 40);
             return label;
+        }
+
+        // Ô hẹp: chữ co lại thay vì tràn ra ngoài ô.
+        private static void FitText(Text text, int min, int max)
+        {
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = min;
+            text.resizeTextMaxSize = max;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
 
         private static RestaurantHud BuildHud(RectTransform canvas, Font font, Sprite sprite, Sprite knob, RectTransform counter, out Button statsButton)
         {
             // Ba thẻ tiền trên-trái.
             var coin = Card(canvas, font, sprite, "CoinCard", "CoinText", "Coin 0", new Vector2(30, -20));
-            var material = Card(canvas, font, sprite, "MaterialCard", "MaterialText", "Material 0", new Vector2(390, -20));
-            var gem = Card(canvas, font, sprite, "GemCard", "GemText", "Gem 0", new Vector2(750, -20));
+            var material = Card(canvas, font, sprite, "MaterialCard", "MaterialText", "Material 0", new Vector2(310, -20));
+            var gem = Card(canvas, font, sprite, "GemCard", "GemText", "Gem 0", new Vector2(590, -20));
 
-            // Thanh giữa-trên dưới hàng thẻ: sao và bộ đếm ở hàng trên, cảnh báo và nhãn thu nhập ở hàng dưới; được phép đè lên tường sau.
+            // Thanh thông tin ở hàng trên cùng, bên phải ba thẻ tiền (R1): sao và bộ đếm ở hàng trên, cảnh báo và nhãn thu nhập ở hàng dưới; không đè phòng và cột phải.
             var bar = NewRect("InfoBar", canvas);
-            Place(bar, TopCenter, TopLeft, new Vector2(240 - ReferenceWidth / 2f, -108), new Vector2(1120, 120));
+            Place(bar, TopCenter, TopLeft, new Vector2(860 - ReferenceWidth / 2f, -20), new Vector2(840, 120));
             // Cả thanh là nút mở QualityPopup (spec 5.4: bấm thẻ sao); con của nó đều tắt raycast nên bấm đâu cũng trúng thanh.
             var barImage = AddImage(bar, sprite, BarColor, raycast: true);
             statsButton = bar.gameObject.AddComponent<Button>();
@@ -303,16 +313,18 @@ namespace BunDauPeo.EditorTools
             }
 
             var counterText = NewText("CounterText", bar, font, "", 34, TextAnchor.MiddleRight, DarkText);
-            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-24, -10), new Vector2(760, 48));
+            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-24, -10), new Vector2(480, 48));
+            FitText(counterText, 20, 34);
             var warning = NewRect("WarningIcon", bar);
             Place(warning, TopLeft, TopLeft, new Vector2(24, -70), new Vector2(36, 36));
             var warningImage = AddImage(warning, null, new Color(0.95f, 0.40f, 0.30f), raycast: false);
             var income = NewText("IncomeText", bar, font, "", 34, TextAnchor.MiddleLeft, DarkText);
-            Place(income.rectTransform, TopLeft, TopLeft, new Vector2(74, -64), new Vector2(1020, 48));
+            Place(income.rectTransform, TopLeft, TopLeft, new Vector2(74, -64), new Vector2(740, 48));
+            FitText(income, 20, 34);
 
             // Thanh báo lỗi lưu khi thu AFK, ngay dưới thanh thông tin; RestaurantHud bật 6 giây rồi tắt.
             var messageRoot = NewRect("AfkMessage", canvas);
-            Place(messageRoot, TopCenter, TopLeft, new Vector2(240 - ReferenceWidth / 2f, -236), new Vector2(1120, 56));
+            Place(messageRoot, TopCenter, TopLeft, new Vector2(860 - ReferenceWidth / 2f, -150), new Vector2(840, 56));
             AddImage(messageRoot, sprite, BarColor, raycast: false);
             var messageText = NewText("AfkMessageText", messageRoot, font, "", 30, TextAnchor.MiddleCenter, IncidentHintText);
             Stretch(messageText.rectTransform);

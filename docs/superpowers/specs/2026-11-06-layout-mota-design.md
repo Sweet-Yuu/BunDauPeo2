@@ -157,7 +157,7 @@ Component mới trong assembly `UI`: một hàng tối đa 4 ô vuông 96×96, m
 
 - EditMode: theo từng mục ở mục 4; mỗi task kết thúc bằng `unity test . --mode EditMode` xanh (Editor đóng, vì phải dựng lại scene ở batch mode trước).
 - PlayMode: `SmokeLoopTests` chạy cuối mỗi phiên đụng Gacha hoặc Battle (A, B, C), xanh cả 12 test hiện có; `AssertSettingsButtonClear` mới xét cả nút tắt (G4).
-- Dừng playtest cuối mỗi phiên: chụp lại các màn đã sửa bằng quy trình "Công cụ thử tự động" (`BackupSave` → `OpenBoot` → Play → `Capture1080` → `RestoreSave`), ảnh ra `D:/Unity/bdp-shots/`, user xem và so với Mota.
+- Dừng playtest cuối mỗi phiên: chụp lại các màn đã sửa bằng quy trình "Công cụ thử tự động" (`BackupSave` → `OpenBoot` → Play → `Capture1080` → `RestoreSave`), ảnh ra `D:/bdp_BunDauPeo/shots/`, user xem và so với Mota.
 
 ## 6. Tài liệu cần sửa khi làm
 

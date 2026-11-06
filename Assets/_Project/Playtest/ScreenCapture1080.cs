@@ -18,7 +18,7 @@ namespace BunDauPeo.Playtest
             if (!Application.isPlaying) return "ERROR: Chỉ chụp được khi đang Play.";
 
             // Ngoài repo (cạnh thư mục project) nên không sinh .meta và không bị commit.
-            directory ??= Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "bdp-shots"));
+            directory ??= Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "bdp_BunDauPeo", "shots"));
             fileName = string.IsNullOrEmpty(fileName)
                 ? $"shot-{DateTime.Now:yyyyMMdd-HHmmss}.png"
                 : Path.GetFileName(fileName);

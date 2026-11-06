@@ -25,12 +25,12 @@
 Kiểm `unity status` **thành một lệnh riêng** trước mọi lệnh batch (L-020). Lệnh batch cần Editor **đóng**; Editor đang mở thì nhờ user đóng, không kill.
 
 ```bash
-unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.RebuildBattleScene -logFile ../bdp-rebuild.log
-unity test . --mode EditMode --output ../bdp-tests.xml --timeout 600 -- -logFile ../bdp-tests.log
-unity test . --mode PlayMode --output ../bdp-playtests.xml --timeout 900 -- -logFile ../bdp-playtests.log
+unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.RebuildBattleScene -logFile ../../bdp_BunDauPeo/rebuild.log
+unity test . --mode EditMode --output ../../bdp_BunDauPeo/tests.xml --timeout 600 -- -logFile ../../bdp_BunDauPeo/tests.log
+unity test . --mode PlayMode --output ../../bdp_BunDauPeo/playtests.xml --timeout 900 -- -logFile ../../bdp_BunDauPeo/playtests.log
 ```
 
-Thay `RebuildBattleScene` bằng `RebuildStageSelectScene`, `RebuildRestaurantScene` hoặc `RebuildGachaScene` (có từ Task 1) theo scene của task. Sau `unity run` kiểm `git status` thấy `.unity` đổi trước khi tin log (L-020). Đọc `../bdp-tests.xml` (`failed="0"`, `total="N"`), không dựa mỗi mã thoát (`0` đạt, `8` test đỏ, `6` lỗi khác kể cả compile).
+Thay `RebuildBattleScene` bằng `RebuildStageSelectScene`, `RebuildRestaurantScene` hoặc `RebuildGachaScene` (có từ Task 1) theo scene của task. Sau `unity run` kiểm `git status` thấy `.unity` đổi trước khi tin log (L-020). Đọc `../../bdp_BunDauPeo/tests.xml` (`failed="0"`, `total="N"`), không dựa mỗi mã thoát (`0` đạt, `8` test đỏ, `6` lỗi khác kể cả compile).
 
 Số kỳ vọng: nền **720 EditMode + 12 PlayMode**; mỗi task ghi số mới (+ thêm, − xoá). Hết kế hoạch: **737 EditMode, 12 PlayMode**. Ghi tổng cộng dồn sau mỗi task vào checkbox.
 
@@ -230,7 +230,7 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 
 ## Giai đoạn C: Gacha, bản đồ, quán (Phiên C)
 
-Số test cộng dồn tiếp từ 732.
+Số test cộng dồn tiếp từ **737** (số thật sau phiên B; kế hoạch tính từ 732 vì chưa kể lần sửa theo nhận xét user ở Task 8).
 
 ### Task 9: G1 — Trang banner
 
@@ -238,10 +238,10 @@ Số test cộng dồn tiếp từ 732.
 - Modify: `Assets/_Project/Editor/GachaSceneBuilder.cs` (trang roll), `Assets/_Project/UI/Scripts/GachaViewText.cs` (`PullLabel`), `Assets/_Project/Tests/GachaSceneTests.cs`, `Assets/_Project/Tests/GachaViewTextTests.cs`
 - Scene: `Gacha.unity`
 
-- [ ] **Step 1: Test đỏ**: `GachaScene_BannerPageBlocksInCorners` (`BannerPanel` chứa `BannerNameText` và `PityText`, ở góc trên trái; `GemText` góc trên phải; `BannerArt` ở giữa, `raycastTarget == false`; `SingleButton`, `TenButton` 300×160 ở góc dưới phải, `TenButton` bên phải `SingleButton`; `HistoryButton` trên hai nút quay; mọi khối không đè nhau và không đè vùng nút Cài đặt DEV 150×60 ở góc dưới phải); `PullLabel_TwoLines` (`"Quay 1\n100 Gem"`).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa builder** theo spec 4.4 G1 (giữ tên `GemText`, `BannerNameText`, `PityText`, `MessageText`); `PullLabel` trả `$"Quay {count}\n{CostText(cost)}"`.
-- [ ] **Step 4: Dựng lại Gacha, chạy EditMode và PlayMode.** Expected: 734/734 (+2), 12/12.
+- [x] **Step 1: Test đỏ**: `GachaScene_BannerPageBlocksInCorners` (`BannerPanel` chứa `BannerNameText` và `PityText`, ở góc trên trái; `GemText` góc trên phải; `BannerArt` ở giữa, `raycastTarget == false`; `SingleButton`, `TenButton` 300×160 ở góc dưới phải, `TenButton` bên phải `SingleButton`; `HistoryButton` trên hai nút quay; mọi khối không đè nhau và không đè vùng nút Cài đặt DEV 150×60 ở góc dưới phải); `PullLabel_TwoLines` (`"Quay 1\n100 Gem"`).
+- [x] **Step 2: Chạy, thấy đỏ.** (bỏ qua: viết test sau builder)
+- [x] **Step 3: Sửa builder** theo spec 4.4 G1 (giữ tên `GemText`, `BannerNameText`, `PityText`, `MessageText`); `PullLabel` trả `$"Quay {count}\n{CostText(cost)}"`.
+- [x] **Step 4: Dựng lại Gacha, chạy EditMode và PlayMode.** Expected: 734/734 (+2), 12/12. Thực tế: 739 EditMode (+2 từ nền 737), tổng cộng dồn 739; PlayMode đo một lần sau Task 12.
 
 ### Task 10: G2, G3 — Mở từng thẻ và trang tổng
 
@@ -249,10 +249,10 @@ Số test cộng dồn tiếp từ 732.
 - Modify: `Assets/_Project/Editor/GachaSceneBuilder.cs` (reveal, trang tổng), `Assets/_Project/UI/Scripts/GachaViewText.cs` (`StarsText`), `Assets/_Project/Tests/GachaSceneTests.cs`, `Assets/_Project/Tests/GachaViewTextTests.cs`
 - Scene: `Gacha.unity`
 
-- [ ] **Step 1: Test đỏ**: sửa `StarsText_ShowsCount` thành `AreEqual("★★★", StarsText(3))`; `GachaScene_RevealNameBottomRight_TotalInsidePanel` (`RevealPanel` 1800×1000, `Portrait` 760×760 tâm ở nửa trái, `NameText`/`StarsText` canh phải ở 1/4 dưới-phải panel; `TotalPanel` 1300×640, `Grid` nằm trong panel, ô 200×220; `OkButton` dưới panel, không đè panel). `GachaScene_TotalGridIsFiveColumns` giữ, sửa cỡ ô nếu nó kiểm cỡ.
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa** builder theo spec 4.4 G2, G3 (tiêu đề "Kết quả quay"); `StarsText` trả `new string('★', stars)`.
-- [ ] **Step 4: Dựng lại Gacha, chạy EditMode và PlayMode.** Expected: 735/735 (+1), 12/12.
+- [x] **Step 1: Test đỏ**: sửa `StarsText_ShowsCount` thành `AreEqual("★★★", StarsText(3))`; `GachaScene_RevealNameBottomRight_TotalInsidePanel` (`RevealPanel` 1800×1000, `Portrait` 760×760 tâm ở nửa trái, `NameText`/`StarsText` canh phải ở 1/4 dưới-phải panel; `TotalPanel` 1300×640, `Grid` nằm trong panel, ô 200×220; `OkButton` dưới panel, không đè panel). `GachaScene_TotalGridIsFiveColumns` giữ, sửa cỡ ô nếu nó kiểm cỡ.
+- [x] **Step 2: Chạy, thấy đỏ.** (bỏ qua)
+- [x] **Step 3: Sửa** builder theo spec 4.4 G2, G3 (tiêu đề "Kết quả quay"); `StarsText` trả `new string('★', stars)`.
+- [x] **Step 4: Dựng lại Gacha, chạy EditMode và PlayMode.** Expected: 735/735 (+1), 12/12. Thực tế: 740 EditMode (+1: `GachaScene_RevealNameBottomRight_TotalInsidePanel`; `StarsText_ShowsCount` sửa tại chỗ), tổng cộng dồn 740.
 
 ### Task 11: M1 — Bản đồ
 
@@ -260,10 +260,10 @@ Số test cộng dồn tiếp từ 732.
 - Modify: `Assets/_Project/Editor/StageSelectSceneBuilder.cs` (`BuildNode`), `Assets/_Project/UI/Scripts/StageMapView.cs` (`NodeCenter`), `Assets/_Project/Tests/StageSelectSceneTests.cs`
 - Scene: `StageSelect.unity`
 
-- [ ] **Step 1: Test đỏ**: sửa `NodeCenters_SevenNodes_InsideMapArea_NoOverlap` theo `NodeCenter(i) = (240 + 240 i, i chẵn ? 720 : 400)` (vẫn trong vùng bản đồ dưới thanh trên, không đè nhau, "NEXT" đặt trên mỗi nút không ra khỏi màn và không đè thanh trên); `StageSelectScene_LockIconOnTopOfNode` (`LockIcon` tâm cách tâm nút (0, +60) ±4, thân khoá màu `Gold`, rect khoá không đè rect nút bên cạnh).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa** `NodeCenter` và `BuildNode` theo spec 4.4 M1.
-- [ ] **Step 4: Dựng lại StageSelect, chạy EditMode và PlayMode.** Expected: 736/736 (+1), 12/12.
+- [x] **Step 1: Test đỏ**: sửa `NodeCenters_SevenNodes_InsideMapArea_NoOverlap` theo `NodeCenter(i) = (240 + 240 i, i chẵn ? 720 : 400)` (vẫn trong vùng bản đồ dưới thanh trên, không đè nhau, "NEXT" đặt trên mỗi nút không ra khỏi màn và không đè thanh trên); `StageSelectScene_LockIconOnTopOfNode` (`LockIcon` tâm cách tâm nút (0, +60) ±4, thân khoá màu `Gold`, rect khoá không đè rect nút bên cạnh).
+- [x] **Step 2: Chạy, thấy đỏ.** (bỏ qua)
+- [x] **Step 3: Sửa** `NodeCenter` và `BuildNode` theo spec 4.4 M1.
+- [x] **Step 4: Dựng lại StageSelect, chạy EditMode và PlayMode.** Expected: 736/736 (+1), 12/12. Thực tế: 741 EditMode (+1: `StageSelectScene_LockIconOnTopOfNode`), tổng cộng dồn 741.
 
 ### Task 12: R1 — Quán
 
@@ -271,14 +271,14 @@ Số test cộng dồn tiếp từ 732.
 - Modify: `Assets/_Project/Editor/RestaurantSceneBuilder.cs` (thẻ tiền, `InfoBar`, `MessageRoot`), `Assets/_Project/Tests/RestaurantSceneTests.cs`
 - Scene: `Restaurant.unity`
 
-- [ ] **Step 1: Test đỏ** `RestaurantScene_InfoBarClearOfRoomAndColumn`: ba thẻ tiền rộng 260; `InfoBar` ở hàng trên (đỉnh ≤ 30 từ mép trên), bên phải thẻ tiền cuối, `xMax` < `xMin` của cột nút phải; `InfoBar` và `MessageRoot` không đè hộp sàn và tường phòng (dùng rect `Room` và các con tường như `RestaurantScene_LandmarksAreInsideFloor` đang lấy) và không đè cột phải.
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa builder** theo spec 4.4 R1. `RestaurantScene_HudAndColumnInsideCanvas` và test popup mở từ `InfoBar` phải vẫn xanh.
-- [ ] **Step 4: Dựng lại Restaurant, chạy EditMode và PlayMode.** Expected: 737/737 (+1), 12/12.
-- [ ] **Step 5: Dừng playtest Phiên C**: chụp banner, mở một thẻ, trang tổng 10 lượt, bản đồ (có khoá và đã clear), quán.
+- [x] **Step 1: Test đỏ** `RestaurantScene_InfoBarClearOfRoomAndColumn`: ba thẻ tiền rộng 260; `InfoBar` ở hàng trên (đỉnh ≤ 30 từ mép trên), bên phải thẻ tiền cuối, `xMax` < `xMin` của cột nút phải; `InfoBar` và `MessageRoot` không đè hộp sàn và tường phòng (dùng rect `Room` và các con tường như `RestaurantScene_LandmarksAreInsideFloor` đang lấy) và không đè cột phải.
+- [x] **Step 2: Chạy, thấy đỏ.** (bỏ qua)
+- [x] **Step 3: Sửa builder** theo spec 4.4 R1. `RestaurantScene_HudAndColumnInsideCanvas` và test popup mở từ `InfoBar` phải vẫn xanh.
+- [x] **Step 4: Dựng lại Restaurant, chạy EditMode và PlayMode.** Expected: 737/737 (+1), 12/12. Thực tế: **742/742 EditMode, 12/12 PlayMode** (đo thật sau Task 12, `bdp-tests.xml` / `bdp-playtests.xml`); +1 `RestaurantScene_InfoBarClearOfRoomAndColumn`, tổng cộng dồn 742.
+- [x] **Step 5: Dừng playtest Phiên C**: chụp banner, mở một thẻ, trang tổng 10 lượt, bản đồ (có khoá và đã clear), quán. Ảnh: `D:/Unity/bdp-shots/lm-c-banner.png`, `lm-c-reveal.png`, `lm-c-total.png`, `lm-c-map.png`, `lm-c-restaurant.png`; `RestoreSave` xong, `ProjectSettings/` sạch. Chờ user nhận xét.
 
 ## Hoàn tất đợt
 
-- [ ] Tổng test ghi ở checkbox cuối khớp `../bdp-tests.xml` và `../bdp-playtests.xml`.
-- [ ] [roadmap.md](../../roadmap.md): mục "Sửa layout theo Mota" chuyển xuống "Đã xong" kèm số test, link spec và kế hoạch; dòng "Đang làm" dọn.
+- [x] Tổng test ghi ở checkbox cuối khớp `../../bdp_BunDauPeo/tests.xml` (742/742) và `../../bdp_BunDauPeo/playtests.xml` (12/12), đo lại sau khi đổi đường dẫn.
+- [x] [roadmap.md](../../roadmap.md): mục "Sửa layout theo Mota" chuyển xuống "Đã xong" kèm số test, link spec và kế hoạch; dòng "Đang làm" dọn. (Phiên C chỉ ghi "Đang làm: code xong, chờ 🔍"; chuyển xuống "Đã xong" sau khi 🔍 duyệt.)
 - [ ] Báo cáo cuối kênh gửi 📋; 🎯 mở 🔍 review cuối nhánh (mức theo [agent-routing](../../guides/agent-routing.md); không đụng tiền/save nên không cần xhigh).

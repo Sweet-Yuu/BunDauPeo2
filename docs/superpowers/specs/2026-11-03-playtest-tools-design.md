@@ -80,7 +80,7 @@ Làm đúng công thức đã chứng minh ở L-011, trong **một** lần gọ
 3. Mọi `Canvas` gốc đang ở `ScreenSpaceOverlay` đổi sang `ScreenSpaceCamera` với camera tạm; nhớ danh sách để trả lại.
 4. `Canvas.ForceUpdateCanvases()`, `Render()`, `ReadPixels`, `EncodeToPNG`.
 5. **`finally`**: trả mọi Canvas về `ScreenSpaceOverlay`, huỷ camera và texture tạm.
-6. Ghi vào `<cha của thư mục project>/bdp-shots/` (ví dụ `D:/Unity/bdp-shots/`, ngoài repo nên không sinh `.meta`, không bị commit); tên mặc định `shot-yyyyMMdd-HHmmss.png`.
+6. Ghi vào `<cha của cha thư mục project>/bdp_BunDauPeo/shots/` (ví dụ `D:/bdp_BunDauPeo/shots/`, ngoài repo nên không sinh `.meta`, không bị commit); tên mặc định `shot-yyyyMMdd-HHmmss.png`.
 
 Màn có bố cục cố định theo chiều cao đã dùng `CanvasScaler` khớp theo chiều cao (luật của Combat), nên 1920×1080 là khung chuẩn của mọi màn.
 
