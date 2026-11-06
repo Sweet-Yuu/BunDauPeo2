@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-06 · Trạng thái: **đã duyệt** (user, 2026-11-06, thiết kế lẫn bản viết; chọn sửa cả 13 mục theo thứ tự đề xuất) · Phạm vi: bố cục các màn đang có (Battle, StageSelect, Gacha, Restaurant) cho gần ảnh trong `Mota/`. Không thêm màn, không đổi luật chơi.
 > Nguồn: [ui-screens.md](../../references/ui-screens.md) (ảnh theo màn, "chỉ tham khảo", "luật chơi không lấy từ ảnh"), [spec Combat mục 5](2026-11-02-combat-design.md#5-ui), [spec Gacha mục 5](2026-10-31-gacha-design.md#5-ui-tối-thiểu), [spec reveal mục 3](2026-10-31-gacha-reveal-design.md#3-luồng), [spec Restaurant mục 5.1](2026-11-01-restaurant-design.md#51-màn-quán-restaurantunity). Luật UI: [unity-workflow, UI và hình tạm](../../guides/unity-workflow.md#ui-và-hình-tạm). Kế hoạch: [plans/2026-11-06-layout-mota.md](../plans/2026-11-06-layout-mota.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code hoặc [unity-workflow.md](../../guides/unity-workflow.md), code và unity-workflow thắng; không sửa spec này để theo kịp.
 
 ## 1. Mục tiêu
 

@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Sửa layout theo Mota: code xong cả 12 task (phiên A, B, C) trên `feature/layout-mota`, chờ 🔍 review cuối nhánh ([spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md)); sau đó Build Android thử sớm, Song ngữ.
+- Không có. Kế tiếp: Build Android thử sớm, rồi Song ngữ.
 
 ## Tiếp theo
 
@@ -13,7 +13,6 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
-- [ ] Sửa layout theo Mota (user chốt 2026-11-06, đặt đầu danh sách): 13 chỗ lệch giữa các màn đang có và ảnh `Mota/` (kết quả trận, nút Bỏ qua bị nút DEV che, popup màn, chọn đội, tạm dừng, màn trận, số HP quái, banner Gacha, mở thẻ, trang tổng, bản đồ, quán); không thêm màn, không đổi luật. 12 task, 3 phiên 🔨 (A: task 1–4, B: 5–8, C: 9–12), dừng playtest cuối mỗi phiên: [spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md).
 - [ ] Build Android thử sớm (user chốt 2026-11-03: ngay sau Combat, cùng đợt với công cụ thử): method `BuildAndroid` chạy bằng `-executeMethod`, build lại sau mỗi feature để bắt lỗi riêng của nền tảng trước hạn 31/12. Không thay mục "Build Android, test trên máy thật, Closed Test" ở dưới.
 - [ ] Song ngữ Việt–Anh (master plan, user chốt 2026-11-03): mọi chữ trong game có bản tiếng Anh. Làm ngay sau hai việc trên, vì mỗi màn mới làm thêm đều phải sửa lại chữ.
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
@@ -29,6 +28,7 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 
 ## Đã xong
 
+- 2026-11-06 — Sửa layout theo Mota (nhánh `feature/layout-mota`, chờ PR vào `main`): 13 chỗ lệch với ảnh `Mota/` ở Battle, StageSelect, Gacha, Restaurant; không thêm màn, không đổi luật. 12 task, 3 phiên 🔨, 🔍 review không lỗi chặn; 742 EditMode + 12 PlayMode xanh; user đã playtest. Nâng L-025, L-027, L-028 thành luật. 4 góp ý nhỏ để sau: [spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md).
 - 2026-11-06 — Công cụ thử tự động và panel DEV Cài đặt (PR #8, đã merge vào `main` ở `6ec636e`): mọi nút DEV gom vào panel Cài đặt, sửa lỗi review A1–A3, A5, A6, B1–B3; 720 EditMode + 12 PlayMode xanh. Công cụ gốc ghi ở dòng 2026-11-04 bên dưới.
 - 2026-11-04 — Công cụ thử tự động: `PlaytestTools` (mở Boot, sao lưu/khôi phục save, chạy nền rồi trả `ProjectSettings`, chụp 1920×1080, bấm nút theo tên) + menu `Tools/BunDauPeo/Playtest/`, `UiDriver`, `ScreenCapture1080`, smoke test PlayMode trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm: [spec](superpowers/specs/2026-11-03-playtest-tools-design.md), [kế hoạch](superpowers/plans/2026-11-03-playtest-tools.md), [D-009](decisions/decisions.md). 715 EditMode + 4 PlayMode xanh; nhánh `feature/playtest-tools`, 9 task, 2 phiên 🔨; user đã xem ảnh chụp và thử menu 2026-11-04. Còn chờ review độc lập cuối nhánh và PR.
 
