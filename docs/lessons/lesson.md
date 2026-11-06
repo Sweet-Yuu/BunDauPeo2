@@ -26,25 +26,10 @@
 
 ## Đang hiệu lực
 
-### L-028 — Play chạy nhưng đứng ở khung 2 khi cửa sổ Editor không ở trước (2026-11-06)  #process #unity-files
-- Triệu chứng: Editor mở bằng `unity open .`, `EnableBackgroundPlay` đã bật, vậy mà `Time.frameCount` đứng ở 2, ảnh `Capture1080` chỉ ra nền xanh nhạt, `ClickButton` báo `Clicked` mà không có gì đổi. `isApplicationActive` là False.
-- Nguyên nhân gốc: chạy nền không đủ để vòng lặp Play chạy khi cửa sổ Editor bị che hoặc thu nhỏ.
-- Luật từ nay: trước khi thử Play, `eval` in `Time.frameCount` hai lần cách vài giây; đứng yên thì nhờ user đưa cửa sổ Unity ra trước (không tự kích hoạt cửa sổ), đừng chụp ảnh khi chưa thấy khung chạy. Thêm ở `unity-workflow` khi có dịp nâng luật.
-
-### L-027 — Test đè nút chỉ xét nút đang bật bỏ sót nút chỉ hiện trong luồng (2026-11-06)  #ui #process
-- Triệu chứng: nút Cài đặt DEV (góc dưới phải) che nút "Bỏ qua" của Gacha lúc mở 10 lượt; `AssertSettingsButtonClear` vẫn xanh vì dùng `FindObjectsInactive.Exclude` và nút Bỏ qua tắt sẵn (L-025 lặp lại lần hai).
-- Nguyên nhân gốc: nút Bỏ qua, nút trong popup và nút kết quả chỉ bật khi cần, nên lúc test chạy chúng không nằm trong danh sách.
-- Luật từ nay: kiểm đè nút luôn gồm nút tắt (`FindObjectsInactive.Include`, nút tắt vẫn có `RectTransform` đúng chỗ). Lặp lần hai nên chờ 🔍 nâng thành luật (code-style, Test).
-
 ### L-026 — `Capture1080("tên")` không tự thêm đuôi `.png` (2026-11-06)  #ui #process
 - Triệu chứng: lúc rà layout, `Capture1080("lm-restaurant")` ghi ra file `lm-restaurant` không đuôi; công cụ đọc ảnh không mở được, phải đổi tên tay.
 - Nguyên nhân gốc: `ScreenCapture1080.Capture` chỉ dùng `Path.GetFileName(fileName)`, tên mặc định mới có `.png`.
 - Luật từ nay: truyền tên có đuôi (`Capture1080("x.png")`). Sửa công cụ để tự thêm `.png` khi thiếu là việc nhỏ, chờ 🎯 xếp.
-
-### L-025 — Nút DEV mới đè lên nút của màn game vì `DevOverlay` vẽ trên cùng (2026-11-06)  #ui #process
-- Triệu chứng: review thấy nút "Cài đặt" (góc trên phải, 200×60) che tâm nút `MenuButton` của Battle; `ClickButton("MenuButton")` sẽ báo `Blocked`, bấm nửa trên nút Menu lại mở Cài đặt. Smoke test không bắt được vì test PlayMode không có `DevOverlay` (L-024).
-- Nguyên nhân gốc: Canvas `DevOverlay` có `sortingOrder = 1000` và khớp chiều cao như mọi màn, nhưng vị trí nút chọn mà không đối chiếu builder của các màn.
-- Luật từ nay: thêm hay dời nút trong `DevOverlay` thì đối chiếu toạ độ với nút ở cùng góc trong mọi builder (`*SceneBuilder.cs`), hoặc chạy `ClickButton` trên các nút đó ở mỗi màn khi Play có Boot. Đã xử lý (2026-11-06): nút Cài đặt neo góc dưới phải; test `DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks` so hình chữ nhật với mọi nút ở Restaurant, Gacha, StageSelect, Battle.  Sau đó (user yêu cầu, để sắp xếp bố cục theo Mota) mọi nút DEV chuyển vào panel Cài đặt, ngoài panel chỉ còn nút Cài đặt neo góc dưới phải.
 
 ### L-022 — Lệnh Bash dài có heredoc Python lẫn tiếng Việt báo `unexpected EOF` và không chạy gì (2026-11-03)  #process
 - Triệu chứng: ba lần `python - <<'EOF'` sửa nhiều file một lượt thoát mã 2 ("unexpected EOF while looking for matching `''`"), không file nào đổi; chỉ thấy khi kiểm `git status`.
@@ -63,8 +48,11 @@
 
 ## Đã nâng thành luật
 
-Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03). Luật hiện hành ở file được trỏ tới.
+Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
 
+- L-028 (2026-11-06) Play đứng ở khung 2 khi cửa sổ Editor không ở trước, dù đã bật chạy nền (lặp L-009)  #process #unity-files → [unity-workflow](../guides/unity-workflow.md#công-cụ-chính-unity-cli-unity)
+- L-027 (2026-11-06) Test đè nút chỉ xét nút đang bật bỏ sót nút Bỏ qua của Gacha (lặp L-025)  #ui #process → [code-style, Test](../guides/code-style.md#test)
+- L-025 (2026-11-06) Nút DEV đè nút của màn game vì `DevOverlay` vẽ trên cùng  #ui #process → [unity-workflow, UI và hình tạm](../guides/unity-workflow.md#ui-và-hình-tạm), [code-style, Test](../guides/code-style.md#test)
 - L-024 (2026-11-04) Kịch bản smoke test đoán theo builder: màn đầu là Truyện, `DevOverlay` không có trong test PlayMode  #process #ui → [unity-workflow, Công cụ thử tự động](../guides/unity-workflow.md#công-cụ-thử-tự-động)
 - L-023 (2026-11-03) `BootScenePlayMode` làm `unity test --mode PlayMode` treo và ghi save thật  #unity-files #process → [unity-workflow, Công cụ thử tự động](../guides/unity-workflow.md#công-cụ-thử-tự-động), [D-009](../decisions/decisions.md)
 - L-020 (2026-11-03) `unity status && unity run` cắt vế sau; log cũ trông như mới  #process #unity-files → [unity-workflow](../guides/unity-workflow.md#công-cụ-chính-unity-cli-unity)

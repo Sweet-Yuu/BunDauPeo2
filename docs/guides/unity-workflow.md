@@ -41,7 +41,7 @@ Quy tắc:
   - `unity command test run` báo kết quả **cũ** khi project đang lỗi compile (vẫn "N/N passed"): kiểm `unity command console status` có `"compilationFailed":false` trước khi tin con số.
   - Mỗi lệnh CLI tốn ~3 giây. Muốn đo thời gian trong Play, ghi `Time.realtimeSinceStartup` trong chính lệnh `eval` (`Debug.Log`), đừng dựa vào `sleep`.
   - Bơm chạm chuột: `InputSystem.EnableDevice(Mouse.current)` (thiết bị bị tắt khi Editor không focus), rồi `QueueStateEvent(Mouse.current, new MouseState { buttons = 1 })` ở một lệnh và `buttons = 0` ở lệnh sau.
-  - Play đứng im khi Editor không focus (L-009, `Time.frameCount` đứng yên) và bật chạy nền có thể ghi `runInBackground` vào `ProjectSettings.asset` (L-007): dùng `PlaytestTools.EnableBackgroundPlay()`, nó nhớ giá trị gốc trong `SessionState` và tự trả lại khi về Edit Mode. Cuối lượt vẫn kiểm `git status`.
+  - Play đứng im khi Editor không focus (L-009, `Time.frameCount` đứng yên) và bật chạy nền có thể ghi `runInBackground` vào `ProjectSettings.asset` (L-007): dùng `PlaytestTools.EnableBackgroundPlay()`, nó nhớ giá trị gốc trong `SessionState` và tự trả lại khi về Edit Mode. Cuối lượt vẫn kiểm `git status`. Chạy nền vẫn không đủ khi cửa sổ Editor bị che hay thu nhỏ (L-028): trước khi thử, `eval` in `Time.frameCount` hai lần cách vài giây; đứng yên thì nhờ user đưa cửa sổ Unity ra trước (không tự kích hoạt cửa sổ), chưa thấy khung chạy thì không chụp, không bấm.
   - Lượt thử Play ghi vào save thật: `PlaytestTools.BackupSave()` trước, `RestoreSave()` sau khi thoát Play (nó từ chối khi đang Play vì `OnApplicationQuit` sẽ ghi đè). Chạy PlayMode batch cũng ghi vào save thật nếu không có save tạm (L-023).
   - Chụp màn hình để kiểm UI: `PlaytestTools.Capture1080()` (ra `D:/bdp_BunDauPeo/shots/`, ngoài repo). Lý do (L-010, L-011): `capture game_view` luôn bóp ảnh về 16:9 (1280×720) dù Game view thật khác, nên hình méo và dễ kết luận sai bố cục; hàm này đổi Canvas sang `ScreenSpaceCamera` với camera `targetTexture` 1920×1080 rồi trả về Overlay. Màn có bố cục cố định theo chiều cao thì `CanvasScaler` khớp theo chiều cao. `capture --save_path` chỉ nhận đường dẫn trong project và sinh `.meta` ở `Assets/`: đừng dùng.
   - `unity close .` có thể báo "did not close within 30s" dù Editor vẫn đóng: chạy `unity status` lặp lại tới khi hết dòng Editor, không kill process.
@@ -106,6 +106,7 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 - Việc liên quan đến Canvas (nút, panel, thanh, biểu tượng…): dùng component `Image` (uGUI) và gán các sprite có sẵn ở trên vào `Image`; không dùng `Raw Image` hay ảnh import.
 - Ngoại lệ đã được user cho phép: 3 PNG cutscene Gacha (`Gacha/Art/Summoning/`), xem mục 6 của [spec reveal](../superpowers/specs/2026-10-31-gacha-reveal-design.md).
 - Tạo bằng `unity command` hoặc script Editor, không import ảnh ngoài. Khi có art thật thì đổi tham chiếu sprite, không đổi cấu trúc UI.
+- `DevOverlay` vẽ trên mọi màn (`sortingOrder = 1000`), nên nút DEV dễ che nút game. Thêm hay dời nút trong `DevOverlay`, hoặc đặt nút game vào góc dưới phải (chỗ nút "Cài đặt" DEV), thì đối chiếu toạ độ với mọi `*SceneBuilder.cs` và chạy smoke test `DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks` (xét cả nút đang tắt). Nút DEV mới vào panel Cài đặt, không đặt ra ngoài màn (L-025, L-027).
 
 ## Git
 
