@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-026 — `Capture1080("tên")` không tự thêm đuôi `.png` (2026-11-06)  #ui #process
+- Triệu chứng: lúc rà layout, `Capture1080("lm-restaurant")` ghi ra file `lm-restaurant` không đuôi; công cụ đọc ảnh không mở được, phải đổi tên tay.
+- Nguyên nhân gốc: `ScreenCapture1080.Capture` chỉ dùng `Path.GetFileName(fileName)`, tên mặc định mới có `.png`.
+- Luật từ nay: truyền tên có đuôi (`Capture1080("x.png")`). Sửa công cụ để tự thêm `.png` khi thiếu là việc nhỏ, chờ 🎯 xếp.
+
 ### L-025 — Nút DEV mới đè lên nút của màn game vì `DevOverlay` vẽ trên cùng (2026-11-06)  #ui #process
 - Triệu chứng: review thấy nút "Cài đặt" (góc trên phải, 200×60) che tâm nút `MenuButton` của Battle; `ClickButton("MenuButton")` sẽ báo `Blocked`, bấm nửa trên nút Menu lại mở Cài đặt. Smoke test không bắt được vì test PlayMode không có `DevOverlay` (L-024).
 - Nguyên nhân gốc: Canvas `DevOverlay` có `sortingOrder = 1000` và khớp chiều cao như mọi màn, nhưng vị trí nút chọn mà không đối chiếu builder của các màn.
