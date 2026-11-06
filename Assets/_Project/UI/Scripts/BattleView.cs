@@ -158,7 +158,7 @@ namespace BunDauPeo.UI
         private void OnMenuClicked()
         {
             var session = _service?.Current;
-            if (session != null && session.State != BattleState.Won && session.State != BattleState.Lost) _pause.Open(session, _service.Config.MaxEnergy);
+            if (session != null && session.State != BattleState.Won && session.State != BattleState.Lost) _pause.Open(session, _service.Config.MaxEnergy, unit => _allies[unit.SlotIndex].ShownHp);
         }
 
         private void OnAutoClicked()

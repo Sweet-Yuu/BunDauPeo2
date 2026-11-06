@@ -25,7 +25,8 @@ namespace BunDauPeo.UI
         public bool IsOpen => _root != null && _root.activeSelf;
 
         // maxEnergy: cùng giá trị BattleView đưa cho thẻ dưới trận (BattleSession.Config không public).
-        public void Open(BattleSession session, int maxEnergy)
+        // shownHp: máu đang hiển thị trên sân (BattleUnitView.ShownHp), để thẻ khớp hình khi mở Menu giữa lúc hiệu ứng còn chạy.
+        public void Open(BattleSession session, int maxEnergy, System.Func<BattleUnit, int> shownHp)
         {
             if (session == null || !HasAllReferences()) return;
 
@@ -42,7 +43,7 @@ namespace BunDauPeo.UI
                 var unit = session.Allies[i];
                 _cards[i].Bind(unit);
                 _cards[i].Button.interactable = false;
-                _cards[i].Refresh(unit.Hp, maxEnergy, false);
+                _cards[i].Refresh(shownHp(unit), maxEnergy, false);
             }
 
 #if !(UNITY_EDITOR || DEVELOPMENT_BUILD)

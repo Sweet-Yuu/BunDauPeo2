@@ -303,7 +303,7 @@ namespace BunDauPeo.Tests
                 session.EnemyAct();
                 var cards = Enumerable.Range(0, 5).Select(i => (BattleCardView)so.FindProperty("_cards").GetArrayElementAtIndex(i).objectReferenceValue).ToArray();
 
-                popup.Open(session, 100);
+                popup.Open(session, 100, unit => unit.Hp);
 
                 Assert.AreEqual("1-1", ((Text)so.FindProperty("_stageName").objectReferenceValue).text);
                 Assert.IsTrue(cards[0].gameObject.activeSelf);
@@ -311,6 +311,25 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual("640/800", cards[0].transform.Find("HpText").GetComponent<Text>().text);
                 Assert.AreEqual("Nem Chua", cards[0].transform.Find("Name").GetComponent<Text>().text);
                 Assert.IsFalse(cards[0].Button.interactable, "pause cards are read-only");
+                popup.Close();
+            });
+
+        // Mở Menu giữa lúc đòn đánh còn chạy hiệu ứng: thẻ phải hiện máu đang hiển thị trên sân (ShownHp), không phải máu thật.
+        [Test]
+        public void BattlePausePopup_Open_CardsShowShownHpNotRealHp() =>
+            WithBattleScene(scene =>
+            {
+                var popup = RestaurantSceneTests.All<BattlePausePopup>(scene).Single();
+                var so = new SerializedObject(popup);
+                var stage = CombatTestData.Stage("1-1", new[] { CombatTestData.Enemy("e", 100000, 160, 0, 500) });
+                var session = CombatTestData.Battle(new[] { CombatTestData.Hero("Nem Chua", hp: 800, speed: 100) }, stage);
+                session.EnemyAct();
+                Assert.AreEqual(640, session.Allies[0].Hp, "real hp already dropped");
+                var card = (BattleCardView)so.FindProperty("_cards").GetArrayElementAtIndex(0).objectReferenceValue;
+
+                popup.Open(session, 100, unit => 800);
+
+                Assert.AreEqual("800/800", card.transform.Find("HpText").GetComponent<Text>().text);
                 popup.Close();
             });
 

@@ -16,16 +16,17 @@ namespace BunDauPeo.UI
 
         public bool HasAllReferences()
         {
-            if (_label == null || _cells == null || _amounts == null) return false;
-            if (_cells.Length != MaxCells || _amounts.Length != MaxCells) return false;
-            for (var i = 0; i < MaxCells; i++)
-                if (_cells[i] == null || _amounts[i] == null) return false;
-            return true;
+            var ok = _label != null && _cells != null && _amounts != null && _cells.Length == MaxCells && _amounts.Length == MaxCells
+                     && System.Array.TrueForAll(_cells, c => c != null) && System.Array.TrueForAll(_amounts, a => a != null);
+            if (!ok) Debug.LogError($"{nameof(RewardRow)}: references are not assigned.", this);
+            return ok;
         }
 
         // shortcut: quá MaxCells dòng thì chỉ hiện MaxCells ô đầu; nới khi có màn thưởng hơn 4 loại.
         public void Show(IReadOnlyList<CurrencyAmount> lines, string label)
         {
+            if (!HasAllReferences()) return;
+
             gameObject.SetActive(true);
             _label.text = label ?? "";
             for (var i = 0; i < MaxCells; i++)
