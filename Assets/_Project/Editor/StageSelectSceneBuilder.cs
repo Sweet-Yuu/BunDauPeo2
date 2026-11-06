@@ -176,7 +176,8 @@ namespace BunDauPeo.EditorTools
             return root;
         }
 
-        // Nền tối chặn chạm; hộp giữa 1000×900: tên, tối đa 4 hàng đợt (5 ô vuông, boss lớn hơn), thưởng, thể lực, cảnh báo, hai nút.
+        // Nền tối chặn chạm; hộp giữa 1600×820 hai cột (S1). Trái: tên, tối đa 4 hàng đợt (5 ô vuông, boss lớn hơn), hàng ô thưởng.
+        // Phải dưới: thể lực, cảnh báo, hai nút cạnh nhau. Toạ độ tính từ tâm hộp, y hướng lên.
         private static StageInfoPopup BuildInfoPopup(RectTransform canvas, Sprite sprite, Font font)
         {
             var holder = NewRect("StageInfoPopup", canvas);
@@ -186,36 +187,38 @@ namespace BunDauPeo.EditorTools
             AddImage(root, null, Dim, raycast: true);
 
             var box = NewRect("InfoBox", root);
-            Place(box, Center, Center, Vector2.zero, new Vector2(1000, 900));
+            Place(box, Center, Center, Vector2.zero, new Vector2(1600, 820));
             AddImage(box, sprite, CardColor, raycast: false);
 
-            var title = NewText("Title", box, font, "", 56, TextAnchor.MiddleCenter, Gold);
+            var title = NewText("Title", box, font, "", 56, TextAnchor.MiddleLeft, Gold);
             title.fontStyle = FontStyle.Bold;
-            Place(title.rectTransform, Center, Center, new Vector2(0, 380), new Vector2(900, 70));
+            Place(title.rectTransform, Center, Center, new Vector2(-480, 340), new Vector2(520, 80));
+            var enemyHeader = NewText("EnemyHeader", box, font, "Quái", 36, TextAnchor.MiddleLeft, Gold);
+            Place(enemyHeader.rectTransform, Center, Center, new Vector2(-660, 265), new Vector2(160, 50));
 
             var labels = new Text[StageInfoPopup.WaveRows];
             var cells = new Image[StageInfoPopup.WaveRows * StageInfoPopup.CellsPerRow];
             for (var row = 0; row < labels.Length; row++)
             {
-                var y = 270 - row * 90;
+                var y = 190 - row * 85;
                 labels[row] = NewText($"WaveLabel{row}", box, font, $"Đợt {row + 1}", 32, TextAnchor.MiddleLeft, Color.white);
-                Place(labels[row].rectTransform, Center, Center, new Vector2(-380, y), new Vector2(160, 50));
+                Place(labels[row].rectTransform, Center, Center, new Vector2(-660, y), new Vector2(160, 50));
                 for (var col = 0; col < StageInfoPopup.CellsPerRow; col++)
                 {
                     var cell = NewRect($"Cell{row}_{col}", box);
-                    Place(cell, Center, Center, new Vector2(-220 + col * 100, y), new Vector2(64, 64));
+                    Place(cell, Center, Center, new Vector2(-480 + col * 100, y), new Vector2(64, 64));
                     cells[row * StageInfoPopup.CellsPerRow + col] = AddImage(cell, null, EnemyColor, raycast: false);
                 }
             }
 
-            var rewardHeader = Line(box, font, "RewardHeader", 34, Gold, -75, 900);
-            var rewardLine = Line(box, font, "RewardLine", 42, Color.white, -125, 900);
-            var stamina = Line(box, font, "StaminaText", 42, Color.white, -195, 900);
-            var warning = Line(box, font, "WarningText", 28, Warning, -245, 940);
-            var message = Line(box, font, "MessageText", 34, Warning, -295, 900);
+            var rewardRow = BuildRewardRow(box, "RewardRow", font, Center, new Vector2(-740, -150));
 
-            var cancel = NewButton("CancelButton", box, sprite, font, "Hủy", CardFrame, Center, new Vector2(-200, -385), new Vector2(340, 100));
-            var challenge = NewButton("ChallengeButton", box, sprite, font, "Thách đấu", ButtonColor, Center, new Vector2(200, -385), new Vector2(340, 100));
+            var stamina = RightLine(box, font, "StaminaText", 40, Color.white, -110, 60);
+            var warning = RightLine(box, font, "WarningText", 26, Warning, -185, 90);
+            var message = RightLine(box, font, "MessageText", 32, Warning, -260, 50);
+
+            var cancel = NewButton("CancelButton", box, sprite, font, "Hủy", CardFrame, Center, new Vector2(395, -350), new Vector2(230, 100));
+            var challenge = NewButton("ChallengeButton", box, sprite, font, "Thách đấu", ButtonColor, Center, new Vector2(630, -350), new Vector2(230, 100));
             root.gameObject.SetActive(false);
 
             var popup = holder.gameObject.AddComponent<StageInfoPopup>();
@@ -224,8 +227,7 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_title").objectReferenceValue = title;
             SetRefs(so.FindProperty("_waveLabels"), labels);
             SetRefs(so.FindProperty("_cells"), cells);
-            so.FindProperty("_rewardHeader").objectReferenceValue = rewardHeader;
-            so.FindProperty("_rewardLine").objectReferenceValue = rewardLine;
+            so.FindProperty("_rewardRow").objectReferenceValue = rewardRow;
             so.FindProperty("_staminaText").objectReferenceValue = stamina;
             so.FindProperty("_warningText").objectReferenceValue = warning;
             so.FindProperty("_messageText").objectReferenceValue = message;
@@ -411,6 +413,14 @@ namespace BunDauPeo.EditorTools
         {
             var text = NewText(name, parent, font, "", size, TextAnchor.MiddleCenter, color);
             Place(text.rectTransform, Center, Center, new Vector2(0, y), new Vector2(width, size + 16));
+            return text;
+        }
+
+        // Dòng trong cột phải của popup màn: rộng 460, từ x 280 tới 740 tính từ tâm hộp, canh trái.
+        private static Text RightLine(RectTransform parent, Font font, string name, int size, Color color, float y, float height)
+        {
+            var text = NewText(name, parent, font, "", size, TextAnchor.MiddleLeft, color);
+            Place(text.rectTransform, Center, Center, new Vector2(510, y), new Vector2(460, height));
             return text;
         }
 

@@ -169,10 +169,11 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsNotNull(GameObject.Find("DevOverlay"), Where("DevOverlay không dựng được"));
         }
 
-        // Nút Cài đặt phải không đè lên nút nào của game (L-025): so hình chữ nhật trên màn hình với mọi nút đang hiện ngoài DevOverlay.
+        // Nút Cài đặt phải không đè lên nút nào của game (L-025): so hình chữ nhật trên màn hình với mọi nút ngoài DevOverlay,
+        // kể cả nút đang tắt, vì nút Bỏ qua, nút popup và nút kết quả chỉ bật trong luồng chơi.
         private void AssertSettingsButtonClear(string screen)
         {
-            var buttons = Object.FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var buttons = Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             var settings = buttons.Single(b => b.name == "Cài đặtButton");
             var settingsRect = ScreenRect(settings);
             foreach (var b in buttons)

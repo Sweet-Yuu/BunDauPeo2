@@ -44,6 +44,65 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(new Vector2(1920, 1080), canvas.referenceResolution);
             });
 
+        // S1: hai cột. Trái: tên, quái, thưởng; phải dưới: thể lực, cảnh báo và hai nút cạnh nhau.
+        [Test]
+        public void StageSelectScene_InfoPopup_TwoColumns_InsideBox() =>
+            WithStageSelect(scene =>
+            {
+                var popup = RestaurantSceneTests.All<StageInfoPopup>(scene).Single();
+                var so = new SerializedObject(popup);
+                var box = (RectTransform)RootOf(popup).transform.Find("InfoBox");
+                Assert.IsNotNull(box);
+                var boxRect = RestaurantSceneTests.InReferenceCanvas(box);
+                Assert.AreEqual(new Vector2(1600, 820), boxRect.size);
+
+                var row = (RewardRow)so.FindProperty("_rewardRow").objectReferenceValue;
+                Assert.IsNotNull(row);
+                var members = box.GetComponentsInChildren<Text>(true).Select(t => (Component)t)
+                    .Concat(box.GetComponentsInChildren<Button>(true))
+                    .Append(row)
+                    .Concat(ReadArray<Image>(so.FindProperty("_cells")).Select(c => (Component)c))
+                    .ToArray();
+                foreach (var member in members)
+                {
+                    var rect = RestaurantSceneTests.InReferenceCanvas((RectTransform)member.transform);
+                    Assert.IsTrue(rect.xMin >= boxRect.xMin - 1f && rect.xMax <= boxRect.xMax + 1f
+                                  && rect.yMin >= boxRect.yMin - 1f && rect.yMax <= boxRect.yMax + 1f, $"{member.name} {rect} leaves the box {boxRect}");
+                }
+
+                var third = boxRect.width / 3f;
+                var twoThirds = boxRect.xMin + third * 2f;
+                var title = (Text)so.FindProperty("_title").objectReferenceValue;
+                Assert.AreEqual(TextAnchor.MiddleLeft, title.alignment, "the stage name is left-aligned");
+                Assert.Less(RestaurantSceneTests.InReferenceCanvas(title.rectTransform).center.x, boxRect.xMin + third, "Title sits in the left third");
+
+                foreach (var image in ReadArray<Image>(so.FindProperty("_cells")))
+                    Assert.LessOrEqual(RestaurantSceneTests.InReferenceCanvas(image.rectTransform).xMax, twoThirds, $"{image.name} enemy cell crosses into the right third");
+                Assert.LessOrEqual(RestaurantSceneTests.InReferenceCanvas((RectTransform)row.transform).xMax, twoThirds, "RewardRow stays in the left two thirds");
+
+                var rightThird = boxRect.xMin + third * 2f;
+                foreach (var name in new[] { "_staminaText", "_warningText", "_messageText" })
+                {
+                    var text = (Text)so.FindProperty(name).objectReferenceValue;
+                    Assert.GreaterOrEqual(RestaurantSceneTests.InReferenceCanvas(text.rectTransform).xMin, rightThird - 1f, $"{name} sits in the right third");
+                }
+
+                var cancel = RestaurantSceneTests.InReferenceCanvas((RectTransform)((Button)so.FindProperty("_cancelButton").objectReferenceValue).transform);
+                var challenge = RestaurantSceneTests.InReferenceCanvas((RectTransform)((Button)so.FindProperty("_challengeButton").objectReferenceValue).transform);
+                Assert.GreaterOrEqual(cancel.xMin, rightThird - 1f, "Cancel sits in the right third");
+                Assert.GreaterOrEqual(challenge.xMin, rightThird - 1f, "Challenge sits in the right third");
+                Assert.IsFalse(cancel.Overlaps(challenge), "Cancel and Challenge overlap");
+                Assert.AreEqual(cancel.center.y, challenge.center.y, 5f, "the two buttons share a row");
+                Assert.Less(cancel.center.y, boxRect.center.y, "the buttons sit at the bottom");
+            });
+
+        private static T[] ReadArray<T>(SerializedProperty array) where T : Object
+        {
+            var items = new T[array.arraySize];
+            for (var i = 0; i < items.Length; i++) items[i] = (T)array.GetArrayElementAtIndex(i).objectReferenceValue;
+            return items;
+        }
+
         [Test]
         public void StageSelectScene_PopupsStartClosed_BlockClicks() =>
             WithStageSelect(scene =>

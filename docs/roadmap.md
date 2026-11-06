@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Cài MCP for Unity của CoplayDev trên `chore/coplay-mcp` ([D-010](decisions/decisions.md)): package đã thêm, MCP cũ đã gỡ; chờ 📋 commit và PR. Việc kế: 📐 rà layout theo Mota bằng MCP mới, Build Android thử sớm, Song ngữ.
+- Sửa layout theo Mota, phiên A (Task 1–4: hàng ô thưởng, kết quả trận, nút Bỏ qua Gacha, popup màn) trên `feature/layout-mota`: code và test xong (729 EditMode, 12 PlayMode), đang chờ user xem ảnh playtest và 📋 commit. Kế: phiên B (Task 5–8), phiên C (9–12) ([spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md)); sau đó Build Android thử sớm, Song ngữ.
 
 ## Tiếp theo
 

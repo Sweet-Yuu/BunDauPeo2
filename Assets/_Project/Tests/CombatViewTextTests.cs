@@ -164,13 +164,10 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void RewardHeaderAndLine()
+        public void RewardHeader_FirstClearOrRepeat()
         {
             Assert.AreEqual("Thưởng lần đầu", CombatViewText.RewardHeader(true));
             Assert.AreEqual("Thưởng", CombatViewText.RewardHeader(false));
-            var lines = new[] { new CurrencyAmount(CurrencyType.Material, 30), new CurrencyAmount(CurrencyType.Gem, 150) };
-            Assert.AreEqual("30 Material · 150 Gem", CombatViewText.RewardLine(lines));
-            Assert.AreEqual("", CombatViewText.RewardLine(new CurrencyAmount[0]));
         }
 
         [Test]
@@ -225,15 +222,22 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void ResultRewards_FirstClearTagOnlyOnFirst()
+        public void CurrencyColor_DistinctPerCurrency()
         {
-            var rig = new CombatRig(new[] { CombatTestData.Stage("b1", new[] { CombatTestData.Enemy(hp: 1) }) });
+            var coin = CombatViewText.CurrencyColor(CurrencyType.Coin);
+            var material = CombatViewText.CurrencyColor(CurrencyType.Material);
+            var gem = CombatViewText.CurrencyColor(CurrencyType.Gem);
+            Assert.AreNotEqual(coin, material);
+            Assert.AreNotEqual(coin, gem);
+            Assert.AreNotEqual(material, gem);
+        }
 
-            var first = rig.Progress.CompleteBattle(CombatTestData.PaidWin(rig.Service, "b1"));
-            var repeat = rig.Progress.CompleteBattle(CombatTestData.PaidWin(rig.Service, "b1"));
-
-            Assert.AreEqual("Lần đầu · 30 Material · 150 Gem", CombatViewText.ResultRewards(first));
-            Assert.AreEqual("30 Material · 30 Gem", CombatViewText.ResultRewards(repeat), "no label when it is not the first clear");
+        [Test]
+        public void CurrencyCell_ShowsAmountAndName()
+        {
+            Assert.AreEqual("30 Material", CombatViewText.CurrencyCell(new CurrencyAmount(CurrencyType.Material, 30)));
+            Assert.AreEqual("150 Gem", CombatViewText.CurrencyCell(new CurrencyAmount(CurrencyType.Gem, 150)));
+            Assert.AreEqual("500 Coin", CombatViewText.CurrencyCell(new CurrencyAmount(CurrencyType.Coin, 500)));
         }
 
         [Test]

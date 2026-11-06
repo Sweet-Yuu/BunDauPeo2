@@ -106,6 +106,17 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(5, grid.constraintCount);
             });
 
+        // G4: Cài đặt DEV nằm góc dưới phải, nên nút Bỏ qua (chỉ hiện lúc mở thẻ) phải ở góc trên phải.
+        [Test]
+        public void GachaScene_SkipButtonTopRight() =>
+            WithScene(ProjectSetup.GachaScenePath, scene =>
+            {
+                var skip = All<Button>(scene).Single(b => b.name == "SkipButton");
+                var rect = RestaurantSceneTests.InReferenceCanvas((RectTransform)skip.transform);
+                Assert.GreaterOrEqual(rect.xMin, 1500f, "SkipButton must sit in the right part of the screen");
+                Assert.LessOrEqual(1080f - rect.yMax, 140f, "SkipButton must hug the top edge, clear of the DEV Settings button at the bottom right");
+            });
+
         [Test]
         public void GachaScene_IsSecondInBuildSettings()
         {

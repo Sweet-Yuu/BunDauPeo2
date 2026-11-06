@@ -26,6 +26,16 @@
 
 ## Đang hiệu lực
 
+### L-028 — Play chạy nhưng đứng ở khung 2 khi cửa sổ Editor không ở trước (2026-11-06)  #process #unity-files
+- Triệu chứng: Editor mở bằng `unity open .`, `EnableBackgroundPlay` đã bật, vậy mà `Time.frameCount` đứng ở 2, ảnh `Capture1080` chỉ ra nền xanh nhạt, `ClickButton` báo `Clicked` mà không có gì đổi. `isApplicationActive` là False.
+- Nguyên nhân gốc: chạy nền không đủ để vòng lặp Play chạy khi cửa sổ Editor bị che hoặc thu nhỏ.
+- Luật từ nay: trước khi thử Play, `eval` in `Time.frameCount` hai lần cách vài giây; đứng yên thì nhờ user đưa cửa sổ Unity ra trước (không tự kích hoạt cửa sổ), đừng chụp ảnh khi chưa thấy khung chạy. Thêm ở `unity-workflow` khi có dịp nâng luật.
+
+### L-027 — Test đè nút chỉ xét nút đang bật bỏ sót nút chỉ hiện trong luồng (2026-11-06)  #ui #process
+- Triệu chứng: nút Cài đặt DEV (góc dưới phải) che nút "Bỏ qua" của Gacha lúc mở 10 lượt; `AssertSettingsButtonClear` vẫn xanh vì dùng `FindObjectsInactive.Exclude` và nút Bỏ qua tắt sẵn (L-025 lặp lại lần hai).
+- Nguyên nhân gốc: nút Bỏ qua, nút trong popup và nút kết quả chỉ bật khi cần, nên lúc test chạy chúng không nằm trong danh sách.
+- Luật từ nay: kiểm đè nút luôn gồm nút tắt (`FindObjectsInactive.Include`, nút tắt vẫn có `RectTransform` đúng chỗ). Lặp lần hai nên chờ 🔍 nâng thành luật (code-style, Test).
+
 ### L-026 — `Capture1080("tên")` không tự thêm đuôi `.png` (2026-11-06)  #ui #process
 - Triệu chứng: lúc rà layout, `Capture1080("lm-restaurant")` ghi ra file `lm-restaurant` không đuôi; công cụ đọc ảnh không mở được, phải đổi tên tay.
 - Nguyên nhân gốc: `ScreenCapture1080.Capture` chỉ dùng `Path.GetFileName(fileName)`, tên mặc định mới có `.png`.

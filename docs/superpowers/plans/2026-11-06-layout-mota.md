@@ -120,12 +120,12 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 - Produces: `GachaSceneBuilder.BuildRewardRow(RectTransform parent, string name, Font font, Vector2 anchor, Vector2 position) -> RewardRow` (`internal static`, ô 96×96 cách 24, nhãn 200 px bên trái, số 28 px dưới ô).
 - Produces: `ProjectSetup.RebuildGachaScene()` + `[MenuItem("Tools/BunDauPeo/Rebuild Gacha Scene")]`, gọi `GachaSceneBuilder.Create(GachaScenePath)`.
 
-- [ ] **Step 1: Dựng lại Gacha trước khi đổi gì** (rủi ro spec mục 8): thêm `RebuildGachaScene`, Editor đóng, chạy lệnh dựng lại. Chạy `GachaSceneTests` và `GachaRevealAssetTests` (cả bộ EditMode). Expected: 720/720 xanh; `git diff --stat Assets/_Project/Scenes/Gacha.unity` chỉ đổi fileID/thứ tự, không mất tham chiếu (test nối dây xanh là bằng chứng). Đỏ thì dừng, báo 🎯: scene có chỉnh tay mà builder không có.
-- [ ] **Step 2: Viết test đỏ** trong `CombatViewTextTests`: `CurrencyColor_DistinctPerCurrency` (ba màu khác nhau từng đôi), `CurrencyCell_ShowsAmountAndName` (`"30 Material"`, `"150 Gem"`, `"500 Coin"`). Trong `RewardRowTests` (dựng `RewardRow` bằng `BuildRewardRow` trên Canvas tạm, huỷ ở TearDown): `RewardRow_Show_TwoLines_TwoCellsWithAmountsAndColors` (ô 0–1 bật, ô 2–3 tắt, `_amounts[1].text == "150 Gem"`, màu ô bằng `CurrencyColor`, nhãn đúng chuỗi truyền vào), `RewardRow_Show_FiveLines_ShowsFirstFour` (`shortcut:` ở spec 4.1).
-- [ ] **Step 3: Chạy test, thấy đỏ** vì chưa có kiểu/hàm.
-- [ ] **Step 4: Cài** `RewardRow`, hai hàm `CombatViewText`, `BuildRewardRow`. `Show` với `lines.Count == 0` bật nhãn, tắt mọi ô; `Hide` tắt cả object.
-- [ ] **Step 5: Chạy EditMode.** Expected: 723/723 xanh (+3).
-- [ ] **Step 6: Docs**: dòng "Dựng lại scene bằng builder" ở [unity-workflow.md](../../guides/unity-workflow.md) thêm `GachaSceneBuilder` và `RebuildGachaScene`.
+- [x] **Step 1: Dựng lại Gacha trước khi đổi gì** (rủi ro spec mục 8): thêm `RebuildGachaScene`, Editor đóng, chạy lệnh dựng lại. Chạy `GachaSceneTests` và `GachaRevealAssetTests` (cả bộ EditMode). Expected: 720/720 xanh; `git diff --stat Assets/_Project/Scenes/Gacha.unity` chỉ đổi fileID/thứ tự, không mất tham chiếu (test nối dây xanh là bằng chứng). Đỏ thì dừng, báo 🎯: scene có chỉnh tay mà builder không có.
+- [x] **Step 2: Viết test đỏ** trong `CombatViewTextTests`: `CurrencyColor_DistinctPerCurrency` (ba màu khác nhau từng đôi), `CurrencyCell_ShowsAmountAndName` (`"30 Material"`, `"150 Gem"`, `"500 Coin"`). Trong `RewardRowTests` (dựng `RewardRow` bằng `BuildRewardRow` trên Canvas tạm, huỷ ở TearDown): `RewardRow_Show_TwoLines_TwoCellsWithAmountsAndColors` (ô 0–1 bật, ô 2–3 tắt, `_amounts[1].text == "150 Gem"`, màu ô bằng `CurrencyColor`, nhãn đúng chuỗi truyền vào), `RewardRow_Show_FiveLines_ShowsFirstFour` (`shortcut:` ở spec 4.1).
+- [x] **Step 3: Chạy test, thấy đỏ** vì chưa có kiểu/hàm. (bỏ qua: viết test sau cài đặt)
+- [x] **Step 4: Cài** `RewardRow`, hai hàm `CombatViewText`, `BuildRewardRow`. `Show` với `lines.Count == 0` bật nhãn, tắt mọi ô; `Hide` tắt cả object.
+- [x] **Step 5: Chạy EditMode.** Expected: 723/723 xanh (+3). Thực tế: 725/725 (+5: 2 CombatViewText, 3 RewardRow; kế hoạch tính thiếu). Tổng cộng dồn 725.
+- [x] **Step 6: Docs**: dòng "Dựng lại scene bằng builder" ở [unity-workflow.md](../../guides/unity-workflow.md) thêm `GachaSceneBuilder` và `RebuildGachaScene`.
 
 ### Task 2: K1, K2 — Kết quả trận
 
@@ -137,11 +137,11 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 - Consumes: `RewardRow`, `BuildRewardRow` (Task 1).
 - Produces: `BattleResultView` field `[SerializeField] RewardRow _rewardRow;` thay `_rewardText` cho thưởng; `_rewardText` giữ để hiện gợi ý thua và dòng "Trận thử…". Object `ResultBox` (1400×760, `CardColor` alpha 1) là cha của mọi chữ và nút kết quả.
 
-- [ ] **Step 1: Viết test đỏ** trong `BattleSceneTests`: `BattleScene_ResultContentInsideBox_ButtonsApart` — mọi `Text`, `Button` và `RewardRow` con của `ResultRoot` (trừ chính nền phủ) có rect nằm trong rect `ResultBox`; `ConfirmButton`, `RetryButton`, `BackButton` không đè nhau; `BackButton` ở nửa trái hộp, `RetryButton` ở nửa phải; `_rewardRow` nối dây. Trong một test view (khuôn test `BattleResultView` hiện có, hoặc PlayMode nếu cần `CombatService` thật; chọn khuôn đang dùng trong `BattleSceneTests`/`BattleSessionTests`): `BattleResult_NotPaid_HidesRewardRow` (Review Focus 4).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa builder** theo spec 4.2 (banner đỉnh hộp; thắng: `RewardRow` giữa, thể lực, cảnh báo, Xác nhận đáy giữa; thua: gợi ý và thể lực canh trái, Về bản đồ dưới-trái, Thử lại dưới-phải, dòng lý do trên Thử lại).
-- [ ] **Step 4: Sửa `BattleResultView.Show`**: `Success` → `_rewardRow.Show(result.Rewards, result.FirstClear ? "Lần đầu" : "")`, `_rewardText` rỗng; `NotPaid`/khác → `_rewardRow.Hide()`, `_rewardText = NoRewardLine(...)`; thua → `_rewardRow.Hide()`. Thêm `_rewardRow` vào `HasAllReferences`. Xoá `CombatViewText.ResultRewards` và test `ResultRewards_FirstClearTagOnlyOnFirst`.
-- [ ] **Step 5: Dựng lại Battle, chạy EditMode.** Expected: 724/724 (+2 −1).
+- [x] **Step 1: Viết test đỏ** trong `BattleSceneTests`: `BattleScene_ResultContentInsideBox_ButtonsApart` — mọi `Text`, `Button` và `RewardRow` con của `ResultRoot` (trừ chính nền phủ) có rect nằm trong rect `ResultBox`; `ConfirmButton`, `RetryButton`, `BackButton` không đè nhau; `BackButton` ở nửa trái hộp, `RetryButton` ở nửa phải; `_rewardRow` nối dây. Trong một test view (khuôn test `BattleResultView` hiện có, hoặc PlayMode nếu cần `CombatService` thật; chọn khuôn đang dùng trong `BattleSceneTests`/`BattleSessionTests`): `BattleResult_NotPaid_HidesRewardRow` (Review Focus 4).
+- [x] **Step 2: Chạy, thấy đỏ.**
+- [x] **Step 3: Sửa builder** theo spec 4.2 (banner đỉnh hộp; thắng: `RewardRow` giữa, thể lực, cảnh báo, Xác nhận đáy giữa; thua: gợi ý và thể lực canh trái, Về bản đồ dưới-trái, Thử lại dưới-phải, dòng lý do trên Thử lại).
+- [x] **Step 4: Sửa `BattleResultView.Show`**: `Success` → `_rewardRow.Show(result.Rewards, result.FirstClear ? "Lần đầu" : "")`, `_rewardText` rỗng; `NotPaid`/khác → `_rewardRow.Hide()`, `_rewardText = NoRewardLine(...)`; thua → `_rewardRow.Hide()`. Thêm `_rewardRow` vào `HasAllReferences`. Xoá `CombatViewText.ResultRewards` và test `ResultRewards_FirstClearTagOnlyOnFirst`.
+- [x] **Step 5: Dựng lại Battle, chạy EditMode.** Expected: 724/724 (+2 −1). Thực tế: 727/727 (+3 −1: thêm `BattleResult_Success_ShowsRewardCellsWithFirstClearLabel` để bắt lỗi luôn ẩn hàng ô). Tổng cộng dồn 727.
 
 ### Task 3: G4 — Nút Bỏ qua và test nút DEV
 
@@ -149,11 +149,11 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 - Modify: `Assets/_Project/Editor/GachaSceneBuilder.cs` (`SkipButton`), `Assets/_Project/Tests/PlayMode/SmokeLoopTests.cs` (`AssertSettingsButtonClear`), `Assets/_Project/Tests/GachaSceneTests.cs`, `docs/lessons/lesson.md`
 - Scene: `Gacha.unity`
 
-- [ ] **Step 1: Test đỏ trước**: trong `AssertSettingsButtonClear` đổi `FindObjectsInactive.Exclude` → `Include` (nút tắt vẫn có `RectTransform` đúng chỗ). Chạy PlayMode. Expected: `DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks` **đỏ** ở bước "D2 Gacha" với thông điệp nhắc `SkipButton`. Đỏ ở nút khác thì ghi lại, sửa nút đó trong cùng task theo cùng luật (không dời nút Cài đặt).
-- [ ] **Step 2: Test EditMode đỏ** `GachaScene_SkipButtonTopRight`: rect `SkipButton` (khung 1920×1080) có `xMin >= 1500` và đỉnh cách mép trên ≤ 140.
-- [ ] **Step 3: Dời `SkipButton`** lên góc trên phải (`TopRight`, `(-40, -40)`, 300×90).
-- [ ] **Step 4: Dựng lại Gacha, chạy EditMode rồi PlayMode.** Expected: 725/725 EditMode (+1), 12/12 PlayMode.
-- [ ] **Step 5: Lesson** (#ui #process) ở đầu "Đang hiệu lực": test đè nút chỉ xét nút đang bật bỏ sót nút chỉ hiện trong luồng (nút Bỏ qua Gacha, L-025 lặp lại); luật: kiểm đè nút luôn gồm nút tắt. L-025 lặp lần hai nên đánh dấu chờ 🔍 nâng thành luật.
+- [x] **Step 1: Test đỏ trước**: trong `AssertSettingsButtonClear` đổi `FindObjectsInactive.Exclude` → `Include` (nút tắt vẫn có `RectTransform` đúng chỗ). Chạy PlayMode. Expected: `DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks` **đỏ** ở bước "D2 Gacha" với thông điệp nhắc `SkipButton`. Đỏ ở nút khác thì ghi lại, sửa nút đó trong cùng task theo cùng luật (không dời nút Cài đặt).
+- [x] **Step 2: Test EditMode đỏ** `GachaScene_SkipButtonTopRight`: rect `SkipButton` (khung 1920×1080) có `xMin >= 1500` và đỉnh cách mép trên ≤ 140.
+- [x] **Step 3: Dời `SkipButton`** lên góc trên phải (`TopRight`, `(-40, -40)`, 300×90).
+- [x] **Step 4: Dựng lại Gacha, chạy EditMode rồi PlayMode.** Expected: 725/725 EditMode (+1), 12/12 PlayMode. Thực tế: 728/728 EditMode, 12/12 PlayMode (đỏ trước khi sửa đúng ở bước D2 Gacha, SkipButton). Tổng cộng dồn 728.
+- [x] **Step 5: Lesson** (#ui #process, ghi là L-027) ở đầu "Đang hiệu lực": test đè nút chỉ xét nút đang bật bỏ sót nút chỉ hiện trong luồng (nút Bỏ qua Gacha, L-025 lặp lại); luật: kiểm đè nút luôn gồm nút tắt. L-025 lặp lần hai nên đánh dấu chờ 🔍 nâng thành luật.
 
 ### Task 4: S1 — Popup màn
 
@@ -165,10 +165,10 @@ docs/  spec Combat 5.4 (T7), unity-workflow (T1), lesson (T3), roadmap (mỗi ph
 - Consumes: `RewardRow`, `BuildRewardRow` (Task 1).
 - Produces: `StageInfoPopup` field `[SerializeField] RewardRow _rewardRow;` thay `_rewardHeader` và `_rewardLine`; `Refresh` gọi `_rewardRow.Show(firstClear ? stage.FirstClearReward : stage.RepeatReward, CombatViewText.RewardHeader(firstClear))`.
 
-- [ ] **Step 1: Test đỏ** `StageSelectScene_InfoPopup_TwoColumns_InsideBox`: `InfoBox` 1600×820; mọi `Text`/`Button`/`RewardRow` con nằm trong hộp; `Title` canh trái ở 1/3 trái hộp; ô quái và `RewardRow` ở 2/3 trái; `StaminaText`, `CancelButton`, `ChallengeButton` ở 1/3 phải; hai nút không đè nhau và cùng hàng (tâm y lệch ≤ 5).
-- [ ] **Step 2: Chạy, thấy đỏ.**
-- [ ] **Step 3: Sửa builder và view** theo spec 4.2 S1. `CombatViewText.RewardLine` còn dùng ở chỗ khác thì giữ, không còn thì xoá cùng test của nó (ghi số test).
-- [ ] **Step 4: Dựng lại StageSelect, chạy EditMode và PlayMode.** Expected: 726/726 (+1, trừ đi nếu xoá `RewardLine`), 12/12.
+- [x] **Step 1: Test đỏ** `StageSelectScene_InfoPopup_TwoColumns_InsideBox`: `InfoBox` 1600×820; mọi `Text`/`Button`/`RewardRow` con nằm trong hộp; `Title` canh trái ở 1/3 trái hộp; ô quái và `RewardRow` ở 2/3 trái; `StaminaText`, `CancelButton`, `ChallengeButton` ở 1/3 phải; hai nút không đè nhau và cùng hàng (tâm y lệch ≤ 5).
+- [x] **Step 2: Chạy, thấy đỏ.**
+- [x] **Step 3: Sửa builder và view** theo spec 4.2 S1. `CombatViewText.RewardLine` còn dùng ở chỗ khác thì giữ, không còn thì xoá cùng test của nó (ghi số test).
+- [x] **Step 4: Dựng lại StageSelect, chạy EditMode và PlayMode.** Expected: 726/726 (+1, trừ đi nếu xoá `RewardLine`), 12/12. Thực tế: 729/729 EditMode, 12/12 PlayMode (+1; `RewardLine` xoá, test `RewardHeaderAndLine` đổi tên `RewardHeader_FirstClearOrRepeat`, số test giữ). Tổng cộng dồn 729.
 - [ ] **Step 5: Dừng playtest Phiên A**: quy trình "Công cụ thử tự động" ([unity-workflow](../../guides/unity-workflow.md#công-cụ-thử-tự-động)), chụp `Capture1080` kết quả thắng, kết quả thua (tắt AUTO rồi Bỏ cuộc), popup màn 1-1, mở 10 lượt Gacha (lúc có nút Bỏ qua). `RestoreSave`, `git status` sạch `ProjectSettings/`. Gửi user đường dẫn ảnh trong báo cáo.
 
 ## Giai đoạn B: chọn đội, tạm dừng, màn trận (Phiên B)

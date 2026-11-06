@@ -1,4 +1,5 @@
 using System.Linq;
+using BunDauPeo.Combat;
 using BunDauPeo.EditorTools;
 using BunDauPeo.UI;
 using NUnit.Framework;
@@ -96,6 +97,84 @@ namespace BunDauPeo.Tests
                     var size = RestaurantSceneTests.InReferenceCanvas((RectTransform)button.transform).size;
                     Assert.GreaterOrEqual(Mathf.Min(size.x, size.y), 110f, $"{button.name} is too small to tap");
                 }
+            });
+
+        [Test]
+        public void BattleScene_ResultContentInsideBox_ButtonsApart() =>
+            WithBattleScene(scene =>
+            {
+                var view = RestaurantSceneTests.All<BattleResultView>(scene).Single();
+                var so = new SerializedObject(view);
+                var root = (GameObject)so.FindProperty("_root").objectReferenceValue;
+                var box = (RectTransform)root.transform.Find("ResultBox");
+                Assert.IsNotNull(box, "ResultBox holds every text and button of the result");
+                var boxRect = RestaurantSceneTests.InReferenceCanvas(box);
+                Assert.AreEqual(new Vector2(1400, 760), boxRect.size);
+                Assert.AreEqual(1f, box.GetComponent<Image>().color.a, "the box is solid so nothing behind shows through the text");
+
+                var row = (RewardRow)so.FindProperty("_rewardRow").objectReferenceValue;
+                Assert.IsNotNull(row);
+                var members = root.GetComponentsInChildren<Text>(true).Select(t => (Component)t)
+                    .Concat(root.GetComponentsInChildren<Button>(true))
+                    .Append(row)
+                    .ToArray();
+                foreach (var member in members)
+                {
+                    Assert.IsTrue(member.transform.IsChildOf(box), $"{member.name} is outside ResultBox in the hierarchy");
+                    var rect = RestaurantSceneTests.InReferenceCanvas((RectTransform)member.transform);
+                    Assert.IsTrue(rect.xMin >= boxRect.xMin - 1f && rect.xMax <= boxRect.xMax + 1f
+                                  && rect.yMin >= boxRect.yMin - 1f && rect.yMax <= boxRect.yMax + 1f, $"{member.name} {rect} leaves the box {boxRect}");
+                }
+
+                var confirm = RestaurantSceneTests.InReferenceCanvas((RectTransform)root.transform.Find("ResultBox/ConfirmButton"));
+                var retry = RestaurantSceneTests.InReferenceCanvas((RectTransform)root.transform.Find("ResultBox/RetryButton"));
+                var back = RestaurantSceneTests.InReferenceCanvas((RectTransform)root.transform.Find("ResultBox/BackButton"));
+                Assert.IsFalse(retry.Overlaps(back), "Retry and Back overlap");
+                Assert.LessOrEqual(back.xMax, boxRect.center.x, "Back sits in the left half");
+                Assert.GreaterOrEqual(retry.xMin, boxRect.center.x, "Retry sits in the right half");
+                Assert.AreEqual(retry.center.y, back.center.y, 1f, "Back and Retry share a row");
+                Assert.Less(confirm.yMax, boxRect.center.y, "Confirm is in the lower half");
+                Assert.AreEqual(boxRect.center.x, confirm.center.x, 1f, "Confirm is centred");
+            });
+
+        private static CombatRig OneStageRig() =>
+            new CombatRig(new[] { CombatTestData.Stage("b1", new[] { CombatTestData.Enemy(hp: 1) }) });
+
+        [Test]
+        public void BattleResult_NotPaid_HidesRewardRow() =>
+            WithBattleScene(scene =>
+            {
+                var rig = OneStageRig();
+                var trial = rig.Service.StartBattle("b1").Session;
+                CombatTestData.PlayToWin(trial);
+                var view = RestaurantSceneTests.All<BattleResultView>(scene).Single();
+
+                view.Show(rig.Service, trial);
+
+                var so = new SerializedObject(view);
+                var row = (RewardRow)so.FindProperty("_rewardRow").objectReferenceValue;
+                Assert.IsFalse(row.gameObject.activeSelf, "a DEV battle has no reward cells, not even empty ones");
+                Assert.AreEqual(CombatViewText.TrialLine(), ((Text)so.FindProperty("_rewardText").objectReferenceValue).text);
+            });
+
+        [Test]
+        public void BattleResult_Success_ShowsRewardCellsWithFirstClearLabel() =>
+            WithBattleScene(scene =>
+            {
+                var rig = OneStageRig();
+                var won = CombatTestData.PaidWin(rig.Service, "b1");
+                var view = RestaurantSceneTests.All<BattleResultView>(scene).Single();
+
+                view.Show(rig.Service, won);
+
+                var so = new SerializedObject(view);
+                var row = (RewardRow)so.FindProperty("_rewardRow").objectReferenceValue;
+                Assert.IsTrue(row.gameObject.activeSelf);
+                Assert.AreEqual("30 Material", row.transform.Find("Cell0/Amount").GetComponent<Text>().text);
+                Assert.AreEqual("150 Gem", row.transform.Find("Cell1/Amount").GetComponent<Text>().text);
+                Assert.IsFalse(row.transform.Find("Cell2").gameObject.activeSelf);
+                Assert.AreEqual("Lần đầu", row.transform.Find("Label").GetComponent<Text>().text);
+                Assert.AreEqual("", ((Text)so.FindProperty("_rewardText").objectReferenceValue).text, "the cells replace the reward sentence");
             });
 
         [Test]

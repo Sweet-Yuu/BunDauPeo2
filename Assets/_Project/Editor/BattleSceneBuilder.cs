@@ -370,27 +370,35 @@ namespace BunDauPeo.EditorTools
             // Đậm hơn nền popup khác: chữ kết quả nằm đè lên quái và người phe ta phía sau.
             AddImage(root, null, new Color(0f, 0f, 0f, 0.85f), raycast: true);
 
-            var banner = NewText("Banner", root, font, "", 140, TextAnchor.MiddleCenter, Gold);
-            banner.fontStyle = FontStyle.Bold;
-            Place(banner.rectTransform, Center, Center, new Vector2(0, 280), new Vector2(1200, 200));
-            var reward = NewText("RewardText", root, font, "", 52, TextAnchor.MiddleCenter, Color.white);
-            Place(reward.rectTransform, Center, Center, new Vector2(0, 120), new Vector2(1400, 80));
-            var stamina = NewText("StaminaText", root, font, "", 44, TextAnchor.MiddleCenter, Color.white);
-            Place(stamina.rectTransform, Center, Center, new Vector2(0, 40), new Vector2(1400, 70));
-            var warning = NewText("WarningText", root, font, "", 32, TextAnchor.MiddleCenter, new Color(1f, 0.55f, 0.45f));
-            Place(warning.rectTransform, Center, Center, new Vector2(0, -30), new Vector2(1400, 50));
-            var message = NewText("MessageText", root, font, "", 36, TextAnchor.MiddleCenter, new Color(1f, 0.65f, 0.45f));
-            Place(message.rectTransform, Center, Center, new Vector2(0, -95), new Vector2(1400, 50));
+            // Hộp đặc: mọi chữ và nút nằm trong hộp, không còn đè lên quái và người phía sau.
+            var box = NewRect("ResultBox", root);
+            Place(box, Center, Center, Vector2.zero, new Vector2(1400, 760));
+            AddImage(box, sprite, CardColor, raycast: false);
 
-            var confirm = NewButton("ConfirmButton", root, sprite, font, "Xác nhận", ButtonColor, Center, new Vector2(0, -230), new Vector2(380, 110));
-            var retry = NewButton("RetryButton", root, sprite, font, "Thử lại", ButtonColor, Center, new Vector2(-220, -230), new Vector2(380, 110));
-            var back = NewButton("BackButton", root, sprite, font, "Về bản đồ", CardFrame, Center, new Vector2(220, -230), new Vector2(380, 110));
+            var banner = NewText("Banner", box, font, "", 130, TextAnchor.MiddleCenter, Gold);
+            banner.fontStyle = FontStyle.Bold;
+            Place(banner.rectTransform, Center, Center, new Vector2(0, 270), new Vector2(1200, 170));
+            var rewardRow = BuildRewardRow(box, "RewardRow", font, Center, new Vector2(-340, 130));
+            var reward = NewText("RewardText", box, font, "", 44, TextAnchor.MiddleCenter, Color.white);
+            Place(reward.rectTransform, Center, Center, new Vector2(0, 60), new Vector2(1280, 100));
+            var stamina = NewText("StaminaText", box, font, "", 40, TextAnchor.MiddleCenter, Color.white);
+            Place(stamina.rectTransform, Center, Center, new Vector2(0, -40), new Vector2(1280, 70));
+            var warning = NewText("WarningText", box, font, "", 32, TextAnchor.MiddleCenter, new Color(1f, 0.55f, 0.45f));
+            Place(warning.rectTransform, Center, Center, new Vector2(0, -110), new Vector2(1280, 50));
+            // Lý do Thử lại không được: nằm ngay trên nút Thử lại (dưới-phải).
+            var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleRight, new Color(1f, 0.65f, 0.45f));
+            Place(message.rectTransform, Center, Center, new Vector2(300, -200), new Vector2(640, 50));
+
+            var confirm = NewButton("ConfirmButton", box, sprite, font, "Xác nhận", ButtonColor, Center, new Vector2(0, -290), new Vector2(380, 110));
+            var retry = NewButton("RetryButton", box, sprite, font, "Thử lại", ButtonColor, Center, new Vector2(300, -290), new Vector2(380, 110));
+            var back = NewButton("BackButton", box, sprite, font, "Về bản đồ", CardFrame, Center, new Vector2(-300, -290), new Vector2(380, 110));
             root.gameObject.SetActive(false);
 
             var view = holder.gameObject.AddComponent<BattleResultView>();
             var so = new SerializedObject(view);
             so.FindProperty("_root").objectReferenceValue = root.gameObject;
             so.FindProperty("_banner").objectReferenceValue = banner;
+            so.FindProperty("_rewardRow").objectReferenceValue = rewardRow;
             so.FindProperty("_rewardText").objectReferenceValue = reward;
             so.FindProperty("_staminaText").objectReferenceValue = stamina;
             so.FindProperty("_warningText").objectReferenceValue = warning;

@@ -140,7 +140,8 @@ namespace BunDauPeo.EditorTools
             totalRoot.gameObject.SetActive(false);
 
             // Nút Bỏ qua: đặt trên reveal để bấm được; GachaView bật tắt theo luật của GachaRevealSequence.
-            var skip = NewButton("SkipButton", canvas, sprite, font, "Bỏ qua", GreyButton, BottomRight, new Vector2(-40, 40), new Vector2(300, 90));
+            // Góc trên phải, vì nút Cài đặt DEV chiếm góc dưới phải (G4).
+            var skip = NewButton("SkipButton", canvas, sprite, font, "Bỏ qua", GreyButton, TopRight, new Vector2(-40, -40), new Vector2(300, 90));
             skip.gameObject.SetActive(false);
 
             // Popup quay tiếp.
@@ -279,6 +280,41 @@ namespace BunDauPeo.EditorTools
             Stretch(labelRect);
             AddText(labelRect, font, text, 36, TextAnchor.MiddleCenter, Color.white);
             return button;
+        }
+
+        // Hàng ô thưởng: nhãn 200 px bên trái, ô 96×96 cách 24, số 28 px dưới ô. Vị trí là góc trên trái của hàng.
+        internal static RewardRow BuildRewardRow(RectTransform parent, string name, Font font, Vector2 anchor, Vector2 position)
+        {
+            const float cell = 96, gap = 24, labelWidth = 200;
+            var root = NewRect(name, parent);
+            Place(root, anchor, TopLeft, position, new Vector2(labelWidth + RewardRow.MaxCells * (cell + gap), cell + 44));
+            var label = NewText("Label", root, font, "", 32, TextAnchor.MiddleLeft, Color.white);
+            Place(label.rectTransform, TopLeft, TopLeft, Vector2.zero, new Vector2(labelWidth, cell));
+            var cells = new Image[RewardRow.MaxCells];
+            var amounts = new Text[RewardRow.MaxCells];
+            for (var i = 0; i < RewardRow.MaxCells; i++)
+            {
+                var rect = NewRect($"Cell{i}", root);
+                Place(rect, TopLeft, TopLeft, new Vector2(labelWidth + i * (cell + gap), 0), new Vector2(cell, cell));
+                cells[i] = AddImage(rect, null, Color.white, raycast: false);
+                amounts[i] = NewText("Amount", rect, font, "", 24, TextAnchor.UpperCenter, Color.white);
+                // Ô chỉ rộng 120: "30 Material" bị cắt mất chữ Material nếu để ngắt dòng.
+                amounts[i].horizontalOverflow = HorizontalWrapMode.Overflow;
+                Place(amounts[i].rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 1), new Vector2(0, -4), new Vector2(cell + gap, 40));
+            }
+            var row = root.gameObject.AddComponent<RewardRow>();
+            var so = new SerializedObject(row);
+            so.FindProperty("_label").objectReferenceValue = label;
+            Fill(so.FindProperty("_cells"), cells);
+            Fill(so.FindProperty("_amounts"), amounts);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return row;
+        }
+
+        private static void Fill(SerializedProperty array, UnityEngine.Object[] items)
+        {
+            array.arraySize = items.Length;
+            for (var i = 0; i < items.Length; i++) array.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
         }
 
         internal static Text NewText(string name, RectTransform parent, Font font, string text, int size, TextAnchor align, Color color) =>
