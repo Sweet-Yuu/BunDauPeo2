@@ -178,7 +178,7 @@ namespace BunDauPeo.PlayModeTests
             var settingsRect = ScreenRect(settings);
             foreach (var b in buttons)
             {
-                if (b == settings || b.GetComponentInParent<Canvas>().rootCanvas.name == "DevOverlay") continue;
+                if (b == settings || b.GetComponentInParent<Canvas>(true).rootCanvas.name == "DevOverlay") continue;
                 Assert.IsFalse(settingsRect.Overlaps(ScreenRect(b)),
                     Where($"nút Cài đặt {settingsRect} đè lên '{b.name}' {ScreenRect(b)} ở màn {screen}"));
             }
@@ -188,7 +188,7 @@ namespace BunDauPeo.PlayModeTests
         {
             var corners = new Vector3[4];
             ((RectTransform)button.transform).GetWorldCorners(corners);
-            var canvas = button.GetComponentInParent<Canvas>().rootCanvas;
+            var canvas = button.GetComponentInParent<Canvas>(true).rootCanvas;
             var camera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
             var a = RectTransformUtility.WorldToScreenPoint(camera, corners[0]);
             var b = RectTransformUtility.WorldToScreenPoint(camera, corners[2]);
