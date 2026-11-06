@@ -178,6 +178,9 @@ namespace BunDauPeo.EditorTools
         [MenuItem("Tools/BunDauPeo/Rebuild Restaurant Scene")]
         public static void RebuildRestaurantScene() => RestaurantSceneBuilder.Create(RestaurantScenePath);
 
+        [MenuItem("Tools/BunDauPeo/Rebuild Gacha Scene")]
+        public static void RebuildGachaScene() => GachaSceneBuilder.Create(GachaScenePath);
+
         [MenuItem("Tools/BunDauPeo/Rebuild StageSelect Scene")]
         public static void RebuildStageSelectScene() => StageSelectSceneBuilder.Create(StageSelectScenePath);
 

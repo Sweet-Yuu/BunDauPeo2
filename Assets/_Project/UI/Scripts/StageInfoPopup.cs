@@ -20,8 +20,7 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _title;
         [SerializeField] private Text[] _waveLabels;
         [SerializeField] private Image[] _cells;
-        [SerializeField] private Text _rewardHeader;
-        [SerializeField] private Text _rewardLine;
+        [SerializeField] private RewardRow _rewardRow;
         [SerializeField] private Text _staminaText;
         [SerializeField] private Text _warningText;
         [SerializeField] private Text _messageText;
@@ -92,7 +91,7 @@ namespace BunDauPeo.UI
 
         private bool HasAllReferences()
         {
-            var ok = _root != null && _title != null && _rewardHeader != null && _rewardLine != null && _staminaText != null
+            var ok = _root != null && _title != null && _rewardRow != null && _staminaText != null
                      && _warningText != null && _messageText != null && _cancelButton != null && _challengeButton != null
                      && _waveLabels != null && _waveLabels.Length == WaveRows && Array.TrueForAll(_waveLabels, t => t != null)
                      && _cells != null && _cells.Length == WaveRows * CellsPerRow && Array.TrueForAll(_cells, c => c != null);
@@ -105,8 +104,7 @@ namespace BunDauPeo.UI
             if (_service == null || _stage == null) return;
 
             var firstClear = _service.Progress.GetStatus(_stage.Id) != StageStatus.Cleared;
-            _rewardHeader.text = CombatViewText.RewardHeader(firstClear);
-            _rewardLine.text = CombatViewText.RewardLine(firstClear ? _stage.FirstClearReward : _stage.RepeatReward);
+            _rewardRow.Show(firstClear ? _stage.FirstClearReward : _stage.RepeatReward, CombatViewText.RewardHeader(firstClear));
 
             var stamina = _service.Stamina;
             var current = stamina.Current;

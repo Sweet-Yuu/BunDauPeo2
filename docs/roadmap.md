@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Cài MCP for Unity của CoplayDev trên `chore/coplay-mcp` ([D-010](decisions/decisions.md)): package đã thêm, MCP cũ đã gỡ; chờ 📋 commit và PR. Việc kế: 📐 rà layout theo Mota bằng MCP mới, Build Android thử sớm, Song ngữ.
+- Không có. Kế tiếp: Build Android thử sớm, rồi Song ngữ.
 
 ## Tiếp theo
 
@@ -28,6 +28,7 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 
 ## Đã xong
 
+- 2026-11-06 — Sửa layout theo Mota (nhánh `feature/layout-mota`, chờ PR vào `main`): 13 chỗ lệch với ảnh `Mota/` ở Battle, StageSelect, Gacha, Restaurant; không thêm màn, không đổi luật. 12 task, 3 phiên 🔨, 🔍 review không lỗi chặn; 742 EditMode + 12 PlayMode xanh; user đã playtest. Nâng L-025, L-027, L-028 thành luật. 4 góp ý nhỏ để sau: [spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md).
 - 2026-11-06 — Công cụ thử tự động và panel DEV Cài đặt (PR #8, đã merge vào `main` ở `6ec636e`): mọi nút DEV gom vào panel Cài đặt, sửa lỗi review A1–A3, A5, A6, B1–B3; 720 EditMode + 12 PlayMode xanh. Công cụ gốc ghi ở dòng 2026-11-04 bên dưới.
 - 2026-11-04 — Công cụ thử tự động: `PlaytestTools` (mở Boot, sao lưu/khôi phục save, chạy nền rồi trả `ProjectSettings`, chụp 1920×1080, bấm nút theo tên) + menu `Tools/BunDauPeo/Playtest/`, `UiDriver`, `ScreenCapture1080`, smoke test PlayMode trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm: [spec](superpowers/specs/2026-11-03-playtest-tools-design.md), [kế hoạch](superpowers/plans/2026-11-03-playtest-tools.md), [D-009](decisions/decisions.md). 715 EditMode + 4 PlayMode xanh; nhánh `feature/playtest-tools`, 9 task, 2 phiên 🔨; user đã xem ảnh chụp và thử menu 2026-11-04. Còn chờ review độc lập cuối nhánh và PR.
 

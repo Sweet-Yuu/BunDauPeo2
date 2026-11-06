@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace BunDauPeo.UI
 {
-    // Thẻ một nhân vật trong lưới chọn đội: chân dung ô vuông màu class, tên, class và độ hiếm, sao, nhãn "Quán: <vai>" hoặc "Trong đội".
+    // Thẻ một nhân vật trong lưới chọn đội: chân dung ô vuông màu class, tên, độ hiếm kèm sao, nhãn "Quán: <vai>"; dấu tích khi đã trong đội (class đọc qua màu ô và chip).
     public class TeamCardView : MonoBehaviour
     {
         private static readonly Color InTeamFrame = new(1f, 0.85f, 0.25f);
@@ -16,6 +16,7 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _name;
         [SerializeField] private Text _info;
         [SerializeField] private Text _tag;
+        [SerializeField] private GameObject _check;
 
         public Button Button => _button;
         public TeamSelectRow Row { get; private set; }
@@ -30,8 +31,9 @@ namespace BunDauPeo.UI
             _frame.color = row.InTeam ? InTeamFrame : OutFrame;
             _portrait.color = BattleUnitView.ClassColor(character.Class);
             _name.text = string.IsNullOrEmpty(character.DisplayName) ? character.Id : character.DisplayName;
-            _info.text = $"{CombatViewText.ClassName(character.Class)} · {character.Rarity} · {new string('★', character.Stars)}";
-            _tag.text = row.InTeam ? "Trong đội" : row.StaffRole.HasValue ? CombatViewText.StaffTag(row.StaffRole.Value) : "";
+            _info.text = $"{character.Rarity} {new string('★', character.Stars)}";
+            _check.SetActive(row.InTeam);
+            _tag.text = !row.InTeam && row.StaffRole.HasValue ? CombatViewText.StaffTag(row.StaffRole.Value) : "";
         }
 
         public void Hide()

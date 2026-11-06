@@ -35,7 +35,7 @@ namespace BunDauPeo.UI
         };
 
         // Số lấy từ banner để chỉnh chi phí trong Inspector thì nút không ghi sai giá.
-        public static string PullLabel(int count, IReadOnlyList<CurrencyAmount> cost) => $"Quay {count} ({CostText(cost)})";
+        public static string PullLabel(int count, IReadOnlyList<CurrencyAmount> cost) => $"Quay {count}\n{CostText(cost)}";
 
         public static string RollAgainLabel(IReadOnlyList<CurrencyAmount> cost) => $"Quay tiếp ({CostText(cost)})";
 
@@ -44,7 +44,7 @@ namespace BunDauPeo.UI
         // Điều kiện duy nhất để bật nút Quay tiếp: đủ tiền cho đúng lượt vừa quay.
         public static bool CanRollAgain(Wallet wallet, CurrencyAmount[] cost) => wallet.CanAfford(cost);
 
-        public static string StarsText(int stars) => $"{stars} sao";
+        public static string StarsText(int stars) => new string('★', stars);
 
         // Ví dụ: "14:02 31/10 · Quay 10 · Nem Chua, Lòng Dồi, ..."
         public static string HistoryLine(GachaHistoryEntry entry, Func<string, string> nameOf)

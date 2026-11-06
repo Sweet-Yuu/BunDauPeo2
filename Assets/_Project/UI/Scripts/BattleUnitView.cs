@@ -18,6 +18,7 @@ namespace BunDauPeo.UI
         [SerializeField] private Image _body;
         [SerializeField] private Text _name;
         [SerializeField] private Image _hpFill;
+        [SerializeField] private Text _hpText;
         [SerializeField] private Image _targetMarker;
         [SerializeField] private Button _button;
 
@@ -61,6 +62,7 @@ namespace BunDauPeo.UI
             _body.color = _baseColor;
             _name.text = unit.DisplayName;
             _hpFill.fillAmount = _fill;
+            ShowHpText();
             _targetMarker.enabled = false;
             Group.alpha = unit.IsAlive ? 1f : 0f;
             Group.blocksRaycasts = unit.IsAlive;
@@ -79,6 +81,12 @@ namespace BunDauPeo.UI
         {
             ShownHp = Mathf.Clamp(ShownHp + delta, 0, Unit.MaxHp);
             if (delta < 0) _flash = FlashSeconds;
+            ShowHpText();
+        }
+
+        private void ShowHpText()
+        {
+            if (_hpText != null) _hpText.text = CombatViewText.UnitHp(ShownHp, Unit.MaxHp);
         }
 
         public void Nudge(Vector2 offset) => ((RectTransform)transform).anchoredPosition = Home + offset;

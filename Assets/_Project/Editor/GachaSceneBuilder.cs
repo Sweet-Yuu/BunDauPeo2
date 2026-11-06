@@ -57,22 +57,31 @@ namespace BunDauPeo.EditorTools
             Stretch(back);
             AddImage(back, sprite, Background, raycast: false);
 
-            // Trang roll
-            var gem = NewText("GemText", canvas, font, "Gem: 0", 48, TextAnchor.MiddleLeft, Color.white);
-            Place(gem.rectTransform, TopLeft, TopLeft, new Vector2(40, -30), new Vector2(500, 70));
-            var bannerName = NewText("BannerNameText", canvas, font, banner.DisplayName, 48, TextAnchor.MiddleRight, Color.white);
-            Place(bannerName.rectTransform, TopRight, TopRight, new Vector2(-40, -30), new Vector2(700, 70));
-            var pity = NewText("PityText", canvas, font, "", 32, TextAnchor.MiddleRight, Color.white);
-            Place(pity.rectTransform, TopRight, TopRight, new Vector2(-40, -100), new Vector2(700, 50));
-            var message = NewText("MessageText", canvas, font, "", 32, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.4f));
-            Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 150), new Vector2(1400, 50));
+            // Trang roll (G1): ô giữ chỗ banner ở giữa, khối tên/Gem ở hai góc trên, nút quay ở góc dưới phải (trên nút Cài đặt DEV).
+            var art = NewRect("BannerArt", canvas);
+            Place(art, TopLeft, Center, new Vector2(860, -520), new Vector2(900, 560));
+            AddImage(art, sprite, new Color(0.45f, 0.47f, 0.55f), raycast: false);
+            var bannerPanel = NewRect("BannerPanel", canvas);
+            Place(bannerPanel, TopLeft, TopLeft, new Vector2(40, -30), new Vector2(760, 150));
+            AddImage(bannerPanel, sprite, Panel, raycast: false);
+            var bannerName = NewText("BannerNameText", bannerPanel, font, banner.DisplayName, 48, TextAnchor.MiddleLeft, Color.white);
+            Place(bannerName.rectTransform, TopLeft, TopLeft, new Vector2(30, -10), new Vector2(700, 70));
+            var pity = NewText("PityText", bannerPanel, font, "", 32, TextAnchor.MiddleLeft, Color.white);
+            Place(pity.rectTransform, TopLeft, TopLeft, new Vector2(30, -85), new Vector2(700, 50));
+            var gemCard = NewRect("GemCard", canvas);
+            Place(gemCard, TopRight, TopRight, new Vector2(-40, -30), new Vector2(360, 80));
+            AddImage(gemCard, sprite, Panel, raycast: false);
+            var gem = NewText("GemText", gemCard, font, "Gem: 0", 44, TextAnchor.MiddleCenter, Color.white);
+            Stretch(gem.rectTransform);
+            var message = NewText("MessageText", canvas, font, "", 32, TextAnchor.MiddleRight, new Color(1f, 0.85f, 0.4f));
+            Place(message.rectTransform, BottomRight, BottomRight, new Vector2(-40, 400), new Vector2(560, 50));
 
             var single = NewButton("SingleButton", canvas, sprite, font, GachaViewText.PullLabel(1, banner.SingleCost), ButtonColor,
-                BottomCenter, new Vector2(-260, 40), new Vector2(440, 100));
+                BottomRight, new Vector2(-360, 110), new Vector2(300, 160));
             var ten = NewButton("TenButton", canvas, sprite, font, GachaViewText.PullLabel(10, banner.TenCost), ButtonColor,
-                BottomCenter, new Vector2(260, 40), new Vector2(440, 100));
+                BottomRight, new Vector2(-40, 110), new Vector2(300, 160));
             var history = NewButton("HistoryButton", canvas, sprite, font, "Lịch sử", GreyButton,
-                TopLeft, new Vector2(40, -110), new Vector2(300, 80));
+                BottomRight, new Vector2(-40, 300), new Vector2(300, 80));
 
             // Reveal: hai cutscene (prefab của user) và thẻ nhân vật. Ẩn mặc định; GachaRevealView bật khi quay.
             var revealRoot = NewRect("RevealRoot", canvas);
@@ -81,15 +90,15 @@ namespace BunDauPeo.EditorTools
             var common = InstantiateCutscene(commonPrefab, revealRoot);
             var legendary = InstantiateCutscene(legendaryPrefab, revealRoot);
             var revealPanel = NewRect("RevealPanel", revealRoot);
-            Place(revealPanel, Center, Center, Vector2.zero, new Vector2(900, 760));
+            Place(revealPanel, Center, Center, Vector2.zero, new Vector2(1800, 1000));
             AddImage(revealPanel, sprite, Panel, raycast: false);
             var portrait = NewRect("Portrait", revealPanel);
-            Place(portrait, TopCenter, TopCenter, new Vector2(0, -40), new Vector2(460, 460));
+            Place(portrait, TopLeft, Center, new Vector2(640, -500), new Vector2(760, 760));
             var portraitImage = AddImage(portrait, sprite, Color.white, raycast: false);
-            var revealName = NewText("NameText", revealPanel, font, "", 52, TextAnchor.MiddleCenter, Color.white);
-            Place(revealName.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 150), new Vector2(840, 70));
-            var revealStars = NewText("StarsText", revealPanel, font, "", 38, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.4f));
-            Place(revealStars.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 80), new Vector2(840, 60));
+            var revealName = NewText("NameText", revealPanel, font, "", 64, TextAnchor.MiddleRight, Color.white);
+            Place(revealName.rectTransform, BottomRight, BottomRight, new Vector2(-60, 130), new Vector2(700, 90));
+            var revealStars = NewText("StarsText", revealPanel, font, "", 48, TextAnchor.MiddleRight, new Color(1f, 0.85f, 0.4f));
+            Place(revealStars.rectTransform, BottomRight, BottomRight, new Vector2(-60, 50), new Vector2(700, 70));
             var flash = NewRect("Flash", revealRoot);
             Stretch(flash);
             var flashImage = AddImage(flash, sprite, new Color(1f, 1f, 1f, 0f), raycast: false);
@@ -112,10 +121,15 @@ namespace BunDauPeo.EditorTools
             var totalRoot = NewRect("TotalRoot", canvas);
             Stretch(totalRoot);
             AddImage(totalRoot, sprite, Background, raycast: true);
-            var grid = NewRect("Grid", totalRoot);
-            Place(grid, TopCenter, TopCenter, new Vector2(0, -30), new Vector2(1770, 630));
+            var totalPanel = NewRect("TotalPanel", totalRoot);
+            Place(totalPanel, Center, Center, Vector2.zero, new Vector2(1300, 640));
+            AddImage(totalPanel, sprite, Panel, raycast: false);
+            var totalTitle = NewText("TitleText", totalPanel, font, "Kết quả quay", 48, TextAnchor.MiddleLeft, Color.white);
+            Place(totalTitle.rectTransform, TopLeft, TopLeft, new Vector2(60, -25), new Vector2(800, 70));
+            var grid = NewRect("Grid", totalPanel);
+            Place(grid, TopCenter, TopCenter, new Vector2(0, -120), new Vector2(1120, 470));
             var layout = grid.gameObject.AddComponent<GridLayoutGroup>();
-            layout.cellSize = new Vector2(330, 300);
+            layout.cellSize = new Vector2(200, 220);
             layout.spacing = new Vector2(30, 30);
             layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             layout.constraintCount = 5;
@@ -123,13 +137,13 @@ namespace BunDauPeo.EditorTools
             var icon = NewRect("IconTemplate", grid);
             AddImage(icon, sprite, Color.white, raycast: false);
             var iconPortrait = NewRect("Portrait", icon);
-            Place(iconPortrait, TopCenter, TopCenter, new Vector2(0, -15), new Vector2(240, 210));
+            Place(iconPortrait, TopCenter, TopCenter, new Vector2(0, -12), new Vector2(160, 140));
             AddImage(iconPortrait, sprite, Color.white, raycast: false);
             var iconLabel = NewRect("Label", icon);
-            Place(iconLabel, BottomCenter, BottomCenter, new Vector2(0, 12), new Vector2(310, 60));
-            AddText(iconLabel, font, "", 28, TextAnchor.MiddleCenter, Color.white);
+            Place(iconLabel, BottomCenter, BottomCenter, new Vector2(0, 8), new Vector2(190, 56));
+            AddText(iconLabel, font, "", 24, TextAnchor.MiddleCenter, Color.white);
             icon.gameObject.SetActive(false);
-            var ok = NewButton("OkButton", totalRoot, sprite, font, "OK", ButtonColor, BottomCenter, new Vector2(0, 60), new Vector2(360, 90));
+            var ok = NewButton("OkButton", totalRoot, sprite, font, "OK", ButtonColor, Center, new Vector2(0, -395), new Vector2(360, 90));
             var totalView = totalRoot.gameObject.AddComponent<GachaTotalView>();
             var totalSo = new SerializedObject(totalView);
             totalSo.FindProperty("_root").objectReferenceValue = totalRoot.gameObject;
@@ -140,7 +154,8 @@ namespace BunDauPeo.EditorTools
             totalRoot.gameObject.SetActive(false);
 
             // Nút Bỏ qua: đặt trên reveal để bấm được; GachaView bật tắt theo luật của GachaRevealSequence.
-            var skip = NewButton("SkipButton", canvas, sprite, font, "Bỏ qua", GreyButton, BottomRight, new Vector2(-40, 40), new Vector2(300, 90));
+            // Góc trên phải, vì nút Cài đặt DEV chiếm góc dưới phải (G4).
+            var skip = NewButton("SkipButton", canvas, sprite, font, "Bỏ qua", GreyButton, TopRight, new Vector2(-40, -40), new Vector2(300, 90));
             skip.gameObject.SetActive(false);
 
             // Popup quay tiếp.
@@ -279,6 +294,41 @@ namespace BunDauPeo.EditorTools
             Stretch(labelRect);
             AddText(labelRect, font, text, 36, TextAnchor.MiddleCenter, Color.white);
             return button;
+        }
+
+        // Hàng ô thưởng: nhãn 200 px bên trái, ô 96×96 cách 24, số 28 px dưới ô. Vị trí là góc trên trái của hàng.
+        internal static RewardRow BuildRewardRow(RectTransform parent, string name, Font font, Vector2 anchor, Vector2 position)
+        {
+            const float cell = 96, gap = 24, labelWidth = 200;
+            var root = NewRect(name, parent);
+            Place(root, anchor, TopLeft, position, new Vector2(labelWidth + RewardRow.MaxCells * (cell + gap), cell + 44));
+            var label = NewText("Label", root, font, "", 32, TextAnchor.MiddleLeft, Color.white);
+            Place(label.rectTransform, TopLeft, TopLeft, Vector2.zero, new Vector2(labelWidth, cell));
+            var cells = new Image[RewardRow.MaxCells];
+            var amounts = new Text[RewardRow.MaxCells];
+            for (var i = 0; i < RewardRow.MaxCells; i++)
+            {
+                var rect = NewRect($"Cell{i}", root);
+                Place(rect, TopLeft, TopLeft, new Vector2(labelWidth + i * (cell + gap), 0), new Vector2(cell, cell));
+                cells[i] = AddImage(rect, null, Color.white, raycast: false);
+                amounts[i] = NewText("Amount", rect, font, "", 24, TextAnchor.UpperCenter, Color.white);
+                // Ô chỉ rộng 120: "30 Material" bị cắt mất chữ Material nếu để ngắt dòng.
+                amounts[i].horizontalOverflow = HorizontalWrapMode.Overflow;
+                Place(amounts[i].rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 1), new Vector2(0, -4), new Vector2(cell + gap, 40));
+            }
+            var row = root.gameObject.AddComponent<RewardRow>();
+            var so = new SerializedObject(row);
+            so.FindProperty("_label").objectReferenceValue = label;
+            Fill(so.FindProperty("_cells"), cells);
+            Fill(so.FindProperty("_amounts"), amounts);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return row;
+        }
+
+        private static void Fill(SerializedProperty array, UnityEngine.Object[] items)
+        {
+            array.arraySize = items.Length;
+            for (var i = 0; i < items.Length; i++) array.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
         }
 
         internal static Text NewText(string name, RectTransform parent, Font font, string text, int size, TextAnchor align, Color color) =>

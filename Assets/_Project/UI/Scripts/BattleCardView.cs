@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 namespace BunDauPeo.UI
 {
-    // Thẻ một nhân vật phe ta dưới màn (kiểu Princess Connect): chân dung ô vuông màu class, HP, năng lượng, viền sáng khi tới lượt.
-    // Chạm thẻ để chọn đồng minh cho chiêu hồi máu.
+    // Thẻ một nhân vật phe ta (chân dung ô vuông màu class, HP, năng lượng). Màn trận không còn hàng thẻ (HP nằm dưới tên mỗi người);
+    // thẻ chỉ còn trong popup tạm dừng.
     public class BattleCardView : MonoBehaviour
     {
         private static readonly Color FrameOn = new(1f, 0.85f, 0.25f);

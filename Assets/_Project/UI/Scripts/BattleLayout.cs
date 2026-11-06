@@ -3,17 +3,19 @@ using UnityEngine;
 namespace BunDauPeo.UI
 {
     // Toạ độ màn trận theo spec Combat 5.4: vùng 1920×1080 gốc trái trên, y hướng xuống. Hàm thuần để test không đè nhau.
+    // Mỗi phe là lưới 3 cột (Front, Mid, Back) × 3 hàng; hàng cách nhau 240 để dưới mỗi người còn chỗ cho tên, số HP và một hàng
+    // buff/debuff sau này (130 thân + ~70 chữ + ~40 hàng buff).
     public static class BattleLayout
     {
-        // Thẻ nhân vật và bảng chiêu nằm trong dải này; dải DEV ở y >= 988 không che chúng.
-        public const float CardAreaTop = 820f, CardAreaBottom = 980f;
+        public const float RowTop = 280f, RowMid = 520f, RowBottom = 760f;
 
-        public static readonly Vector2 UnitSize = new(140, 170), BossSize = new(280, 320);
+        public static readonly Vector2 UnitSize = new(130, 130), BossSize = new(280, 320);
 
-        // Theo SlotIndex: Front 0-1, Mid 2-3, Back 4.
-        private static readonly Vector2[] AllyCenters = { new(760, 360), new(760, 600), new(540, 300), new(540, 540), new(320, 450) };
-        private static readonly Vector2[] EnemyCenters = { new(1180, 360), new(1180, 600), new(1400, 300), new(1400, 540), new(1620, 450) };
-        private static readonly Vector2 BossCenter = new(1180, 340);
+        // Theo SlotIndex: Front 0-1 (hàng trên và dưới), Mid 2-3 (hàng trên và dưới), Back 4 (hàng giữa).
+        private static readonly Vector2[] AllyCenters = { new(760, RowTop), new(760, RowBottom), new(540, RowTop), new(540, RowBottom), new(320, RowMid) };
+        private static readonly Vector2[] EnemyCenters = { new(1180, RowTop), new(1180, RowBottom), new(1400, RowTop), new(1400, RowBottom), new(1620, RowMid) };
+        // Boss cao hơn hàng nên lùi xuống để không chạm thanh trên; đáy boss (560) còn cách quái ô 1 (đỉnh 695) đủ chỗ cho chữ.
+        private static readonly Vector2 BossCenter = new(1180, 400);
 
         public static Rect AllyRect(int slotIndex) => Box(AllyCenters[slotIndex], UnitSize);
 

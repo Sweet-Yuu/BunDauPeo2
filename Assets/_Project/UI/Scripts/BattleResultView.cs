@@ -15,6 +15,8 @@ namespace BunDauPeo.UI
         // _root chặn chạm xuống trận; component nằm ở object luôn bật để còn nhận Show.
         [SerializeField] private GameObject _root;
         [SerializeField] private Text _banner;
+        [SerializeField] private RewardRow _rewardRow;
+        // Gợi ý khi thua và dòng "Trận thử"; thưởng thắng thật nằm ở _rewardRow.
         [SerializeField] private Text _rewardText;
         [SerializeField] private Text _staminaText;
         [SerializeField] private Text _warningText;
@@ -49,9 +51,14 @@ namespace BunDauPeo.UI
             _banner.text = CombatViewText.EndBanner(session.State);
             _messageText.text = "";
             _warningText.text = "";
+            _rewardRow.Hide();
+            _rewardText.text = "";
             _root.SetActive(true);
 
             var won = session.State == BattleState.Won;
+            // Thắng canh giữa quanh hàng ô thưởng; thua canh trái như ảnh mẫu.
+            _rewardText.alignment = won ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft;
+            _staminaText.alignment = _rewardText.alignment;
             _confirmButton.gameObject.SetActive(won);
             _retryButton.gameObject.SetActive(!won);
             _backButton.gameObject.SetActive(!won);
@@ -61,7 +68,7 @@ namespace BunDauPeo.UI
                 var result = service.Progress.CompleteBattle(session);
                 if (result.Status == StageCompleteStatus.Success)
                 {
-                    _rewardText.text = CombatViewText.ResultRewards(result);
+                    _rewardRow.Show(result.Rewards, result.FirstClear ? "Lần đầu" : "");
                     _staminaText.text = CombatViewText.StaminaUsed(result.StaminaSpent);
                     _warningText.text = RestaurantViewText.SaveWarning(result.Saved);
                 }
@@ -114,7 +121,7 @@ namespace BunDauPeo.UI
 
         private bool HasAllReferences()
         {
-            var ok = _root != null && _banner != null && _rewardText != null && _staminaText != null && _warningText != null
+            var ok = _root != null && _banner != null && _rewardRow != null && _rewardText != null && _staminaText != null && _warningText != null
                      && _messageText != null && _confirmButton != null && _retryButton != null && _backButton != null;
             if (!ok) Debug.LogError($"{nameof(BattleResultView)}: references are not assigned.", this);
             return ok;

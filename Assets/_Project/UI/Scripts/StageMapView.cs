@@ -43,9 +43,9 @@ namespace BunDauPeo.UI
         private float _hintLeft;
         private CanvasGroup _markerGroup;
 
-        // Gốc trái trên, đơn vị 1920×1080: zíc-zắc giữa y 440 và 640, cách nhau 240 theo x. shortcut: đủ cho một chương 7 nút;
+        // Gốc trái trên, đơn vị 1920×1080: zíc-zắc giữa y 400 và 720, cách nhau 240 theo x. shortcut: đủ cho một chương 7 nút;
         // nhiều chương thì cuộn hoặc chia trang.
-        public static Vector2 NodeCenter(int index) => new(240f + 240f * index, index % 2 == 0 ? 640f : 440f);
+        public static Vector2 NodeCenter(int index) => new(240f + 240f * index, index % 2 == 0 ? 720f : 400f);
 
         // Màn mở đầu tiên chưa clear (nơi hiện NEXT); -1 khi không còn.
         public static int NextStageIndex(StageProgressService progress, StageCatalog catalog)

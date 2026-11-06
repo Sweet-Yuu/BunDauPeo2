@@ -33,3 +33,4 @@
 - Nhiều đầu vào biên thì lặp trong một method kèm thông báo có đầu vào (`$"u = {u}"`), không dùng `[TestCase]`, để tổng số test khớp kế hoạch (L-012).
 - Test duyệt scene có đối tượng tắt dùng `GetComponentInParent<T>(true)` / `GetComponentsInChildren<T>(true)` (L-013).
 - Sinh scene bằng code thì phải có test đọc lại tham chiếu từ file scene (L-002).
+- Test kiểm nút đè nút luôn gồm nút đang tắt (`FindObjectsInactive.Include` / `GetComponentsInChildren<Button>(true)`): nút Bỏ qua, nút popup, nút kết quả chỉ bật trong luồng chơi nhưng vẫn có `RectTransform` đúng chỗ. Test chỉ xét nút đang bật sẽ xanh dù nút bị che (L-025, L-027).

@@ -31,9 +31,6 @@ namespace BunDauPeo.UI
 
         public static string SpeedLabel(bool fast) => fast ? "x2" : "x1";
 
-        public static string PauseHpLine(BattleUnit unit) =>
-            unit.IsAlive ? $"{unit.DisplayName} {UnitHp(unit.Hp, unit.MaxHp)}" : $"{unit.DisplayName}: đã ngã";
-
         // Trận DEV chưa trừ thể lực nhưng dùng cùng một câu (chỉ là bản thử).
         public static string SurrenderConfirm() => "Bỏ cuộc? Trận này tính thua, thể lực không được hoàn.";
 
@@ -82,8 +79,15 @@ namespace BunDauPeo.UI
 
         public static string RewardHeader(bool firstClear) => firstClear ? "Thưởng lần đầu" : "Thưởng";
 
-        public static string RewardLine(IReadOnlyList<CurrencyAmount> lines) =>
-            string.Join(" · ", lines.Select(l => $"{l.Amount.ToString(CultureInfo.InvariantCulture)} {l.Type}"));
+        public static Color CurrencyColor(CurrencyType type) => type switch
+        {
+            CurrencyType.Coin => new Color(0.95f, 0.80f, 0.25f),
+            CurrencyType.Material => new Color(0.65f, 0.45f, 0.28f),
+            _ => new Color(0.35f, 0.65f, 0.95f),
+        };
+
+        public static string CurrencyCell(CurrencyAmount line) =>
+            $"{line.Amount.ToString(CultureInfo.InvariantCulture)} {line.Type}";
 
         public static string NodeLabel(StageDefinition stage) => stage.Kind == StageKind.Story ? "Truyện" : stage.DisplayName;
 
@@ -128,10 +132,6 @@ namespace BunDauPeo.UI
         };
 
         public static string TeamFull() => $"Đội đã đủ {Roster.MaxBattleTeamSize} người";
-
-        // Nhãn "Lần đầu" chỉ khi là lần đầu; thưởng đọc từ kết quả thật, không tính lại.
-        public static string ResultRewards(StageCompleteResult result) =>
-            result.FirstClear ? $"Lần đầu · {RewardLine(result.Rewards)}" : RewardLine(result.Rewards);
 
         public static string StaminaUsed(int cost) => $"Thể lực đã dùng: {cost}";
 

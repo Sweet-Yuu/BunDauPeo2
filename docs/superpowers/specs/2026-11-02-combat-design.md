@@ -287,31 +287,34 @@ Nền phẳng một màu. Trái trên: nút Quay lại (về Quán) và "Chươn
 
 ### 5.3 Chọn đội (`TeamSelectPopup`, theo `quest-team-select-popup.jpg`)
 
-Lưới thẻ nhân vật đã có (tên, class bằng nhãn màu, sao, độ hiếm), bấm để vào/ra đội. Dòng thẻ phía dưới "Thành viên hiện tại" hiện **đội đã tự xếp** thành Front / Mid / Back theo `BattleFormation.Assign`, để người chơi thấy mỗi người đứng đâu. Nhân vật đang làm quán ghi "Quán: <vai>"; bấm vào thì hỏi xác nhận trong popup ("X đang làm <vai>, chuyển vào đội chiến đấu?"), giống `StaffPanel`. Nút Hủy và **Vào trận**: đội trống thì nút mờ; dưới 5 người thì hiện **hộp xác nhận** "Đội mới có N người, vào trận?" (Có / Không); thể lực chỉ bị trừ khi bấm Có (hoặc Vào trận khi đủ 5 người), trong `EnterStage`, không phải lúc mở hộp. Không có bộ lọc nguyên tố, EX trang bị, "tổng chiến lực".
+Lưới thẻ nhân vật đã có (tên, class bằng nhãn màu, sao, độ hiếm), bấm để vào/ra đội. Dòng thẻ phía dưới "Thành viên hiện tại" hiện **đội đã tự xếp** thành Front / Mid / Back theo `BattleFormation.Assign`, để người chơi thấy mỗi người đứng đâu. Nhân vật đang làm quán ghi "Quán: <vai>"; bấm vào thì hỏi xác nhận trong popup ("X đang làm <vai>, chuyển vào đội chiến đấu?"), giống `StaffPanel`. Bố cục lưới, chip, nút: spec [layout Mota](2026-11-06-layout-mota-design.md) mục 4.3 T1 (16 thẻ mỗi trang). Nút Hủy và **Vào trận**: đội trống thì nút mờ; dưới 5 người thì hiện **hộp xác nhận** "Đội mới có N người, vào trận?" (Có / Không); thể lực chỉ bị trừ khi bấm Có (hoặc Vào trận khi đủ 5 người), trong `EnterStage`, không phải lúc mở hộp. Không có bộ lọc nguyên tố, EX trang bị, "tổng chiến lực".
 
 ### 5.4 Màn trận (`BattleView`, `BattleLayout`, `BattleActionPanel`; theo `battle-wave.jpg`, `battle-wave-small.jpg`, `battle-skill-select-en.png`, `battle-boss.png`)
 
+Bố cục chốt lại với user ngày 2026-11-06 (spec [layout Mota](2026-11-06-layout-mota-design.md) mục 4.3 B1, B2; toạ độ ở đó thắng bản phác này):
+
 ```
- [Đợt 1/3]  [Lượt: ● ● ● ○ ○ ○]                                   [Menu] [AUTO] [x1]
-                                              (quái ô 2)     (quái ô 4)
-            Back          Mid            Front       Front   (quái ô 0)  (quái ô 1)
-                      ┌ ally ┐         ┌ ally ┐
-              ally    └──────┘         └ ally ┘
-                                                  ▼ mục tiêu
- ┌─thẻ─┐┌─thẻ─┐┌─thẻ─┐┌─thẻ─┐┌─thẻ─┐                      ( Đánh )  ( Skill ③ )  ( Ultimate ◔ )
- HP/EN   HP/EN   HP/EN   HP/EN   HP/EN
+ [Đợt 1/3]                                                           [x1] [AUTO] [Menu]
+ [Lượt: ● ● ● ○ ○ ○]
+ Lượt của <tên>                                                     (quái ô 2)
+            Back          Mid            Front       Front   (quái ô 0)  (quái ô 4)
+                       ally   ally       ally           (hàng trên, giữa, dưới: lưới 3×3 mỗi phe)
+              ally                                                            ( Đánh ) ( Skill ③ ) ( Ultimate ◔ )
+                       ally   ally
 ```
 
-- **Phe ta bên trái, không chồng nhau** (yêu cầu user): `BattleLayout` là hàm tĩnh thuần cho toạ độ **tâm hộp** khởi điểm, trong một vùng 1920×1080 gốc trái trên **neo giữa Canvas**, để máy màn dài hơn 16:9 không dồn cả trận sang trái: Front tại x = 760 với y = 360 và 600; Mid tại x = 540 với y = 300 và 540; Back tại x = 320, y = 450; quái ô 0 và 1 tại x = 1180 (y 360, 600), ô 2 và 3 tại x = 1400 (y 300, 540), ô 4 tại x = 1620 (y 450); người rộng 140, cao 170; boss rộng 280, cao 320, đứng ô 0 tại (1180, 340). Hộp của hai ô bất kỳ không giao nhau, kể cả boss đứng cùng quái thường; **test kiểm không đè nhau** ở đủ mọi tổ hợp đội và đợt. Vùng dưới y ≥ 820 dành cho thẻ và bảng chiêu.
-- **Hình tạm:** phe ta là `Knob` tô màu theo class (Đỡ đòn xám xanh, Đấu sĩ đỏ cam, Hỗ trợ lục, Xạ thủ vàng, Pháp sư tím) kèm tên; quái là hình vuông đỏ sẫm kèm tên, boss lớn hơn. Người chết mờ dần rồi ẩn. Chỉ số HP trên đầu mỗi người là một thanh `Image` filled.
-- **Thẻ năm nhân vật** (kiểu Princess Connect, dưới màn): chân dung ô vuông tô màu class, thanh HP, thanh năng lượng; thẻ của người đang tới lượt sáng viền, thẻ hiện nhãn "OK!" khi ultimate sẵn sàng.
+- **Phe ta bên trái, không chồng nhau** (yêu cầu user): `BattleLayout` là hàm tĩnh thuần cho toạ độ **tâm hộp** khởi điểm, trong một vùng 1920×1080 gốc trái trên **neo giữa Canvas**, để máy màn dài hơn 16:9 không dồn cả trận sang trái. Mỗi phe là **lưới 3 cột × 3 hàng** (user chốt 2026-11-06, trừ boss); hàng ở y = 280, 520, 760 (cách 240 để dưới mỗi người còn chỗ cho tên, số HP và một hàng buff/debuff sau này). Cột phe ta: Front x = 760 (hàng trên và dưới), Mid x = 540 (hàng trên và dưới), Back x = 320 (hàng giữa). Quái đối xứng: ô 0 và 1 x = 1180, ô 2 và 3 x = 1400, ô 4 x = 1620. Người rộng 130, cao 130; boss rộng 280, cao 320, đứng ô 0 tại (1180, 400). Hộp của hai ô bất kỳ không giao nhau, kể cả boss đứng cùng quái thường; **test kiểm không đè nhau** ở đủ mọi tổ hợp đội và đợt.
+- **Hình tạm:** phe ta là `Knob` tô màu theo class (Đỡ đòn xám xanh, Đấu sĩ đỏ cam, Hỗ trợ lục, Xạ thủ vàng, Pháp sư tím) kèm tên; quái là hình vuông đỏ sẫm kèm tên, boss lớn hơn. Người chết mờ dần rồi ẩn. Chỉ số HP trên đầu mỗi người là một thanh `Image` filled; cả hai phe có thêm số HP "hiện/tối đa" dưới tên.
+- **Không còn hàng thẻ dưới màn** (user bỏ 2026-11-06): HP của cả hai phe là số "hiện/tối đa" dưới tên mỗi người; chiêu hồi máu chọn đồng minh bằng cách chạm người trên sân. Năm thẻ (`BattleCardView`) chỉ còn trong popup tạm dừng. Thanh năng lượng ultimate chỉ hiện ở vòng quanh nút Ultimate của người đang tới lượt.
 - **Bảng chiêu kiểu FGO**: góc phải dưới, ba nút tròn của **người đang tới lượt**: **Đánh**, **Skill** (hiện số lượt hồi chiêu còn lại, mờ khi chưa dùng được), **Ultimate** (vòng năng lượng đầy dần, mờ khi chưa đủ). Chạm một quái để đặt mục tiêu (mũi tên tam giác trên đầu); mặc định quái sống đầu tiên. Skill hồi máu chọn đồng minh bằng cách chạm thẻ hoặc người; mặc định người thấp máu nhất. Tới lượt quái thì bảng khoá, chữ "Lượt của <tên>".
-- **Thanh lượt** trên cùng giữa: các hình nhỏ theo `RemainingOrder`, người hiện tại sáng.
+- **Thanh lượt** góc trên trái, dưới chữ "Đợt n/m": các hình nhỏ theo `RemainingOrder`, người hiện tại sáng; dòng "Lượt của <tên>" ngay dưới thanh.
 - **Hoạt hình** (chỉ trong view, phát từ `BattleActionResult`): người ra đòn nhích về phía mục tiêu rồi về, mục tiêu nháy, số sát thương/hồi máu bay lên (bể đối tượng tái dùng), thanh HP chạy; mỗi đòn khoảng 0,6 giây, **x2 chia đôi thời gian**, không dùng `Time.timeScale`. Đợt mới: banner "Đợt 2/3" 1 giây.
-- **AUTO**: nút bật/tắt; khi bật, tới lượt phe ta thì gọi `AutoPolicy` rồi phát hoạt hình như người chơi bấm. **Tốc độ**: nút xoay vòng x1 ↔ x2. **Menu** mở `BattlePausePopup` (theo `battle-pause-popup.jpg`): HP từng người, Tiếp tục, **Bỏ cuộc** (hỏi lại một lần với dòng "Trận này tính thua, thể lực không được hoàn", rồi `Surrender`, tính thua, không thưởng, không hoàn thể lực). Mở popup thì trận dừng; AUTO và tốc độ nằm ở `CombatService` (mục 4.7).
+- **AUTO**: nút bật/tắt; khi bật, tới lượt phe ta thì gọi `AutoPolicy` rồi phát hoạt hình như người chơi bấm. **Tốc độ**: nút xoay vòng x1 ↔ x2. **Menu** (góc trên phải, cạnh AUTO và x1) mở `BattlePausePopup` (theo `battle-pause-popup.jpg`): tên màn, năm thẻ nhân vật (HP, năng lượng; chỉ xem), Tiếp tục, **Cài đặt** (mở panel DEV, chỉ Editor và Development Build; ở màn trận nút Cài đặt góc dưới phải được ẩn), **Bỏ cuộc** (hỏi lại một lần với dòng "Trận này tính thua, thể lực không được hoàn", rồi `Surrender`, tính thua, không thưởng, không hoàn thể lực). Mở popup thì trận dừng; AUTO và tốc độ nằm ở `CombatService` (mục 4.7).
 - Vào scene mà `CombatService.Current` trống (mở Battle.unity trực tiếp) thì hiện "Chưa có trận" và nút về, **không** tự dựng trận.
 
 ### 5.5 Kết quả (`BattleResultView`, theo `battle-result-clear-en.webp`, `battle-result-rewards-mvp-en.webp`, `battle-result-failed-en.webp`)
+
+Bố cục hộp kết quả: spec [layout Mota](2026-11-06-layout-mota-design.md) mục 4.2 K1, K2.
 
 - **Thắng:** banner "CLEAR", danh sách thưởng (ô vuông + số, nhãn "Lần đầu" nếu là lần đầu), thể lực đã dùng lúc vào; nếu `Saved = false` thì dòng "chưa lưu được dữ liệu" (cùng câu với AFK). Nút **Xác nhận** về bản đồ, màn kế tiếp vừa mở được đánh dấu "NEXT". `CompleteBattle` gọi **một lần** khi hiện màn này. `Status` khác `Success` (chỉ gặp ở trận vào thẳng từ dải DEV, `NotPaid`) thì vẫn hiện "CLEAR" kèm dòng "Trận thử, không có thưởng". Không có MVP, thống kê, 3 sao.
 - **Thua:** banner "Thất bại", gợi ý một dòng ("Thử vào đủ 5 người, hoặc đánh lại màn trước để lấy Gem") và dòng "Đã trừ N thể lực khi vào, không hoàn" (trận DEV không có dòng này), nút **Thử lại** và **Về bản đồ**. Thử lại gọi `EnterStage` cùng màn (kiểm lại từ đầu, **trừ thể lực lần nữa**); nút mờ kèm lý do khi `CanEnter` không `Ready` (thiếu thể lực thì kèm "Đủ thể lực sau m:ss"). Trận DEV thua thì Thử lại gọi `StartBattle` như cũ. Bỏ cuộc cũng ra màn này.
