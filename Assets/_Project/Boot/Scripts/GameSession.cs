@@ -9,6 +9,7 @@ namespace BunDauPeo.Boot
     {
         private readonly SaveService _saveService;
         private readonly NewGameConfig _newGame;
+        private readonly Func<SystemLanguage> _deviceLanguage;
 
         public PlayerSave Save { get; }
         public Wallet Wallet { get; }
@@ -18,8 +19,10 @@ namespace BunDauPeo.Boot
         // Trạng thái chạy ngoài PlayerSave (D-005) nối vào đây để xoá theo.
         public event Action ResetCompleted;
 
-        public GameSession(SaveService saveService, CharacterCatalog catalog, NewGameConfig newGame)
+        // deviceLanguage: ngôn ngữ máy để Reset đưa GameLanguage.Current về theo máy; null thì Reset không đụng GameLanguage (test).
+        public GameSession(SaveService saveService, CharacterCatalog catalog, NewGameConfig newGame, Func<SystemLanguage> deviceLanguage = null)
         {
+            _deviceLanguage = deviceLanguage;
             _saveService = saveService ?? throw new ArgumentNullException(nameof(saveService));
             if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             _newGame = newGame != null ? newGame : throw new ArgumentNullException(nameof(newGame));
@@ -71,6 +74,8 @@ namespace BunDauPeo.Boot
             GrantNewGame();
             Wallet.NotifyChanged();
             Roster.NotifyChanged();
+            // Save.Language vừa về "" nên quay về theo máy (D-005 luật 3); làm trước ResetCompleted để view nạp lại thấy ngôn ngữ mới.
+            if (_deviceLanguage != null) ApplyLanguage(_deviceLanguage());
             ResetCompleted.SafeInvoke();
             return Persist();
         }

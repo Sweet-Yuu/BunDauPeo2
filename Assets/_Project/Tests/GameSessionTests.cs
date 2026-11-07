@@ -293,6 +293,34 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(Language.En, GameLanguage.Current, "đã chọn En thắng máy tiếng Việt");
         }
 
+        // N1: dây Reset → ngôn ngữ theo máy nằm trong GameSession để giả lập được máy tiếng Việt trên máy dev tiếng Anh.
+        [Test]
+        public void ResetToDefaults_AfterChoosingEnglish_FollowsDeviceLanguage()
+        {
+            var device = SystemLanguage.Vietnamese;
+            var session = new GameSession(_service, _catalog, _config, () => device);
+            Assert.IsTrue(session.SetLanguage(Language.En));
+            Assert.AreEqual(Language.En, GameLanguage.Current);
+
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.AreEqual("", session.Save.Language);
+            Assert.AreEqual(Language.Vi, GameLanguage.Current, "máy tiếng Việt");
+
+            device = SystemLanguage.English;
+            Assert.IsTrue(session.SetLanguage(Language.Vi));
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.AreEqual(Language.En, GameLanguage.Current, "máy tiếng Anh");
+        }
+
+        [Test]
+        public void ResetToDefaults_WithoutDeviceLanguage_LeavesCurrentAlone()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            GameLanguage.Current = Language.En;
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.AreEqual(Language.En, GameLanguage.Current);
+        }
+
         [Test]
         public void ConfigWithBadEntries_DoesNotThrow()
         {

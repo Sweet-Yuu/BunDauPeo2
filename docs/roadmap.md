@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Song ngữ Việt–Anh: phiên A, B đã commit. 🔨 phiên C (Task 8–11: tên SO, nút đổi ngôn ngữ, `HardcodedTextTests`, ảnh tiếng Anh, docs) xong trên `feature/bilingual`, chờ 📋 commit (EditMode 784/784, PlayMode 13/13). Kế tiếp: user duyệt 9 ảnh `D:/bdp_BunDauPeo/shots/bi-*.png` và bảng dịch `UiText.*.cs`, rồi 🔍 review cuối nhánh và PR.
+- Song ngữ Việt–Anh: phiên A, B, C đã commit trên `feature/bilingual` (`a0e3fa1`, EditMode 784/784, PlayMode 13/13). User đã duyệt ảnh tiếng Anh và bảng dịch. 🔍 review cuối nhánh tìm B1 (popup màn còn "Đợt" khi English) và N1–N3: đã sửa trong working tree, chưa commit (EditMode 788/788, PlayMode 13/13). Kế tiếp: 📋 commit, 🎯 kiểm lại rồi PR.
 
 ## Tiếp theo
 

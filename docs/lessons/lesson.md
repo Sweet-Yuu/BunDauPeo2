@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-030 — 🎯 đưa id transcript thay cho id session vào brief, kênh con không nhắn lại được (2026-11-08)  #process
+- Triệu chứng: 🔍 Review Song ngữ báo "không tìm thấy phiên" khi nhắn 🎯 Điều phối #2 theo id `local_5e714e6d-…` ghi trong brief.
+- Nguyên nhân gốc: 🎯 lấy id từ tên file transcript (`…/projects/…/5e714e6d-….jsonl`). Đó là id cuộc hội thoại, không phải id session của app (`local_f37812f1-…`).
+- Luật từ nay: brief cần id của kênh 🎯 thì lấy bằng `get_session` với `"self"`, không suy từ đường dẫn transcript hay bản tóm tắt.
+
 ### L-029 — Kế hoạch ghi test EditMode cho `OnEnable`, nhưng EditMode không gọi `OnEnable` của MonoBehaviour thường (2026-11-07)  #script #process
 - Triệu chứng: `LocalizedTextTests` theo kế hoạch (tạo GameObject, bật lại, đọc `Text`) đỏ vì chữ vẫn rỗng; code đúng.
 - Nguyên nhân gốc: ngoài Play, Unity chỉ chạy `Awake`/`OnEnable` cho lớp có `[ExecuteAlways]`. Thêm `ExecuteAlways` chỉ để qua test thì `OnEnable` chạy cả khi mở scene trong Editor.

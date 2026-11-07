@@ -1,5 +1,7 @@
 using BunDauPeo.Core;
+using BunDauPeo.EditorTools;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace BunDauPeo.Tests
@@ -45,6 +47,19 @@ namespace BunDauPeo.Tests
             }
             Assert.AreEqual("en", GameLanguage.Code(Language.En));
             Assert.AreEqual("vi", GameLanguage.Code(Language.Vi));
+        }
+
+        // N2: thoát Play thì trả tiếng Việt để builder và test EditMode không thấy tiếng Anh còn sót từ lượt Play.
+        [Test]
+        public void LanguageReset_EnteredEditMode_ResetsToVietnamese_OtherStatesDoNot()
+        {
+            GameLanguage.Current = Language.En;
+            LanguageReset.HandlePlayModeState(PlayModeStateChange.EnteredPlayMode);
+            LanguageReset.HandlePlayModeState(PlayModeStateChange.ExitingPlayMode);
+            Assert.AreEqual(Language.En, GameLanguage.Current, "chỉ EnteredEditMode mới trả lại");
+
+            LanguageReset.HandlePlayModeState(PlayModeStateChange.EnteredEditMode);
+            Assert.AreEqual(Language.Vi, GameLanguage.Current);
         }
 
         [Test]

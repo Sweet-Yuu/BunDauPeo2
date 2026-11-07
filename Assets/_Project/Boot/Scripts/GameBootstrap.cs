@@ -79,7 +79,7 @@ namespace BunDauPeo.Boot
             var saveService = new SaveService(SavePath);
             try
             {
-                _session = new GameSession(saveService, _catalog, _newGameConfig);
+                _session = new GameSession(saveService, _catalog, _newGameConfig, () => Application.systemLanguage);
             }
             catch (System.Exception e) when (e is IOException || e is System.UnauthorizedAccessException)
             {
@@ -95,8 +95,6 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(new GameResetter(_session.ResetToDefaults));
             _session.ApplyLanguage(Application.systemLanguage);
             ServiceLocator.Register(new LanguageSwitcher(_session.SetLanguage));
-            // Reset ghi Language = "" nên quay về theo máy (D-005 luật 3).
-            _session.ResetCompleted += () => _session.ApplyLanguage(Application.systemLanguage);
             ServiceLocator.Register(new GachaService(_session.Save, _session.Wallet, _session.Roster, _catalog,
                 _bannerCatalog, new System.Random(), _session.Persist));
 

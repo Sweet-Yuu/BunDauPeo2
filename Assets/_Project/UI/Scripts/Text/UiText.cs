@@ -11,8 +11,11 @@ namespace BunDauPeo.UI
     {
         private static Dictionary<string, (string Vi, string En)> _table;
 
-        public static IReadOnlyList<(string Key, string Vi, string En)> AllEntries { get; } =
-            Common.Concat(Gacha).Concat(Restaurant).Concat(Combat).ToArray();
+        private static (string Key, string Vi, string En)[] _all;
+
+        // Tính lúc dùng lần đầu: C# không đảm bảo thứ tự khởi tạo static giữa các file partial, nên ghép ngay trong initializer có thể gặp mảng còn null.
+        public static IReadOnlyList<(string Key, string Vi, string En)> AllEntries =>
+            _all ??= Common.Concat(Gacha).Concat(Restaurant).Concat(Combat).ToArray();
 
         // Key thiếu trả "#key" thay vì ném lỗi: lỗi chữ không đáng làm chết màn, nhưng phải thấy ngay trên màn và test bắt được.
         public static string Get(string key)

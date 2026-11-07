@@ -381,16 +381,16 @@ Ba task 4–6 làm cùng một khuôn:
 - Modify: `docs/decisions/decisions.md` (thêm D-012), `docs/guides/code-style.md`, `docs/guides/unity-workflow.md`, `docs/project/structure.md`, `docs/roadmap.md`
 - Không đổi code, trừ khi phải rút gọn bản dịch bị tràn (chỉ sửa `UiText.*.cs` hoặc cột `En` của `ProjectSetup`, rồi chạy lại test).
 
-- [ ] **Step 1: Chụp 4 màn bằng tiếng Anh**, theo quy trình một lượt thử tay ở [unity-workflow, Công cụ thử tự động](../../guides/unity-workflow.md#công-cụ-thử-tự-động):
+- [x] **Step 1: Chụp 4 màn bằng tiếng Anh**, theo quy trình một lượt thử tay ở [unity-workflow, Công cụ thử tự động](../../guides/unity-workflow.md#công-cụ-thử-tự-động):
   1. `BackupSave` → `OpenBoot` → `EnableBackgroundPlay` → Play.
   2. Panel Cài đặt → `LanguageButton`.
   3. `Capture1080("bi-restaurant.png")`, `bi-staff.png` (panel Nhân viên mở), `bi-gacha.png` (trang tổng sau Quay 10), `bi-team.png` (popup chọn đội), `bi-battle.png` (trận).
   4. Thoát Play → `RestoreSave` → `RestoreBackgroundPlay` → `git status` (không có `ProjectSettings/`).
-- [ ] **Step 2: Rà ảnh.** Chữ tràn ô hoặc bị cắt thì rút gọn bản tiếng Anh, chạy lại EditMode, rồi chụp lại màn đó.
-- [ ] **Step 3: Sửa docs** theo spec mục 8:
+- [x] **Step 2: Rà ảnh.** Chữ tràn ô hoặc bị cắt thì rút gọn bản tiếng Anh, chạy lại EditMode, rồi chụp lại màn đó.
+- [x] **Step 3: Sửa docs** theo spec mục 8:
   - D-012 "Song ngữ bằng bảng C# tự viết, ngôn ngữ lưu trong `PlayerSave`": bối cảnh, ba phương án, lý do, khi nào chuyển sang package.
   - code-style: luật mục 5.7 của spec.
   - unity-workflow: thay câu về `unity:localization`; thêm nút `LanguageButton` vào mục Công cụ thử tự động.
   - structure: `UI/Scripts/Text/`, `GameLanguage` và `LanguageSwitcher` trong Core, số test.
   - roadmap: dòng UI hub thêm "kèm nút đổi ngôn ngữ cho người chơi, dùng `LanguageSwitcher`"; dòng "Đang làm".
-- [ ] **Step 4: Chạy EditMode và PlayMode lần cuối** (**784** và **13**, ghi số thật), rồi **dừng**. Báo cáo cuối kênh liệt kê đường dẫn 5 ảnh ở `D:/bdp_BunDauPeo/shots/` và 4 file bảng `UiText.*.cs` cho user duyệt. User duyệt xong thì 🎯 mở 🔍 review.
+- [x] **Step 4: Chạy EditMode và PlayMode lần cuối** (**784** và **13**, ghi số thật), rồi **dừng**. Báo cáo cuối kênh liệt kê đường dẫn 5 ảnh ở `D:/bdp_BunDauPeo/shots/` và 4 file bảng `UiText.*.cs` cho user duyệt. User duyệt xong thì 🎯 mở 🔍 review.
