@@ -215,13 +215,13 @@ Ba task 4–6 làm cùng một khuôn:
 
 **Interfaces:** Consumes Task 3. Key bắt đầu bằng `gacha.`.
 
-- [ ] **Step 1: Viết test đỏ** (`Current = En`):
+- [x] **Step 1: Viết test đỏ** (`Current = En`):
   - `Describe_English`: mới → "NEW"; trùng 3 mảnh → chứa "+3" và không có ký tự có dấu.
   - `PullLabel_English_KeepsTwoLines`: `PullLabel(10, cost)` có đúng một `\n`, dòng đầu chứa "10", dòng sau giống bản Vi (giá không dịch).
   - `StatusMessage_English_EveryStatus`: lặp mọi `GachaPullStatus` (và `saved` false với `Success`). Kết quả không bắt đầu bằng `"#"`, không có chữ có dấu (regex `[À-ỹ]`), và khác bản Vi trừ chuỗi rỗng.
-- [ ] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
-- [ ] **Step 3: Chuyển chữ.** `HistoryLine` giữ `HH:mm dd/MM`. `CostText` không dịch (số và tên tiền).
-- [ ] **Step 4: Chạy EditMode**, kỳ vọng xanh: test cũ của Gacha không đổi, **+3**.
+- [x] **Step 2: Chạy EditMode**, kỳ vọng đỏ. (subagent viết test cùng lúc với cài đặt, chưa chạy thấy đỏ)
+- [x] **Step 3: Chuyển chữ.** `HistoryLine` giữ `HH:mm dd/MM`. `CostText` không dịch (số và tên tiền).
+- [x] **Step 4: Chạy EditMode**, kỳ vọng xanh: test cũ của Gacha không đổi, **+3**. (đã chạy: 773/773)
 
 ### Task 5: Chuyển chữ Restaurant
 
@@ -231,14 +231,14 @@ Ba task 4–6 làm cùng một khuôn:
 
 **Interfaces:** Consumes Task 3. Key bắt đầu bằng `restaurant.`. `IncidentHint` dùng `StaffPanelRows.RoleName` (bỏ `switch` lặp lại).
 
-- [ ] **Step 1: Viết test đỏ** (`Current = En`):
+- [x] **Step 1: Viết test đỏ** (`Current = En`):
   - `IncomeLine_English_UsesDotAndPerSecond`: thu nhập 1.5 → "≈ 1.5 Coin/s"; thiếu đầu bếp → chuỗi chứa "Cook".
   - `AfkButton_English_KeepsTwoLines`: có đúng một `\n`, chứa số coin.
   - `RoleName_English_EveryRole`: lặp mọi `StaffRole` → "Cook", "Server", "Cashier".
   - Ca Vi `IncomeLine` cũ (dấu phẩy) vẫn xanh: đó là test chứng minh `Decimal` theo ngôn ngữ.
-- [ ] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
-- [ ] **Step 3: Chuyển chữ.** Số thập phân qua `UiText.Decimal`.
-- [ ] **Step 4: Chạy EditMode**, kỳ vọng xanh: **+3**.
+- [x] **Step 2: Chạy EditMode**, kỳ vọng đỏ. (subagent viết test cùng lúc với cài đặt, chưa chạy thấy đỏ)
+- [x] **Step 3: Chuyển chữ.** Số thập phân qua `UiText.Decimal`.
+- [x] **Step 4: Chạy EditMode**, kỳ vọng xanh: **+3**.
 
 ### Task 6: Chuyển chữ Combat và bản đồ
 
@@ -248,13 +248,13 @@ Ba task 4–6 làm cùng một khuôn:
 
 **Interfaces:** Consumes Task 3. Key bắt đầu bằng `combat.`. `NodeLabel` của màn Truyện dùng key `combat.node_story` ("Truyện" / "Story"). `ClassName`, `PositionName`, `EndBanner` cũng chuyển; "CLEAR" giống nhau ở cả hai tiếng.
 
-- [ ] **Step 1: Viết test đỏ** (`Current = En`):
+- [x] **Step 1: Viết test đỏ** (`Current = En`):
   - `EnterFailedLine_English_EveryStatus`: lặp mọi `EnterStageStatus`. Kết quả không rỗng, không `"#"`, không chữ có dấu.
   - `StaminaCard_English`: `StaminaCard(5, 100, 61)` chứa "5/100" và "1:01".
   - `ClassAndPosition_English_EveryValue`: lặp mọi `CharacterClass` và `BattlePosition`. Kết quả không rỗng, không chữ có dấu.
-- [ ] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
-- [ ] **Step 3: Chuyển chữ.**
-- [ ] **Step 4: Chạy EditMode**, kỳ vọng xanh: **+3**. Tổng sau Task 4–6: **773**.
+- [x] **Step 2: Chạy EditMode**, kỳ vọng đỏ. (subagent viết test cùng lúc với cài đặt, chưa chạy thấy đỏ)
+- [x] **Step 3: Chuyển chữ.**
+- [x] **Step 4: Chạy EditMode**, kỳ vọng xanh: **+3**. Tổng sau Task 4–6: **773**.
 
 ### Task 7: Dựng lại 4 scene, test đọc lại `LocalizedText`
 
@@ -266,15 +266,15 @@ Ba task 4–6 làm cùng một khuôn:
 - Consumes: Task 3–6.
 - Produces: helper test `SceneTextAsserts.AssertLocalizedTexts(Scene scene)`, đặt trong `Tests/SceneTextAsserts.cs` mới.
 
-- [ ] **Step 1: Viết test đỏ.** `AssertLocalizedTexts` duyệt mọi `LocalizedText` trong scene, gồm cả đối tượng tắt (`GetComponentsInChildren<LocalizedText>(true)`, L-013), và kiểm:
+- [x] **Step 1: Viết test đỏ.** `AssertLocalizedTexts` duyệt mọi `LocalizedText` trong scene, gồm cả đối tượng tắt (`GetComponentsInChildren<LocalizedText>(true)`, L-013), và kiểm:
   1. số `LocalizedText` > 0;
   2. mọi `Key` có trong `UiText.AllEntries`;
   3. không `Text` nào có `LocalizedText` lại được field kiểu `Text` của một `MonoBehaviour` trong scene trỏ tới. Duyệt mọi `MonoBehaviour` bằng `SerializedObject`, lặp property `ObjectReference`; mảng `Text[]` cũng tính. Thông báo ghi đường dẫn GameObject và tên field.
 
   Mỗi lớp `*SceneTests` thêm một test `<Scene>Scene_LocalizedTexts_KeysExistAndNotWrittenByViews`, mở scene từ file như các test cũ của lớp đó.
-- [ ] **Step 2: Chạy EditMode** (scene cũ chưa có `LocalizedText`), kỳ vọng 4 test đỏ ở điều kiện 1.
-- [ ] **Step 3: Dựng lại 4 scene** bằng `RebuildGachaScene`, `RebuildRestaurantScene`, `RebuildStageSelectScene`, `RebuildBattleScene` (lệnh dùng chung). Kiểm `git status` thấy 4 file `.unity` đổi.
-- [ ] **Step 4: Chạy EditMode** (**777**) và PlayMode (12/12). Điều kiện 3 đỏ nghĩa là builder gắn nhầm `LocalizedText` vào chữ do view ghi: sửa builder ở task khu tương ứng rồi dựng lại.
+- [x] **Step 2: Chạy EditMode** (scene cũ chưa có `LocalizedText`), kỳ vọng 4 test đỏ ở điều kiện 1.
+- [x] **Step 3: Dựng lại 4 scene** bằng `RebuildGachaScene`, `RebuildRestaurantScene`, `RebuildStageSelectScene`, `RebuildBattleScene` (lệnh dùng chung). Kiểm `git status` thấy 4 file `.unity` đổi.
+- [x] **Step 4: Chạy EditMode** (**777**) và PlayMode (12/12). Điều kiện 3 đỏ nghĩa là builder gắn nhầm `LocalizedText` vào chữ do view ghi: sửa builder ở task khu tương ứng rồi dựng lại. (đã chạy: EditMode 777/777, PlayMode 12/12)
 
 ## Phiên C
 

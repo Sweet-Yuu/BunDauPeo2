@@ -333,5 +333,9 @@ namespace BunDauPeo.Tests
             Assert.IsNotEmpty(DevOverlay.SceneNames);
             foreach (var name in DevOverlay.SceneNames) CollectionAssert.Contains(enabled, name);
         }
+
+        [Test]
+        public void RestaurantScene_LocalizedTexts_KeysExistAndNotWrittenByViews() =>
+            WithScene(ProjectSetup.RestaurantScenePath, SceneTextAsserts.AssertLocalizedTexts);
     }
 }

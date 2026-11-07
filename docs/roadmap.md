@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Song ngữ Việt–Anh: 🔨 phiên A (Task 1–3: ngôn ngữ trong save, `UiText`, `LocalizedText`) đã xong trên nhánh `feature/bilingual`, chờ 📋 commit. Kế tiếp: 🔨 phiên B (Task 4–7: chuyển chữ 3 khu, dựng lại 4 scene).
+- Song ngữ Việt–Anh: phiên A (Task 1–3) đã commit. 🔨 phiên B (Task 4–7: chuyển chữ Gacha, Restaurant, Combat; dựng lại 4 scene) xong trên `feature/bilingual`, chờ 📋 commit (EditMode 777/777, PlayMode 12/12). Kế tiếp: 🔨 phiên C (Task 8–11).
 
 ## Tiếp theo
 

@@ -70,6 +70,8 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 - Mở 📐 Song ngữ Việt–Anh (`local_8787f0df-e38a-4be6-a717-8f610a723708`, Opus 5.5 high), nhánh `docs/bilingual-spec` từ `main`: rà chữ trong game, chọn package Localization hay bảng tự viết, lưu ngôn ngữ qua `PlayerSave`.
 - 📐 Song ngữ xong, user duyệt spec + kế hoạch; 📋 commit + push `4398c1a` lên `origin/docs/bilingual-spec` (kèm roadmap/history của 🎯). Kế hoạch 11 task, 3 phiên 🔨: A 1–3 nền, B 4–7 chuyển chữ + dựng 4 scene, C 8–11 tên SO, nút đổi ngôn ngữ DEV, test chặn chữ viết cứng, dừng playtest ảnh tiếng Anh. Chờ user mở 🔨 A.
 - 2026-11-08: mở 🔨 Song ngữ 1/3 (Task 1–3, Sonnet 5.5 high, nhánh `feature/bilingual` từ `docs/bilingual-spec`).
+- 🔨 Song ngữ 1/3 xong: 📋 commit + push `89ddd50` lên `origin/feature/bilingual`. 🎯 kiểm: EditMode 764/764, PlayMode 12/12, 12 checkbox phiên A đã tick; thêm L-029 (EditMode không gọi `OnEnable`, gọi bằng reflection). Chờ user mở 🔨 B.
+- 2026-11-08: mở 🔨 Song ngữ 2/3 (Task 4–7, Sonnet 5.5 medium, tiếp trên `feature/bilingual`; Task 4–6 được chạy 3 subagent song song).
 - **Việc chờ (user giao 2026-11-06, đã xong):** xong việc sửa layout thì dọn các file/thư mục `bdp-*` ở `D:\Unity\` (log, xml test, `bdp-shots`, `bdp-save-backup*`, script `.sh`) vào `D:\bdp_BunDauPeo` (user tạo, đang trống, 06/11). Kèm sửa đường dẫn mặc định: `ScreenCapture1080.cs` (`../bdp-shots`), lệnh `unity test --output ../bdp-*.xml` trong `unity-workflow.md` và kế hoạch layout (giao một kênh 🔨, 📋 commit). Kế hoạch cũ đã xong thì để nguyên.
 
 ### #1 — 2026-11-03 — 🎯 Điều phối #1 (quy trình studio)

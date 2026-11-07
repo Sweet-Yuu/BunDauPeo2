@@ -212,5 +212,9 @@ namespace BunDauPeo.Tests
                 var bootstrap = All<GameBootstrap>(scene).Single();
                 Assert.AreEqual("Restaurant",new SerializedObject(bootstrap).FindProperty("_startScene").stringValue);
             });
+
+        [Test]
+        public void GachaScene_LocalizedTexts_KeysExistAndNotWrittenByViews() =>
+            WithScene(ProjectSetup.GachaScenePath, SceneTextAsserts.AssertLocalizedTexts);
     }
 }

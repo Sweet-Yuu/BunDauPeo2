@@ -1,3 +1,5 @@
+using System;
+using System.Text.RegularExpressions;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using BunDauPeo.Characters;
@@ -117,5 +119,48 @@ namespace BunDauPeo.Tests
         [Test]
         public void PullLabel_TwoLines() =>
             Assert.AreEqual("Quay 1\n100 Gem", GachaViewText.PullLabel(1, new[] { new CurrencyAmount(CurrencyType.Gem, 100) }));
+
+        [TearDown]
+        public void ResetLanguage() => GameLanguage.Current = Language.Vi;
+
+        [Test]
+        public void Describe_English()
+        {
+            GameLanguage.Current = Language.En;
+            Assert.AreEqual("NEW", GachaViewText.Describe(new GachaPullEntry(TestData.Character("c"), true, 0)));
+            var dup = GachaViewText.Describe(new GachaPullEntry(TestData.Character("c"), false, 3));
+            StringAssert.Contains("+3", dup);
+            Assert.IsFalse(Regex.IsMatch(dup, "[À-ỹ]"), dup);
+        }
+
+        [Test]
+        public void PullLabel_English_KeepsTwoLines()
+        {
+            var cost = Gem(900);
+            var vi = GachaViewText.PullLabel(10, cost);
+            GameLanguage.Current = Language.En;
+            var lines = GachaViewText.PullLabel(10, cost).Split('\n');
+            Assert.AreEqual(2, lines.Length);
+            StringAssert.Contains("10", lines[0]);
+            Assert.AreEqual(vi.Split('\n')[1], lines[1]);
+        }
+
+        [Test]
+        public void StatusMessage_English_EveryStatus()
+        {
+            foreach (GachaPullStatus status in Enum.GetValues(typeof(GachaPullStatus)))
+            {
+                foreach (var saved in new[] { true, false })
+                {
+                    GameLanguage.Current = Language.Vi;
+                    var vi = GachaViewText.StatusMessage(status, saved);
+                    GameLanguage.Current = Language.En;
+                    var en = GachaViewText.StatusMessage(status, saved);
+                    Assert.IsFalse(en.StartsWith("#"), $"{status}/{saved}: {en}");
+                    Assert.IsFalse(Regex.IsMatch(en, "[À-ỹ]"), $"{status}/{saved}: {en}");
+                    if (vi != "") Assert.AreNotEqual(vi, en, $"{status}/{saved}");
+                }
+            }
+        }
     }
 }

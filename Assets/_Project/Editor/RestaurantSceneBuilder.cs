@@ -384,7 +384,7 @@ namespace BunDauPeo.EditorTools
         {
             const int slotsPerRole = 3;
             // Nút tròn trong ô đầu của cột phải, cỡ chạm 130.
-            var open = NewButton("StaffButton", column, knob, font, "Nhân viên", ButtonColor, TopCenter, new Vector2(0, -20), new Vector2(130, 130));
+            var open = LabelButton("StaffButton", column, knob, font, "restaurant.staff", ButtonColor, TopCenter, new Vector2(0, -20), new Vector2(130, 130));
             ((Image)open.targetGraphic).type = Image.Type.Simple;
             open.GetComponentInChildren<Text>().fontSize = 24;
 
@@ -394,9 +394,9 @@ namespace BunDauPeo.EditorTools
             var box = NewRect("Box", root);
             Place(box, Center, Center, Vector2.zero, new Vector2(1500, 860));
             AddImage(box, sprite, PanelColor, raycast: false);
-            var title = NewText("TitleText", box, font, "Nhân viên", 52, TextAnchor.MiddleCenter, TextColor);
+            var title = NewLabel("TitleText", box, font, "restaurant.staff", 52, TextAnchor.MiddleCenter, TextColor);
             Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(800, 70));
-            var close = NewButton("CloseButton", box, sprite, font, "Đóng", GreyButton, TopRight, new Vector2(-30, -25), new Vector2(200, 80));
+            var close = LabelButton("CloseButton", box, sprite, font, "common.close", GreyButton, TopRight, new Vector2(-30, -25), new Vector2(200, 80));
             var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
             Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 25), new Vector2(1300, 50));
 
@@ -421,7 +421,7 @@ namespace BunDauPeo.EditorTools
                     slotTexts[index].alignment = TextAnchor.MiddleLeft;
                     slotTexts[index].fontSize = 30;
                     slotButtons[index] = button;
-                    removeButtons[index] = NewButton("RemoveButton", button.transform as RectTransform, sprite, font, "Gỡ", GreyButton,
+                    removeButtons[index] = LabelButton("RemoveButton", button.transform as RectTransform, sprite, font, "restaurant.remove", GreyButton,
                         new Vector2(1, 0.5f), new Vector2(-10, 0), new Vector2(110, 70));
                 }
             }
@@ -472,7 +472,7 @@ namespace BunDauPeo.EditorTools
             rowSize.minHeight = 90;
             rowSize.preferredHeight = 90;
             rowTemplate.gameObject.SetActive(false);
-            var listClose = NewButton("CloseButton", listBox, sprite, font, "Đóng", GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(320, 80));
+            var listClose = LabelButton("CloseButton", listBox, sprite, font, "common.close", GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(320, 80));
             listRoot.gameObject.SetActive(false);
 
             var confirmRoot = NewRect("StaffConfirmPopup", root);
@@ -483,8 +483,8 @@ namespace BunDauPeo.EditorTools
             AddImage(confirmBox, sprite, PanelColor, raycast: false);
             var confirmText = NewText("ConfirmText", confirmBox, font, "", 40, TextAnchor.MiddleCenter, TextColor);
             Place(confirmText.rectTransform, TopCenter, TopCenter, new Vector2(0, -40), new Vector2(820, 190));
-            var yes = NewButton("YesButton", confirmBox, sprite, font, "Chuyển", ButtonColor, BottomCenter, new Vector2(-200, 40), new Vector2(340, 90));
-            var no = NewButton("NoButton", confirmBox, sprite, font, "Thôi", GreyButton, BottomCenter, new Vector2(200, 40), new Vector2(340, 90));
+            var yes = LabelButton("YesButton", confirmBox, sprite, font, "common.move", ButtonColor, BottomCenter, new Vector2(-200, 40), new Vector2(340, 90));
+            var no = LabelButton("NoButton", confirmBox, sprite, font, "common.not_now", GreyButton, BottomCenter, new Vector2(200, 40), new Vector2(340, 90));
             confirmRoot.gameObject.SetActive(false);
 
             root.gameObject.SetActive(false);
@@ -516,7 +516,7 @@ namespace BunDauPeo.EditorTools
         private static void BuildUpgradePanel(RectTransform canvas, RectTransform column, Font font, Sprite sprite, Sprite knob)
         {
             // Ô thứ hai của cột phải, cùng cỡ với nút Nhân viên.
-            var open = NewButton("UpgradeButton", column, knob, font, "Nâng cấp", ButtonColor, TopCenter, new Vector2(0, -185), new Vector2(130, 130));
+            var open = LabelButton("UpgradeButton", column, knob, font, "restaurant.upgrade", ButtonColor, TopCenter, new Vector2(0, -185), new Vector2(130, 130));
             ((Image)open.targetGraphic).type = Image.Type.Simple;
             open.GetComponentInChildren<Text>().fontSize = 24;
 
@@ -526,9 +526,9 @@ namespace BunDauPeo.EditorTools
             var box = NewRect("Box", root);
             Place(box, Center, Center, Vector2.zero, new Vector2(1100, 880));
             AddImage(box, sprite, PanelColor, raycast: false);
-            var title = NewText("TitleText", box, font, "Nâng cấp (bản thử)", 52, TextAnchor.MiddleCenter, TextColor);
+            var title = NewLabel("TitleText", box, font, "restaurant.upgrade_title", 52, TextAnchor.MiddleCenter, TextColor);
             Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(700, 70));
-            var close = NewButton("CloseButton", box, sprite, font, "Đóng", GreyButton, TopRight, new Vector2(-30, -25), new Vector2(200, 80));
+            var close = LabelButton("CloseButton", box, sprite, font, "common.close", GreyButton, TopRight, new Vector2(-30, -25), new Vector2(200, 80));
             var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
             Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 25), new Vector2(1000, 50));
 
@@ -568,10 +568,25 @@ namespace BunDauPeo.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        // Một dòng chữ căn giữa của popup, đặt theo mép trên của hộp.
-        private static Text PopupLine(RectTransform box, Font font, string name, string text, int size, Color color, float y, float width, float height)
+        // Nút có nhãn cố định theo key: gắn LocalizedText vào Text con của nút.
+        private static Button LabelButton(string name, RectTransform parent, Sprite sprite, Font font, string key, Color color,
+            Vector2 anchor, Vector2 position, Vector2 size)
         {
-            var line = NewText(name, box, font, text, size, TextAnchor.MiddleCenter, color);
+            var button = NewButton(name, parent, sprite, font, UiText.Get(key), color, anchor, position, size);
+            button.GetComponentInChildren<Text>().gameObject.AddComponent<LocalizedText>().SetKey(key);
+            return button;
+        }
+
+        // Một dòng chữ căn giữa của popup, đặt theo mép trên của hộp.
+        private static Text PopupLine(RectTransform box, Font font, string name, string text, int size, Color color, float y, float width, float height) =>
+            PlaceLine(NewText(name, box, font, text, size, TextAnchor.MiddleCenter, color), y, width, height);
+
+        // Như PopupLine nhưng là nhãn cố định: chữ theo key và đổi theo ngôn ngữ.
+        private static Text PopupLabel(RectTransform box, Font font, string name, string key, int size, Color color, float y, float width, float height) =>
+            PlaceLine(NewLabel(name, box, font, key, size, TextAnchor.MiddleCenter, color), y, width, height);
+
+        private static Text PlaceLine(Text line, float y, float width, float height)
+        {
             Place(line.rectTransform, TopCenter, TopCenter, new Vector2(0, y), new Vector2(width, height));
             return line;
         }
@@ -592,15 +607,15 @@ namespace BunDauPeo.EditorTools
         private static AfkPopup BuildAfkPopup(RectTransform canvas, Font font, Sprite sprite)
         {
             var (root, box) = PopupFrame(canvas, sprite, "AfkPopupRoot", "AfkPopupBox", new Vector2(1100, 700));
-            var title = PopupLine(box, font, "TitleText", "Chào mừng trở lại!", 54, DarkText, -30, 800, 70);
+            var title = PopupLabel(box, font, "TitleText", "restaurant.afk_title", 54, DarkText, -30, 800, 70);
             title.fontStyle = FontStyle.Bold;
             var summary = PopupLine(box, font, "SummaryText", "", 36, DarkText, -125, 960, 260);
             summary.alignment = TextAnchor.UpperLeft;
             var tip = PopupLine(box, font, "TipText", "", 30, SoftText, -395, 1000, 50);
             var full = PopupLine(box, font, "FullText", "", 34, FullText, -450, 1000, 48);
             var message = PopupLine(box, font, "MessageText", "", 30, IncidentHintText, -505, 1000, 48);
-            var collect = NewButton("CollectButton", box, sprite, font, "Thu thập", AfkGreen, BottomCenter, new Vector2(-200, 40), new Vector2(340, 100));
-            var later = NewButton("LaterButton", box, sprite, font, "Để sau", GreyButton, BottomCenter, new Vector2(200, 40), new Vector2(340, 100));
+            var collect = LabelButton("CollectButton", box, sprite, font, "restaurant.collect", AfkGreen, BottomCenter, new Vector2(-200, 40), new Vector2(340, 100));
+            var later = NewButton("LaterButton", box, sprite, font, UiText.Get("restaurant.later"), GreyButton, BottomCenter, new Vector2(200, 40), new Vector2(340, 100));
             root.gameObject.SetActive(false);
 
             var popup = NewRect("AfkPopup", canvas).gameObject.AddComponent<AfkPopup>();
@@ -622,7 +637,7 @@ namespace BunDauPeo.EditorTools
         {
             const int days = 7;
             var (root, box) = PopupFrame(canvas, sprite, "QualityPopupRoot", "QualityPopupBox", new Vector2(1300, 760));
-            var title = PopupLine(box, font, "TitleText", "Chất lượng quán", 54, DarkText, -28, 800, 70);
+            var title = PopupLabel(box, font, "TitleText", "restaurant.quality_title", 54, DarkText, -28, 800, 70);
             title.fontStyle = FontStyle.Bold;
             var headline = PopupLine(box, font, "HeadlineText", "", 40, DarkText, -100, 1100, 56);
             var attendance = PopupLine(box, font, "AttendanceText", "", 38, DarkText, -170, 1100, 56);
@@ -649,7 +664,7 @@ namespace BunDauPeo.EditorTools
             var incident = PopupLine(box, font, "IncidentText", "", 38, DarkText, -405, 1100, 56);
             var breakdown = PopupLine(box, font, "BreakdownText", "", 32, SoftText, -465, 1100, 44);
             var factor = PopupLine(box, font, "FactorText", "", 38, DarkText, -540, 1100, 56);
-            var close = NewButton("CloseButton", box, sprite, font, "Đóng", GreyButton, BottomCenter, new Vector2(0, 30), new Vector2(320, 90));
+            var close = LabelButton("CloseButton", box, sprite, font, "common.close", GreyButton, BottomCenter, new Vector2(0, 30), new Vector2(320, 90));
             root.gameObject.SetActive(false);
 
             var popup = NewRect("QualityPopup", canvas).gameObject.AddComponent<QualityPopup>();

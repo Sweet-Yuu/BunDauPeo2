@@ -80,9 +80,9 @@ namespace BunDauPeo.EditorTools
 
             var empty = NewRect("EmptyRoot", canvas);
             Stretch(empty);
-            var emptyText = NewText("EmptyText", empty, font, "Chưa có trận", 56, TextAnchor.MiddleCenter, Color.white);
+            var emptyText = NewLabel("EmptyText", empty, font, "combat.empty_battle", 56, TextAnchor.MiddleCenter, Color.white);
             Place(emptyText.rectTransform, Center, Center, new Vector2(0, 40), new Vector2(800, 90));
-            var emptyBack = NewButton("EmptyBackButton", empty, sprite, font, "Về", ButtonColor, Center, new Vector2(0, -80), new Vector2(260, 90));
+            var emptyBack = LabelButton("EmptyBackButton", empty, sprite, font, "combat.back_short", ButtonColor, Center, new Vector2(0, -80), new Vector2(260, 90));
 
             // Popup tạm dừng dựng sau thanh trên nên chặn chạm xuống nó; banner kết thúc vẫn nằm trên.
             var pause = BuildPausePopup(canvas, sprite, font);
@@ -254,7 +254,7 @@ namespace BunDauPeo.EditorTools
             var turnLine = NewText("TurnLine", root, font, "", 30, TextAnchor.MiddleLeft, Color.white);
             Place(turnLine.rectTransform, TopLeft, TopLeft, new Vector2(40, -150), new Vector2(600, 50));
 
-            var basic = ActionButton(root, "BasicButton", "Đánh", knob, font, new Color(0.30f, 0.55f, 0.95f), -328);
+            var basic = Localized(ActionButton(root, "BasicButton", UiText.Get("combat.basic"), knob, font, new Color(0.30f, 0.55f, 0.95f), -328), "combat.basic");
             var skill = ActionButton(root, "SkillButton", "Skill", knob, font, new Color(0.30f, 0.70f, 0.45f), -184);
 
             var track = NewRect("UltimateTrack", root);
@@ -306,8 +306,8 @@ namespace BunDauPeo.EditorTools
                 cell.gameObject.SetActive(false);
             }
 
-            menu = NewButton("MenuButton", bar, sprite, font, "Menu", ButtonColor, TopRight, new Vector2(-20, -20), new Vector2(150, 110));
-            auto = NewButton("AutoButton", bar, sprite, font, "AUTO", CardFrame, TopRight, new Vector2(-190, -20), new Vector2(150, 110));
+            menu = LabelButton("MenuButton", bar, sprite, font, "combat.menu", ButtonColor, TopRight, new Vector2(-20, -20), new Vector2(150, 110));
+            auto = LabelButton("AutoButton", bar, sprite, font, "combat.auto", CardFrame, TopRight, new Vector2(-190, -20), new Vector2(150, 110));
             speed = NewButton("SpeedButton", bar, sprite, font, "x1", ButtonColor, TopRight, new Vector2(-360, -20), new Vector2(150, 110));
             return bar;
         }
@@ -326,21 +326,21 @@ namespace BunDauPeo.EditorTools
             var box = NewRect("PauseBox", root);
             Place(box, Center, Center, Vector2.zero, new Vector2(1100, 760));
             AddImage(box, sprite, CardColor, raycast: false);
-            var title = NewText("Title", box, font, "Tạm dừng", 52, TextAnchor.MiddleCenter, Gold);
+            var title = NewLabel("Title", box, font, "combat.pause_title", 52, TextAnchor.MiddleCenter, Gold);
             title.fontStyle = FontStyle.Bold;
             Place(title.rectTransform, Center, Center, new Vector2(0, 320), new Vector2(700, 70));
             var stageName = NewText("StageName", box, font, "", 40, TextAnchor.MiddleLeft, Color.white);
             Place(stageName.rectTransform, Center, Center, new Vector2(0, 245), new Vector2(980, 56));
-            var teamLabel = NewText("TeamLabel", box, font, "Tình trạng đội", 32, TextAnchor.MiddleLeft, Gold);
+            var teamLabel = NewLabel("TeamLabel", box, font, "combat.team_status", 32, TextAnchor.MiddleLeft, Gold);
             Place(teamLabel.rectTransform, Center, Center, new Vector2(0, 175), new Vector2(980, 44));
 
             var cards = new BattleCardView[5];
             for (var i = 0; i < cards.Length; i++)
                 cards[i] = BuildCard(box, $"PauseCard{i}", Center, new Vector2(-400 + i * 200, 60), sprite, font);
 
-            var resume = NewButton("ResumeButton", box, sprite, font, "Tiếp tục", ButtonColor, Center, new Vector2(-360, -250), new Vector2(320, 110));
-            var settings = NewButton("SettingsButton", box, sprite, font, "Cài đặt", CardFrame, Center, new Vector2(0, -250), new Vector2(320, 110));
-            var surrender = NewButton("SurrenderButton", box, sprite, font, "Bỏ cuộc", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(360, -250), new Vector2(320, 110));
+            var resume = LabelButton("ResumeButton", box, sprite, font, "common.continue", ButtonColor, Center, new Vector2(-360, -250), new Vector2(320, 110));
+            var settings = LabelButton("SettingsButton", box, sprite, font, "combat.settings", CardFrame, Center, new Vector2(0, -250), new Vector2(320, 110));
+            var surrender = LabelButton("SurrenderButton", box, sprite, font, "combat.surrender", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(360, -250), new Vector2(320, 110));
 
             var confirm = NewRect("ConfirmRoot", root);
             Stretch(confirm);
@@ -350,8 +350,8 @@ namespace BunDauPeo.EditorTools
             AddImage(confirmBox, sprite, CardFrame, raycast: false);
             var confirmText = NewText("ConfirmText", confirmBox, font, "", 40, TextAnchor.MiddleCenter, Color.white);
             Place(confirmText.rectTransform, Center, Center, new Vector2(0, 70), new Vector2(680, 170));
-            var yes = NewButton("ConfirmYesButton", confirmBox, sprite, font, "Bỏ cuộc", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(-170, -100), new Vector2(300, 110));
-            var no = NewButton("ConfirmNoButton", confirmBox, sprite, font, "Tiếp tục", ButtonColor, Center, new Vector2(170, -100), new Vector2(300, 110));
+            var yes = LabelButton("ConfirmYesButton", confirmBox, sprite, font, "combat.surrender", new Color(0.70f, 0.22f, 0.25f), Center, new Vector2(-170, -100), new Vector2(300, 110));
+            var no = LabelButton("ConfirmNoButton", confirmBox, sprite, font, "common.continue", ButtonColor, Center, new Vector2(170, -100), new Vector2(300, 110));
             confirm.gameObject.SetActive(false);
             root.gameObject.SetActive(false);
 
@@ -401,9 +401,9 @@ namespace BunDauPeo.EditorTools
             var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleRight, new Color(1f, 0.65f, 0.45f));
             Place(message.rectTransform, Center, Center, new Vector2(300, -200), new Vector2(640, 50));
 
-            var confirm = NewButton("ConfirmButton", box, sprite, font, "Xác nhận", ButtonColor, Center, new Vector2(0, -290), new Vector2(380, 110));
-            var retry = NewButton("RetryButton", box, sprite, font, "Thử lại", ButtonColor, Center, new Vector2(300, -290), new Vector2(380, 110));
-            var back = NewButton("BackButton", box, sprite, font, "Về bản đồ", CardFrame, Center, new Vector2(-300, -290), new Vector2(380, 110));
+            var confirm = LabelButton("ConfirmButton", box, sprite, font, "combat.confirm", ButtonColor, Center, new Vector2(0, -290), new Vector2(380, 110));
+            var retry = LabelButton("RetryButton", box, sprite, font, "combat.retry", ButtonColor, Center, new Vector2(300, -290), new Vector2(380, 110));
+            var back = LabelButton("BackButton", box, sprite, font, "combat.back_to_map", CardFrame, Center, new Vector2(-300, -290), new Vector2(380, 110));
             root.gameObject.SetActive(false);
 
             var view = holder.gameObject.AddComponent<BattleResultView>();
@@ -427,6 +427,17 @@ namespace BunDauPeo.EditorTools
             var button = NewButton(name, parent, knob, font, label, color, BottomRight, new Vector2(x, 105), new Vector2(120, 120));
             ((Image)button.targetGraphic).type = Image.Type.Simple;
             button.GetComponentInChildren<Text>().fontSize = 26;
+            return button;
+        }
+
+        // Nút có nhãn đa ngữ: nhãn con "Label" mang LocalizedText. Nút mà view ghi chữ lúc chạy thì dùng NewButton.
+        internal static Button LabelButton(string name, RectTransform parent, Sprite sprite, Font font, string key, Color color,
+            Vector2 anchor, Vector2 position, Vector2 size) =>
+            Localized(NewButton(name, parent, sprite, font, UiText.Get(key), color, anchor, position, size), key);
+
+        internal static Button Localized(Button button, string key)
+        {
+            button.GetComponentInChildren<Text>().gameObject.AddComponent<LocalizedText>().SetKey(key);
             return button;
         }
 

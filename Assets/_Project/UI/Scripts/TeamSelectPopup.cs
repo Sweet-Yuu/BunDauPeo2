@@ -58,7 +58,7 @@ namespace BunDauPeo.UI
             _page = 0;
             _busy = false;
             _pendingStaffId = null;
-            _title.text = $"Chọn đội · {stage.DisplayName}";
+            _title.text = UiText.Format("combat.team_title", stage.DisplayName);
             _messageText.text = "";
             _smallConfirmRoot.SetActive(false);
             _staffConfirmRoot.SetActive(false);
@@ -164,7 +164,7 @@ namespace BunDauPeo.UI
             _pageText.text = $"{_page + 1}/{pageCount}";
 
             var team = _roster.GetBattleTeam();
-            _teamHeader.text = $"Thành viên hiện tại ({Math.Min(team.Count, Roster.MaxBattleTeamSize)}/{Roster.MaxBattleTeamSize})";
+            _teamHeader.text = UiText.Format("combat.team_header", Math.Min(team.Count, Roster.MaxBattleTeamSize), Roster.MaxBattleTeamSize);
             for (var i = 0; i < _chips.Length; i++) _chipTexts[i].text = "-";
             foreach (var slot in BattleFormation.Assign(team))
             {

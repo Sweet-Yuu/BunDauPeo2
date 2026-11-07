@@ -315,5 +315,9 @@ namespace BunDauPeo.Tests
                         ProjectSetup.StageSelectScenePath, ProjectSetup.BattleScenePath },
                 paths.Take(5).ToArray());
         }
+
+        [Test]
+        public void StageSelectScene_LocalizedTexts_KeysExistAndNotWrittenByViews() =>
+            WithStageSelect(SceneTextAsserts.AssertLocalizedTexts);
     }
 }

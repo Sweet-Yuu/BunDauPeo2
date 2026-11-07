@@ -11,7 +11,7 @@ namespace BunDauPeo.UI
     public static class GachaViewText
     {
         public static string Describe(GachaPullEntry entry) =>
-            entry.IsNew ? "MỚI" : $"TRÙNG +{entry.FragmentsGained} mảnh";
+            entry.IsNew ? UiText.Get("gacha.new") : UiText.Format("gacha.duplicate", entry.FragmentsGained);
 
         public static Color RarityColor(Rarity rarity) => rarity switch
         {
@@ -23,23 +23,23 @@ namespace BunDauPeo.UI
 
         // Tối thiểu 1: bộ đếm đã chạm hoặc vượt ngưỡng (hạ ngưỡng sau khi đã quay) thì lượt tới vẫn là lượt ép SSR.
         public static string PityLine(int threshold, int pulls) =>
-            threshold <= 0 ? "Đảm bảo SSR: tắt" : $"SSR đảm bảo sau: {Math.Max(1, threshold - pulls)} lượt";
+            threshold <= 0 ? UiText.Get("gacha.pity_off") : UiText.Format("gacha.pity_left", Math.Max(1, threshold - pulls));
 
         public static string StatusMessage(GachaPullStatus status, bool saved) => status switch
         {
-            GachaPullStatus.Success => saved ? "" : "Cảnh báo: chưa lưu được dữ liệu, game sẽ thử lưu lại sau.",
-            GachaPullStatus.UnknownBanner => "Không tìm thấy banner này.",
-            GachaPullStatus.InvalidBanner => "Banner bị lỗi cấu hình nên không quay được.",
-            GachaPullStatus.NotEnoughCurrency => "Không đủ Gem.",
+            GachaPullStatus.Success => saved ? "" : UiText.Get("gacha.status_unsaved"),
+            GachaPullStatus.UnknownBanner => UiText.Get("gacha.status_unknown_banner"),
+            GachaPullStatus.InvalidBanner => UiText.Get("gacha.status_invalid_banner"),
+            GachaPullStatus.NotEnoughCurrency => UiText.Get("gacha.status_not_enough"),
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
         };
 
         // Số lấy từ banner để chỉnh chi phí trong Inspector thì nút không ghi sai giá.
-        public static string PullLabel(int count, IReadOnlyList<CurrencyAmount> cost) => $"Quay {count}\n{CostText(cost)}";
+        public static string PullLabel(int count, IReadOnlyList<CurrencyAmount> cost) => UiText.Format("gacha.pull_label", count, CostText(cost));
 
-        public static string RollAgainLabel(IReadOnlyList<CurrencyAmount> cost) => $"Quay tiếp ({CostText(cost)})";
+        public static string RollAgainLabel(IReadOnlyList<CurrencyAmount> cost) => UiText.Format("gacha.roll_again_cost", CostText(cost));
 
-        public static string InsufficientGemText(long needed) => $"Không đủ Gem (cần {needed})";
+        public static string InsufficientGemText(long needed) => UiText.Format("gacha.need_gem", needed);
 
         // Điều kiện duy nhất để bật nút Quay tiếp: đủ tiền cho đúng lượt vừa quay.
         public static bool CanRollAgain(Wallet wallet, CurrencyAmount[] cost) => wallet.CanAfford(cost);
@@ -52,7 +52,7 @@ namespace BunDauPeo.UI
             var time = DateTimeOffset.FromUnixTimeSeconds(entry.Utc).ToLocalTime().ToString("HH:mm dd/MM");
             var names = new List<string>(entry.CharacterIds.Length);
             foreach (var id in entry.CharacterIds) names.Add(nameOf(id));
-            return $"{time} · Quay {entry.Count} · {string.Join(", ", names)}";
+            return UiText.Format("gacha.history_line", time, entry.Count, string.Join(", ", names));
         }
 
         private static string CostText(IReadOnlyList<CurrencyAmount> cost)
