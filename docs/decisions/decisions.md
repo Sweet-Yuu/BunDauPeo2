@@ -15,6 +15,12 @@
 
 ## Danh sách
 
+### D-011 — Build Android thử: APK debug, IL2CPP ARM64, package `com.sweetyuu.bundaupeo` (2026-11-07)
+- Bối cảnh: roadmap có mục "Build Android thử sớm" để bắt lỗi riêng của nền tảng trước hạn 31/12/2026. Spec: [build-android-design](../superpowers/specs/2026-11-07-build-android-design.md).
+- Quyết định: APK (không AAB), IL2CPP, ARM64, min API 25, chỉ màn ngang, ký debug, `BuildOptions.Development`, Boot là scene đầu, bỏ `SampleScene` khỏi build. Build chỉ kiểm cấu hình (`AndroidBuild.Problems`), không ghi `ProjectSettings`; cấu hình ghi một lần qua `ProjectSetup.ApplyBuildSettings`. Editor ở lại target Android sau khi build.
+- Lý do / đánh đổi: package không đổi được sau khi lên Play; `productName`/`companyName` giữ nguyên vì quyết định thư mục save. IL2CPP build chậm (~7 phút lần đầu); nhánh không Development chưa được build thử.
+- Trạng thái: Accepted
+
 ### D-010 — Điều khiển Editor bằng MCP for Unity của CoplayDev, gỡ MCP cũ (2026-11-06)
 - Bối cảnh: MCP cũ (`com.unity.ai.assistant`, tool `Unity_RunCommand`) rớt cổng mỗi lần compile hoặc vào Play và chỉ chạy được lệnh C#. User yêu cầu đổi sang CoplayDev để có tool riêng cho scene, GameObject, console, camera.
 - Quyết định: thêm `com.coplaydev.unity-mcp` từ `https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v10.3.0` (khớp server `mcpforunityserver==10.3.0`), gỡ `com.unity.ai.assistant`. Không package nào khác phụ thuộc nó (kiểm `packages-lock.json`). CLI `unity` (`com.unity.pipeline`) vẫn là công cụ chính.

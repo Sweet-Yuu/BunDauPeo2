@@ -76,7 +76,7 @@ Số kỳ vọng: nền **743 EditMode + 12 PlayMode**. Sau Task 1: 746. Sau Tas
   - `public static List<string> Problems(Config c)`
   - `public static string OutputPath(string[] args)`
 
-- [ ] **Step 1: Viết 3 test thuần trong `AndroidBuildTests.cs`**
+- [x] **Step 1: Viết 3 test thuần trong `AndroidBuildTests.cs`**
 
 ```csharp
 private static readonly string[] GameScenes =
@@ -154,9 +154,9 @@ public void OutputPath_ReadsBuildOutputArg_ElseDefault()
 
 `using`: `System`, `System.Linq`, `BunDauPeo.EditorTools`, `NUnit.Framework`, `UnityEditor`.
 
-- [ ] **Step 2: Chạy EditMode, xác nhận đỏ** vì lỗi compile (`AndroidBuild` chưa có, mã thoát 6). Đây là trạng thái đỏ mong đợi.
+- [x] **Step 2: Chạy EditMode, xác nhận đỏ** vì lỗi compile (`AndroidBuild` chưa có, mã thoát 6). Đây là trạng thái đỏ mong đợi.
 
-- [ ] **Step 3: Viết `AndroidBuild.cs` theo khối Interfaces**
+- [x] **Step 3: Viết `AndroidBuild.cs` theo khối Interfaces**
   - `Problems` kiểm đủ 12 mục của spec 4.2, mỗi chỗ sai thêm một dòng tiếng Việt. Mục 11 và 12 thêm một dòng cho mỗi scene, có ghi đường dẫn.
   - Chỉ kiểm mục 10 khi danh sách không rỗng.
   - Mục 2 là một dòng duy nhất cho cả ba điều kiện dọc (`Portrait`, `PortraitUpsideDown`, mặc định `Portrait`/`PortraitUpsideDown`).
@@ -173,7 +173,7 @@ public void OutputPath_ReadsBuildOutputArg_ElseDefault()
     - `EditorBuildSettings.scenes` đang bật, giữ thứ tự
   - `Build()` chưa viết (Task 3).
 
-- [ ] **Step 4: Chạy EditMode:** 746/746 xanh.
+- [x] **Step 4: Chạy EditMode:** 746/746 xanh.
 
 ---
 
@@ -188,7 +188,7 @@ public void OutputPath_ReadsBuildOutputArg_ElseDefault()
 - Consumes: `AndroidBuild.PackageName`, `AndroidBuild.Current()`, `AndroidBuild.Problems()` (Task 1).
 - Produces: `public static void ProjectSetup.ApplyBuildSettings()` = `PutScenesInBuildOrder(); ApplyPlayerSettings(); AssetDatabase.SaveAssets();`. `Run()` gọi nó thay cho hai lời gọi riêng.
 
-- [ ] **Step 1: Thêm test, chạy, xác nhận đỏ**
+- [x] **Step 1: Thêm test, chạy, xác nhận đỏ**
 
 ```csharp
 [Test]
@@ -201,24 +201,24 @@ public void CurrentProject_HasNoProblems()
 
 Đỏ ít nhất vì thiếu package name Android và vì `SampleScene`. Ghi lại các dòng lỗi trong thông báo.
 
-- [ ] **Step 2: Sửa `ProjectSetup`**
+- [x] **Step 2: Sửa `ProjectSetup`**
   - `ApplyPlayerSettings`: thêm `PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, AndroidBuild.PackageName);` (`using UnityEditor.Build;`).
   - `PutScenesInBuildOrder`: luôn gán `ordered`, nối thêm các scene còn lại có đường dẫn bắt đầu bằng `"Assets/_Project/Scenes/"`, bỏ dòng `return` sớm. File `SampleScene.unity` giữ nguyên.
   - Thêm `ApplyBuildSettings()` có `public static`. Comment một dòng giải thích vì sao tách khỏi `Run`: để chạy riêng ở batch mode mà không phải chạy cả Setup Project.
 
-- [ ] **Step 3: Ghi cấu hình ở batch mode** (Editor đóng):
+- [x] **Step 3: Ghi cấu hình ở batch mode** (Editor đóng):
 
 ```bash
 unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.ApplyBuildSettings -logFile ../../bdp_BunDauPeo/android/apply.log
 ```
 
-- [ ] **Step 4: Kiểm diff.** `git diff ProjectSettings/` phải có hai thay đổi:
+- [x] **Step 4: Kiểm diff.** `git diff ProjectSettings/` phải có hai thay đổi:
   - `ProjectSettings.asset`: thêm dòng `Android: com.sweetyuu.bundaupeo` dưới `applicationIdentifier`.
   - `EditorBuildSettings.asset`: mất mục `Assets/Scenes/SampleScene.unity`.
 
   Có dòng nào khác đổi thì ghi vào báo cáo, không sửa tay. Không thấy dòng `Android:` thì PlayerSettings chưa được lưu (spec mục 9): đọc `apply.log`, rồi báo, không chạy tiếp.
 
-- [ ] **Step 5: Chạy EditMode** được 747/747 xanh, trong đó có `ProjectSetupTests.BootScene_IsFirstInBuild_…`, `GachaSceneTests`, `BattleScene_InBuildSettings_AfterRestaurant`. Chạy PlayMode được 12/12 xanh (smoke test đi qua Build Settings).
+- [x] **Step 5: Chạy EditMode** được 747/747 xanh, trong đó có `ProjectSetupTests.BootScene_IsFirstInBuild_…`, `GachaSceneTests`, `BattleScene_InBuildSettings_AfterRestaurant`. Chạy PlayMode được 12/12 xanh (smoke test đi qua Build Settings).
 
 ---
 
@@ -231,7 +231,7 @@ unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.ApplyBuildSetti
 - Consumes: `Current()`, `Problems()`, `OutputPath()` (Task 1); cấu hình đã ghi ở Task 2.
 - Produces: `public static void Build()`, gọi bằng `-executeMethod BunDauPeo.EditorTools.AndroidBuild.Build`.
 
-- [ ] **Step 1: Viết `Build()` theo luồng ở spec mục 4.2**
+- [x] **Step 1: Viết `Build()` theo luồng ở spec mục 4.2**
   - Có lỗi cấu hình: `Debug.LogError` với dòng `BuildAndroid FAILED: cấu hình sai`, mỗi lỗi một dòng, rồi thoát mã 1.
   - Tạo thư mục cha của `OutputPath(Environment.GetCommandLineArgs())`.
   - Gọi `BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = c.Scenes, locationPathName = path, target = BuildTarget.Android, targetGroup = BuildTargetGroup.Android, options = BuildOptions.Development })`.
@@ -239,11 +239,11 @@ unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.ApplyBuildSetti
   - Thành công: log `BuildAndroid OK {Path.GetFullPath(path)} {MB:0.0} MB {phút:0.0} phút` và thoát mã 0.
   - `EditorApplication.Exit(code)` chỉ gọi khi `Application.isBatchMode`. Comment: "Không tắt Editor của user khi lỡ gọi từ eval."
 
-- [ ] **Step 2: Chạy EditMode** được 747/747 xanh (compile sạch).
+- [x] **Step 2: Chạy EditMode** được 747/747 xanh (compile sạch).
 
-- [ ] **Step 3: Ghi trạng thái trước khi build.** `git status --short > ../../bdp_BunDauPeo/android/status-before.txt`, rồi ghi giờ bắt đầu.
+- [x] **Step 3: Ghi trạng thái trước khi build.** `git status --short > ../../bdp_BunDauPeo/android/status-before.txt`, rồi ghi giờ bắt đầu.
 
-- [ ] **Step 4: Build thật** (Editor đóng; chạy nền, chờ thông báo):
+- [x] **Step 4: Build thật** (Editor đóng; chạy nền, chờ thông báo):
 
 ```bash
 unity build . --target Android --execute-method BunDauPeo.EditorTools.AndroidBuild.Build --output-path ../../bdp_BunDauPeo/android/BunDauPeo.apk --log-file ../../bdp_BunDauPeo/android/build.log --timeout 3600
@@ -252,7 +252,7 @@ unity build . --target Android --execute-method BunDauPeo.EditorTools.AndroidBui
   - CLI từ chối vì git có thay đổi chưa commit: chạy lại với `--allow-dirty-build`, rồi ghi vào báo cáo.
   - `unity build` chạy sai (không truyền `-buildOutput`, không nhận `--execute-method`…): dùng lệnh dự phòng ở spec mục 5 và ghi lesson `#build`.
 
-- [ ] **Step 5: Kiểm kết quả.**
+- [x] **Step 5: Kiểm kết quả.**
   - Mã thoát 0.
   - `grep "BuildAndroid" ../../bdp_BunDauPeo/android/build.log` có `BuildAndroid OK` với đường dẫn `D:\bdp_BunDauPeo\android\BunDauPeo.apk`.
   - File APK có giờ sửa mới hơn giờ bắt đầu.
@@ -260,7 +260,7 @@ unity build . --target Android --execute-method BunDauPeo.EditorTools.AndroidBui
   - Ghi thời gian build và cỡ APK vào checkbox.
   - Build hỏng: đọc lỗi trong log (Gradle, IL2CPP), sửa nếu lỗi nằm trong code dự án; nếu cần cài thêm hay cần mạng thì dừng và báo user. Sai lần hai cùng một việc thì dừng ở Task 2 và báo (luật của worker).
 
-- [ ] **Step 6: Chạy lại EditMode và PlayMode** được 747/747 và 12/12. Bước này kiểm rằng target Android không làm hỏng test trong Editor (spec mục 4.2).
+- [x] **Step 6: Chạy lại EditMode và PlayMode** được 747/747 và 12/12. Bước này kiểm rằng target Android không làm hỏng test trong Editor (spec mục 4.2).
 
 ---
 
@@ -269,25 +269,25 @@ unity build . --target Android --execute-method BunDauPeo.EditorTools.AndroidBui
 **Files:**
 - Modify: `docs/guides/unity-workflow.md`, `docs/project/tech-stack.md`, `docs/decisions/decisions.md`, `docs/roadmap.md`
 
-- [ ] **Step 1: `unity-workflow.md`**
+- [x] **Step 1: `unity-workflow.md`**
   - Thay dòng "Build" trong bảng lệnh bằng lệnh build thật đã chạy được ở Task 3 (kèm `--allow-dirty-build` nếu đã phải thêm), và ghi chú "Editor sau đó mở ở target Android".
   - Thêm một câu về cách biết kết quả: mã 0, có `BuildAndroid OK`, APK có giờ sửa mới.
   - Thêm một câu cho `ApplyBuildSettings`.
 
-- [ ] **Step 2: `tech-stack.md`**
+- [x] **Step 2: `tech-stack.md`**
   - Đổi dòng `TODO(user): Android, iOS hay cả hai` thành "Android trước ([D-007](../decisions/decisions.md)); cấu hình build ở [D-011](../decisions/decisions.md)".
   - Ghi module Android đã cài cho 6000.3.15f1.
 
-- [ ] **Step 3: `decisions.md`.** Thêm D-011 ở đầu danh sách: "Build Android thử: APK debug, IL2CPP ARM64, package `com.sweetyuu.bundaupeo` (2026-11-07)". Gồm:
+- [x] **Step 3: `decisions.md`.** Thêm D-011 ở đầu danh sách: "Build Android thử: APK debug, IL2CPP ARM64, package `com.sweetyuu.bundaupeo` (2026-11-07)". Gồm:
   - Bối cảnh: roadmap, hạn 31/12.
   - Quyết định: bảng ở spec mục 3; build chỉ kiểm, không ghi cấu hình; Development Build; Editor ở target Android.
   - Đánh đổi: package không đổi được sau khi lên Play và quyết định thư mục save; IL2CPP build chậm; nhánh không Development chưa được build thử.
   - Trạng thái: Accepted.
 
-- [ ] **Step 4: `roadmap.md`.** Dòng "Đang làm" ghi "Build Android thử sớm: code xong, chờ 🔍", kèm số test, thời gian build và cỡ APK. Mục chỉ chuyển xuống "Đã xong" (kèm ngày, link spec và kế hoạch) sau khi 🔍 duyệt, như các đợt trước.
+- [x] **Step 4: `roadmap.md`.** Dòng "Đang làm" ghi "Build Android thử sớm: code xong, chờ 🔍", kèm số test, thời gian build và cỡ APK. Mục chỉ chuyển xuống "Đã xong" (kèm ngày, link spec và kế hoạch) sau khi 🔍 duyệt, như các đợt trước.
 
 ## Hoàn tất đợt
 
-- [ ] Tổng test ở checkbox cuối khớp `../../bdp_BunDauPeo/tests.xml` (747/747) và `playtests.xml` (12/12).
+- [x] Tổng test ở checkbox cuối khớp `../../bdp_BunDauPeo/tests.xml` (747/747) và `playtests.xml` (12/12).
 - [ ] Báo cáo cuối kênh gửi 📋 (ghi thời gian build, cỡ APK, có phải thêm `--allow-dirty-build` không, Editor nay ở target Android). 🎯 mở 🔍 review cuối nhánh. Đợt này không đụng tiền hay save nên không cần mức xhigh.
 - [ ] User cài thử APK khi có điện thoại (`adb install -r D:/bdp_BunDauPeo/android/BunDauPeo.apk`). Không chặn việc đóng đợt.

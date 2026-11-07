@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Build Android thử sớm: spec và kế hoạch xong, user duyệt 2026-11-07 ([spec](superpowers/specs/2026-11-07-build-android-design.md), [kế hoạch](superpowers/plans/2026-11-07-build-android.md)); chờ 🎯 mở một phiên 🔨 (Task 1–4). Sau đó: Song ngữ.
+- Build Android thử sớm: code xong, chờ 🔍 ([spec](superpowers/specs/2026-11-07-build-android-design.md), [kế hoạch](superpowers/plans/2026-11-07-build-android.md)). Test 747/747 EditMode, 12/12 PlayMode; build 7,4 phút, APK 46 MB (`D:/bdp_BunDauPeo/android/BunDauPeo.apk`). Sau đó: Song ngữ.
 
 ## Tiếp theo
 

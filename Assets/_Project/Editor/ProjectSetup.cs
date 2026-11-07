@@ -168,9 +168,7 @@ namespace BunDauPeo.EditorTools
             CreateStageSelectScene();
             CreateBattleScene();
             WireBootScene();
-            PutScenesInBuildOrder();
-            ApplyPlayerSettings();
-            AssetDatabase.SaveAssets();
+            ApplyBuildSettings();
             Debug.Log("ProjectSetup: done.");
         }
 
@@ -504,18 +502,26 @@ namespace BunDauPeo.EditorTools
         private static void PutScenesInBuildOrder()
         {
             var ordered = new[] { BootScenePath, GachaScenePath, RestaurantScenePath, StageSelectScenePath, BattleScenePath };
-            var scenes = EditorBuildSettings.scenes;
-            if (scenes.Length >= ordered.Length && ordered.Select((path, i) => scenes[i].path == path && scenes[i].enabled).All(ok => ok)) return;
-
-            var rest = scenes.Where(s => !ordered.Contains(s.path));
+            // Scene ngoài Assets/_Project/Scenes/ (SampleScene) bị bỏ khỏi build; file scene giữ nguyên.
+            var rest = EditorBuildSettings.scenes.Where(s => !ordered.Contains(s.path) && s.path.StartsWith("Assets/_Project/Scenes/"));
             EditorBuildSettings.scenes = ordered
                 .Select(path => new EditorBuildSettingsScene(path, true))
                 .Concat(rest)
                 .ToArray();
         }
 
+        // Tách khỏi Run để chạy riêng ở batch mode mà không phải chạy cả Setup Project.
+        public static void ApplyBuildSettings()
+        {
+            PutScenesInBuildOrder();
+            ApplyPlayerSettings();
+            AssetDatabase.SaveAssets();
+        }
+
         private static void ApplyPlayerSettings()
         {
+            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, AndroidBuild.PackageName);
+
             // Hai tên này quyết định thư mục persistentDataPath chứa save; không đụng Bundle Identifier.
             PlayerSettings.companyName = "Sweet-Yuu";
             PlayerSettings.productName = "BunDauPeo";
