@@ -66,6 +66,8 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 - Mở 🔍 Review Build Android 1/1 (`local_b076a08f-8a15-464e-9c4d-67c9f004bc88`, Opus 5.5 high) trên `feature/build-android`.
 - 🔍 Build Android xong: không lỗi chặn PR; đã kiểm review-android-*.xml 747/747 + 12/12, phá thử 2 chỗ thì 2 test đỏ; 📋 commit `0e2dbcc` (spec Đã xong). Nên sửa: `AndroidBuild.cs:121` log ghi cỡ APK 846 MB thay vì 46 MB. Góp ý: khối `m_BuildTargetBatching` Android trong ProjectSettings, build ghi lại 2 asset URP, `OutputPath` không chặn đường dẫn trong repo.
 - User bảo "Sửa rồi mở PR": 🔨 Sửa log cỡ APK (`local_47080955-1cc2-49ec-a62f-961fdbf8afbe`) đổi sang `FileInfo.Length`, 747/747 (edit.xml 13:59Z); 📋 commit `d0ace5b`. 🎯 chuyển Build Android sang Đã xong trong roadmap, mở PR vào `main`.
+- 📋 commit `4a7bd76`; user bảo merge: PR #12 đã merge vào `main` ở `c41cc59`, checkout về `main`. Roadmap ghi hash merge (chưa commit). Kế tiếp theo roadmap: Song ngữ Việt–Anh. APK chưa cài thử trên điện thoại.
+- Mở 📐 Song ngữ Việt–Anh (`local_8787f0df-e38a-4be6-a717-8f610a723708`, Opus 5.5 high), nhánh `docs/bilingual-spec` từ `main`: rà chữ trong game, chọn package Localization hay bảng tự viết, lưu ngôn ngữ qua `PlayerSave`.
 - **Việc chờ (user giao 2026-11-06, đã xong):** xong việc sửa layout thì dọn các file/thư mục `bdp-*` ở `D:\Unity\` (log, xml test, `bdp-shots`, `bdp-save-backup*`, script `.sh`) vào `D:\bdp_BunDauPeo` (user tạo, đang trống, 06/11). Kèm sửa đường dẫn mặc định: `ScreenCapture1080.cs` (`../bdp-shots`), lệnh `unity test --output ../bdp-*.xml` trong `unity-workflow.md` và kế hoạch layout (giao một kênh 🔨, 📋 commit). Kế hoạch cũ đã xong thì để nguyên.
 
 ### #1 — 2026-11-03 — 🎯 Điều phối #1 (quy trình studio)
