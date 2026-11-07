@@ -21,6 +21,15 @@
 - Trạng thái "bị chặn" mà nhiều view cùng bật/tắt thì theo chủ (`SetX(owner, bool)`, idempotent theo chủ), không dùng một bool hay bộ đếm tăng giảm (L-015).
 - Mô phỏng bước cố định: trong mỗi bước, hệ thống trừ giờ chạy trước hệ thống đổi trạng thái (L-008).
 
+## Chữ hiển thị (song ngữ, [D-012](../decisions/decisions.md))
+
+- Chữ người chơi thấy đi qua `UiText` (`Get`/`Format`/`Decimal`), key `khu.tên` viết thường, thêm dòng cả hai tiếng vào `UiText.<Khu>.cs`. Không viết chuỗi tiếng Việt vào code UI hay builder: `HardcodedTextTests` đỏ. Chữ của `DevOverlay` là ngoại lệ (giữ tiếng Việt).
+- Nhãn cố định do builder dựng thì dùng `NewLabel`/`AddLabel` (gắn `LocalizedText`). Chữ mà view ghi lúc chạy thì dùng `NewText(..., UiText.Get(key), ...)`, không gắn `LocalizedText`.
+- Bản tiếng Anh giữ nguyên `
+` và mọi `{n}` của bản tiếng Việt. Tên nhân vật, món: tiếng Việt bỏ dấu, viết hoa chữ đầu; tên khác dịch nghĩa.
+- ScriptableObject mới có tên hiển thị thì có cả `_displayNameEn` (điền qua cột trong `ProjectSetup.EnglishNames`, không sửa tay `.asset`).
+- Test đặt `GameLanguage.Current` thì trả về `Language.Vi` trong `TearDown`.
+
 ## Code Editor
 
 - Nạp asset bằng `AssetDatabase.LoadAssetAtPath` **sau** khi tạo/đổi scene, không giữ biến từ trước `NewScene(Single)`. Code dùng `UnityEditor` nằm trong assembly Editor (L-002, L-001).

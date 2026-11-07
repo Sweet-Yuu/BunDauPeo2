@@ -46,6 +46,31 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void LanguageSwitcher_Set_PassesLanguageAndReturnsResult()
+        {
+            Language? received = null;
+            var switcher = new LanguageSwitcher(language => { received = language; return false; });
+            Assert.IsFalse(switcher.Set(Language.En), "lưu thất bại phải báo false");
+            Assert.AreEqual(Language.En, received);
+            Assert.Throws<ArgumentNullException>(() => new LanguageSwitcher(null));
+        }
+
+        [Test]
+        public void LanguageButtonLabel_EachLanguage()
+        {
+            Assert.AreEqual("Ngôn ngữ: Tiếng Việt", DevOverlay.LanguageButtonLabel(Language.Vi));
+            Assert.AreEqual("Language: English", DevOverlay.LanguageButtonLabel(Language.En));
+        }
+
+        [Test]
+        public void ShouldReloadScene_Battle_ReturnsFalse()
+        {
+            Assert.IsFalse(DevOverlay.ShouldReloadScene("Battle"), "nạp lại Battle làm hỏng trận đang chạy");
+            foreach (var scene in new[] { "Restaurant", "Gacha", "StageSelect" })
+                Assert.IsTrue(DevOverlay.ShouldReloadScene(scene), scene);
+        }
+
+        [Test]
         public void GrantGemsThenResetViaResetter_GemsBackToStarting_AndFileHasNoGrant()
         {
             var path = Path.Combine(_dir, "save.json");

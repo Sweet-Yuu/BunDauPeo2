@@ -30,7 +30,7 @@ namespace BunDauPeo.UI
                 if (i > 0) text.Append('\n');
             }
 
-            _listText.text = history.Count == 0 ? "Chưa có lượt quay nào." : text.ToString();
+            _listText.text = history.Count == 0 ? UiText.Get("gacha.history_empty") : text.ToString();
             _root.SetActive(true);
         }
 

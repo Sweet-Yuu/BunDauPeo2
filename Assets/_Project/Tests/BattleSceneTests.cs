@@ -418,5 +418,9 @@ namespace BunDauPeo.Tests
                     Assert.IsTrue(canvas.Contains(rect.min) && canvas.Contains(rect.max), $"{button.name} {rect} leaves the canvas");
                 }
             });
+
+        [Test]
+        public void BattleScene_LocalizedTexts_KeysExistAndNotWrittenByViews() =>
+            WithBattleScene(SceneTextAsserts.AssertLocalizedTexts);
     }
 }

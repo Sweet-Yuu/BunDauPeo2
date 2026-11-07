@@ -148,7 +148,7 @@ namespace BunDauPeo.UI
                     _removeButtons[index].gameObject.SetActive(occupied);
                     _slotTexts[index].text = !unlocked ? StaffPanelRows.LockedHint(_service.Config, role)
                         : occupied ? $"{NameOf(workers[s].CharacterId)} · {workers[s].Stat}"
-                        : "Trống · bấm để chọn";
+                        : UiText.Get("restaurant.slot_empty");
                 }
             }
         }
@@ -165,7 +165,7 @@ namespace BunDauPeo.UI
             _listRole = role;
             _replacingId = slot < workers.Count ? workers[slot].CharacterId : null;
             _messageText.text = "";
-            _listTitle.text = $"Chọn {StaffPanelRows.RoleName(role)}";
+            _listTitle.text = UiText.Format("restaurant.pick_title", StaffPanelRows.RoleName(role));
 
             // Dọn hàng cũ trước khi dựng lại, nếu không mỗi lần mở lại cộng dồn thêm hàng.
             for (var i = _listContent.childCount - 1; i >= 0; i--)
@@ -213,7 +213,7 @@ namespace BunDauPeo.UI
 
             _pending = row;
             var name = string.IsNullOrEmpty(row.Character.DisplayName) ? row.Character.Id : row.Character.DisplayName;
-            _confirmText.text = $"{name} đang ở đội chiến đấu, chuyển vào quán?";
+            _confirmText.text = UiText.Format("restaurant.confirm_move", name);
             _confirmRoot.SetActive(true);
         }
 
@@ -237,7 +237,7 @@ namespace BunDauPeo.UI
                 return;
             }
 
-            _messageText.text = result == StaffAssignResult.RoleFull ? "Vai này đã đủ người" : "Không chọn được nhân viên này";
+            _messageText.text = result == StaffAssignResult.RoleFull ? UiText.Get("restaurant.role_full") : UiText.Get("restaurant.pick_failed");
         }
 
         private void RemoveFromSlot(StaffRole role, int slot)

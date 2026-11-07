@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Không có. Kế tiếp: Song ngữ Việt–Anh.
+- Song ngữ Việt–Anh: phiên A, B, C đã commit trên `feature/bilingual` (`a0e3fa1`, EditMode 784/784, PlayMode 13/13). User đã duyệt ảnh tiếng Anh và bảng dịch. 🔍 review cuối nhánh tìm B1 (popup màn còn "Đợt" khi English) và N1–N3: đã sửa trong working tree, chưa commit (EditMode 788/788, PlayMode 13/13). Kế tiếp: 📋 commit, 🎯 kiểm lại rồi PR.
 
 ## Tiếp theo
 
@@ -13,9 +13,9 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
-- [ ] Song ngữ Việt–Anh (master plan, user chốt 2026-11-03): mọi chữ trong game có bản tiếng Anh. Làm ngay sau hai việc trên, vì mỗi màn mới làm thêm đều phải sửa lại chữ.
+- [ ] Song ngữ Việt–Anh (master plan, user chốt 2026-11-03): mọi chữ trong game có bản tiếng Anh. Làm ngay sau hai việc trên, vì mỗi màn mới làm thêm đều phải sửa lại chữ. [Spec](superpowers/specs/2026-11-07-bilingual-design.md), [kế hoạch](superpowers/plans/2026-11-07-bilingual.md) (11 task, 3 phiên 🔨; user duyệt spec 2026-11-07): bảng C# tự viết, ngôn ngữ theo máy lưu trong `PlayerSave`, nút đổi ở panel Cài đặt DEV.
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
-- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game (bản DEV đã có trong nút Cài đặt của DevOverlay; hub làm bản cho người chơi), gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
+- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút đổi ngôn ngữ cho người chơi (dùng `LanguageSwitcher`) và nút "Reset dữ liệu" trong game (bản DEV đã có trong nút Cài đặt của DevOverlay; hub làm bản cho người chơi), gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
 - [ ] Thời tiết (master plan): ngẫu nhiên, chỉ giảm lượng khách, mỗi đợt tối đa 30 phút; xác suất tăng sau hơn 90 phút chơi liên tục. Nhỏ, ghép vào mô phỏng quán hiện có.
 - [ ] Shipper + nấu ăn (master plan): mở lại game sau khi vắng thì có hàng shipper (tối đa 15), nấu và giao lần lượt với một đồng hồ chung; khoảng 3 món. `TODO(user)` trong spec: cách ghép với AFK hiện có (AFK đang tích cả khi app vào nền, master plan chỉ tính khi tắt hẳn).
 - [ ] Nội thất lưới 8×8 (master plan): đặt, xoay nội thất trên lưới hình thoi, kéo camera; 1–2 nội thất thử. `TODO(user)` trong spec: lưới hình thoi ngược với bố cục màn quán user chốt 2026-11-01 (bỏ phòng isometric).
@@ -27,7 +27,7 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 
 ## Đã xong
 
-- 2026-11-07 — Build Android thử sớm (nhánh `feature/build-android`, PR vào `main`): `AndroidBuild` (kiểm cấu hình, build APK debug IL2CPP ARM64 ra `D:/bdp_BunDauPeo/android/BunDauPeo.apk`), `ProjectSetup` ghi Player Settings và Build Settings (Boot đầu, bỏ SampleScene), [D-011](decisions/decisions.md). APK 46 MB, build 7,4 phút; 747 EditMode + 12 PlayMode xanh; 🔍 không lỗi chặn, đã sửa log cỡ APK. Chưa cài thử trên điện thoại: [spec](superpowers/specs/2026-11-07-build-android-design.md), [kế hoạch](superpowers/plans/2026-11-07-build-android.md).
+- 2026-11-07 — Build Android thử sớm (PR #12, đã merge vào `main` ở `c41cc59`): `AndroidBuild` (kiểm cấu hình, build APK debug IL2CPP ARM64 ra `D:/bdp_BunDauPeo/android/BunDauPeo.apk`), `ProjectSetup` ghi Player Settings và Build Settings (Boot đầu, bỏ SampleScene), [D-011](decisions/decisions.md). APK 46 MB, build 7,4 phút; 747 EditMode + 12 PlayMode xanh; 🔍 không lỗi chặn, đã sửa log cỡ APK. Chưa cài thử trên điện thoại: [spec](superpowers/specs/2026-11-07-build-android-design.md), [kế hoạch](superpowers/plans/2026-11-07-build-android.md).
 - 2026-11-06 — Sửa layout theo Mota (PR #10, đã merge vào `main` ở `810ff45`): 13 chỗ lệch với ảnh `Mota/` ở Battle, StageSelect, Gacha, Restaurant; không thêm màn, không đổi luật. 12 task, 3 phiên 🔨, 🔍 review không lỗi chặn; 742 EditMode + 12 PlayMode xanh; user đã playtest. Nâng L-025, L-027, L-028 thành luật. 4 góp ý nhỏ để sau: [spec](superpowers/specs/2026-11-06-layout-mota-design.md), [kế hoạch](superpowers/plans/2026-11-06-layout-mota.md).
 - 2026-11-06 — Công cụ thử tự động và panel DEV Cài đặt (PR #8, đã merge vào `main` ở `6ec636e`): mọi nút DEV gom vào panel Cài đặt, sửa lỗi review A1–A3, A5, A6, B1–B3; 720 EditMode + 12 PlayMode xanh. Công cụ gốc ghi ở dòng 2026-11-04 bên dưới.
 - 2026-11-04 — Công cụ thử tự động: `PlaytestTools` (mở Boot, sao lưu/khôi phục save, chạy nền rồi trả `ProjectSettings`, chụp 1920×1080, bấm nút theo tên) + menu `Tools/BunDauPeo/Playtest/`, `UiDriver`, `ScreenCapture1080`, smoke test PlayMode trọn vòng Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save bằng save tạm: [spec](superpowers/specs/2026-11-03-playtest-tools-design.md), [kế hoạch](superpowers/plans/2026-11-03-playtest-tools.md), [D-009](decisions/decisions.md). 715 EditMode + 4 PlayMode xanh; nhánh `feature/playtest-tools`, 9 task, 2 phiên 🔨; user đã xem ảnh chụp và thử menu 2026-11-04. Còn chờ review độc lập cuối nhánh và PR.

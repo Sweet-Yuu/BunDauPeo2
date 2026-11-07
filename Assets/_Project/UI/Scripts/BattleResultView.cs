@@ -68,7 +68,7 @@ namespace BunDauPeo.UI
                 var result = service.Progress.CompleteBattle(session);
                 if (result.Status == StageCompleteStatus.Success)
                 {
-                    _rewardRow.Show(result.Rewards, result.FirstClear ? "Lần đầu" : "");
+                    _rewardRow.Show(result.Rewards, result.FirstClear ? UiText.Get("combat.first_clear_tag") : "");
                     _staminaText.text = CombatViewText.StaminaUsed(result.StaminaSpent);
                     _warningText.text = RestaurantViewText.SaveWarning(result.Saved);
                 }

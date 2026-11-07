@@ -1,3 +1,4 @@
+using BunDauPeo.Core;
 using UnityEngine;
 
 namespace BunDauPeo.Restaurant
@@ -7,11 +8,12 @@ namespace BunDauPeo.Restaurant
     public class DishDefinition : ScriptableObject
     {
         [SerializeField] private string _displayName = "Món ăn";
+        [SerializeField] private string _displayNameEn;
         [SerializeField] private Sprite _icon;
         [SerializeField] private long _basePrice = 20;
         [SerializeField] private float _cookSeconds = 5f;
 
-        public string DisplayName => _displayName;
+        public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public Sprite Icon => _icon;
         public long BasePrice => _basePrice;
         public float CookSeconds => _cookSeconds;

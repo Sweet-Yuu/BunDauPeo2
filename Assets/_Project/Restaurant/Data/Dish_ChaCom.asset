@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Dish_ChaCom
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.DishDefinition
   _displayName: "Ch\u1EA3 c\u1ED1m"
+  _displayNameEn: Cha Com
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _basePrice: 15
   _cookSeconds: 4

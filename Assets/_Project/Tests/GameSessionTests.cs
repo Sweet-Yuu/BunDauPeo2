@@ -34,6 +34,7 @@ namespace BunDauPeo.Tests
         [TearDown]
         public void TearDown()
         {
+            GameLanguage.Current = Language.Vi;
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
         }
 
@@ -97,6 +98,7 @@ namespace BunDauPeo.Tests
             session.Save.Fragments.Add(new FragmentCount { CharacterId = "a", Count = 3 });
             session.Save.GachaPity.Add(new PityEntry { BannerId = "b", Pulls = 7 });
             session.Save.GachaHistory.Add(new GachaHistoryEntry { BannerId = "b", Count = 1, CharacterIds = new[] { "a" } });
+            session.Save.Language = "en";
 
             Assert.IsTrue(session.ResetToDefaults());
 
@@ -108,6 +110,7 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, session.Save.GachaPity.Count);
             Assert.AreEqual(0, session.Save.GachaHistory.Count);
             Assert.AreEqual(0, session.Roster.GetFragments("a"));
+            Assert.AreEqual("", session.Save.Language);
         }
 
         [Test]
@@ -250,6 +253,72 @@ namespace BunDauPeo.Tests
             using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
                 Assert.IsFalse(session.ResetToDefaults());
             Assert.AreEqual(300, session.Wallet.Get(CurrencyType.Coin));
+        }
+
+        [Test]
+        public void SetLanguage_Saved_ChangesSaveFileAndCurrent()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            Assert.IsTrue(session.SetLanguage(Language.En));
+            Assert.AreEqual("en", session.Save.Language);
+            Assert.AreEqual(Language.En, GameLanguage.Current);
+
+            var reopened = new GameSession(new SaveService(_path), _catalog, _config);
+            Assert.AreEqual("en", reopened.Save.Language, "đã ghi xuống đĩa");
+        }
+
+        [Test]
+        public void SetLanguage_WhenFileLocked_KeepsOldLanguage()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            Assert.IsTrue(session.SetLanguage(Language.Vi));
+            LogAssert.Expect(LogType.Error, new Regex("Save failed"));
+            using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+                Assert.IsFalse(session.SetLanguage(Language.En));
+            Assert.AreEqual("vi", session.Save.Language);
+            Assert.AreEqual(Language.Vi, GameLanguage.Current);
+        }
+
+        [Test]
+        public void ApplyLanguage_UsesSavedChoiceElseDevice()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            session.Save.Language = "";
+            session.ApplyLanguage(SystemLanguage.English);
+            Assert.AreEqual(Language.En, GameLanguage.Current, "chưa chọn, máy tiếng Anh");
+            session.ApplyLanguage(SystemLanguage.Vietnamese);
+            Assert.AreEqual(Language.Vi, GameLanguage.Current, "chưa chọn, máy tiếng Việt");
+            session.Save.Language = "en";
+            session.ApplyLanguage(SystemLanguage.Vietnamese);
+            Assert.AreEqual(Language.En, GameLanguage.Current, "đã chọn En thắng máy tiếng Việt");
+        }
+
+        // N1: dây Reset → ngôn ngữ theo máy nằm trong GameSession để giả lập được máy tiếng Việt trên máy dev tiếng Anh.
+        [Test]
+        public void ResetToDefaults_AfterChoosingEnglish_FollowsDeviceLanguage()
+        {
+            var device = SystemLanguage.Vietnamese;
+            var session = new GameSession(_service, _catalog, _config, () => device);
+            Assert.IsTrue(session.SetLanguage(Language.En));
+            Assert.AreEqual(Language.En, GameLanguage.Current);
+
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.AreEqual("", session.Save.Language);
+            Assert.AreEqual(Language.Vi, GameLanguage.Current, "máy tiếng Việt");
+
+            device = SystemLanguage.English;
+            Assert.IsTrue(session.SetLanguage(Language.Vi));
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.AreEqual(Language.En, GameLanguage.Current, "máy tiếng Anh");
+        }
+
+        [Test]
+        public void ResetToDefaults_WithoutDeviceLanguage_LeavesCurrentAlone()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            GameLanguage.Current = Language.En;
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.AreEqual(Language.En, GameLanguage.Current);
         }
 
         [Test]

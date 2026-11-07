@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
@@ -75,19 +74,19 @@ namespace BunDauPeo.UI
             return null;
         }
 
-        public static string RoleName(StaffRole role) => role switch
+        public static string RoleName(StaffRole role) => UiText.Get(role switch
         {
-            StaffRole.Cook => "Đầu bếp",
-            StaffRole.Server => "Phục vụ",
-            _ => "Thu ngân",
-        };
+            StaffRole.Cook => "common.role_cook",
+            StaffRole.Server => "common.role_server",
+            _ => "common.role_cashier",
+        });
 
         public static string RowLabel(CandidateRow row, StaffRole role)
         {
             var name = string.IsNullOrEmpty(row.Character.DisplayName) ? row.Character.Id : row.Character.DisplayName;
             var label = $"{name} [{row.Character.Rarity}] · {RoleName(role)} {row.Stat} · {DeltaLine(row.IncomeDelta)}";
-            if (row.NeedsConfirm) label += " · Đội chiến đấu";
-            if (row.CurrentRole.HasValue) label += $" · đang là {RoleName(row.CurrentRole.Value)}";
+            if (row.NeedsConfirm) label += " · " + UiText.Get("restaurant.row_battle_team");
+            if (row.CurrentRole.HasValue) label += " · " + UiText.Format("restaurant.row_current_role", RoleName(row.CurrentRole.Value));
             return label;
         }
 
@@ -101,15 +100,14 @@ namespace BunDauPeo.UI
                 _ => UpgradeEffect.CashierSlots,
             };
             var upgrade = config.Upgrades == null ? null : config.Upgrades.Items.FirstOrDefault(u => u != null && u.Effect == effect);
-            return upgrade == null ? "Khoá" : $"Khoá · nâng cấp {upgrade.DisplayName}";
+            return upgrade == null ? UiText.Get("restaurant.locked") : UiText.Format("restaurant.locked_upgrade", upgrade.DisplayName);
         }
 
         private static string DeltaLine(double delta)
         {
             var rounded = Math.Round(delta, 1, MidpointRounding.AwayFromZero);
             var sign = rounded > 0 ? "+" : rounded < 0 ? "-" : "";
-            var number = Math.Abs(rounded).ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ',');
-            return $"→ {sign}{number} Coin/giây";
+            return UiText.Format("restaurant.delta_line", sign, UiText.Decimal(Math.Abs(rounded), "0.0"));
         }
     }
 }

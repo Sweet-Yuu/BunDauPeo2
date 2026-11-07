@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.UpgradeDefinition
   _id: up_tables
   _displayName: "B\xE0n"
+  _displayNameEn: Tables
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _effect: 0
   _levels:

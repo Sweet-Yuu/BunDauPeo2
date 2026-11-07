@@ -52,6 +52,7 @@ namespace BunDauPeo.PlayModeTests
         {
             if (_refused) yield break; // bản Boot đang chạy là của người chơi, không phải của test: không huỷ, không xoá
             GameBootstrap.SavePathOverride = null;
+            GameLanguage.Current = Language.Vi;
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
             if (bootstrap != null) Object.Destroy(bootstrap.gameObject); // DontDestroyOnLoad nên không tự mất
             var overlay = GameObject.Find("DevOverlay"); // test panel DEV dựng tay, cũng DontDestroyOnLoad
@@ -223,6 +224,44 @@ namespace BunDauPeo.PlayModeTests
         }
 
         private static IEnumerable<Text> AllTexts() => Object.FindObjectsByType<Text>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator LanguageSwitch_ToEnglish_ReloadsPersistsAndResetFollowsDevice()
+        {
+            _step = "L1 Boot";
+            yield return BootWithDevOverlay();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            // Máy dev có thể là tiếng Anh (Boot theo máy): ép về tiếng Việt và nạp lại Restaurant để bước sau chứng minh được việc nạp lại.
+            Assert.IsTrue(session.SetLanguage(Language.Vi), Where("SetLanguage(Vi)"));
+            SceneManager.LoadScene("Restaurant");
+            yield return null;
+            yield return WaitForScene("Restaurant");
+            yield return WaitForButtonStep("StaffButton");
+            Assert.AreEqual("Nhân viên", GameObject.Find("StaffButton").GetComponentInChildren<Text>().text, Where("nhãn trước khi đổi"));
+
+            _step = "L2 bấm LanguageButton";
+            yield return ClickWhenReady("Cài đặt");
+            yield return ClickWhenReady("LanguageButton");
+
+            _step = "L3 chờ scene nạp lại";
+            var expected = UiText.Get("restaurant.staff");
+            var deadline = Time.realtimeSinceStartup + SceneTimeout;
+            string label = null;
+            while (label != expected)
+            {
+                label = GameObject.Find("StaffButton")?.GetComponentInChildren<Text>()?.text;
+                if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where($"nút Nhân viên đang là '{label}', cần '{expected}'"));
+                yield return null;
+            }
+
+            Assert.AreEqual(Language.En, GameLanguage.Current, Where("Current"));
+            Assert.AreEqual("en", session.Save.Language, Where("save"));
+
+            _step = "L4 Reset về theo máy";
+            Assert.IsTrue(ServiceLocator.Get<GameResetter>().Reset(), Where("Reset"));
+            Assert.AreEqual("", session.Save.Language, Where("Reset phải xoá lựa chọn ngôn ngữ"));
+            Assert.AreEqual(GameLanguage.Resolve("", Application.systemLanguage), GameLanguage.Current, Where("sau Reset phải theo máy, không kẹt English"));
+        }
 
         [UnityTest, Timeout(180000)]
         public IEnumerator DevOverlay_Reset_NeedsConfirmation_CancelKeepsData()

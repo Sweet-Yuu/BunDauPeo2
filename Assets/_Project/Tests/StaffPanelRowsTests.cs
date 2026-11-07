@@ -159,6 +159,19 @@ namespace BunDauPeo.Tests
             }
         }
 
+        [TearDown]
+        public void TearDown() => GameLanguage.Current = Language.Vi;
+
+        [Test]
+        public void RoleName_English_EveryRole()
+        {
+            GameLanguage.Current = Language.En;
+
+            Assert.AreEqual("Cook", StaffPanelRows.RoleName(StaffRole.Cook));
+            Assert.AreEqual("Server", StaffPanelRows.RoleName(StaffRole.Server));
+            Assert.AreEqual("Cashier", StaffPanelRows.RoleName(StaffRole.Cashier));
+        }
+
         [Test]
         public void LockedHint_NamesTheUpgradeThatOpensTheSlot()
         {

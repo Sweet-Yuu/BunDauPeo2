@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Finisher
   m_EditorClassIdentifier: BunDauPeo.Characters::BunDauPeo.Characters.SkillDefinition
   _displayName: Finisher
+  _displayNameEn: Finisher
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _kind: 2
   _target: 1

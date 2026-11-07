@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.UpgradeDefinition
   _id: up_arrivals
   _displayName: "Bi\u1EC3n hi\u1EC7u"
+  _displayNameEn: Signboard
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _effect: 4
   _levels:

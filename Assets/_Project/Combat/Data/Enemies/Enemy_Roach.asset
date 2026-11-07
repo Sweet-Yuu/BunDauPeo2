@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Enemy_Roach
   m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.EnemyDefinition
   _displayName: "Gi\xE1n Kho"
+  _displayNameEn: Storeroom Roach
   _stats:
     HP: 1300
     Attack: 110

@@ -80,8 +80,9 @@ namespace BunDauPeo.EditorTools
                 BottomRight, new Vector2(-360, 110), new Vector2(300, 160));
             var ten = NewButton("TenButton", canvas, sprite, font, GachaViewText.PullLabel(10, banner.TenCost), ButtonColor,
                 BottomRight, new Vector2(-40, 110), new Vector2(300, 160));
-            var history = NewButton("HistoryButton", canvas, sprite, font, "Lịch sử", GreyButton,
+            var history = NewButton("HistoryButton", canvas, sprite, font, UiText.Get("gacha.history"), GreyButton,
                 BottomRight, new Vector2(-40, 300), new Vector2(300, 80));
+            Localize(history.GetComponentInChildren<Text>(), "gacha.history");
 
             // Reveal: hai cutscene (prefab của user) và thẻ nhân vật. Ẩn mặc định; GachaRevealView bật khi quay.
             var revealRoot = NewRect("RevealRoot", canvas);
@@ -124,7 +125,7 @@ namespace BunDauPeo.EditorTools
             var totalPanel = NewRect("TotalPanel", totalRoot);
             Place(totalPanel, Center, Center, Vector2.zero, new Vector2(1300, 640));
             AddImage(totalPanel, sprite, Panel, raycast: false);
-            var totalTitle = NewText("TitleText", totalPanel, font, "Kết quả quay", 48, TextAnchor.MiddleLeft, Color.white);
+            var totalTitle = NewLabel("TitleText", totalPanel, font, "gacha.total_title", 48, TextAnchor.MiddleLeft, Color.white);
             Place(totalTitle.rectTransform, TopLeft, TopLeft, new Vector2(60, -25), new Vector2(800, 70));
             var grid = NewRect("Grid", totalPanel);
             Place(grid, TopCenter, TopCenter, new Vector2(0, -120), new Vector2(1120, 470));
@@ -155,7 +156,8 @@ namespace BunDauPeo.EditorTools
 
             // Nút Bỏ qua: đặt trên reveal để bấm được; GachaView bật tắt theo luật của GachaRevealSequence.
             // Góc trên phải, vì nút Cài đặt DEV chiếm góc dưới phải (G4).
-            var skip = NewButton("SkipButton", canvas, sprite, font, "Bỏ qua", GreyButton, TopRight, new Vector2(-40, -40), new Vector2(300, 90));
+            var skip = NewButton("SkipButton", canvas, sprite, font, UiText.Get("gacha.skip"), GreyButton, TopRight, new Vector2(-40, -40), new Vector2(300, 90));
+            Localize(skip.GetComponentInChildren<Text>(), "gacha.skip");
             skip.gameObject.SetActive(false);
 
             // Popup quay tiếp.
@@ -165,12 +167,13 @@ namespace BunDauPeo.EditorTools
             var againBox = NewRect("Box", againRoot);
             Place(againBox, Center, Center, Vector2.zero, new Vector2(900, 540));
             AddImage(againBox, sprite, Panel, raycast: false);
-            var againTitle = NewText("TitleText", againBox, font, "Quay tiếp?", 52, TextAnchor.MiddleCenter, Color.white);
+            var againTitle = NewLabel("TitleText", againBox, font, "gacha.roll_again_title", 52, TextAnchor.MiddleCenter, Color.white);
             Place(againTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -50), new Vector2(800, 70));
             var againWarning = NewText("WarningText", againBox, font, "", 34, TextAnchor.MiddleCenter, Warning);
             Place(againWarning.rectTransform, TopCenter, TopCenter, new Vector2(0, -140), new Vector2(800, 60));
-            var rollAgain = NewButton("RollAgainButton", againBox, sprite, font, "Quay tiếp", ButtonColor, BottomCenter, new Vector2(0, 170), new Vector2(640, 100));
-            var dismiss = NewButton("DismissButton", againBox, sprite, font, "Thôi", GreyButton, BottomCenter, new Vector2(0, 50), new Vector2(640, 100));
+            var rollAgain = NewButton("RollAgainButton", againBox, sprite, font, UiText.Get("gacha.roll_again"), ButtonColor, BottomCenter, new Vector2(0, 170), new Vector2(640, 100));
+            var dismiss = NewButton("DismissButton", againBox, sprite, font, UiText.Get("common.not_now"), GreyButton, BottomCenter, new Vector2(0, 50), new Vector2(640, 100));
+            Localize(dismiss.GetComponentInChildren<Text>(), "common.not_now");
             var againPopup = againRoot.gameObject.AddComponent<GachaRollAgainPopup>();
             var againSo = new SerializedObject(againPopup);
             againSo.FindProperty("_root").objectReferenceValue = againRoot.gameObject;
@@ -189,7 +192,7 @@ namespace BunDauPeo.EditorTools
             // Vừa với canvas cao 866 (Game view rộng) lẫn 1080.
             Place(historyBox, Center, Center, Vector2.zero, new Vector2(1100, 780));
             AddImage(historyBox, sprite, Panel, raycast: false);
-            var historyTitle = NewText("TitleText", historyBox, font, "Lịch sử quay", 48, TextAnchor.MiddleCenter, Color.white);
+            var historyTitle = NewLabel("TitleText", historyBox, font, "gacha.history_title", 48, TextAnchor.MiddleCenter, Color.white);
             Place(historyTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(1000, 70));
             var scrollRect = NewRect("ScrollView", historyBox);
             Place(scrollRect, Center, Center, new Vector2(0, -10), new Vector2(1000, 520));
@@ -211,7 +214,8 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
-            var close = NewButton("CloseButton", historyBox, sprite, font, "Đóng", GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(320, 80));
+            var close = NewButton("CloseButton", historyBox, sprite, font, UiText.Get("common.close"), GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(320, 80));
+            Localize(close.GetComponentInChildren<Text>(), "common.close");
             var historyPopup = historyRoot.gameObject.AddComponent<GachaHistoryPopup>();
             var historySo = new SerializedObject(historyPopup);
             historySo.FindProperty("_root").objectReferenceValue = historyRoot.gameObject;
@@ -344,6 +348,19 @@ namespace BunDauPeo.EditorTools
             t.color = color;
             t.raycastTarget = false;
             return t;
+        }
+
+        // Nhãn cố định: chữ lấy từ UiText và gắn LocalizedText để scene đổi chữ theo ngôn ngữ. Chữ view ghi lúc chạy dùng NewText.
+        internal static Text NewLabel(string name, RectTransform parent, Font font, string key, int size, TextAnchor align, Color color) =>
+            Localize(NewText(name, parent, font, UiText.Get(key), size, align, color), key);
+
+        internal static Text AddLabel(RectTransform rect, Font font, string key, int size, TextAnchor align, Color color) =>
+            Localize(AddText(rect, font, UiText.Get(key), size, align, color), key);
+
+        private static Text Localize(Text text, string key)
+        {
+            text.gameObject.AddComponent<LocalizedText>().SetKey(key);
+            return text;
         }
 
         internal static Image AddImage(RectTransform rect, Sprite sprite, Color color, bool raycast)
