@@ -161,6 +161,7 @@ namespace BunDauPeo.EditorTools
 
             CreateRestaurantData();
             CreateCombatData();
+            FillEnglishNames();
 
             CreateBootScene();
             CreateGachaScene();
@@ -373,6 +374,54 @@ namespace BunDauPeo.EditorTools
                 Apply(asset, so => so.FindProperty("_stages").objectReferenceValue = catalog));
 
             MigrateStaminaRule();
+        }
+
+        // Tên tiếng Anh theo tên tiếng Việt của asset. Nhân vật và món: bỏ dấu, viết hoa chữ đầu; tên khác dịch nghĩa.
+        private static readonly Dictionary<string, string> EnglishNames = new()
+        {
+            ["Nem Chua"] = "Nem Chua", ["Chả Cốm"] = "Cha Com", ["Đậu Phụ"] = "Dau Phu", ["Mắm Tôm"] = "Mam Tom",
+            ["Lòng Dồi"] = "Long Doi", ["Bún Lá"] = "Bun La",
+            ["Bún đậu mắm tôm"] = "Bun Dau Mam Tom", ["Chả cốm"] = "Cha Com", ["Nem chua rán"] = "Nem Chua Ran",
+            ["Cào mạnh"] = "Savage Claw", ["Gầm"] = "Roar",
+            ["Khách thường"] = "Regular Customer", ["Khách sành ăn"] = "Gourmet Customer", ["Khách vội"] = "Hurried Customer",
+            ["Bếp tắc ga"] = "Blocked Stove", ["Khách làm đổ đồ"] = "Spilled Food", ["Máy tính tiền treo"] = "Frozen Register",
+            ["Bàn"] = "Tables", ["Ô đầu bếp"] = "Cook Slots", ["Ô phục vụ"] = "Server Slots", ["Ô thu ngân"] = "Cashier Slots",
+            ["Biển hiệu"] = "Signboard", ["Thực đơn"] = "Menu",
+            ["Ruồi Bàn"] = "Table Fly", ["Chuột Bếp"] = "Kitchen Rat", ["Gián Kho"] = "Storeroom Roach", ["Chuột Chúa"] = "Rat King",
+            ["Cốt truyện 1"] = "Story 1", ["Cốt truyện 2"] = "Story 2", ["Banner Thường"] = "Standard Banner",
+        };
+
+        private static readonly Type[] NamedTypes =
+        {
+            typeof(CharacterDefinition), typeof(SkillDefinition), typeof(GachaBannerDefinition), typeof(DishDefinition),
+            typeof(CustomerDefinition), typeof(IncidentDefinition), typeof(UpgradeDefinition), typeof(EnemyDefinition), typeof(StageDefinition),
+        };
+
+        // Chỉ điền ô _displayNameEn đang rỗng, không đè bản user đã sửa. Tên không dấu sẵn (Basic Strike, 1-1) dùng lại nguyên văn.
+        internal static void FillEnglishNames()
+        {
+            foreach (var type in NamedTypes)
+            foreach (var guid in AssetDatabase.FindAssets($"t:{type.Name}", new[] { "Assets/_Project" }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var asset = AssetDatabase.LoadAssetAtPath(path, type);
+                var so = new SerializedObject(asset);
+                var english = so.FindProperty("_displayNameEn");
+                if (!string.IsNullOrWhiteSpace(english.stringValue)) continue;
+
+                var vi = so.FindProperty("_displayName").stringValue;
+                if (!EnglishNames.TryGetValue(vi, out var en))
+                {
+                    if (System.Text.RegularExpressions.Regex.IsMatch(vi, "[À-ỹĐđ]")) { Debug.LogWarning($"ProjectSetup: no English name for '{vi}' ({path})."); continue; }
+                    en = vi;
+                }
+
+                english.stringValue = en;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(asset);
+            }
+
+            AssetDatabase.SaveAssets();
         }
 
         // Luật thể lực đổi 2026-11-03 (D-008): tối đa 60 → 100, màn 1-5 từ 15 → 10. Setup không ghi đè asset đã sinh nên đổi riêng;

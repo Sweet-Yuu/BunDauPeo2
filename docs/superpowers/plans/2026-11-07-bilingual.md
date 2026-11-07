@@ -312,13 +312,13 @@ Ba task 4–6 làm cùng một khuôn:
 
   Các tên khác 🔨 dịch nghĩa; màn số "1-1"…"1-5" giữ nguyên.
 
-- [ ] **Step 1: Viết test đỏ** (`LocalizedNameTests`; nạp asset bằng `AssetDatabase.LoadAssetAtPath`):
+- [x] **Step 1: Viết test đỏ** (`LocalizedNameTests`; nạp asset bằng `AssetDatabase.LoadAssetAtPath`):
   - `LocalizedNames_AllCatalogAssetsHaveEnglish`: mọi `CharacterDefinition` trong `CharacterCatalog` và chiêu của chúng; banner trong `GachaBannerCatalog`; món, khách, sự cố trong `RestaurantConfig`; nâng cấp trong `UpgradeCatalog`; màn trong `StageCatalog` và quái, chiêu quái trong các đợt. Đọc `_displayNameEn` qua `SerializedObject`, kỳ vọng không rỗng; thông báo ghi tên asset.
   - `LocalizedNames_CharactersAndDishesHaveNoDiacritics`: `_displayNameEn` của nhân vật và món không khớp `[À-ỹĐđ]`.
   - `DisplayName_FollowsLanguage_AndFallsBack`: `ScriptableObject.CreateInstance<DishDefinition>()`, ghi `_displayName = "Món"`, `_displayNameEn = "Dish"` qua `SerializedObject`. Kiểm `DisplayName` ra "Món" ở Vi, "Dish" ở En; xoá `_displayNameEn` thì ra "Món" ở En.
-- [ ] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
-- [ ] **Step 3: Cài đặt**, rồi chạy Setup Project (lệnh dùng chung). Kiểm `git status`: các `.asset` SO đổi, có thêm dòng `_displayNameEn`; số khác không đổi (`git diff` chỉ thêm dòng).
-- [ ] **Step 4: Chạy EditMode** (**780**) và PlayMode (12/12).
+- [x] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
+- [x] **Step 3: Cài đặt**, rồi chạy Setup Project (lệnh dùng chung). Kiểm `git status`: các `.asset` SO đổi, có thêm dòng `_displayNameEn`; số khác không đổi (`git diff` chỉ thêm dòng).
+- [x] **Step 4: Chạy EditMode** (**780**) và PlayMode (12/12). (đã chạy: 780/780, 12/12. Bảng En là một từ điển `EnglishNames` tra theo tên Việt, không phải cột `En` riêng ở 9 bảng.)
 
 ### Task 9: Nút đổi ngôn ngữ trong panel DEV
 
@@ -337,7 +337,7 @@ Ba task 4–6 làm cùng một khuôn:
     - `"Chưa lưu được, giữ ngôn ngữ cũ"` khi `Set` trả `false`.
   - Nút tên GameObject `LanguageButton`, không trùng nút nào.
 
-- [ ] **Step 1: Viết test đỏ.**
+- [x] **Step 1: Viết test đỏ.**
   - EditMode `DevSettingsTests`:
     - `LanguageButtonLabel_EachLanguage`: hai nhãn đúng như trên.
     - `ShouldReloadScene_Battle_ReturnsFalse`: `"Battle"` → `false`; `"Restaurant"`, `"Gacha"`, `"StageSelect"` → `true`.
@@ -348,9 +348,9 @@ Ba task 4–6 làm cùng một khuôn:
     4. Chờ scene nạp lại. Kiểm chữ của nút mở panel Nhân viên là bản En của key `restaurant.*` tương ứng (đọc qua `UiText`, không viết cứng), `session.Save.Language == "en"`, `GameLanguage.Current == En`.
     5. Gọi `ServiceLocator.Get<GameResetter>().Reset()`. Kiểm `Save.Language == ""` và `Current == GameLanguage.Resolve("", Application.systemLanguage)`.
     6. `TearDown` đặt `Current = Vi`.
-- [ ] **Step 2: Chạy EditMode và PlayMode**, kỳ vọng đỏ.
-- [ ] **Step 3: Cài đặt.** Nạp lại bằng `SceneManager.LoadScene(SceneManager.GetActiveScene().name)` sau khi đóng panel. Nhánh Battle có comment `// shortcut: Battle không vẽ lại khi đổi ngôn ngữ, làm khi hub có nút đổi ngôn ngữ cho người chơi.` Dòng trạng thái dùng `Text` trạng thái sẵn có của panel; panel chưa có thì thêm một `Text` dưới lưới.
-- [ ] **Step 4: Chạy EditMode** (**782**) và PlayMode (**13**), gồm `DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks` (nút mới nằm trong panel, không ra ngoài màn).
+- [x] **Step 2: Chạy EditMode và PlayMode**, kỳ vọng đỏ.
+- [x] **Step 3: Cài đặt.** Nạp lại bằng `SceneManager.LoadScene(SceneManager.GetActiveScene().name)` sau khi đóng panel. Nhánh Battle có comment `// shortcut: Battle không vẽ lại khi đổi ngôn ngữ, làm khi hub có nút đổi ngôn ngữ cho người chơi.` Dòng trạng thái dùng `Text` trạng thái sẵn có của panel; panel chưa có thì thêm một `Text` dưới lưới.
+- [x] **Step 4: Chạy EditMode** (**782**) và PlayMode (**13**; đã chạy 782/782, 13/13), gồm `DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks` (nút mới nằm trong panel, không ra ngoài màn).
 
 ### Task 10: Test chặn chữ tiếng Việt viết cứng
 
@@ -360,7 +360,7 @@ Ba task 4–6 làm cùng một khuôn:
 
 **Interfaces:** Consumes `UiText` (Task 3).
 
-- [ ] **Step 1: Viết test** `UiAndBuilders_HaveNoHardcodedVietnamese`:
+- [x] **Step 1: Viết test** `UiAndBuilders_HaveNoHardcodedVietnamese`:
   - Quét `Path.Combine(Application.dataPath, "_Project/UI/Scripts")` (đệ quy, `*.cs`) và `_Project/Editor/*SceneBuilder.cs`.
   - Bỏ qua file tên bắt đầu bằng `UiText` và file `DevOverlay.cs`.
   - Với mỗi dòng: bỏ phần từ `//` trở đi (khi `//` nằm ngoài chuỗi; chấp nhận cách thô là cắt ở `//` đầu tiên không nằm sau `"` lẻ), bỏ dòng có `Debug.Log`. Lấy các chuỗi `"…"` (cả `$"…"`) bằng regex, rồi tìm ký tự `[À-ỹĐđ]`.
@@ -372,8 +372,8 @@ Ba task 4–6 làm cùng một khuôn:
     - `Debug.LogError("Lỗi");` → 0.
 
     Không có test này thì test quét xanh cả khi regex hỏng (L-006).
-- [ ] **Step 2: Chạy EditMode.** Test quét đỏ thì sửa từng chỗ sót (chuyển vào bảng) cho tới khi xanh. Chỗ cố ý giữ (nếu có) thì ghi lý do vào báo cáo cuối kênh, **không** thêm danh sách bỏ qua khi chưa hỏi 🎯.
-- [ ] **Step 3: Chạy EditMode**, kỳ vọng xanh: **784**.
+- [x] **Step 2: Chạy EditMode.** Test quét đỏ thì sửa từng chỗ sót (chuyển vào bảng) cho tới khi xanh. Chỗ cố ý giữ (nếu có) thì ghi lý do vào báo cáo cuối kênh, **không** thêm danh sách bỏ qua khi chưa hỏi 🎯.
+- [x] **Step 3: Chạy EditMode**, kỳ vọng xanh: **784** (đã chạy 784/784; không có chuỗi sót, không cần danh sách bỏ qua).
 
 ### Task 11: Ảnh tiếng Anh, docs, dừng cho user duyệt
 

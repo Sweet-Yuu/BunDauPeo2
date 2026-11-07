@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Characters::BunDauPeo.Characters.CharacterDefinition
   _id: char_bun_la
   _displayName: "B\xFAn L\xE1"
+  _displayNameEn: Bun La
   _rarity: 2
   _stars: 3
   _class: 2

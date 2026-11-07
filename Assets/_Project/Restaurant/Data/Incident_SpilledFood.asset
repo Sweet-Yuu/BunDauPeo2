@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Incident_SpilledFood
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.IncidentDefinition
   _displayName: "Kh\xE1ch l\xE0m \u0111\u1ED5 \u0111\u1ED3"
+  _displayNameEn: Spilled Food
   _role: 1
   _weight: 1

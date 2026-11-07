@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Skill_BasicStrike
   m_EditorClassIdentifier: BunDauPeo.Characters::BunDauPeo.Characters.SkillDefinition
   _displayName: Basic Strike
+  _displayNameEn: Basic Strike
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _kind: 0
   _target: 0

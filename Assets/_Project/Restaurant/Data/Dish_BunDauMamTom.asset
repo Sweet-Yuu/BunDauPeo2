@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Dish_BunDauMamTom
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.DishDefinition
   _displayName: "B\xFAn \u0111\u1EADu m\u1EAFm t\xF4m"
+  _displayNameEn: Bun Dau Mam Tom
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _basePrice: 20
   _cookSeconds: 6

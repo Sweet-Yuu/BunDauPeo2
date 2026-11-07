@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Incident_RegisterFrozen
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.IncidentDefinition
   _displayName: "M\xE1y t\xEDnh ti\u1EC1n treo"
+  _displayNameEn: Frozen Register
   _role: 2
   _weight: 1

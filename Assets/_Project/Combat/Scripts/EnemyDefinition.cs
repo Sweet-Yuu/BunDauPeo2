@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BunDauPeo.Characters;
+using BunDauPeo.Core;
 using UnityEngine;
 
 namespace BunDauPeo.Combat
@@ -9,13 +10,14 @@ namespace BunDauPeo.Combat
     public class EnemyDefinition : ScriptableObject
     {
         [SerializeField] private string _displayName;
+        [SerializeField] private string _displayNameEn;
         [SerializeField] private CombatStats _stats;
         [SerializeField] private SkillDefinition _basicAttack;
         // Có thể trống: quái chỉ đánh thường.
         [SerializeField] private SkillDefinition _skill;
         [SerializeField] private bool _isBoss;
 
-        public string DisplayName => _displayName;
+        public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public CombatStats Stats => _stats;
         public SkillDefinition BasicAttack => _basicAttack;
         public SkillDefinition Skill => _skill;

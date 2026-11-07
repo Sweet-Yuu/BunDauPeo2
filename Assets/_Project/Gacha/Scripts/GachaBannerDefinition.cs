@@ -11,6 +11,7 @@ namespace BunDauPeo.Gacha
     public class GachaBannerDefinition : GameDefinition
     {
         [SerializeField] private string _displayName = "Banner Thường";
+        [SerializeField] private string _displayNameEn = "Standard Banner";
         [SerializeField] private CurrencyAmount[] _singleCost = { new(CurrencyType.Gem, 100) };
         [SerializeField] private CurrencyAmount[] _tenCost = { new(CurrencyType.Gem, 900) };
         [SerializeField] private RarityWeights _rarityWeights = new() { R = 70f, SR = 25f, SSR = 5f };
@@ -19,7 +20,7 @@ namespace BunDauPeo.Gacha
         [SerializeField] private RarityCounts _duplicateFragments = new() { R = 1, SR = 1, SSR = 1 };
         [SerializeField] private CharacterDefinition[] _characters = Array.Empty<CharacterDefinition>();
 
-        public string DisplayName => _displayName;
+        public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public CurrencyAmount[] SingleCost => _singleCost;
         public CurrencyAmount[] TenCost => _tenCost;
         public RarityWeights RarityWeights => _rarityWeights;

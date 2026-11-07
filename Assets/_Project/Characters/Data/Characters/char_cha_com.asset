@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Characters::BunDauPeo.Characters.CharacterDefinition
   _id: char_cha_com
   _displayName: "Ch\u1EA3 C\u1ED1m"
+  _displayNameEn: Cha Com
   _rarity: 0
   _stars: 1
   _class: 4

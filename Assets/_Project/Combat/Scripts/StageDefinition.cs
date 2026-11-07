@@ -13,13 +13,14 @@ namespace BunDauPeo.Combat
     public class StageDefinition : GameDefinition
     {
         [SerializeField] private string _displayName;
+        [SerializeField] private string _displayNameEn;
         [SerializeField] private StageKind _kind;
         [SerializeField] private WaveDefinition[] _waves = Array.Empty<WaveDefinition>();
         [SerializeField] private int _staminaCost;
         [SerializeField] private CurrencyAmount[] _firstClearReward = Array.Empty<CurrencyAmount>();
         [SerializeField] private CurrencyAmount[] _repeatReward = Array.Empty<CurrencyAmount>();
 
-        public string DisplayName => _displayName;
+        public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public StageKind Kind => _kind;
         public IReadOnlyList<WaveDefinition> Waves => _waves;
         public int StaminaCost => _staminaCost;

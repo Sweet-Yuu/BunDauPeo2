@@ -89,6 +89,25 @@ namespace BunDauPeo.UI
         // Qua ví như +Material: không chạm file save, Changed bắn và Reset Save Data xoá sạch như thường.
         public static void GrantGems(Wallet wallet) => wallet.Add(CurrencyType.Gem, GemGrant);
 
+        public static string LanguageButtonLabel(Language current) => current == Language.En ? "Language: English" : "Ngôn ngữ: Tiếng Việt";
+
+        // Battle không nạp lại: scene đang chạy trận, nạp lại làm hỏng trận.
+        public static bool ShouldReloadScene(string activeScene) => activeScene != BattleView.BattleScene;
+
+        // Trả dòng báo cho nút: "" khi đã nạp lại scene.
+        public static string SwitchLanguage()
+        {
+            var next = GameLanguage.Current == Language.Vi ? Language.En : Language.Vi;
+            if (!ServiceLocator.Get<LanguageSwitcher>().Set(next)) return "Chưa lưu được, giữ ngôn ngữ cũ";
+
+            var scene = SceneManager.GetActiveScene().name;
+            // shortcut: Battle không vẽ lại khi đổi ngôn ngữ, làm khi hub có nút đổi ngôn ngữ cho người chơi.
+            if (!ShouldReloadScene(scene)) return "Ngôn ngữ đổi khi rời trận";
+
+            SceneManager.LoadScene(scene);
+            return "";
+        }
+
         // Mọi nút DEV nằm trong panel Cài đặt; ngoài panel chỉ còn một nút nhỏ, để bố cục game (theo Mota) không phải né dải DEV. Nút neo góc
         // dưới phải: mọi góc trên đều có nút hoặc ô số của game (Menu, Gem...), neo cạnh phải thì màn hẹp (4:3) vẫn thấy nút (L-025).
         // Reset luôn qua hộp xác nhận (D-005).
@@ -144,6 +163,16 @@ namespace BunDauPeo.UI
             AddButton(box, font, $"+{GemGrant} Gem", new Vector2(Right, 415), Width,
                 () => GrantGems(ServiceLocator.Get<Wallet>()));
             AddButton(box, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(Left, 335), Width, RewindAfk);
+            // Dòng báo (lỗi lưu, đang ở Battle) hiện ngay trên nhãn nút; mở lại panel thì nhãn trở về ngôn ngữ hiện tại.
+            Text languageLabel = null;
+            languageLabel = AddButton(box, font, LanguageButtonLabel(GameLanguage.Current), new Vector2(Right, 335), Width, () =>
+            {
+                var message = SwitchLanguage();
+                if (message == "") dim.gameObject.SetActive(false);
+                else languageLabel.text = message;
+            });
+            languageLabel.fontSize = 28;
+            languageLabel.transform.parent.name = "LanguageButton";
 
             var confirm = NewRect("ResetConfirm", box, new Vector2(40, 40), new Vector2(920, 170));
             confirm.gameObject.AddComponent<Image>().color = new Color(0.35f, 0.1f, 0.1f, 1f);
@@ -176,6 +205,7 @@ namespace BunDauPeo.UI
             _openButton = open.transform.parent.gameObject;
             _openPanel = () =>
             {
+                languageLabel.text = LanguageButtonLabel(GameLanguage.Current);
                 confirm.gameObject.SetActive(false);
                 dim.gameObject.SetActive(true);
             };

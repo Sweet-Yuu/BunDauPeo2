@@ -56,6 +56,21 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void LanguageButtonLabel_EachLanguage()
+        {
+            Assert.AreEqual("Ngôn ngữ: Tiếng Việt", DevOverlay.LanguageButtonLabel(Language.Vi));
+            Assert.AreEqual("Language: English", DevOverlay.LanguageButtonLabel(Language.En));
+        }
+
+        [Test]
+        public void ShouldReloadScene_Battle_ReturnsFalse()
+        {
+            Assert.IsFalse(DevOverlay.ShouldReloadScene("Battle"), "nạp lại Battle làm hỏng trận đang chạy");
+            foreach (var scene in new[] { "Restaurant", "Gacha", "StageSelect" })
+                Assert.IsTrue(DevOverlay.ShouldReloadScene(scene), scene);
+        }
+
+        [Test]
         public void GrantGemsThenResetViaResetter_GemsBackToStarting_AndFileHasNoGrant()
         {
             var path = Path.Combine(_dir, "save.json");

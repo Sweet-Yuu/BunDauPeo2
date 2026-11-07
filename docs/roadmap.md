@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Song ngữ Việt–Anh: phiên A (Task 1–3) đã commit. 🔨 phiên B (Task 4–7: chuyển chữ Gacha, Restaurant, Combat; dựng lại 4 scene) xong trên `feature/bilingual`, chờ 📋 commit (EditMode 777/777, PlayMode 12/12). Kế tiếp: 🔨 phiên C (Task 8–11).
+- Song ngữ Việt–Anh: phiên A, B đã commit. 🔨 phiên C (Task 8–11: tên SO, nút đổi ngôn ngữ, `HardcodedTextTests`, ảnh tiếng Anh, docs) xong trên `feature/bilingual`, chờ 📋 commit (EditMode 784/784, PlayMode 13/13). Kế tiếp: user duyệt 9 ảnh `D:/bdp_BunDauPeo/shots/bi-*.png` và bảng dịch `UiText.*.cs`, rồi 🔍 review cuối nhánh và PR.
 
 ## Tiếp theo
 
@@ -15,7 +15,7 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 
 - [ ] Song ngữ Việt–Anh (master plan, user chốt 2026-11-03): mọi chữ trong game có bản tiếng Anh. Làm ngay sau hai việc trên, vì mỗi màn mới làm thêm đều phải sửa lại chữ. [Spec](superpowers/specs/2026-11-07-bilingual-design.md), [kế hoạch](superpowers/plans/2026-11-07-bilingual.md) (11 task, 3 phiên 🔨; user duyệt spec 2026-11-07): bảng C# tự viết, ngôn ngữ theo máy lưu trong `PlayerSave`, nút đổi ở panel Cài đặt DEV.
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
-- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game (bản DEV đã có trong nút Cài đặt của DevOverlay; hub làm bản cho người chơi), gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
+- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút đổi ngôn ngữ cho người chơi (dùng `LanguageSwitcher`) và nút "Reset dữ liệu" trong game (bản DEV đã có trong nút Cài đặt của DevOverlay; hub làm bản cho người chơi), gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
 - [ ] Thời tiết (master plan): ngẫu nhiên, chỉ giảm lượng khách, mỗi đợt tối đa 30 phút; xác suất tăng sau hơn 90 phút chơi liên tục. Nhỏ, ghép vào mô phỏng quán hiện có.
 - [ ] Shipper + nấu ăn (master plan): mở lại game sau khi vắng thì có hàng shipper (tối đa 15), nấu và giao lần lượt với một đồng hồ chung; khoảng 3 món. `TODO(user)` trong spec: cách ghép với AFK hiện có (AFK đang tích cả khi app vào nền, master plan chỉ tính khi tắt hẳn).
 - [ ] Nội thất lưới 8×8 (master plan): đặt, xoay nội thất trên lưới hình thoi, kéo camera; 1–2 nội thất thử. `TODO(user)` trong spec: lưới hình thoi ngược với bố cục màn quán user chốt 2026-11-01 (bỏ phòng isometric).

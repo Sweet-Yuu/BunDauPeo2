@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Enemy_RatKing
   m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.EnemyDefinition
   _displayName: "Chu\u1ED9t Ch\xFAa"
+  _displayNameEn: Rat King
   _stats:
     HP: 7000
     Attack: 135

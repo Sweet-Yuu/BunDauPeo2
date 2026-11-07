@@ -72,6 +72,8 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 - 2026-11-08: mở 🔨 Song ngữ 1/3 (Task 1–3, Sonnet 5.5 high, nhánh `feature/bilingual` từ `docs/bilingual-spec`).
 - 🔨 Song ngữ 1/3 xong: 📋 commit + push `89ddd50` lên `origin/feature/bilingual`. 🎯 kiểm: EditMode 764/764, PlayMode 12/12, 12 checkbox phiên A đã tick; thêm L-029 (EditMode không gọi `OnEnable`, gọi bằng reflection). Chờ user mở 🔨 B.
 - 2026-11-08: mở 🔨 Song ngữ 2/3 (Task 4–7, Sonnet 5.5 medium, tiếp trên `feature/bilingual`; Task 4–6 được chạy 3 subagent song song).
+- 🔨 Song ngữ 2/3 xong (user cho phép `unity run` dựng 4 scene): 📋 commit + push `562027d` lên `origin/feature/bilingual`. 🎯 kiểm: EditMode 777/777, PlayMode 12/12, 16 checkbox phiên B đã tick, 4 scene dựng lại. Ghi chú: subagent viết test cùng lúc với code nên Task 4–6 không quan sát bước đỏ. 5 bản dịch nháp chờ user duyệt ở Task 11. Chờ user mở 🔨 C.
+- 2026-11-08: mở 🔨 Song ngữ 3/3 (Task 8–11, Sonnet 5.5 medium, tiếp trên `feature/bilingual`); dừng sau Task 11 cho user duyệt ảnh tiếng Anh và bảng dịch.
 - **Việc chờ (user giao 2026-11-06, đã xong):** xong việc sửa layout thì dọn các file/thư mục `bdp-*` ở `D:\Unity\` (log, xml test, `bdp-shots`, `bdp-save-backup*`, script `.sh`) vào `D:\bdp_BunDauPeo` (user tạo, đang trống, 06/11). Kèm sửa đường dẫn mặc định: `ScreenCapture1080.cs` (`../bdp-shots`), lệnh `unity test --output ../bdp-*.xml` trong `unity-workflow.md` và kế hoạch layout (giao một kênh 🔨, 📋 commit). Kế hoạch cũ đã xong thì để nguyên.
 
 ### #1 — 2026-11-03 — 🎯 Điều phối #1 (quy trình studio)

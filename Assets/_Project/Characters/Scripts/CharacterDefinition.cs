@@ -8,6 +8,7 @@ namespace BunDauPeo.Characters
     public class CharacterDefinition : GameDefinition
     {
         [SerializeField] private string _displayName;
+        [SerializeField] private string _displayNameEn;
         [SerializeField] private Rarity _rarity;
         // Số sao khởi điểm, không phải luật nâng sao. 0 = chưa đặt: Unity điền 0 cho asset cũ thiếu field, ProjectSetup dựa vào đó để điền theo độ hiếm.
         [SerializeField] private int _stars;
@@ -21,7 +22,7 @@ namespace BunDauPeo.Characters
         [SerializeField] private SkillDefinition _skill;
         [SerializeField] private SkillDefinition _ultimate;
 
-        public string DisplayName => _displayName;
+        public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public Rarity Rarity => _rarity;
         public int Stars => _stars;
         public CharacterClass Class => _class;

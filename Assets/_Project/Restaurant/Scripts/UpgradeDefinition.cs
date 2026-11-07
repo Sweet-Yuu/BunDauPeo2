@@ -28,11 +28,12 @@ namespace BunDauPeo.Restaurant
     public class UpgradeDefinition : GameDefinition
     {
         [SerializeField] private string _displayName = "Nâng cấp";
+        [SerializeField] private string _displayNameEn;
         [SerializeField] private Sprite _icon;
         [SerializeField] private UpgradeEffect _effect;
         [SerializeField] private UpgradeLevelDef[] _levels = Array.Empty<UpgradeLevelDef>();
 
-        public string DisplayName => _displayName;
+        public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public Sprite Icon => _icon;
         public UpgradeEffect Effect => _effect;
         public IReadOnlyList<UpgradeLevelDef> Levels => _levels;
