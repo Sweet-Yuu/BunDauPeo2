@@ -19,5 +19,5 @@
 
 - Package `com.unity.pipeline` (cầu nối CLI `unity`) là bản experimental, và `com.coplaydev.unity-mcp` (MCP for Unity, git tag `v10.3.0`, [D-010](../decisions/decisions.md)) là công cụ Editor — đừng dựa vào chúng cho code game. `com.unity.ai.assistant` đã gỡ.
 - Active Input Handling: Input System only (`activeInputHandler: 1` trong `ProjectSettings.asset`).
-- Nền tảng build mục tiêu: mobile màn ngang ([D-003](../decisions/decisions.md)). TODO(user): Android, iOS hay cả hai.
+- Nền tảng build mục tiêu: mobile màn ngang ([D-003](../decisions/decisions.md)). Android trước ([D-007](../decisions/decisions.md)); cấu hình build ở [D-011](../decisions/decisions.md). Module Android (SDK 34–36, NDK, OpenJDK) đã cài cho 6000.3.15f1.
 - CLI: `unity` 1.0.0-beta.15 là công cụ chính. Lệnh và quy tắc dùng ở [unity-workflow.md](../guides/unity-workflow.md).

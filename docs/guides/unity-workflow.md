@@ -18,11 +18,12 @@ Mọi thao tác với Unity đi qua `unity` (bản ghi nhận: 1.0.0-beta.15) tr
 | Làm việc trên Editor đang mở (GameObject, scene, asset, chạy C#) | `unity command <tên> [args]`; liệt kê bằng `unity command`, tìm bằng `unity command --query <từ khoá>` | phải đang mở |
 | Chạy test | `unity test . --mode EditMode --output <file>` | phải đóng |
 | Chạy method Editor ở batch mode | `unity run . -- -executeMethod <Class.Method>` | phải đóng |
-| Build | `unity build` | phải đóng |
+| Build APK debug Android | `unity build . --target Android --execute-method BunDauPeo.EditorTools.AndroidBuild.Build --output-path ../../bdp_BunDauPeo/android/BunDauPeo.apk --log-file ../../bdp_BunDauPeo/android/build.log --timeout 3600` (chạy nền, ~7 phút; không cần `--allow-dirty-build` dù git có thay đổi chưa commit). Editor sau đó mở ở target Android | phải đóng |
 
 Quy tắc:
 
 - Lệnh batch (`test`, `run`, `build`) không chạy được khi project đang mở trong Editor; lệnh nối vào Editor (`command`, `recompile`) cần Editor đang mở. Chạy `unity status` trước khi chọn, **thành một lệnh riêng**: nó thoát mã 12 khi không có Editor nên `unity status && unity run …` không chạy vế sau (L-020). Không kill process Unity; nhờ user đóng Editor.
+- Build Android thành công khi: mã thoát 0, `build.log` có `BuildAndroid OK`, APK có giờ sửa mới. Build chỉ kiểm cấu hình (`AndroidBuild.Problems`), không ghi `ProjectSettings`; đổi cấu hình qua `ProjectSetup.ApplyBuildSettings` (`unity run . -- -executeMethod BunDauPeo.EditorTools.ProjectSetup.ApplyBuildSettings`, Editor đóng). Sau build, URP ghi lại `Assets/Settings/UniversalRP.asset` và `UniversalRenderPipelineGlobalSettings.asset` (prefilter shader): `git checkout --` hai file đó, đừng commit.
 - Sau `unity run`, kiểm `git status` (hoặc giờ sửa của file log) trước khi tin log: log cũ trông y như log mới (L-020).
 - Mã thoát (theo `unity -h`): `0` thành công, `8` test chạy xong nhưng có test đỏ, `6` lệnh hỏng vì lý do khác (kể cả lỗi compile), `12` không có Editor nào trả lời, `10`/`14` quá thời gian. Luôn **đọc file kết quả và log thật**, không dựa mỗi mã thoát.
 - Điều khiển Editor qua MCP for Unity của CoplayDev ([D-010](../decisions/decisions.md); package `com.coplaydev.unity-mcp` ghim tag `v10.3.0`, server `mcpforunityserver==10.3.0` khai ở `~/.claude.json`, mục `unity-mcp`; tool `mcp__unity-mcp__*`):
