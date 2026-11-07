@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Không có. Kế tiếp: Build Android thử sớm, rồi Song ngữ.
+- Build Android thử sớm: spec và kế hoạch xong, user duyệt 2026-11-07 ([spec](superpowers/specs/2026-11-07-build-android-design.md), [kế hoạch](superpowers/plans/2026-11-07-build-android.md)); chờ 🎯 mở một phiên 🔨 (Task 1–4). Sau đó: Song ngữ.
 
 ## Tiếp theo
 
@@ -13,7 +13,7 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
-- [ ] Build Android thử sớm (user chốt 2026-11-03: ngay sau Combat, cùng đợt với công cụ thử): method `BuildAndroid` chạy bằng `-executeMethod`, build lại sau mỗi feature để bắt lỗi riêng của nền tảng trước hạn 31/12. Không thay mục "Build Android, test trên máy thật, Closed Test" ở dưới.
+- [ ] Build Android thử sớm (user chốt 2026-11-03: ngay sau Combat, cùng đợt với công cụ thử): method `BuildAndroid` chạy bằng `-executeMethod`, build lại sau mỗi feature để bắt lỗi riêng của nền tảng trước hạn 31/12. Không thay mục "Build Android, test trên máy thật, Closed Test" ở dưới. [Spec](superpowers/specs/2026-11-07-build-android-design.md), [kế hoạch](superpowers/plans/2026-11-07-build-android.md): APK debug, IL2CPP ARM64, package `com.sweetyuu.bundaupeo`.
 - [ ] Song ngữ Việt–Anh (master plan, user chốt 2026-11-03): mọi chữ trong game có bản tiếng Anh. Làm ngay sau hai việc trên, vì mỗi màn mới làm thêm đều phải sửa lại chữ.
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★, chỉ số theo sao. User chốt vị trí này 2026-10-31; `TODO(user)` giá mảnh mỗi sao và ảnh hưởng chỉ số, chốt trong spec riêng. [Vision](vision/vision.md) đã cập nhật ngày 2026-10-31.
 - [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút "Reset dữ liệu" trong game (bản DEV đã có trong nút Cài đặt của DevOverlay; hub làm bản cho người chơi), gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).

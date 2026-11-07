@@ -58,6 +58,8 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 - User bảo merge: PR #10 đã merge vào `main` ở `810ff45`; checkout chuyển về `main`. Roadmap ghi hash merge (chưa commit, đi cùng commit kế của 📋). Kế tiếp: Build Android thử sớm; tuỳ chọn một phiên 🔨 nhỏ sửa 4 góp ý của 🔍.
 - Mở 🔨 Sửa 4 góp ý review layout 1/1 (`local_1e002fa3-5d42-46ee-b3e2-3afdb328ad20`, Sonnet 5.5 medium), nhánh `fix/layout-review-nits` từ `main`: popup tạm dừng dùng `ShownHp`, view gọi `RewardRow.HasAllReferences()`, `GetComponentInParent<Canvas>(true)` ở SmokeLoopTests, kiểm test Task 1 bắt được lỗi.
 - 🔨 Sửa 4 góp ý xong, 📋 commit + push `d0f423c` lên `origin/fix/layout-review-nits`; đã kiểm: 743/743 EditMode + 12/12 PlayMode (xml 2026-11-06 15:29Z), diff đúng 4 mục; phá thử Task 1 thì 6 test đỏ. Roadmap/history vẫn chưa commit. Chưa có PR.
+- 📋 commit `e6d813b` (roadmap + history); 🎯 merge PR #11 vào `main` ở `4a830b6` (user đã bảo "Mở PR + merge"), checkout về `main`. Kế tiếp theo roadmap: Build Android thử sớm.
+- Mở 📐 Build Android thử sớm (`local_f9e00385-05f3-4030-ae37-4b176a0a6842`, Opus 5.5 high), nhánh `docs/build-android-spec` từ `main`: spec + kế hoạch, kiểm module Android trên máy, Player Settings bản thử, APK ra `bdp_BunDauPeo`.
 - **Việc chờ (user giao 2026-11-06, đã xong):** xong việc sửa layout thì dọn các file/thư mục `bdp-*` ở `D:\Unity\` (log, xml test, `bdp-shots`, `bdp-save-backup*`, script `.sh`) vào `D:\bdp_BunDauPeo` (user tạo, đang trống, 06/11). Kèm sửa đường dẫn mặc định: `ScreenCapture1080.cs` (`../bdp-shots`), lệnh `unity test --output ../bdp-*.xml` trong `unity-workflow.md` và kế hoạch layout (giao một kênh 🔨, 📋 commit). Kế hoạch cũ đã xong thì để nguyên.
 
 ### #1 — 2026-11-03 — 🎯 Điều phối #1 (quy trình studio)
