@@ -39,6 +39,13 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void OldSave_WithoutLanguage_LoadsEmpty()
+        {
+            var loaded = JsonUtility.FromJson<PlayerSave>("{\"Version\":1,\"OwnedCharacterIds\":[\"a\"]}");
+            Assert.AreEqual("", loaded.Language);
+        }
+
+        [Test]
         public void FragmentsAndPity_RoundTripThroughSaveService()
         {
             var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

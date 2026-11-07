@@ -39,6 +39,25 @@ namespace BunDauPeo.Boot
 
         public bool Persist() => _saveService.Save(Save);
 
+        // Lưu thất bại thì trả Save về như cũ và giữ GameLanguage.Current, để bộ nhớ và đĩa không lệch nhau.
+        public bool SetLanguage(Language language)
+        {
+            var previous = Save.Language;
+            Save.Language = GameLanguage.Code(language);
+            if (!Persist())
+            {
+                Save.Language = previous;
+                return false;
+            }
+
+            GameLanguage.Current = language;
+            return true;
+        }
+
+        // Nhận SystemLanguage qua tham số để test truyền vào được.
+        public void ApplyLanguage(SystemLanguage system) =>
+            GameLanguage.Current = GameLanguage.Resolve(Save.Language, system);
+
         // Đưa MỌI thứ đã lưu về như game mới: xoá cả file sao lưu, rồi ghi đè cả PlayerSave thay vì xoá từng field,
         // nên field thêm về sau tự được reset mà không ai phải nhớ. Chỉ gọi sau khi người chơi đã xác nhận.
         public bool ResetToDefaults()

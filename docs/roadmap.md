@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Song ngữ Việt–Anh: 📐 đã viết spec và kế hoạch (nhánh `docs/bilingual-spec`, chờ 📋 commit). Kế tiếp: 🔨 phiên A (Task 1–3) trên nhánh `feature/bilingual`.
+- Song ngữ Việt–Anh: 🔨 phiên A (Task 1–3: ngôn ngữ trong save, `UiText`, `LocalizedText`) đã xong trên nhánh `feature/bilingual`, chờ 📋 commit. Kế tiếp: 🔨 phiên B (Task 4–7: chuyển chữ 3 khu, dựng lại 4 scene).
 
 ## Tiếp theo
 

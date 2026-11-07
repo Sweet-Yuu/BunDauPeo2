@@ -26,6 +26,10 @@
 
 ## Đang hiệu lực
 
+### L-029 — Kế hoạch ghi test EditMode cho `OnEnable`, nhưng EditMode không gọi `OnEnable` của MonoBehaviour thường (2026-11-07)  #script #process
+- Triệu chứng: `LocalizedTextTests` theo kế hoạch (tạo GameObject, bật lại, đọc `Text`) đỏ vì chữ vẫn rỗng; code đúng.
+- Nguyên nhân gốc: ngoài Play, Unity chỉ chạy `Awake`/`OnEnable` cho lớp có `[ExecuteAlways]`. Thêm `ExecuteAlways` chỉ để qua test thì `OnEnable` chạy cả khi mở scene trong Editor.
+- Luật từ nay: test EditMode cần chạy `OnEnable` thì gọi hàm đó bằng reflection (`GetMethod("OnEnable", NonPublic | Instance)`), không thêm `ExecuteAlways`. Việc "bật lên Unity có gọi thật" phủ bằng test PlayMode hoặc test đọc scene.
 ### L-026 — `Capture1080("tên")` không tự thêm đuôi `.png` (2026-11-06)  #ui #process
 - Triệu chứng: lúc rà layout, `Capture1080("lm-restaurant")` ghi ra file `lm-restaurant` không đuôi; công cụ đọc ảnh không mở được, phải đổi tên tay.
 - Nguyên nhân gốc: `ScreenCapture1080.Capture` chỉ dùng `Path.GetFileName(fileName)`, tên mặc định mới có `.png`.

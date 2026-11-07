@@ -346,6 +346,19 @@ namespace BunDauPeo.EditorTools
             return t;
         }
 
+        // Nhãn cố định: chữ lấy từ UiText và gắn LocalizedText để scene đổi chữ theo ngôn ngữ. Chữ view ghi lúc chạy dùng NewText.
+        internal static Text NewLabel(string name, RectTransform parent, Font font, string key, int size, TextAnchor align, Color color) =>
+            Localize(NewText(name, parent, font, UiText.Get(key), size, align, color), key);
+
+        internal static Text AddLabel(RectTransform rect, Font font, string key, int size, TextAnchor align, Color color) =>
+            Localize(AddText(rect, font, UiText.Get(key), size, align, color), key);
+
+        private static Text Localize(Text text, string key)
+        {
+            text.gameObject.AddComponent<LocalizedText>().SetKey(key);
+            return text;
+        }
+
         internal static Image AddImage(RectTransform rect, Sprite sprite, Color color, bool raycast)
         {
             var image = rect.gameObject.AddComponent<Image>();

@@ -31,5 +31,7 @@ namespace BunDauPeo.Core
         // Id các màn đã thắng lần đầu; id lạ (màn đã bị xoá khỏi catalog) được giữ nguyên.
         public List<string> ClearedStages = new();
         public StaminaState Stamina = new();
+        // "vi" / "en"; "" = chưa chọn, theo ngôn ngữ máy.
+        public string Language = "";
     }
 }

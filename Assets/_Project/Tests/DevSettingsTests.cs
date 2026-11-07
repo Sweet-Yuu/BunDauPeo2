@@ -46,6 +46,16 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void LanguageSwitcher_Set_PassesLanguageAndReturnsResult()
+        {
+            Language? received = null;
+            var switcher = new LanguageSwitcher(language => { received = language; return false; });
+            Assert.IsFalse(switcher.Set(Language.En), "lưu thất bại phải báo false");
+            Assert.AreEqual(Language.En, received);
+            Assert.Throws<ArgumentNullException>(() => new LanguageSwitcher(null));
+        }
+
+        [Test]
         public void GrantGemsThenResetViaResetter_GemsBackToStarting_AndFileHasNoGrant()
         {
             var path = Path.Combine(_dir, "save.json");

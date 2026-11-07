@@ -107,16 +107,16 @@ Task 4, 5 và 6 chỉ sửa `.cs`, không chung file (mỗi khu một file bản
   - `PlayerSave.Language` (`string`, khởi tạo `""`).
   - `LanguageSwitcher(Func<Language, bool> set)` với `bool Set(Language)`. Constructor ném `ArgumentNullException` khi `set` null, như `GameResetter`.
 
-- [ ] **Step 1: Viết test đỏ** trong `GameLanguageTests` (`[TearDown]` đặt `Current = Language.Vi`):
+- [x] **Step 1: Viết test đỏ** trong `GameLanguageTests` (`[TearDown]` đặt `Current = Language.Vi`):
   - `Resolve_SavedCodeWins_RegardlessOfDevice`: lặp `saved` ∈ {"vi","en"} × `system` ∈ {Vietnamese, English, Japanese, Unknown}; kỳ vọng `"vi"`→`Vi`, `"en"`→`En`; thông báo `$"saved={saved}, system={system}"`.
   - `Resolve_EmptyOrUnknownCode_FollowsDevice`: lặp `saved` ∈ {"", null, "fr", "VI"}; `Vietnamese`→`Vi`, `English`/`Japanese`/`Unknown`→`En`. Ca `"VI"` chứng minh mã phân biệt hoa thường; mã chỉ là chữ thường do code ghi.
   - `Code_RoundTripsThroughTryParse`: với mỗi giá trị enum, `TryParse(Code(x))` trả `true` và ra `x`; `Code(Language.En) == "en"`.
   - `Pick_EnglishEmpty_FallsBackToVietnamese`: `Current = En`: `Pick("A","B") == "B"`, `Pick("A","") == "A"`, `Pick("A",null) == "A"`; `Current = Vi`: `Pick("A","B") == "A"`.
   - `SaveCompatibilityTests.OldSave_WithoutLanguage_LoadsEmpty`: JSON save cũ không có `Language` (theo khuôn các ca cũ trong file) → `loaded.Language == ""`.
   - Mở rộng `DevSettingsTests` (cạnh `GameResetter_Reset_ReturnsDelegateResult`): `LanguageSwitcher_Set_PassesLanguageAndReturnsResult`. Delegate ghi lại tham số và trả `false`; kiểm tham số là `En` và kết quả `false`.
-- [ ] **Step 2: Chạy EditMode**, kỳ vọng đỏ vì lỗi compile (thiếu kiểu).
-- [ ] **Step 3: Cài đặt** theo spec 5.1. `TryParse` so `string.Equals(..., StringComparison.Ordinal)`. Field `PlayerSave.Language` có comment: `""` = chưa chọn, theo máy.
-- [ ] **Step 4: Chạy EditMode**, kỳ vọng xanh: 747 + 6 = **753**.
+- [x] **Step 2: Chạy EditMode**, kỳ vọng đỏ vì lỗi compile (thiếu kiểu).
+- [x] **Step 3: Cài đặt** theo spec 5.1. `TryParse` so `string.Equals(..., StringComparison.Ordinal)`. Field `PlayerSave.Language` có comment: `""` = chưa chọn, theo máy.
+- [x] **Step 4: Chạy EditMode**, kỳ vọng xanh: 747 + 6 = **753** (đã chạy: 753/753, failed 0).
 
 ### Task 2: Lưu và áp ngôn ngữ (Boot)
 
@@ -132,19 +132,19 @@ Task 4, 5 và 6 chỉ sửa `.cs`, không chung file (mỗi khu một file bản
   - `GameSession.ApplyLanguage(SystemLanguage system) → void`.
   - `LanguageSwitcher` có trong `ServiceLocator` khi Boot chạy xong.
 
-- [ ] **Step 1: Viết test đỏ** trong `GameSessionTests` (thêm `GameLanguage.Current = Language.Vi` vào `TearDown`):
+- [x] **Step 1: Viết test đỏ** trong `GameSessionTests` (thêm `GameLanguage.Current = Language.Vi` vào `TearDown`):
   - `SetLanguage_Saved_ChangesSaveFileAndCurrent`: `SetLanguage(En)` trả `true`; `Save.Language == "en"`; `GameLanguage.Current == En`. Mở `GameSession` mới trên cùng file thì `Save.Language == "en"` (đã ghi đĩa).
   - `SetLanguage_WhenFileLocked_KeepsOldLanguage`: đặt trước `SetLanguage(Vi)`; khoá file theo khuôn `ResetToDefaults_WhenFilesLocked_ChangesNothing` (`FileShare.None`); `SetLanguage(En)` trả `false`; `Save.Language == "vi"`; `Current == Vi`.
   - `ApplyLanguage_UsesSavedChoiceElseDevice`: `Save.Language = ""` → `ApplyLanguage(English)` → `En`, `ApplyLanguage(Vietnamese)` → `Vi`. `Save.Language = "en"` → `ApplyLanguage(Vietnamese)` → `En`.
   - Mở rộng `ResetToDefaults_ClearsEveryFieldOfTheSave`: trước reset đặt `session.Save.Language = "en"`; sau reset `Assert.AreEqual("", session.Save.Language)`.
-- [ ] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
-- [ ] **Step 3: Cài đặt** theo spec 5.2. `SetLanguage` lưu lỗi thì trả `Save.Language` về giá trị cũ. Trong `GameBootstrap`, ngay sau dòng đăng ký `GameResetter`:
+- [x] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
+- [x] **Step 3: Cài đặt** theo spec 5.2. `SetLanguage` lưu lỗi thì trả `Save.Language` về giá trị cũ. Trong `GameBootstrap`, ngay sau dòng đăng ký `GameResetter`:
   - `_session.ApplyLanguage(Application.systemLanguage);`
   - `ServiceLocator.Register(new LanguageSwitcher(_session.SetLanguage));`
   - `_session.ResetCompleted += () => _session.ApplyLanguage(Application.systemLanguage);`
 
   Comment một dòng: reset ghi `Language = ""` nên quay về theo máy (D-005 luật 3).
-- [ ] **Step 4: Chạy EditMode**, kỳ vọng xanh: **756**. Chạy PlayMode, kỳ vọng 12/12 (Boot vẫn chạy).
+- [x] **Step 4: Chạy EditMode**, kỳ vọng xanh: **756**. Chạy PlayMode, kỳ vọng 12/12 (Boot vẫn chạy). (Đã chạy: EditMode 756/756, PlayMode 12/12, failed 0.)
 
 ### Task 3: Bảng chữ `UiText`, `LocalizedText`, helper builder
 
@@ -181,7 +181,7 @@ Task 4, 5 và 6 chỉ sửa `.cs`, không chung file (mỗi khu một file bản
 
   Chuỗi "Hủy" và "Huỷ" đang cùng có trong code. Builder đang ghi "Hủy" thì dùng `common.cancel`. `DevOverlay` giữ "Huỷ" của nó.
 
-- [ ] **Step 1: Viết test đỏ.** `UiTextTests`:
+- [x] **Step 1: Viết test đỏ.** `UiTextTests`:
   - `AllEntries_HaveBothLanguages`: mọi dòng có `Key`, `Vi`, `En` không rỗng hay trắng; thông báo ghi key.
   - `AllEntries_PlaceholdersAndLineBreaksMatch`: với mỗi dòng, tập chỉ số `{n}` (regex `\{(\d+)`) của `Vi` và `En` bằng nhau, và số `\n` bằng nhau.
   - `AllEntries_KeysFollowFormat`: key khớp `^[a-z]+\.[a-z0-9_]+$`.
@@ -194,9 +194,9 @@ Task 4, 5 và 6 chỉ sửa `.cs`, không chung file (mỗi khu một file bản
   - `Reenable_AfterLanguageChange_UpdatesText`: tắt, đặt `Current = En`, bật lại → "Close".
 
   Huỷ `GameObject` trong `TearDown`.
-- [ ] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
-- [ ] **Step 3: Cài đặt** theo Interfaces và spec 5.3–5.4. Bảng gộp lười (lần `Get` đầu) qua `BuildTable(AllEntries)`.
-- [ ] **Step 4: Chạy EditMode**, kỳ vọng xanh: **764**.
+- [x] **Step 2: Chạy EditMode**, kỳ vọng đỏ.
+- [x] **Step 3: Cài đặt** theo Interfaces và spec 5.3–5.4. Bảng gộp lười (lần `Get` đầu) qua `BuildTable(AllEntries)`.
+- [x] **Step 4: Chạy EditMode**, kỳ vọng xanh: **764** (đã chạy: 764/764, failed 0). `LocalizedTextTests` gọi `OnEnable` bằng reflection vì EditMode không tự gọi (L-029).
 
 ## Phiên B
 
