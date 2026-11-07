@@ -118,7 +118,7 @@ namespace BunDauPeo.EditorTools
                 Finish(1);
                 return;
             }
-            Debug.Log($"BuildAndroid OK {Path.GetFullPath(path)} {s.totalSize / 1048576.0:0.0} MB {s.totalTime.TotalMinutes:0.0} phút");
+            Debug.Log($"BuildAndroid OK {Path.GetFullPath(path)} {new FileInfo(path).Length / 1048576.0:0.0} MB {s.totalTime.TotalMinutes:0.0} phút");
             Finish(0);
         }
 
