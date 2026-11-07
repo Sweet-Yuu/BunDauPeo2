@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-07 · Trạng thái: **đã duyệt** (user, 2026-11-07, cả thiết kế lẫn bản viết) · Phạm vi: một class Editor `AndroidBuild` (kiểm cấu hình và build APK), mở rộng `ProjectSetup.ApplyPlayerSettings` và thứ tự scene, vài test EditMode, một lần build thật.
 > Nguồn: [roadmap](../../roadmap.md) (dòng "Build Android thử sớm"), [D-003](../../decisions/decisions.md) (màn ngang), [D-007](../../decisions/decisions.md) (Android trước), [unity-workflow.md](../../guides/unity-workflow.md). Kế hoạch: [plans/2026-11-07-build-android.md](../plans/2026-11-07-build-android.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code, [D-011](../../decisions/decisions.md) hoặc [unity-workflow.md](../../guides/unity-workflow.md), những nơi đó thắng; không sửa spec này để theo kịp. Khác biệt đã biết: build có ghi lại hai asset URP (cách xử lý ở unity-workflow), nên điều kiện 4 ở mục 1 chỉ đúng sau khi `git checkout` hai file đó.
 
 ## 1. Mục tiêu
 

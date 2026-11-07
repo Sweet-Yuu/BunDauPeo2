@@ -62,6 +62,8 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 - Mở 📐 Build Android thử sớm (`local_f9e00385-05f3-4030-ae37-4b176a0a6842`, Opus 5.5 high), nhánh `docs/build-android-spec` từ `main`: spec + kế hoạch, kiểm module Android trên máy, Player Settings bản thử, APK ra `bdp_BunDauPeo`.
 - 📐 xong, user duyệt spec; 📋 commit + push `0bb7a10` lên `origin/docs/build-android-spec` (spec, kế hoạch 4 task 1 phiên 🔨, roadmap, history). Đã kiểm: spec "đã duyệt", kế hoạch 747 EditMode + 12 PlayMode, máy đủ module Android. Chờ user mở 🔨.
 - Mở 🔨 Build Android 1/1 (`local_002122b7-67b3-43e2-b10f-62adb4e74ad8`, Sonnet 5.5 medium), Task 1–4, nhánh `feature/build-android` từ `docs/build-android-spec`.
+- 🔨 Build Android xong, 📋 commit + push `281dd41` lên `origin/feature/build-android`. Đã kiểm: APK 46 MB ở `D:/bdp_BunDauPeo/android/` (build 20:16→20:23), 747/747 + 12/12 (xml 2026-11-07 13:25Z), kế hoạch tick hết trừ bước user cài thử APK. Editor đang ở target Android. Chờ user mở 🔍.
+- Mở 🔍 Review Build Android 1/1 (`local_b076a08f-8a15-464e-9c4d-67c9f004bc88`, Opus 5.5 high) trên `feature/build-android`.
 - **Việc chờ (user giao 2026-11-06, đã xong):** xong việc sửa layout thì dọn các file/thư mục `bdp-*` ở `D:\Unity\` (log, xml test, `bdp-shots`, `bdp-save-backup*`, script `.sh`) vào `D:\bdp_BunDauPeo` (user tạo, đang trống, 06/11). Kèm sửa đường dẫn mặc định: `ScreenCapture1080.cs` (`../bdp-shots`), lệnh `unity test --output ../bdp-*.xml` trong `unity-workflow.md` và kế hoạch layout (giao một kênh 🔨, 📋 commit). Kế hoạch cũ đã xong thì để nguyên.
 
 ### #1 — 2026-11-03 — 🎯 Điều phối #1 (quy trình studio)
