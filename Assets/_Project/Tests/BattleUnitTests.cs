@@ -10,7 +10,7 @@ namespace BunDauPeo.Tests
         public void ForAlly_CopiesStatsSkillsAndSlot()
         {
             var hero = CombatTestData.Hero("h", CharacterClass.Support, hp: 900, attack: 70, defense: 25, speed: 88);
-            var unit = BattleUnit.ForAlly(new FormationSlot(hero, BattlePosition.Mid, 1, 3));
+            var unit = BattleUnit.ForAlly(new FormationSlot(hero, BattlePosition.Mid, 1, 3), hero.CombatStats);
 
             Assert.IsTrue(unit.IsAlly);
             Assert.IsFalse(unit.IsBoss);

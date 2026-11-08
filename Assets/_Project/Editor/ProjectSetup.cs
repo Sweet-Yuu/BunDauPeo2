@@ -23,6 +23,7 @@ namespace BunDauPeo.EditorTools
         public const string CatalogPath = "Assets/_Project/Characters/Data/CharacterCatalog.asset";
         public const string NewGameConfigPath = "Assets/_Project/Boot/Data/NewGameConfig.asset";
         public const string GachaScenePath = "Assets/_Project/Scenes/Gacha.unity";
+        public const string CharactersScenePath = "Assets/_Project/Scenes/Characters.unity";
         public const string RestaurantScenePath = "Assets/_Project/Scenes/Restaurant.unity";
         public const string BattleScenePath = "Assets/_Project/Scenes/Battle.unity";
         public const string StageSelectScenePath = "Assets/_Project/Scenes/StageSelect.unity";
@@ -32,6 +33,7 @@ namespace BunDauPeo.EditorTools
         public const string UpgradeCatalogPath = "Assets/_Project/Restaurant/Data/UpgradeCatalog.asset";
         public const string CombatConfigPath = "Assets/_Project/Combat/Data/CombatConfig.asset";
         public const string StageCatalogPath = "Assets/_Project/Combat/Data/StageCatalog.asset";
+        public const string StarConfigPath = "Assets/_Project/Characters/Data/StarConfig.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
         private const string SkillsFolder = CharacterData + "/Skills";
@@ -159,6 +161,9 @@ namespace BunDauPeo.EditorTools
             GetOrCreateAsset<GachaBannerCatalog>(BannerCatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), new Object[] { banner })));
 
+            // Số khởi điểm nằm ở field initializer của StarConfig; asset đã có thì giữ số bạn đã chỉnh.
+            GetOrCreateAsset<StarConfig>(StarConfigPath, null);
+
             CreateRestaurantData();
             CreateCombatData();
             FillEnglishNames();
@@ -168,6 +173,7 @@ namespace BunDauPeo.EditorTools
             CreateRestaurantScene();
             CreateStageSelectScene();
             CreateBattleScene();
+            CreateCharactersScene();
             WireBootScene();
             ApplyBuildSettings();
             Debug.Log("ProjectSetup: done.");
@@ -179,6 +185,9 @@ namespace BunDauPeo.EditorTools
 
         [MenuItem("Tools/BunDauPeo/Rebuild Gacha Scene")]
         public static void RebuildGachaScene() => GachaSceneBuilder.Create(GachaScenePath);
+
+        [MenuItem("Tools/BunDauPeo/Rebuild Characters Scene")]
+        public static void RebuildCharactersScene() => CharactersSceneBuilder.Create(CharactersScenePath);
 
         [MenuItem("Tools/BunDauPeo/Rebuild StageSelect Scene")]
         public static void RebuildStageSelectScene() => StageSelectSceneBuilder.Create(StageSelectScenePath);
@@ -242,6 +251,13 @@ namespace BunDauPeo.EditorTools
                     if (combat.objectReferenceValue == null)
                     {
                         combat.objectReferenceValue = AssetDatabase.LoadAssetAtPath<CombatConfig>(CombatConfigPath);
+                        changed = true;
+                    }
+
+                    var stars = so.FindProperty("_starConfig");
+                    if (stars.objectReferenceValue == null)
+                    {
+                        stars.objectReferenceValue = AssetDatabase.LoadAssetAtPath<StarConfig>(StarConfigPath);
                         changed = true;
                     }
 
@@ -532,6 +548,11 @@ namespace BunDauPeo.EditorTools
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(GachaScenePath) == null) GachaSceneBuilder.Create(GachaScenePath);
         }
 
+        private static void CreateCharactersScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(CharactersScenePath) == null) CharactersSceneBuilder.Create(CharactersScenePath);
+        }
+
         private static void CreateRestaurantScene()
         {
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(RestaurantScenePath) == null) RestaurantSceneBuilder.Create(RestaurantScenePath);
@@ -547,10 +568,10 @@ namespace BunDauPeo.EditorTools
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(BattleScenePath) == null) BattleSceneBuilder.Create(BattleScenePath);
         }
 
-        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Gacha, Restaurant, StageSelect, Battle.
+        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Gacha, Restaurant, StageSelect, Battle, Characters.
         private static void PutScenesInBuildOrder()
         {
-            var ordered = new[] { BootScenePath, GachaScenePath, RestaurantScenePath, StageSelectScenePath, BattleScenePath };
+            var ordered = new[] { BootScenePath, GachaScenePath, RestaurantScenePath, StageSelectScenePath, BattleScenePath, CharactersScenePath };
             // Scene ngoài Assets/_Project/Scenes/ (SampleScene) bị bỏ khỏi build; file scene giữ nguyên.
             var rest = EditorBuildSettings.scenes.Where(s => !ordered.Contains(s.path) && s.path.StartsWith("Assets/_Project/Scenes/"));
             EditorBuildSettings.scenes = ordered

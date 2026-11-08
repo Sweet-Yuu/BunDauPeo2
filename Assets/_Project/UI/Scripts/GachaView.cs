@@ -29,6 +29,7 @@ namespace BunDauPeo.UI
         private Wallet _wallet;
         private Roster _roster;
         private GachaService _gacha;
+        private StarService _stars;
         private bool _subscribed;
         // Từ lúc bấm quay đến lúc bấm Thôi: khoá nút quay trên trang roll.
         private bool _busy;
@@ -45,6 +46,7 @@ namespace BunDauPeo.UI
                 _wallet = ServiceLocator.Get<Wallet>();
                 _roster = ServiceLocator.Get<Roster>();
                 _gacha = ServiceLocator.Get<GachaService>();
+                _stars = ServiceLocator.Get<StarService>();
             }
             catch (InvalidOperationException e)
             {
@@ -138,7 +140,7 @@ namespace BunDauPeo.UI
             _lastSaved = result.Saved;
             _entries = result.Entries;
             _busy = true;
-            _revealView.Play(result.Entries, isTen);
+            _revealView.Play(result.Entries, isTen, _stars.GetStars);
             Redraw();
         }
 

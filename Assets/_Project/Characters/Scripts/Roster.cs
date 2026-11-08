@@ -60,6 +60,19 @@ namespace BunDauPeo.Characters
             return true;
         }
 
+        // Public như mọi hàm sửa khác của Roster; ngoài StarService thì không ai nên gọi.
+        public bool SpendFragments(string id, long count)
+        {
+            if (count <= 0 || id == null) return false;
+
+            var index = _save.Fragments.FindIndex(f => f.CharacterId == id);
+            if (index < 0 || _save.Fragments[index].Count < count) return false;
+
+            _save.Fragments[index] = new FragmentCount { CharacterId = id, Count = _save.Fragments[index].Count - count };
+            Changed.SafeInvoke();
+            return true;
+        }
+
         public long GetFragments(string id)
         {
             if (id == null) return 0;

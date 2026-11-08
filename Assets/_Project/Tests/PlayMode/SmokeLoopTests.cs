@@ -159,6 +159,121 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(staminaBefore - stage1.StaminaCost, loaded.Stamina.Current, Where("thể lực trong save"));
         }
 
+        // Nâng sao qua màn Nhân vật thật: trừ mảnh, tăng sao, vào save; Reset xoá sạch và màn đang mở vẽ lại (Review Focus 1).
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Characters_StarUp_SavesAndResetClears()
+        {
+            _step = "C1 Boot";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var roster = ServiceLocator.Get<Roster>();
+            var stars = ServiceLocator.Get<StarService>();
+            var starter = roster.GetOwned()[0].Id;
+            var startStars = stars.GetStars(starter);
+            var cost = stars.GetNextCost(starter);
+            Assert.Greater(cost, 0, Where("nhân vật đầu đã tối đa sao, không thử nâng được"));
+
+            _step = "C2 cấp mảnh, mở màn Nhân vật";
+            roster.AddFragments(starter, cost);
+            SceneManager.LoadScene("Characters");
+            yield return WaitForScene("Characters");
+
+            _step = "C3 bấm thẻ đầu và nút nâng";
+            yield return ClickWhenReady("CharacterCard0");
+            Assert.IsTrue(StarUpButton().interactable, Where("đủ mảnh mà nút nâng bị tắt"));
+            yield return ClickWhenReady("StarUpButton");
+            Assert.AreEqual(startStars + 1, stars.GetStars(starter), Where("sao sau khi nâng"));
+            Assert.AreEqual(0, roster.GetFragments(starter), Where("mảnh phải bị trừ đúng giá"));
+            Assert.IsFalse(StarUpButton().interactable, Where("hết mảnh mà nút nâng vẫn bấm được"));
+
+            _step = "C4 nạp lại save";
+            var loaded = new SaveService(_savePath).Load();
+            Assert.IsNotNull(loaded, Where("không đọc lại được save tạm"));
+            Assert.IsTrue(loaded.StarUps.Any(e => e.CharacterId == starter && e.Count == 1), Where("StarUps không vào save"));
+
+            _step = "C5 Reset";
+            var card = GameObject.Find("CharacterCard0");
+            var info = card.transform.Find("InfoText").GetComponent<Text>();
+            StringAssert.Contains(new string('★', startStars + 1), info.text, Where("thẻ phải hiện sao mới trước khi Reset"));
+            Assert.IsTrue(ServiceLocator.Get<GameResetter>().Reset(), Where("Reset thất bại"));
+            Assert.AreEqual(startStars, stars.GetStars(starter), Where("sao sau Reset"));
+            Assert.AreEqual(0, roster.GetFragments(starter), Where("mảnh sau Reset"));
+            yield return null;
+            StringAssert.DoesNotContain(new string('★', startStars + 1), info.text, Where("thẻ vẫn hiện sao cũ sau Reset"));
+            Assert.AreEqual("", GameObject.Find("StarUpStatus").GetComponent<Text>().text, Where("dòng trạng thái còn chữ cũ sau Reset"));
+        }
+
+        private static Button StarUpButton() => GameObject.Find("StarUpButton").GetComponent<Button>();
+
+        // Nút nâng chỉ bấm được khi đủ mảnh và chưa 5★: đi từ không có mảnh tới 5★ bằng đúng số mảnh mỗi bậc.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Characters_StarUpButton_FollowsFragmentsUntilMaxStars()
+        {
+            _step = "M1 Boot, mở màn Nhân vật";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var roster = ServiceLocator.Get<Roster>();
+            var stars = ServiceLocator.Get<StarService>();
+            var starter = roster.GetOwned()[0].Id;
+            Assert.AreEqual(0, roster.GetFragments(starter), Where("nhân vật đầu phải chưa có mảnh"));
+            SceneManager.LoadScene("Characters");
+            yield return WaitForScene("Characters");
+            yield return ClickWhenReady("CharacterCard0");
+            Assert.IsFalse(StarUpButton().interactable, Where("không có mảnh mà nút nâng bấm được"));
+
+            _step = "M2 nâng từng bậc";
+            while (stars.GetNextCost(starter) > 0)
+            {
+                var before = stars.GetStars(starter);
+                roster.AddFragments(starter, stars.GetNextCost(starter) - 1);
+                yield return null;
+                Assert.IsFalse(StarUpButton().interactable, Where($"thiếu 1 mảnh ở {before}★ mà nút nâng bấm được"));
+                roster.AddFragments(starter, 1);
+                yield return null;
+                yield return ClickWhenReady("StarUpButton");
+                Assert.AreEqual(before + 1, stars.GetStars(starter), Where($"sao sau khi nâng từ {before}★"));
+            }
+
+            _step = "M3 đã tối đa";
+            Assert.AreEqual(StarConfig.MaxStars, stars.GetStars(starter), Where("phải tới 5★"));
+            Assert.IsFalse(StarUpButton().interactable, Where("đã 5★ mà nút nâng bấm được"));
+        }
+
+        // Lưu lỗi thì dòng trạng thái phải báo "chưa lưu", không báo thành công (view không tự viết chữ "Đã lên").
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Characters_StarUp_PersistFails_ShowsNotSaved()
+        {
+            _step = "P1 Boot, cấp mảnh";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var roster = ServiceLocator.Get<Roster>();
+            var stars = ServiceLocator.Get<StarService>();
+            var starter = roster.GetOwned()[0].Id;
+            var startStars = stars.GetStars(starter);
+            roster.AddFragments(starter, stars.GetNextCost(starter));
+            SceneManager.LoadScene("Characters");
+            yield return WaitForScene("Characters");
+            yield return ClickWhenReady("CharacterCard0");
+
+            _step = "P2 khoá file save rồi nâng";
+            Assert.IsTrue(session.Persist(), Where("ghi save tạm"));
+            var locked = new FileStream(_savePath, FileMode.Open, FileAccess.Read, FileShare.None);
+            try
+            {
+                LogAssert.Expect(LogType.Error, new Regex("Save failed"));
+                yield return ClickWhenReady("StarUpButton");
+            }
+            finally
+            {
+                locked.Dispose();
+            }
+
+            Assert.AreEqual(UiText.Get("characters.not_saved"), GameObject.Find("StarUpStatus").GetComponent<Text>().text,
+                Where("lưu lỗi mà dòng trạng thái không báo chưa lưu"));
+            Assert.AreEqual(startStars + 1, stars.GetStars(starter), Where("lưu lỗi vẫn phải áp dụng trong bộ nhớ"));
+        }
+
 #if UNITY_EDITOR
         // --- Panel DEV (DevOverlay): chỉ tự dựng lúc Play khởi động khi chưa có service (L-024), nên test dựng tay sau khi Boot xong.
 
@@ -183,6 +298,17 @@ namespace BunDauPeo.PlayModeTests
                 Assert.IsFalse(settingsRect.Overlaps(ScreenRect(b)),
                     Where($"nút Cài đặt {settingsRect} đè lên '{b.name}' {ScreenRect(b)} ở màn {screen}"));
             }
+        }
+
+        // Mọi nút trong panel Cài đặt (kể cả nút của hộp xác nhận đang tắt) không đè nhau (L-027): thêm nút DEV mới sai chỗ thì đỏ.
+        private void AssertDevPanelButtonsDoNotOverlap()
+        {
+            var buttons = GameObject.Find("DevOverlay").transform.Find("SettingsPanel").GetComponentsInChildren<Button>(true);
+            Assert.Greater(buttons.Length, 0, Where("panel Cài đặt không có nút nào"));
+            for (var i = 0; i < buttons.Length; i++)
+                for (var j = i + 1; j < buttons.Length; j++)
+                    Assert.IsFalse(ScreenRect(buttons[i]).Overlaps(ScreenRect(buttons[j])),
+                        Where($"nút DEV '{buttons[i].name}' {ScreenRect(buttons[i])} đè '{buttons[j].name}' {ScreenRect(buttons[j])}"));
         }
 
         private static Rect ScreenRect(Button button)
@@ -212,6 +338,13 @@ namespace BunDauPeo.PlayModeTests
             SceneManager.LoadScene(BattleView.StageSelectScene);
             yield return WaitForScene(BattleView.StageSelectScene);
             AssertSettingsButtonClear("StageSelect");
+
+            _step = "D3b nút DEV Nhân vật";
+            yield return ClickWhenReady("Cài đặt");
+            AssertDevPanelButtonsDoNotOverlap();
+            yield return ClickWhenReady("Nhân vật");
+            yield return WaitForScene("Characters");
+            AssertSettingsButtonClear("Characters");
 
             _step = "D4 trận";
             yield return ClickWhenReady("Cài đặt"); // mọi nút DEV nằm trong panel Cài đặt

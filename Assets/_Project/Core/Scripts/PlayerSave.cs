@@ -33,5 +33,7 @@ namespace BunDauPeo.Core
         public StaminaState Stamina = new();
         // "vi" / "en"; "" = chưa chọn, theo ngôn ngữ máy.
         public string Language = "";
+        // Số lần đã nâng sao của từng nhân vật (không phải số sao); id lạ được giữ nguyên.
+        public List<StarUpEntry> StarUps = new();
     }
 }

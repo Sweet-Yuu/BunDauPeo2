@@ -247,7 +247,7 @@ namespace BunDauPeo.EditorTools
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
         }
 
-        private static void CreateCamera(Scene scene)
+        internal static void CreateCamera(Scene scene)
         {
             var go = new GameObject("Main Camera") { tag = "MainCamera" };
             SceneManager.MoveGameObjectToScene(go, scene);

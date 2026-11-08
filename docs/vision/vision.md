@@ -33,13 +33,13 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - UI hub có thanh điều hướng dưới.
 - Lưu game cục bộ.
 - Mua trong game (gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu) và quảng cáo thưởng nhận Gem. Luật và `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
-- Nhân vật trùng thành mảnh để nâng sao (tối đa 5★, spec riêng sau Combat).
+- Nhân vật trùng thành mảnh để nâng sao (tối đa 5★); nâng sao tăng HP, Tấn công, Thủ (user chốt 2026-11-08, [spec Nâng sao](../superpowers/specs/2026-11-08-star-up-design.md)).
 
 ## Ngoài phạm vi (chưa làm)
 
 - Tính năng online (xếp hạng, PvP, đồng bộ nhiều máy) và server riêng.
 - Hệ nguyên tố, trang bị.
-- Chỉ số nhân vật theo sao và cấp nhân vật (chưa thiết kế).
+- Cấp nhân vật (chưa thiết kế).
 - Cốt truyện và hội thoại (sẽ làm sau MVP).
 
 ## Tiêu chí "xong" của MVP

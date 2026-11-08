@@ -65,6 +65,14 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void BuildSettings_ContainsCharactersScene()
+        {
+            var entry = EditorBuildSettings.scenes.FirstOrDefault(x => x.path == ProjectSetup.CharactersScenePath);
+            Assert.IsNotNull(entry);
+            Assert.IsTrue(entry.enabled);
+        }
+
+        [Test]
         public void BootScene_IsFirstInBuild_AndBootstrapIsWired()
         {
             Assert.AreEqual(ProjectSetup.BootScenePath, EditorBuildSettings.scenes[0].path);
@@ -128,6 +136,17 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void StarConfigAsset_ExistsAndValid()
+        {
+            var config = AssetDatabase.LoadAssetAtPath<StarConfig>(ProjectSetup.StarConfigPath);
+            Assert.IsNotNull(config);
+            CollectionAssert.IsEmpty(config.Validate());
+        }
+
+        [Test]
+        public void BootScene_HasStarConfig() => Assert.IsNotNull(ReadBootField("_starConfig"));
+
+        [Test]
         public void WireBootScene_FillsMissingBannerCatalog()
         {
             try
@@ -161,13 +180,15 @@ namespace BunDauPeo.Tests
             }
         }
 
-        private static Object ReadBootBannerCatalog()
+        private static Object ReadBootBannerCatalog() => ReadBootField("_bannerCatalog");
+
+        private static Object ReadBootField(string field)
         {
             var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
             var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
             try
             {
-                return new SerializedObject(BootstrapIn(scene)).FindProperty("_bannerCatalog").objectReferenceValue;
+                return new SerializedObject(BootstrapIn(scene)).FindProperty(field).objectReferenceValue;
             }
             finally
             {
@@ -200,23 +221,24 @@ namespace BunDauPeo.Tests
         {
             const string zeroPath = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
             const string keepPath = "Assets/_Project/Characters/Data/Characters/char_bun_la.asset";
-            var zero = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(zeroPath);
-            var keep = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(keepPath);
-            SetStars(zero, 0);
-            SetStars(keep, 4);
+            SetStars(LoadCharacter(zeroPath), 0);
+            SetStars(LoadCharacter(keepPath), 4);
             try
             {
                 ProjectSetup.Run();
-                Assert.AreEqual(1, zero.Stars, "zero stars is filled from rarity");
-                Assert.AreEqual(4, keep.Stars, "a user-set value is never overwritten");
+                // Nạp lại sau Run: Run có thể dựng scene (NewScene Single) và dỡ asset đã nạp trước đó (L-002, L-032).
+                Assert.AreEqual(1, LoadCharacter(zeroPath).Stars, "zero stars is filled from rarity");
+                Assert.AreEqual(4, LoadCharacter(keepPath).Stars, "a user-set value is never overwritten");
             }
             finally
             {
-                SetStars(zero, 1);
-                SetStars(keep, 3);
+                SetStars(LoadCharacter(zeroPath), 1);
+                SetStars(LoadCharacter(keepPath), 3);
                 AssetDatabase.SaveAssets();
             }
         }
+
+        private static CharacterDefinition LoadCharacter(string path) => AssetDatabase.LoadAssetAtPath<CharacterDefinition>(path);
 
         private static void SetStars(CharacterDefinition c, int stars)
         {
@@ -251,20 +273,18 @@ namespace BunDauPeo.Tests
         {
             const string unsetPath = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
             const string keepPath = "Assets/_Project/Characters/Data/Characters/char_bun_la.asset";
-            var unset = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(unsetPath);
-            var keep = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(keepPath);
-            SetClass(unset, CharacterClass.Unset);
-            SetClass(keep, CharacterClass.Mage);
+            SetClass(LoadCharacter(unsetPath), CharacterClass.Unset);
+            SetClass(LoadCharacter(keepPath), CharacterClass.Mage);
             try
             {
                 ProjectSetup.Run();
-                Assert.AreEqual(CharacterClass.Fighter, unset.Class, "unset class is filled from the sample table");
-                Assert.AreEqual(CharacterClass.Mage, keep.Class, "a user-set class is never overwritten");
+                Assert.AreEqual(CharacterClass.Fighter, LoadCharacter(unsetPath).Class, "unset class is filled from the sample table");
+                Assert.AreEqual(CharacterClass.Mage, LoadCharacter(keepPath).Class, "a user-set class is never overwritten");
             }
             finally
             {
-                SetClass(unset, CharacterClass.Fighter);
-                SetClass(keep, CharacterClass.Fighter);
+                SetClass(LoadCharacter(unsetPath), CharacterClass.Fighter);
+                SetClass(LoadCharacter(keepPath), CharacterClass.Fighter);
                 AssetDatabase.SaveAssets();
             }
         }
@@ -280,15 +300,16 @@ namespace BunDauPeo.Tests
         public void Run_AfterSampleIdWasRenamed_DoesNotThrow()
         {
             const string path = "Assets/_Project/Characters/Data/Characters/char_nem_chua.asset";
-            var asset = AssetDatabase.LoadAssetAtPath<CharacterDefinition>(path);
-            var original = asset.Id;
-            SetId(asset, "renamed_by_test");
+            var original = LoadCharacter(path).Id;
+            SetId(LoadCharacter(path), "renamed_by_test");
             try
             {
                 Assert.DoesNotThrow(ProjectSetup.Run);
             }
             finally
             {
+                // Nạp lại theo đường dẫn: Run dựng scene có thể đã dỡ asset cũ, khi đó SetId ném lỗi và id sai nằm lại trên đĩa (L-032).
+                var asset = LoadCharacter(path);
                 SetId(asset, original);
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
@@ -365,21 +386,25 @@ namespace BunDauPeo.Tests
         [Test]
         public void Setup_RerunKeepsEditedRestaurantValues()
         {
-            var config = AssetDatabase.LoadAssetAtPath<RestaurantConfig>(ProjectSetup.RestaurantConfigPath);
-            var original = config.BaseTables;
-            SetBaseTables(config, 7);
+            var original = LoadRestaurantConfig().BaseTables;
+            SetBaseTables(LoadRestaurantConfig(), 7);
             try
             {
                 ProjectSetup.Run();
-                Assert.AreEqual(7, config.BaseTables);
+                Assert.AreEqual(7, LoadRestaurantConfig().BaseTables);
             }
             finally
             {
+                var config = LoadRestaurantConfig();
                 SetBaseTables(config, original);
                 EditorUtility.SetDirty(config);
                 AssetDatabase.SaveAssets();
             }
         }
+
+        // Nạp lại sau mỗi lần Run(): Run dựng scene bằng NewScene(Single) và dỡ asset đã nạp trước đó (L-002, L-032).
+        private static RestaurantConfig LoadRestaurantConfig() =>
+            AssetDatabase.LoadAssetAtPath<RestaurantConfig>(ProjectSetup.RestaurantConfigPath);
 
         private static void SetBaseTables(RestaurantConfig config, int value)
         {
@@ -477,16 +502,16 @@ namespace BunDauPeo.Tests
         [Test]
         public void Setup_RerunKeepsEditedCombatValues()
         {
-            var config = SampleCombatConfig();
-            var original = config.MaxRounds;
-            SetMaxRounds(config, 61);
+            var original = SampleCombatConfig().MaxRounds;
+            SetMaxRounds(SampleCombatConfig(), 61);
             try
             {
                 ProjectSetup.Run();
-                Assert.AreEqual(61, config.MaxRounds);
+                Assert.AreEqual(61, SampleCombatConfig().MaxRounds);
             }
             finally
             {
+                var config = SampleCombatConfig();
                 SetMaxRounds(config, original);
                 EditorUtility.SetDirty(config);
                 AssetDatabase.SaveAssets();
@@ -536,27 +561,27 @@ namespace BunDauPeo.Tests
         [Test]
         public void Run_MigratesOldStaminaRule_KeepsEditedValues()
         {
-            var config = SampleCombatConfig();
-            var boss = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/_Project/Combat/Data/Stages/st_1_5.asset");
+            // Nạp lại sau mỗi lần Run() (L-002, L-032).
+            StageDefinition Boss() => AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/_Project/Combat/Data/Stages/st_1_5.asset");
             // Trả đúng số đang có (người chơi có thể đã chỉnh cân bằng), không phải số mặc định.
-            var originalMax = config.MaxStamina;
-            var originalCost = boss.StaminaCost;
+            var originalMax = SampleCombatConfig().MaxStamina;
+            var originalCost = Boss().StaminaCost;
             try
             {
-                SetInt(config, "_maxStamina", 60);
-                SetInt(boss, "_staminaCost", 15);
+                SetInt(SampleCombatConfig(), "_maxStamina", 60);
+                SetInt(Boss(), "_staminaCost", 15);
                 ProjectSetup.Run();
-                Assert.AreEqual((100, 10), (config.MaxStamina, boss.StaminaCost), "the old rule's own numbers move to the new rule");
+                Assert.AreEqual((100, 10), (SampleCombatConfig().MaxStamina, Boss().StaminaCost), "the old rule's own numbers move to the new rule");
 
-                SetInt(config, "_maxStamina", 80);
-                SetInt(boss, "_staminaCost", 12);
+                SetInt(SampleCombatConfig(), "_maxStamina", 80);
+                SetInt(Boss(), "_staminaCost", 12);
                 ProjectSetup.Run();
-                Assert.AreEqual((80, 12), (config.MaxStamina, boss.StaminaCost), "edited values are left alone");
+                Assert.AreEqual((80, 12), (SampleCombatConfig().MaxStamina, Boss().StaminaCost), "edited values are left alone");
             }
             finally
             {
-                SetInt(config, "_maxStamina", originalMax);
-                SetInt(boss, "_staminaCost", originalCost);
+                SetInt(SampleCombatConfig(), "_maxStamina", originalMax);
+                SetInt(Boss(), "_staminaCost", originalCost);
                 AssetDatabase.SaveAssets();
             }
         }

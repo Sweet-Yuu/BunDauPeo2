@@ -30,4 +30,5 @@ Không làm: <ngoài phạm vi, vd. không đụng Restaurant>
 Quy ước:
 - Một kênh đụng Unity tại một thời điểm.
 - Đừng chép nội dung kế hoạch vào prompt; trỏ tới file và số task.
+- Id kênh 🎯 ghi trong brief (để kênh con nhắn lại) lấy bằng `get_session` với `"self"`, không suy từ đường dẫn scratchpad hay transcript (L-030, L-031).
 - Mở tay (không qua `start_session`) thì đổi model bằng `/model` trước khi dán prompt.

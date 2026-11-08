@@ -24,9 +24,10 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - **Vị trí:** đội hình có 3 vị trí, 5 ô: **front 2, mid 2, back 1** (user chốt 2026-11-02). Vị trí chỉ ảnh hưởng quái nhắm ai: trọng số *khởi điểm* front 3, mid 2, back 1.
 - **Class:** 5 class là đỡ đòn, đấu sĩ, hỗ trợ, xạ thủ, pháp sư; mỗi nhân vật một class, đặt trong `CharacterDefinition`. **Class quyết định vị trí, hệ thống tự xếp** (user chốt 2026-11-02): đỡ đòn và đấu sĩ đứng front, hỗ trợ và xạ thủ đứng mid, pháp sư đứng back; hàng đầy thì người thừa sang hàng gần nhất. Người chơi chỉ chọn ai vào đội, chưa tự xếp ô (để dành, làm thì phải đổi save). Ngoài vị trí, class không có luật riêng; khác nhau ở chỉ số và skill.
 - Game mới được cấp sẵn một ít tiền và vài nhân vật, chỉ một lần.
-- **Nhân vật trùng** (user chốt 2026-10-31): quay ra nhân vật đã có thì nhận **mảnh** của nhân vật đó, không đổi kho nhân vật. Số mảnh theo độ hiếm, *khởi điểm* R/SR/SSR đều **1**, đặt trong banner SO. Mảnh nằm trong save (qua `Roster`) và bị Reset Save Data xoá. Mảnh dùng để nâng sao (tối đa 5★, mảnh dư vào kho) ở spec riêng sau Combat; cho đến lúc đó mảnh chỉ được cộng; màn Gacha chỉ hiện số mảnh nhận được ở mỗi lượt, chưa có màn kho.
-- **Số sao khởi điểm** (user chốt 2026-10-31): mỗi nhân vật có số sao khởi điểm 1..5 đặt trong `CharacterDefinition`, mẫu R = 1, SR = 2, SSR = 3, chỉnh riêng từng nhân vật. Chỉ để hiển thị; chưa có luật nâng sao.
-- Chưa thiết kế: cấp nhân vật, nâng sao (giá mảnh, ảnh hưởng chỉ số).
+- **Nhân vật trùng** (user chốt 2026-10-31): quay ra nhân vật đã có thì nhận **mảnh** của nhân vật đó, không đổi kho nhân vật. Số mảnh theo độ hiếm, *khởi điểm* R/SR/SSR đều **1**, đặt trong banner SO. Mảnh nằm trong save (qua `Roster`) và bị Reset Save Data xoá. Màn Gacha chỉ hiện số mảnh nhận được ở mỗi lượt, chưa có màn kho.
+- **Số sao khởi điểm** (user chốt 2026-10-31): mỗi nhân vật có số sao khởi điểm 1..5 đặt trong `CharacterDefinition`, mẫu R = 1, SR = 2, SSR = 3, chỉnh riêng từng nhân vật.
+- **Nâng sao** (user chốt 2026-11-08, [spec](../superpowers/specs/2026-11-08-star-up-design.md)): tiêu mảnh của chính nhân vật đó, mỗi lần 1 sao, tối đa 5★. Giá theo sao đích, không theo độ hiếm, *khởi điểm* lên 2★/3★/4★/5★ tốn **2/4/6/8** mảnh, đặt trong `StarConfig`. Mỗi sao đã nâng (trên sao khởi điểm) cộng **10%** chỉ số gốc vào HP, Tấn công, Thủ (*khởi điểm*); Tốc độ, chỉ số quán và AFK không đổi. Đã 5★ thì mảnh vẫn được cộng và để dành, chưa có chỗ tiêu. Nâng ở màn Nhân vật. Reset Save Data xoá sao đã nâng cùng mảnh.
+- Chưa thiết kế: cấp nhân vật; chỗ tiêu mảnh dư ở 5★.
 
 ## Quán
 

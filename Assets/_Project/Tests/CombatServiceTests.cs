@@ -321,6 +321,39 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void EnterStage_StarredCharacter_HasScaledStats()
+        {
+            var rig = EnterRig();
+            rig.Save.StarUps.Add(new StarUpEntry { CharacterId = "a", Count = 1 });
+
+            var ally = rig.Service.EnterStage("b1").Session.Allies[0];
+            Assert.AreEqual((1100, 1100, 110, 0, 100), (ally.MaxHp, ally.Hp, ally.Attack, ally.Defense, ally.Speed));
+
+            // Dải DEV (StartBattle) là chỗ dựng trận thứ hai, cũng phải dùng chỉ số theo sao.
+            var dev = rig.Service.StartBattle("b1").Session.Allies[0];
+            Assert.AreEqual((1100, 110), (dev.MaxHp, dev.Attack));
+        }
+
+        [Test]
+        public void StarUp_DuringBattle_DoesNotChangeCurrentUnits()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            rig.Roster.AddFragments("a", 2);
+            var first = rig.Service.EnterStage("b1").Session;
+            Assert.AreEqual(1000, first.Allies[0].MaxHp);
+
+            Assert.AreEqual(StarUpStatus.Success, rig.Service.Stars.TryStarUp("a").Status);
+
+            Assert.AreSame(first, rig.Service.Current);
+            Assert.AreEqual(1000, first.Allies[0].MaxHp);
+            Assert.AreEqual(1000, first.Allies[0].Hp);
+
+            first.Surrender();
+            var next = rig.Service.EnterStage("b1").Session;
+            Assert.AreEqual(1100, next.Allies[0].MaxHp);
+        }
+
+        [Test]
         public void EnterStage_EachStageRejection_SpendsNothing_PersistsNothing_KeepsCurrent()
         {
             var bad = Battle1Hp("bad");

@@ -8,10 +8,10 @@ namespace BunDauPeo.Combat
     {
         private BattleUnit() { }
 
-        public static BattleUnit ForAlly(FormationSlot slot)
+        // stats do người gọi tính (đã cộng sao); BattleUnit không biết gì về sao.
+        public static BattleUnit ForAlly(FormationSlot slot, CombatStats stats)
         {
             var character = slot.Character;
-            var stats = character.CombatStats;
             return new BattleUnit
             {
                 DisplayName = character.DisplayName,

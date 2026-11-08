@@ -16,7 +16,9 @@ namespace BunDauPeo.Combat
         private readonly List<BattleUnit> _queue = new List<BattleUnit>();
         private List<BattleUnit> _enemies;
 
-        public BattleSession(IReadOnlyList<CharacterDefinition> team, StageDefinition stage, CombatConfig config, Random random)
+        // statsOf null thì phe ta dùng chỉ số của SO; CombatService truyền chỉ số đã cộng sao.
+        public BattleSession(IReadOnlyList<CharacterDefinition> team, StageDefinition stage, CombatConfig config, Random random,
+            Func<CharacterDefinition, CombatStats> statsOf = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _random = random ?? throw new ArgumentNullException(nameof(random));
@@ -26,7 +28,9 @@ namespace BunDauPeo.Combat
                 throw new ArgumentException("Stage must be a Battle with at least one enemy in every wave.", nameof(stage));
 
             _stage = stage;
-            _allies = BattleFormation.Assign(team).Select(BattleUnit.ForAlly).OrderBy(u => u.SlotIndex).ToList();
+            statsOf ??= c => c.CombatStats;
+            _allies = BattleFormation.Assign(team).Select(slot => BattleUnit.ForAlly(slot, statsOf(slot.Character)))
+                .OrderBy(u => u.SlotIndex).ToList();
             Round = 1;
             SpawnWave();
             BuildQueue();

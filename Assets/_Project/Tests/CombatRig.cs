@@ -5,6 +5,7 @@ using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using UnityEditor;
+using UnityEngine;
 
 namespace BunDauPeo.Tests
 {
@@ -44,7 +45,8 @@ namespace BunDauPeo.Tests
             Save = new PlayerSave();
             Wallet = new Wallet(Save);
             team ??= new[] { CombatTestData.Hero("a") };
-            Roster = new Roster(Save, TestData.Catalog(team));
+            var catalog = TestData.Catalog(team);
+            Roster = new Roster(Save, catalog);
             foreach (var hero in team)
             {
                 Roster.Add(hero.Id);
@@ -58,7 +60,8 @@ namespace BunDauPeo.Tests
             });
             Stamina = new StaminaService(Save, Config, () => Now);
             Progress = new StageProgressService(Save, Wallet, Config.Stages, Stamina, Persist);
-            Service = CombatTestData.Service(Config, Roster, Persist, Stamina, Progress);
+            Stars = new StarService(Save, Roster, catalog, ScriptableObject.CreateInstance<StarConfig>(), Persist);
+            Service = CombatTestData.Service(Config, Roster, Persist, Stamina, Progress, Stars);
         }
 
         public DateTime Now { get; set; }
@@ -68,6 +71,7 @@ namespace BunDauPeo.Tests
         public CombatConfig Config { get; }
         public StaminaService Stamina { get; }
         public StageProgressService Progress { get; }
+        public StarService Stars { get; }
         public CombatService Service { get; }
         public bool PersistResult { get; set; } = true;
         // Persist ném lỗi (đĩa hỏng giữa chừng); đếm lần gọi trước khi ném.
