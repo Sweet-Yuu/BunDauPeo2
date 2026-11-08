@@ -54,6 +54,7 @@
 
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
 
+- L-032 (2026-11-09) Test giữ biến asset qua `ProjectSetup.Run()` (dựng scene bằng `NewScene(Single)` dỡ asset): `finally` ném lỗi và để id `renamed_by_test` trên đĩa, 9 test đỏ theo (lặp L-002, lần này ở test)  #unity-files #script #process → [code-style, Test](../guides/code-style.md#test)
 - L-030, L-031 (2026-11-08, `#process`): id kênh lấy bằng `get_session` với `"self"`, không suy từ đường dẫn scratchpad hay transcript → [session-brief.md](../guides/session-brief.md), skill worker (Báo cáo cuối kênh), skill coordinator (Mở kênh con).
 
 - L-028 (2026-11-06) Play đứng ở khung 2 khi cửa sổ Editor không ở trước, dù đã bật chạy nền (lặp L-009)  #process #unity-files → [unity-workflow](../guides/unity-workflow.md#công-cụ-chính-unity-cli-unity)
@@ -79,4 +80,4 @@ Nội dung đầy đủ nằm trong lịch sử git của file này (trước 20
 - L-005 (2026-10-31) `git add` từng file `.cs` bỏ sót `.meta`  #git #unity-files → [unity-workflow, mục Git](../guides/unity-workflow.md#git)
 - L-004 (2026-10-31) Kết luận cơ chế khi chưa tách biến  #process #unity-files → [unity-workflow](../guides/unity-workflow.md)
 - L-003 (2026-10-31) Code tiền/save nuốt lỗi IO và bắn event trần  #script → [code-style, Service](../guides/code-style.md#service-tiền-và-save)
-- L-002 (2026-10-30) Tham chiếu asset giữ qua `NewScene(Single)` thành null  #unity-files #scene-prefab #script → [code-style, Code Editor](../guides/code-style.md#code-editor)
+- L-002 (2026-10-30) Tham chiếu asset giữ qua `NewScene(Single)` thành null  #unity-files #scene-prefab #script → [code-style, Code Editor](../guides/code-style.md#code-editor), [code-style, Test](../guides/code-style.md#test) (lặp ở L-032)

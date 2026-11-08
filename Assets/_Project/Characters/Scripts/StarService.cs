@@ -88,6 +88,8 @@ namespace BunDauPeo.Characters
             if (GetStars(id) >= StarConfig.MaxStars) return Rejected(StarUpStatus.MaxStars, id);
 
             var cost = GetNextCost(id);
+            // Sao khởi điểm < 1 (SO chưa qua Setup Project) cho giá 0: không được nâng miễn phí.
+            if (cost <= 0) return Rejected(StarUpStatus.InvalidConfig, id);
             if (_roster.GetFragments(id) < cost) return Rejected(StarUpStatus.NotEnoughFragments, id);
 
             // Đổi sao trước, rồi SpendFragments phát Changed một lần khi cả sao lẫn mảnh đã đổi.

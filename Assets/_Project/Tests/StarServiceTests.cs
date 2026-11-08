@@ -162,6 +162,16 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void TryStarUp_StartingStarsBelowOne_RejectedNotFree()
+        {
+            // SO chưa chạy Setup Project có _stars = 0: giá bậc kế bằng 0, không được nâng miễn phí.
+            TestData.Edit(_a, so => so.FindProperty("_stars").intValue = 0);
+            Give("a", 5);
+            AssertRejected("a", StarUpStatus.InvalidConfig, 0);
+            Assert.AreEqual(5, _roster.GetFragments("a"));
+        }
+
+        [Test]
         public void TryStarUp_UnknownId_ChangesNothing()
         {
             Give("a", 5);

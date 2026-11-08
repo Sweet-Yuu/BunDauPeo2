@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Nâng sao nhân vật: user duyệt [spec](superpowers/specs/2026-11-08-star-up-design.md) và [kế hoạch](superpowers/plans/2026-11-08-star-up.md) ngày 2026-11-08 (7 task, 2 phiên 🔨, dừng playtest sau Task 7; dự kiến 831 EditMode + 14 PlayMode). Phiên 🔨 A (Task 1–3) đã commit. Phiên 🔨 B (Task 4–7: ★ hiện tại ở thẻ chọn đội và màn lộ Gacha, màn `Characters` mở từ panel DEV, test PlayMode) xong trên `feature/star-up` (831 EditMode, 14 PlayMode xanh), chưa commit; đang dừng chờ user playtest (spec mục 7) và duyệt bản dịch `UiText.Characters.cs`. Kế tiếp: 🎯 mở 🔍 review xhigh (đụng save và mảnh Gacha), rồi PR.
+- Nâng sao nhân vật: user duyệt [spec](superpowers/specs/2026-11-08-star-up-design.md) và [kế hoạch](superpowers/plans/2026-11-08-star-up.md) ngày 2026-11-08 (7 task, 2 phiên 🔨, dừng playtest sau Task 7; dự kiến 831 EditMode + 14 PlayMode). Phiên 🔨 A (Task 1–3) đã commit. Phiên 🔨 B (Task 4–7: ★ hiện tại ở thẻ chọn đội và màn lộ Gacha, màn `Characters` mở từ panel DEV, test PlayMode) xong trên `feature/star-up` (831 EditMode, 14 PlayMode xanh), chưa commit; user đã playtest và duyệt. 🔍 review xhigh cuối nhánh không thấy lỗi chặn merge; phiên 🔨 sửa review (N1 nâng sao miễn phí khi sao khởi điểm ≤ 0, N2 test màn Nhân vật và panel DEV, N3 `ProjectSetupTests` giữ asset qua `Run()`) xong, chưa commit (832 EditMode, 16 PlayMode xanh). Kế tiếp: 📋 commit, 🎯 kiểm lại rồi mở PR vào `main`.
 
 ## Tiếp theo
 

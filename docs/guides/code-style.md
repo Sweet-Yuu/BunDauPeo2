@@ -42,4 +42,5 @@
 - Nhiều đầu vào biên thì lặp trong một method kèm thông báo có đầu vào (`$"u = {u}"`), không dùng `[TestCase]`, để tổng số test khớp kế hoạch (L-012).
 - Test duyệt scene có đối tượng tắt dùng `GetComponentInParent<T>(true)` / `GetComponentsInChildren<T>(true)` (L-013).
 - Sinh scene bằng code thì phải có test đọc lại tham chiếu từ file scene (L-002).
+- Test gọi `ProjectSetup.Run()` hay `*SceneBuilder.Create` thì nạp lại asset bằng `AssetDatabase.LoadAssetAtPath` sau lệnh gọi, kể cả trong `finally` (khôi phục giá trị); không dùng biến nạp trước đó, vì `NewScene(Single)` dỡ asset. Hỏng ở `finally` thì để lại giá trị sai trên đĩa và làm test khác đỏ theo (L-002, L-032).
 - Test kiểm nút đè nút luôn gồm nút đang tắt (`FindObjectsInactive.Include` / `GetComponentsInChildren<Button>(true)`): nút Bỏ qua, nút popup, nút kết quả chỉ bật trong luồng chơi nhưng vẫn có `RectTransform` đúng chỗ. Test chỉ xét nút đang bật sẽ xanh dù nút bị che (L-025, L-027).
