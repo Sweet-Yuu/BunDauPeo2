@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Nâng sao nhân vật: user duyệt [spec](superpowers/specs/2026-11-08-star-up-design.md) và [kế hoạch](superpowers/plans/2026-11-08-star-up.md) ngày 2026-11-08 (7 task, 2 phiên 🔨, dừng playtest sau Task 7; dự kiến 831 EditMode + 14 PlayMode). Phiên 🔨 A (Task 1–3: save `StarUps`, `StarConfig`, `StarService`, chỉ số trận theo sao, nối Combat và Boot) xong trên `feature/star-up` (820 EditMode, 13 PlayMode xanh), chưa commit. Kế tiếp: 📋 commit, 🎯 kiểm, mở phiên 🔨 B (Task 4–7: UI, dừng playtest).
+- Nâng sao nhân vật: user duyệt [spec](superpowers/specs/2026-11-08-star-up-design.md) và [kế hoạch](superpowers/plans/2026-11-08-star-up.md) ngày 2026-11-08 (7 task, 2 phiên 🔨, dừng playtest sau Task 7; dự kiến 831 EditMode + 14 PlayMode). Phiên 🔨 A (Task 1–3) đã commit. Phiên 🔨 B (Task 4–7: ★ hiện tại ở thẻ chọn đội và màn lộ Gacha, màn `Characters` mở từ panel DEV, test PlayMode) xong trên `feature/star-up` (831 EditMode, 14 PlayMode xanh), chưa commit; đang dừng chờ user playtest (spec mục 7) và duyệt bản dịch `UiText.Characters.cs`. Kế tiếp: 🎯 mở 🔍 review xhigh (đụng save và mảnh Gacha), rồi PR.
 
 ## Tiếp theo
 
@@ -14,7 +14,7 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
 - [ ] Nâng sao nhân vật (sau Combat): dùng mảnh từ Gacha, tối đa 5★. User chốt 2026-11-08: giá 2/4/6/8 mảnh, +10% HP/Tấn công/Thủ mỗi sao đã nâng, mảnh dư để dành, màn Nhân vật tạm; [vision](vision/vision.md) và [game-design](design/game-design.md#nhân-vật) đã sửa. [Spec](superpowers/specs/2026-11-08-star-up-design.md), [kế hoạch](superpowers/plans/2026-11-08-star-up.md).
-- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng. Kèm nút đổi ngôn ngữ cho người chơi (dùng `LanguageSwitcher`) và nút "Reset dữ liệu" trong game (bản DEV đã có trong nút Cài đặt của DevOverlay; hub làm bản cho người chơi), gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
+- [ ] UI hub: khung và thanh điều hướng dưới, nối các tính năng (tab Nhân vật dùng màn `Characters` đã có). Kèm nút đổi ngôn ngữ cho người chơi (dùng `LanguageSwitcher`) và nút "Reset dữ liệu" trong game (bản DEV đã có trong nút Cài đặt của DevOverlay; hub làm bản cho người chơi), gọi `GameSession.ResetToDefaults()` sau hộp xác nhận ([D-005](decisions/decisions.md)).
 - [ ] Thời tiết (master plan): ngẫu nhiên, chỉ giảm lượng khách, mỗi đợt tối đa 30 phút; xác suất tăng sau hơn 90 phút chơi liên tục. Nhỏ, ghép vào mô phỏng quán hiện có.
 - [ ] Shipper + nấu ăn (master plan): mở lại game sau khi vắng thì có hàng shipper (tối đa 15), nấu và giao lần lượt với một đồng hồ chung; khoảng 3 món. `TODO(user)` trong spec: cách ghép với AFK hiện có (AFK đang tích cả khi app vào nền, master plan chỉ tính khi tắt hẳn).
 - [ ] Nội thất lưới 8×8 (master plan): đặt, xoay nội thất trên lưới hình thoi, kéo camera; 1–2 nội thất thử. `TODO(user)` trong spec: lưới hình thoi ngược với bố cục màn quán user chốt 2026-11-01 (bỏ phòng isometric).

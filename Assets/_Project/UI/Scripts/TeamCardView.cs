@@ -31,7 +31,7 @@ namespace BunDauPeo.UI
             _frame.color = row.InTeam ? InTeamFrame : OutFrame;
             _portrait.color = BattleUnitView.ClassColor(character.Class);
             _name.text = string.IsNullOrEmpty(character.DisplayName) ? character.Id : character.DisplayName;
-            _info.text = $"{character.Rarity} {new string('★', character.Stars)}";
+            _info.text = $"{character.Rarity} {new string('★', row.Stars)}";
             _check.SetActive(row.InTeam);
             _tag.text = !row.InTeam && row.StaffRole.HasValue ? CombatViewText.StaffTag(row.StaffRole.Value) : "";
         }

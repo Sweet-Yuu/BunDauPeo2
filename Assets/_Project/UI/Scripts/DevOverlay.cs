@@ -17,13 +17,14 @@ namespace BunDauPeo.UI
     {
         public const string RestaurantScene = "Restaurant";
         public const string GachaScene = "Gacha";
+        public const string CharactersScene = "Characters";
         public const long MaterialGrant = 50;
         public const long GemGrant = 1000;
         public const int AfkRewindHours = 1;
         private const string ConfirmPrompt = "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.";
         private const string ResetFailedMessage = "RESET THẤT BẠI: không xoá được file save (đang bị khoá?).\nDữ liệu giữ nguyên.";
 
-        public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.StageSelectScene, BattleView.BattleScene };
+        public static readonly string[] SceneNames = { RestaurantScene, GachaScene, CharactersScene, BattleView.StageSelectScene, BattleView.BattleScene };
 
         private static GameObject _root;
         // Nút Cài đặt góc dưới phải (ẩn ở màn trận, nơi Menu có nút Cài đặt) và việc mở panel.
@@ -195,7 +196,8 @@ namespace BunDauPeo.UI
             AddButton(confirm, font, "Huỷ", new Vector2(480, 10), 400, () => confirm.gameObject.SetActive(false));
             confirm.gameObject.SetActive(false);
 
-            AddButton(box, font, "Reset dữ liệu", new Vector2(Left, 235), 920, () =>
+            AddButton(box, font, "Nhân vật", new Vector2(Left, 255), Width, Go(CharactersScene));
+            AddButton(box, font, "Reset dữ liệu", new Vector2(Right, 255), Width, () =>
             {
                 prompt.text = ConfirmPrompt;
                 prompt.color = Color.white;

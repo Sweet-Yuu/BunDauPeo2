@@ -65,6 +65,14 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void BuildSettings_ContainsCharactersScene()
+        {
+            var entry = EditorBuildSettings.scenes.FirstOrDefault(x => x.path == ProjectSetup.CharactersScenePath);
+            Assert.IsNotNull(entry);
+            Assert.IsTrue(entry.enabled);
+        }
+
+        [Test]
         public void BootScene_IsFirstInBuild_AndBootstrapIsWired()
         {
             Assert.AreEqual(ProjectSetup.BootScenePath, EditorBuildSettings.scenes[0].path);

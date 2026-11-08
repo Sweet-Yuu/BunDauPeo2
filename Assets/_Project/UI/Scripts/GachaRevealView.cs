@@ -30,6 +30,7 @@ namespace BunDauPeo.UI
         private const float PopFromScale = 0.88f;
 
         private IReadOnlyList<GachaPullEntry> _entries;
+        private Func<string, int> _starsOf;
         private GachaRevealSequence _sequence;
         private Coroutine _flashRoutine;
         private float _tapReadyAt;
@@ -45,8 +46,9 @@ namespace BunDauPeo.UI
             _legendaryAnimator.updateMode = AnimatorUpdateMode.UnscaledTime;
         }
 
-        public void Play(IReadOnlyList<GachaPullEntry> entries, bool isTen)
+        public void Play(IReadOnlyList<GachaPullEntry> entries, bool isTen, Func<string, int> starsOf = null)
         {
+            _starsOf = starsOf;
             _entries = entries;
             _sequence = new GachaRevealSequence(entries, isTen);
             _root.SetActive(true);
@@ -107,7 +109,7 @@ namespace BunDauPeo.UI
             var character = entry.Character;
             _portrait.sprite = character.Portrait;
             _nameText.text = string.IsNullOrEmpty(character.DisplayName) ? character.Id : character.DisplayName;
-            _starsText.text = GachaViewText.StarsText(character.Stars);
+            _starsText.text = GachaViewText.StarsText(_starsOf?.Invoke(character.Id) ?? character.Stars);
             // Chạm nhanh liên tiếp: dừng lóe sáng cũ để hai lần không chồng lên nhau.
             if (_flashRoutine != null) StopCoroutine(_flashRoutine);
             _flashRoutine = StartCoroutine(Flash(GachaViewText.RarityColor(character.Rarity)));

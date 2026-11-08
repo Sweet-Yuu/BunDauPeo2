@@ -159,6 +159,48 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(staminaBefore - stage1.StaminaCost, loaded.Stamina.Current, Where("thể lực trong save"));
         }
 
+        // Nâng sao qua màn Nhân vật thật: trừ mảnh, tăng sao, vào save; Reset xoá sạch và màn đang mở vẽ lại (Review Focus 1).
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Characters_StarUp_SavesAndResetClears()
+        {
+            _step = "C1 Boot";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var roster = ServiceLocator.Get<Roster>();
+            var stars = ServiceLocator.Get<StarService>();
+            var starter = roster.GetOwned()[0].Id;
+            var startStars = stars.GetStars(starter);
+            var cost = stars.GetNextCost(starter);
+            Assert.Greater(cost, 0, Where("nhân vật đầu đã tối đa sao, không thử nâng được"));
+
+            _step = "C2 cấp mảnh, mở màn Nhân vật";
+            roster.AddFragments(starter, cost);
+            SceneManager.LoadScene("Characters");
+            yield return WaitForScene("Characters");
+
+            _step = "C3 bấm thẻ đầu và nút nâng";
+            yield return ClickWhenReady("CharacterCard0");
+            yield return ClickWhenReady("StarUpButton");
+            Assert.AreEqual(startStars + 1, stars.GetStars(starter), Where("sao sau khi nâng"));
+            Assert.AreEqual(0, roster.GetFragments(starter), Where("mảnh phải bị trừ đúng giá"));
+
+            _step = "C4 nạp lại save";
+            var loaded = new SaveService(_savePath).Load();
+            Assert.IsNotNull(loaded, Where("không đọc lại được save tạm"));
+            Assert.IsTrue(loaded.StarUps.Any(e => e.CharacterId == starter && e.Count == 1), Where("StarUps không vào save"));
+
+            _step = "C5 Reset";
+            var card = GameObject.Find("CharacterCard0");
+            var info = card.transform.Find("InfoText").GetComponent<Text>();
+            StringAssert.Contains(new string('★', startStars + 1), info.text, Where("thẻ phải hiện sao mới trước khi Reset"));
+            Assert.IsTrue(ServiceLocator.Get<GameResetter>().Reset(), Where("Reset thất bại"));
+            Assert.AreEqual(startStars, stars.GetStars(starter), Where("sao sau Reset"));
+            Assert.AreEqual(0, roster.GetFragments(starter), Where("mảnh sau Reset"));
+            yield return null;
+            StringAssert.DoesNotContain(new string('★', startStars + 1), info.text, Where("thẻ vẫn hiện sao cũ sau Reset"));
+            Assert.AreEqual("", GameObject.Find("StarUpStatus").GetComponent<Text>().text, Where("dòng trạng thái còn chữ cũ sau Reset"));
+        }
+
 #if UNITY_EDITOR
         // --- Panel DEV (DevOverlay): chỉ tự dựng lúc Play khởi động khi chưa có service (L-024), nên test dựng tay sau khi Boot xong.
 

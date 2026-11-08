@@ -149,7 +149,7 @@ namespace BunDauPeo.UI
         {
             if (_roster == null || _stage == null) return;
 
-            var rows = TeamSelectRows.Build(_roster);
+            var rows = TeamSelectRows.Build(_roster, _service.Stars);
             var pageCount = Math.Max(1, (rows.Count + CardsPerPage - 1) / CardsPerPage);
             _page = Mathf.Clamp(_page, 0, pageCount - 1);
             for (var i = 0; i < _cards.Length; i++)
