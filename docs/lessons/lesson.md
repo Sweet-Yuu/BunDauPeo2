@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-031 — Kênh con tự ghi id của mình lấy từ đường dẫn scratchpad (lặp L-030) (2026-11-08)  #process
+- Triệu chứng: 📐 Nâng sao gửi báo cáo cuối kênh cho 📋 và 🎯 với id `local_222f75ce-…`, lấy từ đường dẫn scratchpad. Id thật của session là `local_a927d7d3-…`, phải nhắn đính chính.
+- Nguyên nhân gốc: đường dẫn scratchpad và transcript chứa id cuộc hội thoại, không phải id session của app (giống L-030, lần này ở phía kênh con).
+- Luật từ nay: trước khi viết khối "Báo cáo cuối kênh", gọi `get_session` với `"self"` rồi chép `sessionId` vào báo cáo. Lặp lần 2: reviewer nâng thành luật trong skill worker.
+
 ### L-030 — 🎯 đưa id transcript thay cho id session vào brief, kênh con không nhắn lại được (2026-11-08)  #process
 - Triệu chứng: 🔍 Review Song ngữ báo "không tìm thấy phiên" khi nhắn 🎯 Điều phối #2 theo id `local_5e714e6d-…` ghi trong brief.
 - Nguyên nhân gốc: 🎯 lấy id từ tên file transcript (`…/projects/…/5e714e6d-….jsonl`). Đó là id cuộc hội thoại, không phải id session của app (`local_f37812f1-…`).
