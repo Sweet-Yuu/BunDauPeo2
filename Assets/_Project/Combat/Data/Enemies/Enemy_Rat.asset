@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Enemy_Rat
   m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.EnemyDefinition
   _displayName: "Chu\u1ED9t B\u1EBFp"
+  _displayNameEn: Kitchen Rat
   _stats:
     HP: 900
     Attack: 85

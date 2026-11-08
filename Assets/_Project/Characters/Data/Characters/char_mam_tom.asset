@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Characters::BunDauPeo.Characters.CharacterDefinition
   _id: char_mam_tom
   _displayName: "M\u1EAFm T\xF4m"
+  _displayNameEn: Mam Tom
   _rarity: 1
   _stars: 2
   _class: 5

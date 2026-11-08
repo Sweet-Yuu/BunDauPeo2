@@ -46,8 +46,8 @@ namespace BunDauPeo.EditorTools
             Stretch(back);
             AddImage(back, null, Background, raycast: false);
 
-            var backButton = NewButton("BackButton", canvas, sprite, font, "Quay lại", ButtonColor, TopLeft, new Vector2(20, -20), new Vector2(220, 90));
-            var chapter = NewText("ChapterText", canvas, font, "Chương 1", 56, TextAnchor.MiddleLeft, Gold);
+            var backButton = BattleSceneBuilder.LabelButton("BackButton", canvas, sprite, font, "combat.back", ButtonColor, TopLeft, new Vector2(20, -20), new Vector2(220, 90));
+            var chapter = NewLabel("ChapterText", canvas, font, "combat.chapter_1", 56, TextAnchor.MiddleLeft, Gold);
             chapter.fontStyle = FontStyle.Bold;
             Place(chapter.rectTransform, TopLeft, TopLeft, new Vector2(270, -30), new Vector2(500, 70));
 
@@ -172,7 +172,7 @@ namespace BunDauPeo.EditorTools
             var root = NewRect("NextMarker", parent);
             Place(root, Center, Center, Vector2.zero, new Vector2(120, 90));
             root.gameObject.AddComponent<CanvasGroup>().blocksRaycasts = false;
-            var text = NewText("NextText", root, font, "NEXT", 34, TextAnchor.MiddleCenter, Gold);
+            var text = NewLabel("NextText", root, font, "combat.next", 34, TextAnchor.MiddleCenter, Gold);
             text.fontStyle = FontStyle.Bold;
             Place(text.rectTransform, Center, Center, new Vector2(0, 22), new Vector2(120, 40));
             var arrow = NewRect("Arrow", root);
@@ -200,7 +200,7 @@ namespace BunDauPeo.EditorTools
             var title = NewText("Title", box, font, "", 56, TextAnchor.MiddleLeft, Gold);
             title.fontStyle = FontStyle.Bold;
             Place(title.rectTransform, Center, Center, new Vector2(-480, 340), new Vector2(520, 80));
-            var enemyHeader = NewText("EnemyHeader", box, font, "Quái", 36, TextAnchor.MiddleLeft, Gold);
+            var enemyHeader = NewLabel("EnemyHeader", box, font, "combat.enemies", 36, TextAnchor.MiddleLeft, Gold);
             Place(enemyHeader.rectTransform, Center, Center, new Vector2(-660, 265), new Vector2(160, 50));
 
             var labels = new Text[StageInfoPopup.WaveRows];
@@ -208,7 +208,7 @@ namespace BunDauPeo.EditorTools
             for (var row = 0; row < labels.Length; row++)
             {
                 var y = 190 - row * 85;
-                labels[row] = NewText($"WaveLabel{row}", box, font, $"Đợt {row + 1}", 32, TextAnchor.MiddleLeft, Color.white);
+                labels[row] = NewText($"WaveLabel{row}", box, font, UiText.Format("combat.wave_row", row + 1), 32, TextAnchor.MiddleLeft, Color.white);
                 Place(labels[row].rectTransform, Center, Center, new Vector2(-660, y), new Vector2(160, 50));
                 for (var col = 0; col < StageInfoPopup.CellsPerRow; col++)
                 {
@@ -224,8 +224,8 @@ namespace BunDauPeo.EditorTools
             var warning = RightLine(box, font, "WarningText", 26, Warning, -185, 90);
             var message = RightLine(box, font, "MessageText", 32, Warning, -260, 50);
 
-            var cancel = NewButton("CancelButton", box, sprite, font, "Hủy", CardFrame, Center, new Vector2(395, -350), new Vector2(230, 100));
-            var challenge = NewButton("ChallengeButton", box, sprite, font, "Thách đấu", ButtonColor, Center, new Vector2(630, -350), new Vector2(230, 100));
+            var cancel = BattleSceneBuilder.LabelButton("CancelButton", box, sprite, font, "common.cancel", CardFrame, Center, new Vector2(395, -350), new Vector2(230, 100));
+            var challenge = BattleSceneBuilder.LabelButton("ChallengeButton", box, sprite, font, "combat.challenge", ButtonColor, Center, new Vector2(630, -350), new Vector2(230, 100));
             root.gameObject.SetActive(false);
 
             var popup = holder.gameObject.AddComponent<StageInfoPopup>();
@@ -260,8 +260,8 @@ namespace BunDauPeo.EditorTools
             Place(title.rectTransform, Center, Center, new Vector2(0, 180), new Vector2(800, 70));
             var body = Line(box, font, "BodyText", 42, Color.white, 40, 800);
             var message = Line(box, font, "MessageText", 32, Warning, -60, 800);
-            var proceed = NewButton("ContinueButton", box, sprite, font, "Tiếp tục", ButtonColor, Center, new Vector2(190, -170), new Vector2(340, 100));
-            var close = NewButton("CloseButton", box, sprite, font, "Đóng", CardFrame, Center, new Vector2(-190, -170), new Vector2(340, 100));
+            var proceed = BattleSceneBuilder.LabelButton("ContinueButton", box, sprite, font, "common.continue", ButtonColor, Center, new Vector2(190, -170), new Vector2(340, 100));
+            var close = BattleSceneBuilder.LabelButton("CloseButton", box, sprite, font, "common.close", CardFrame, Center, new Vector2(-190, -170), new Vector2(340, 100));
             root.gameObject.SetActive(false);
 
             var popup = holder.gameObject.AddComponent<StoryPlaceholderPopup>();
@@ -330,11 +330,11 @@ namespace BunDauPeo.EditorTools
 
             var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
             Place(message.rectTransform, Center, Center, new Vector2(0, -385), new Vector2(1200, 40));
-            var cancel = NewButton("CancelButton", box, sprite, font, "Hủy", CardFrame, Center, new Vector2(370, -255), new Vector2(300, 100));
-            var start = NewButton("StartButton", box, sprite, font, "Vào trận", ButtonColor, Center, new Vector2(690, -255), new Vector2(300, 100));
+            var cancel = BattleSceneBuilder.LabelButton("CancelButton", box, sprite, font, "common.cancel", CardFrame, Center, new Vector2(370, -255), new Vector2(300, 100));
+            var start = BattleSceneBuilder.LabelButton("StartButton", box, sprite, font, "combat.start", ButtonColor, Center, new Vector2(690, -255), new Vector2(300, 100));
 
-            var small = BuildConfirm(root, sprite, font, "SmallConfirm", "Vào trận", "Không", out var smallText, out var smallYes, out var smallNo);
-            var staff = BuildConfirm(root, sprite, font, "StaffConfirm", "Chuyển", "Không", out var staffText, out var staffYes, out var staffNo);
+            var small = BuildConfirm(root, sprite, font, "SmallConfirm", "combat.start", "common.no", out var smallText, out var smallYes, out var smallNo);
+            var staff = BuildConfirm(root, sprite, font, "StaffConfirm", "common.move", "common.no", out var staffText, out var staffYes, out var staffNo);
             root.gameObject.SetActive(false);
 
             var popup = holder.gameObject.AddComponent<TeamSelectPopup>();
@@ -418,7 +418,7 @@ namespace BunDauPeo.EditorTools
         }
 
         // Hộp xác nhận Có/Không nằm trong nền popup, có nền tối riêng chặn chạm; tắt sẵn.
-        private static RectTransform BuildConfirm(RectTransform parent, Sprite sprite, Font font, string name, string yesLabel, string noLabel,
+        private static RectTransform BuildConfirm(RectTransform parent, Sprite sprite, Font font, string name, string yesKey, string noKey,
             out Text text, out Button yes, out Button no)
         {
             var confirm = NewRect(name + "Root", parent);
@@ -429,8 +429,8 @@ namespace BunDauPeo.EditorTools
             AddImage(box, sprite, CardFrame, raycast: false);
             text = NewText(name + "Text", box, font, "", 42, TextAnchor.MiddleCenter, Color.white);
             Place(text.rectTransform, Center, Center, new Vector2(0, 70), new Vector2(820, 170));
-            yes = NewButton(name + "YesButton", box, sprite, font, yesLabel, ButtonColor, Center, new Vector2(-190, -100), new Vector2(340, 110));
-            no = NewButton(name + "NoButton", box, sprite, font, noLabel, new Color(0.45f, 0.47f, 0.55f), Center, new Vector2(190, -100), new Vector2(340, 110));
+            yes = BattleSceneBuilder.LabelButton(name + "YesButton", box, sprite, font, yesKey, ButtonColor, Center, new Vector2(-190, -100), new Vector2(340, 110));
+            no = BattleSceneBuilder.LabelButton(name + "NoButton", box, sprite, font, noKey, new Color(0.45f, 0.47f, 0.55f), Center, new Vector2(190, -100), new Vector2(340, 110));
             confirm.gameObject.SetActive(false);
             return confirm;
         }

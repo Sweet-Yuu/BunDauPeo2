@@ -46,6 +46,8 @@ namespace BunDauPeo.UI
             {
                 var wave = row < stage.Waves.Count ? stage.Waves[row] : null;
                 _waveLabels[row].gameObject.SetActive(wave != null);
+                // View giữ nhãn này nên tự ghi chữ mỗi lần mở; chữ builder ghi sẵn là tiếng Việt.
+                _waveLabels[row].text = UiText.Format("combat.wave_row", row + 1);
                 for (var col = 0; col < CellsPerRow; col++)
                 {
                     var cell = _cells[row * CellsPerRow + col];

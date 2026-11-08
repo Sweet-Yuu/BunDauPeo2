@@ -15,6 +15,14 @@
 
 ## Danh sách
 
+### D-012 — Song ngữ bằng bảng C# tự viết, ngôn ngữ lưu trong `PlayerSave` (2026-11-08)
+- Bối cảnh: master plan yêu cầu mọi chữ trong game có tiếng Việt và tiếng Anh. Game dùng uGUI `Text`, chưa có TextMeshPro, offline, chỉ hai ngôn ngữ.
+- Quyết định: bảng `UiText` (mỗi khu một file `partial`, key `khu.tên`) cộng `LocalizedText` cho nhãn cố định do builder dựng; ScriptableObject có thêm `_displayNameEn`, `DisplayName` qua `GameLanguage.Pick`. Ngôn ngữ lưu ở `PlayerSave.Language` (`"vi"`/`"en"`, `""` = theo máy), đổi ở panel Cài đặt DEV qua `LanguageSwitcher`, rồi nạp lại scene (trừ Battle). Reset Save Data xoá lựa chọn, game quay về theo máy ([D-005](#d-005--reset-save-data-xoá-toàn-bộ-dữ-liệu-đã-lưu-luôn-hỏi-xác-nhận-2026-10-31)).
+- Ba phương án đã cân: (1) package Unity Localization: bảng riêng, locale và asset, nặng cho hai ngôn ngữ và cần TextMeshPro hoặc font theo locale; (2) file JSON ngoài: thêm bước nạp và lỗi chạy, không có compiler bắt key thiếu; (3) bảng C# tự viết (chọn): test bắt key thiếu, thiếu `{n}` hay `
+`, và chữ viết cứng.
+- Lý do / đánh đổi: ít code, không thêm package, chữ đổi cùng commit với code dùng nó. Thêm ngôn ngữ thứ ba hay cần dịch ngoài (người không đụng code) thì chuyển sang package; khi đó `UiText.Get` là điểm duy nhất phải đổi. Bản tiếng Anh dịch nháp, user duyệt.
+- Trạng thái: Accepted
+
 ### D-011 — Build Android thử: APK debug, IL2CPP ARM64, package `com.sweetyuu.bundaupeo` (2026-11-07)
 - Bối cảnh: roadmap có mục "Build Android thử sớm" để bắt lỗi riêng của nền tảng trước hạn 31/12/2026. Spec: [build-android-design](../superpowers/specs/2026-11-07-build-android-design.md).
 - Quyết định: APK (không AAB), IL2CPP, ARM64, min API 25, chỉ màn ngang, ký debug, `BuildOptions.Development`, Boot là scene đầu, bỏ `SampleScene` khỏi build. Build chỉ kiểm cấu hình (`AndroidBuild.Problems`), không ghi `ProjectSettings`; cấu hình ghi một lần qua `ProjectSetup.ApplyBuildSettings`. Editor ở lại target Android sau khi build.

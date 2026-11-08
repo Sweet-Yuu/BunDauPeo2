@@ -3,11 +3,62 @@ using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.UI;
 using NUnit.Framework;
+using System.Text.RegularExpressions;
 
 namespace BunDauPeo.Tests
 {
     public class CombatViewTextTests
     {
+        private static readonly Regex Accented = new("[À-ỹ]");
+
+        [TearDown]
+        public void ResetLanguage() => GameLanguage.Current = Language.Vi;
+
+        [Test]
+        public void EnterFailedLine_English_EveryStatus()
+        {
+            GameLanguage.Current = Language.En;
+            foreach (EnterStageStatus status in System.Enum.GetValues(typeof(EnterStageStatus)))
+            {
+                var line = CombatViewText.EnterFailedLine(status);
+                Assert.IsNotEmpty(line, $"status = {status}");
+                Assert.IsFalse(line.StartsWith("#"), $"status = {status}: missing key '{line}'");
+                Assert.IsFalse(Accented.IsMatch(line), $"status = {status}: '{line}' still Vietnamese");
+            }
+        }
+
+        [Test]
+        public void StaminaCard_English()
+        {
+            GameLanguage.Current = Language.En;
+            var text = CombatViewText.StaminaCard(5, 100, 61);
+            StringAssert.Contains("5/100", text);
+            StringAssert.Contains("1:01", text);
+            Assert.IsFalse(Accented.IsMatch(text), text);
+        }
+
+        [Test]
+        public void ClassAndPosition_English_EveryValue()
+        {
+            GameLanguage.Current = Language.En;
+            foreach (CharacterClass cls in System.Enum.GetValues(typeof(CharacterClass)))
+            {
+                if (cls == CharacterClass.Unset) continue;
+                var name = CombatViewText.ClassName(cls);
+                Assert.IsNotEmpty(name, $"class = {cls}");
+                Assert.IsFalse(name.StartsWith("#"), $"class = {cls}: missing key '{name}'");
+                Assert.IsFalse(Accented.IsMatch(name), $"class = {cls}: '{name}'");
+            }
+
+            foreach (BattlePosition position in System.Enum.GetValues(typeof(BattlePosition)))
+            {
+                var name = CombatViewText.PositionName(position);
+                Assert.IsNotEmpty(name, $"position = {position}");
+                Assert.IsFalse(name.StartsWith("#"), $"position = {position}: missing key '{name}'");
+                Assert.IsFalse(Accented.IsMatch(name), $"position = {position}: '{name}'");
+            }
+        }
+
         [Test]
         public void UnitHp_CurrentOverMax()
         {

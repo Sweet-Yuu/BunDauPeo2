@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: EnemySkill_Roar
   m_EditorClassIdentifier: BunDauPeo.Characters::BunDauPeo.Characters.SkillDefinition
   _displayName: "G\u1EA7m"
+  _displayNameEn: Roar
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _kind: 1
   _target: 1

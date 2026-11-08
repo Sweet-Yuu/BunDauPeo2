@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Incident_GasBlocked
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.IncidentDefinition
   _displayName: "B\u1EBFp t\u1EAFc ga"
+  _displayNameEn: Blocked Stove
   _role: 0
   _weight: 1

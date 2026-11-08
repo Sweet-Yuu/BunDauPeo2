@@ -12,6 +12,30 @@ namespace BunDauPeo.Tests
         private static ActiveIncident Incident(StaffRole role, string name, bool canResolve) =>
             new ActiveIncident(RestaurantTestData.Incident(role, 1, name), role, 0f, canResolve);
 
+        [TearDown]
+        public void TearDown() => GameLanguage.Current = Language.Vi;
+
+        [Test]
+        public void IncomeLine_English_UsesDotAndPerSecond()
+        {
+            GameLanguage.Current = Language.En;
+
+            Assert.AreEqual("≈ 1.5 Coin/s", RestaurantViewText.IncomeLine(new IncomeEstimate(1.5, null)));
+            StringAssert.Contains("Cook", RestaurantViewText.IncomeLine(new IncomeEstimate(0, StaffRole.Cook)));
+        }
+
+        [Test]
+        public void AfkButton_English_KeepsTwoLines()
+        {
+            GameLanguage.Current = Language.En;
+
+            var text = RestaurantViewText.AfkButton(10286);
+
+            Assert.AreEqual(1, text.Count(c => c == '\n'));
+            StringAssert.Contains("10286 Coin", text);
+            StringAssert.DoesNotContain("Thu", text);
+        }
+
         [Test]
         public void AfkButton_ShowsPreviewCoins()
         {

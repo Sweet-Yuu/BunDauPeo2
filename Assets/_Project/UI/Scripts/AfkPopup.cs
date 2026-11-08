@@ -103,7 +103,7 @@ namespace BunDauPeo.UI
                 : RestaurantViewText.AfkSummary(_absenceSeconds, afk.PendingTheoretical, quality.Total, quality.AfkFactor, afk.PreviewCollect());
             _fullText.text = RestaurantViewText.FullCapLine(afk.IsFull);
             _collectButton.gameObject.SetActive(!_collectedUnsaved);
-            _laterLabel.text = _collectedUnsaved ? "Đóng" : "Để sau";
+            _laterLabel.text = _collectedUnsaved ? UiText.Get("common.close") : UiText.Get("restaurant.later");
         }
 
         private void Collect()

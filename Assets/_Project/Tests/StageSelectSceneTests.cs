@@ -1,4 +1,5 @@
 using System.Linq;
+using BunDauPeo.Core;
 using BunDauPeo.EditorTools;
 using BunDauPeo.UI;
 using NUnit.Framework;
@@ -315,5 +316,37 @@ namespace BunDauPeo.Tests
                         ProjectSetup.StageSelectScenePath, ProjectSetup.BattleScenePath },
                 paths.Take(5).ToArray());
         }
+
+        // B1: nhãn đợt do view giữ nên view phải tự ghi chữ lúc Open, không dựa vào chữ builder đã ghi sẵn (builder chạy ở tiếng Việt).
+        [Test]
+        public void InfoPopup_Open_WaveLabelsFollowLanguage() =>
+            WithStageSelect(scene =>
+            {
+                var stage = CombatTestData.Stage("s1", new[] { CombatTestData.Enemy() }, new[] { CombatTestData.Enemy() });
+                var rig = new CombatRig(new[] { stage });
+                var popup = RestaurantSceneTests.All<StageInfoPopup>(scene).Single();
+                var labels = ReadArray<Text>(new SerializedObject(popup).FindProperty("_waveLabels"));
+                try
+                {
+                    GameLanguage.Current = Language.En;
+                    popup.Open(rig.Service, stage);
+                    Assert.AreEqual("Wave 1", labels[0].text);
+                    Assert.AreEqual("Wave 2", labels[1].text);
+
+                    GameLanguage.Current = Language.Vi;
+                    popup.Open(rig.Service, stage);
+                    Assert.AreEqual("Đợt 1", labels[0].text);
+                    Assert.AreEqual("Đợt 2", labels[1].text);
+                }
+                finally
+                {
+                    GameLanguage.Current = Language.Vi;
+                    popup.Close();
+                }
+            });
+
+        [Test]
+        public void StageSelectScene_LocalizedTexts_KeysExistAndNotWrittenByViews() =>
+            WithStageSelect(SceneTextAsserts.AssertLocalizedTexts);
     }
 }

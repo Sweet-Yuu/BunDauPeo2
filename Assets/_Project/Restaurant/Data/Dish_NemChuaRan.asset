@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Dish_NemChuaRan
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.DishDefinition
   _displayName: "Nem chua r\xE1n"
+  _displayNameEn: Nem Chua Ran
   _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _basePrice: 25
   _cookSeconds: 5

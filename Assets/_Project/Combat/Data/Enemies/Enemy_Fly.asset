@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Enemy_Fly
   m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.EnemyDefinition
   _displayName: "Ru\u1ED3i B\xE0n"
+  _displayNameEn: Table Fly
   _stats:
     HP: 500
     Attack: 60

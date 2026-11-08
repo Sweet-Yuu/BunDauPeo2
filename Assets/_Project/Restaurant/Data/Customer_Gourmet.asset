@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Customer_Gourmet
   m_EditorClassIdentifier: BunDauPeo.Restaurant::BunDauPeo.Restaurant.CustomerDefinition
   _displayName: "Kh\xE1ch s\xE0nh \u0103n"
+  _displayNameEn: Gourmet Customer
   _sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   _spawnWeight: 3
   _patienceSeconds: 30

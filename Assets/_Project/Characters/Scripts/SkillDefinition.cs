@@ -1,3 +1,4 @@
+using BunDauPeo.Core;
 using UnityEngine;
 
 namespace BunDauPeo.Characters
@@ -6,6 +7,7 @@ namespace BunDauPeo.Characters
     public class SkillDefinition : ScriptableObject
     {
         [SerializeField] private string _displayName;
+        [SerializeField] private string _displayNameEn;
         [SerializeField] private Sprite _icon;
         [SerializeField] private SkillKind _kind;
         [SerializeField] private SkillTarget _target;
@@ -17,7 +19,7 @@ namespace BunDauPeo.Characters
         [SerializeField] private int _energyCost;
         [SerializeField] private string _animationTrigger;
 
-        public string DisplayName => _displayName;
+        public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public Sprite Icon => _icon;
         public SkillKind Kind => _kind;
         public SkillTarget Target => _target;

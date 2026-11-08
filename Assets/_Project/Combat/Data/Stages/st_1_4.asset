@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Combat::BunDauPeo.Combat.StageDefinition
   _id: st_1_4
   _displayName: 1-4
+  _displayNameEn: 1-4
   _kind: 0
   _waves:
   - _enemies:

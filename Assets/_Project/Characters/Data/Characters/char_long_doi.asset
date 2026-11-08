@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Characters::BunDauPeo.Characters.CharacterDefinition
   _id: char_long_doi
   _displayName: "L\xF2ng D\u1ED3i"
+  _displayNameEn: Long Doi
   _rarity: 1
   _stars: 2
   _class: 1
