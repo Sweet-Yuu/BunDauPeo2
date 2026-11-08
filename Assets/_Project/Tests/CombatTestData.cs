@@ -81,20 +81,22 @@ namespace BunDauPeo.Tests
         }
 
         public static BattleSession Battle(IReadOnlyList<CharacterDefinition> team, StageDefinition stage,
-            CombatConfig config = null, System.Random random = null) =>
-            new BattleSession(team, stage, config ?? Config(), random ?? new ScriptedRandom());
+            CombatConfig config = null, System.Random random = null, Func<CharacterDefinition, CombatStats> statsOf = null) =>
+            new BattleSession(team, stage, config ?? Config(), random ?? new ScriptedRandom(), statsOf);
 
         // Mọi test tạo CombatService qua đây, để task thể lực và tiến độ đổi chữ ký ở một chỗ.
         public static CombatService Service(CombatConfig config = null, Roster roster = null, Func<bool> persist = null,
-            StaminaService stamina = null, StageProgressService progress = null)
+            StaminaService stamina = null, StageProgressService progress = null, StarService stars = null)
         {
             config ??= Config();
             persist ??= () => true;
             var save = new PlayerSave();
             stamina ??= new StaminaService(save, config, () => DateTime.UtcNow);
             progress ??= new StageProgressService(save, new Wallet(save), config.Stages, stamina, persist);
-            return new CombatService(config, roster ?? new Roster(new PlayerSave(), TestData.Catalog()), stamina, progress,
-                new ScriptedRandom(), persist);
+            roster ??= new Roster(new PlayerSave(), TestData.Catalog());
+            // Mặc định: catalog rỗng nên không nhân vật nào được cộng sao, chỉ số trận bằng chỉ số SO.
+            stars ??= new StarService(new PlayerSave(), roster, TestData.Catalog(), ScriptableObject.CreateInstance<StarConfig>(), persist);
+            return new CombatService(config, roster, stars, stamina, progress, new ScriptedRandom(), persist);
         }
 
         // Đánh tới Won bằng đòn thường (quái trong test có 1 HP, nhân vật nhanh hơn).

@@ -26,16 +26,6 @@
 
 ## Đang hiệu lực
 
-### L-031 — Kênh con tự ghi id của mình lấy từ đường dẫn scratchpad (lặp L-030) (2026-11-08)  #process
-- Triệu chứng: 📐 Nâng sao gửi báo cáo cuối kênh cho 📋 và 🎯 với id `local_222f75ce-…`, lấy từ đường dẫn scratchpad. Id thật của session là `local_a927d7d3-…`, phải nhắn đính chính.
-- Nguyên nhân gốc: đường dẫn scratchpad và transcript chứa id cuộc hội thoại, không phải id session của app (giống L-030, lần này ở phía kênh con).
-- Luật từ nay: trước khi viết khối "Báo cáo cuối kênh", gọi `get_session` với `"self"` rồi chép `sessionId` vào báo cáo. Lặp lần 2: reviewer nâng thành luật trong skill worker.
-
-### L-030 — 🎯 đưa id transcript thay cho id session vào brief, kênh con không nhắn lại được (2026-11-08)  #process
-- Triệu chứng: 🔍 Review Song ngữ báo "không tìm thấy phiên" khi nhắn 🎯 Điều phối #2 theo id `local_5e714e6d-…` ghi trong brief.
-- Nguyên nhân gốc: 🎯 lấy id từ tên file transcript (`…/projects/…/5e714e6d-….jsonl`). Đó là id cuộc hội thoại, không phải id session của app (`local_f37812f1-…`).
-- Luật từ nay: brief cần id của kênh 🎯 thì lấy bằng `get_session` với `"self"`, không suy từ đường dẫn transcript hay bản tóm tắt.
-
 ### L-029 — Kế hoạch ghi test EditMode cho `OnEnable`, nhưng EditMode không gọi `OnEnable` của MonoBehaviour thường (2026-11-07)  #script #process
 - Triệu chứng: `LocalizedTextTests` theo kế hoạch (tạo GameObject, bật lại, đọc `Text`) đỏ vì chữ vẫn rỗng; code đúng.
 - Nguyên nhân gốc: ngoài Play, Unity chỉ chạy `Awake`/`OnEnable` cho lớp có `[ExecuteAlways]`. Thêm `ExecuteAlways` chỉ để qua test thì `OnEnable` chạy cả khi mở scene trong Editor.
@@ -63,6 +53,8 @@
 ## Đã nâng thành luật
 
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
+
+- L-030, L-031 (2026-11-08, `#process`): id kênh lấy bằng `get_session` với `"self"`, không suy từ đường dẫn scratchpad hay transcript → [session-brief.md](../guides/session-brief.md), skill worker (Báo cáo cuối kênh), skill coordinator (Mở kênh con).
 
 - L-028 (2026-11-06) Play đứng ở khung 2 khi cửa sổ Editor không ở trước, dù đã bật chạy nền (lặp L-009)  #process #unity-files → [unity-workflow](../guides/unity-workflow.md#công-cụ-chính-unity-cli-unity)
 - L-027 (2026-11-06) Test đè nút chỉ xét nút đang bật bỏ sót nút Bỏ qua của Gacha (lặp L-025)  #ui #process → [code-style, Test](../guides/code-style.md#test)

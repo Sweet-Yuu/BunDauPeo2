@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- Nâng sao nhân vật: user duyệt [spec](superpowers/specs/2026-11-08-star-up-design.md) và [kế hoạch](superpowers/plans/2026-11-08-star-up.md) ngày 2026-11-08 (7 task, 2 phiên 🔨, dừng playtest sau Task 7; dự kiến 831 EditMode + 14 PlayMode). Nhánh docs `docs/star-up-spec` chưa commit. Kế tiếp: 📋 commit, 🎯 mở phiên 🔨 A (Task 1–3) trên `feature/star-up`.
+- Nâng sao nhân vật: user duyệt [spec](superpowers/specs/2026-11-08-star-up-design.md) và [kế hoạch](superpowers/plans/2026-11-08-star-up.md) ngày 2026-11-08 (7 task, 2 phiên 🔨, dừng playtest sau Task 7; dự kiến 831 EditMode + 14 PlayMode). Phiên 🔨 A (Task 1–3: save `StarUps`, `StarConfig`, `StarService`, chỉ số trận theo sao, nối Combat và Boot) xong trên `feature/star-up` (820 EditMode, 13 PlayMode xanh), chưa commit. Kế tiếp: 📋 commit, 🎯 kiểm, mở phiên 🔨 B (Task 4–7: UI, dừng playtest).
 
 ## Tiếp theo
 

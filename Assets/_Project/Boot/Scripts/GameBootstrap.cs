@@ -16,6 +16,7 @@ namespace BunDauPeo.Boot
         [SerializeField] private GachaBannerCatalog _bannerCatalog;
         [SerializeField] private RestaurantConfig _restaurantConfig;
         [SerializeField] private CombatConfig _combatConfig;
+        [SerializeField] private StarConfig _starConfig;
         [SerializeField] private string _startScene;
 
         // Chỉ bản khởi động thành công mới là "active"; nạp lại scene Boot sẽ sinh bản thứ hai và hai session cùng ghi đè save của nhau.
@@ -68,6 +69,12 @@ namespace BunDauPeo.Boot
                 return;
             }
 
+            if (_starConfig == null)
+            {
+                Debug.LogError($"{nameof(GameBootstrap)}: field {nameof(_starConfig)} is not assigned.", this);
+                return;
+            }
+
             if (_active != null && _active != this)
             {
                 Destroy(gameObject);
@@ -104,9 +111,12 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(_restaurant);
             _session.ResetCompleted += _restaurant.ResetRuntime;
 
+            var stars = new StarService(_session.Save, _session.Roster, _catalog, _starConfig, _session.Persist);
+            ServiceLocator.Register(stars);
+
             var stamina = new StaminaService(_session.Save, _combatConfig, () => System.DateTime.UtcNow);
             var progress = new StageProgressService(_session.Save, _session.Wallet, _combatConfig.Stages, stamina, _session.Persist);
-            var combat = new CombatService(_combatConfig, _session.Roster, stamina, progress, new System.Random(), _session.Persist);
+            var combat = new CombatService(_combatConfig, _session.Roster, stars, stamina, progress, new System.Random(), _session.Persist);
             ServiceLocator.Register(combat);
             _session.ResetCompleted += combat.ResetRuntime;
 

@@ -84,6 +84,8 @@ _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 - User merge PR #13 → `main` ở `8ec923c`. 🎯 đánh dấu spec Song ngữ đã xong, chuyển roadmap sang "Đã xong"; Đang làm: không có, kế tiếp Nâng sao nhân vật. Các sửa docs này chưa commit (trên `main`).
 - 2026-11-08: mở 📐 Nâng sao nhân vật (Opus 5.5 high, nhánh `docs/star-up-spec` từ `main`); báo cáo gửi 📋 và 🎯.
 - 📐 Nâng sao xong, user duyệt spec + kế hoạch (🎯 kiểm: spec "đã duyệt", kế hoạch 7 task, 2 phiên 🔨: A 1–3 save/`StarConfig`/`StarService`/nối Combat-Boot, B 4–7 ★ ở thẻ đội + Gacha, màn `Characters.unity` mở từ panel DEV, dừng playtest sau Task 7; dự kiến 831 EditMode + 14 PlayMode). Luật: giá 2/4/6/8 mảnh, +10% HP/Tấn công/Thủ mỗi sao đã nâng, mảnh dư ở 5★ để dành. vision.md đổi (theo 📐: user cho phép). Chưa commit, chờ 📋 commit `docs/star-up-spec`.
+- User cho nâng L-030/L-031 thành luật: 🎯 thêm "id kênh lấy bằng `get_session` self" vào skill worker (Báo cáo cuối kênh), skill coordinator (Mở kênh con), `session-brief.md`; rút hai mục lesson thành một dòng. Chưa commit.
+- 2026-11-08: mở 🔨 Nâng sao 1/2 (Task 1–3, Sonnet 5.5 high vì đụng save và mảnh, nhánh `feature/star-up` từ `docs/star-up-spec`); báo cáo gửi 📋 và 🎯.
 - **Việc chờ (user giao 2026-11-06, đã xong):** xong việc sửa layout thì dọn các file/thư mục `bdp-*` ở `D:\Unity\` (log, xml test, `bdp-shots`, `bdp-save-backup*`, script `.sh`) vào `D:\bdp_BunDauPeo` (user tạo, đang trống, 06/11). Kèm sửa đường dẫn mặc định: `ScreenCapture1080.cs` (`../bdp-shots`), lệnh `unity test --output ../bdp-*.xml` trong `unity-workflow.md` và kế hoạch layout (giao một kênh 🔨, 📋 commit). Kế hoạch cũ đã xong thì để nguyên.
 
 ### #1 — 2026-11-03 — 🎯 Điều phối #1 (quy trình studio)

@@ -99,9 +99,11 @@ namespace BunDauPeo.Tests
             session.Save.GachaPity.Add(new PityEntry { BannerId = "b", Pulls = 7 });
             session.Save.GachaHistory.Add(new GachaHistoryEntry { BannerId = "b", Count = 1, CharacterIds = new[] { "a" } });
             session.Save.Language = "en";
+            session.Save.StarUps.Add(new StarUpEntry { CharacterId = "a", Count = 3 });
 
             Assert.IsTrue(session.ResetToDefaults());
 
+            Assert.AreEqual(0, session.Save.StarUps.Count);
             Assert.AreEqual(0, session.Wallet.Get(CurrencyType.Gem));
             Assert.IsFalse(session.Roster.IsOwned("ghost"));
             Assert.AreEqual(0, session.Save.BattleTeam.Count);

@@ -128,6 +128,17 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void StarConfigAsset_ExistsAndValid()
+        {
+            var config = AssetDatabase.LoadAssetAtPath<StarConfig>(ProjectSetup.StarConfigPath);
+            Assert.IsNotNull(config);
+            CollectionAssert.IsEmpty(config.Validate());
+        }
+
+        [Test]
+        public void BootScene_HasStarConfig() => Assert.IsNotNull(ReadBootField("_starConfig"));
+
+        [Test]
         public void WireBootScene_FillsMissingBannerCatalog()
         {
             try
@@ -161,13 +172,15 @@ namespace BunDauPeo.Tests
             }
         }
 
-        private static Object ReadBootBannerCatalog()
+        private static Object ReadBootBannerCatalog() => ReadBootField("_bannerCatalog");
+
+        private static Object ReadBootField(string field)
         {
             var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
             var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
             try
             {
-                return new SerializedObject(BootstrapIn(scene)).FindProperty("_bannerCatalog").objectReferenceValue;
+                return new SerializedObject(BootstrapIn(scene)).FindProperty(field).objectReferenceValue;
             }
             finally
             {

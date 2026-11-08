@@ -32,6 +32,7 @@ namespace BunDauPeo.EditorTools
         public const string UpgradeCatalogPath = "Assets/_Project/Restaurant/Data/UpgradeCatalog.asset";
         public const string CombatConfigPath = "Assets/_Project/Combat/Data/CombatConfig.asset";
         public const string StageCatalogPath = "Assets/_Project/Combat/Data/StageCatalog.asset";
+        public const string StarConfigPath = "Assets/_Project/Characters/Data/StarConfig.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
         private const string SkillsFolder = CharacterData + "/Skills";
@@ -159,6 +160,9 @@ namespace BunDauPeo.EditorTools
             GetOrCreateAsset<GachaBannerCatalog>(BannerCatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), new Object[] { banner })));
 
+            // Số khởi điểm nằm ở field initializer của StarConfig; asset đã có thì giữ số bạn đã chỉnh.
+            GetOrCreateAsset<StarConfig>(StarConfigPath, null);
+
             CreateRestaurantData();
             CreateCombatData();
             FillEnglishNames();
@@ -242,6 +246,13 @@ namespace BunDauPeo.EditorTools
                     if (combat.objectReferenceValue == null)
                     {
                         combat.objectReferenceValue = AssetDatabase.LoadAssetAtPath<CombatConfig>(CombatConfigPath);
+                        changed = true;
+                    }
+
+                    var stars = so.FindProperty("_starConfig");
+                    if (stars.objectReferenceValue == null)
+                    {
+                        stars.objectReferenceValue = AssetDatabase.LoadAssetAtPath<StarConfig>(StarConfigPath);
                         changed = true;
                     }
 
