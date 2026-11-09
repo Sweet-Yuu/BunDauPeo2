@@ -26,6 +26,10 @@
 
 ## Đang hiệu lực
 
+### L-033 — Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn (2026-11-09)  #ui #process
+- Triệu chứng: mô phỏng hub bản 1 có banner Gacha và Menu là hộp giữa màn, các popup con giữ cỡ cũ; user sửa: popup phải che kín màn, chỉ hộp xác nhận và phần thưởng giữ cỡ.
+- Nguyên nhân gốc: 📐 lấy cỡ popup đang có làm mặc định, không hỏi luật kín màn trước khi vẽ.
+- Luật từ nay: popup và trang mới mặc định kín 1920×1080 (thanh dưới vẫn hiện); chỉ popup xác nhận và phần thưởng là hộp, nền mờ kín màn che cả thanh ([spec UI hub 5.5](../superpowers/specs/2026-11-09-ui-hub-design.md)).
 ### L-029 — Kế hoạch ghi test EditMode cho `OnEnable`, nhưng EditMode không gọi `OnEnable` của MonoBehaviour thường (2026-11-07)  #script #process
 - Triệu chứng: `LocalizedTextTests` theo kế hoạch (tạo GameObject, bật lại, đọc `Text`) đỏ vì chữ vẫn rỗng; code đúng.
 - Nguyên nhân gốc: ngoài Play, Unity chỉ chạy `Awake`/`OnEnable` cho lớp có `[ExecuteAlways]`. Thêm `ExecuteAlways` chỉ để qua test thì `OnEnable` chạy cả khi mở scene trong Editor.
