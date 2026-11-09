@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace BunDauPeo.UI
 {
     // Bấm thẻ sao ở HUD mở popup này (spec 5.4). Chỉ đọc RestaurantQuality; số vẽ lại mỗi khung khi đang mở.
-    public class QualityPopup : MonoBehaviour
+    public class QualityPopup : MonoBehaviour, IHubPage
     {
         private const int Days = 7;
 
@@ -25,6 +25,8 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _factorText;
 
         private RestaurantService _service;
+
+        public bool IsOpen => _root != null && _root.activeSelf;
 
         private void OnEnable()
         {
@@ -79,7 +81,7 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
-        private void Close()
+        public void Close()
         {
             _service.Incidents.SetSpawnBlocked(this, false);
             _root.SetActive(false);

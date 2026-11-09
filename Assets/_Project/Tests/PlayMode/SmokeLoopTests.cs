@@ -270,6 +270,166 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(startStars + 1, stars.GetStars(starter), Where("lưu lỗi vẫn phải áp dụng trong bộ nhớ"));
         }
 
+        // --- Menu của hub (spec UI hub 5.6, 5.7): Reset, Ngôn ngữ, đường về sau trận.
+
+        // Hub của lần nạp Restaurant mới: HubNav cũ bị huỷ cuối khung nạp, nên chờ tới khi tìm thấy cái khác.
+        private IEnumerator WaitForNewHub(HubNav old)
+        {
+            var deadline = Time.realtimeSinceStartup + SceneTimeout;
+            while (true)
+            {
+                var hub = Object.FindFirstObjectByType<HubNav>();
+                if (hub != null && hub != old) yield break;
+                if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where($"{SceneTimeout}s chờ Restaurant nạp lại. Nút: {UiDriver.DescribeVisibleButtons()}"));
+                yield return null;
+            }
+        }
+
+        // Mở bản đồ, qua các màn Truyện đứng trước, bấm màn Battle đầu tiên rồi Thách đấu: dừng ở popup Chọn đội.
+        private IEnumerator OpenTeamSelectOfFirstBattle(CombatService combat)
+        {
+            yield return ClickWhenReady("NavTabStages_PH_320x120");
+            var stages = combat.Config.Stages.Items;
+            var battleIndex = stages.Select((st, i) => (st, i)).First(x => x.st.Kind == StageKind.Battle).i;
+            for (var i = 0; i < battleIndex; i++)
+            {
+                yield return ClickWhenReady("Node" + i);
+                yield return ClickWhenReady("ContinueButton");
+            }
+
+            yield return ClickWhenReady("Node" + battleIndex);
+            yield return ClickWhenReady("ChallengeButton");
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Menu_Reset_CancelKeeps_ConfirmClears()
+        {
+            _step = "R1 Boot";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var roster = session.Roster;
+            var starter = roster.GetOwned()[0].Id;
+            var newGems = session.Wallet.Get(CurrencyType.Gem);
+            var newTeam = roster.GetBattleTeam().Select(c => c.Id).ToList();
+            var newFragments = roster.GetFragments(starter);
+
+            _step = "R2 chơi: +Gem, +mảnh, đổi đội";
+            session.Wallet.Add(CurrencyType.Gem, 1000);
+            roster.AddFragments(starter, 7);
+            if (roster.GetBattleTeam().Count == 0) roster.AddToTeam(starter);
+            else roster.RemoveFromTeam(starter);
+            Assert.IsTrue(session.Persist(), Where("ghi save tạm"));
+            var played = session.Wallet.Get(CurrencyType.Gem);
+
+            _step = "R3 Gacha → Menu → Reset → Huỷ";
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            Assert.AreEqual(played, session.Wallet.Get(CurrencyType.Gem), Where("mới bấm Reset dữ liệu mà đã reset: bỏ qua bước xác nhận (D-005)"));
+            Assert.AreEqual(1, UiDriver.FindButtons("ResetYesBtn_PH_340x110").Count, Where("hộp xác nhận Reset phải hiện"));
+            yield return ClickWhenReady("ResetNoBtn_PH_340x110");
+            Assert.AreEqual(played, session.Wallet.Get(CurrencyType.Gem), Where("Huỷ mà vẫn reset"));
+            Assert.AreEqual(0, UiDriver.FindButtons("ResetYesBtn_PH_340x110").Count, Where("Huỷ phải đóng hộp xác nhận"));
+            Assert.IsTrue(File.Exists(_savePath), Where("Huỷ mà file save mất"));
+            Assert.AreEqual(1, UiDriver.FindButtons("MenuResetBtn_PH_700x100").Count, Where("Huỷ xong Menu vẫn mở"));
+
+            _step = "R4 Reset → Xoá hết";
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            yield return ClickWhenReady("ResetYesBtn_PH_340x110");
+            yield return WaitForNewHub(oldHub);
+
+            _step = "R5 kiểm game mới";
+            Assert.AreEqual(newGems, session.Wallet.Get(CurrencyType.Gem), Where("Gem sau Xoá hết"));
+            CollectionAssert.AreEqual(newTeam, roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("đội sau Xoá hết"));
+            Assert.AreEqual(newFragments, roster.GetFragments(starter), Where("mảnh sau Xoá hết"));
+            var hub = Object.FindFirstObjectByType<HubNav>();
+            Assert.AreEqual(HubTab.Restaurant, hub.State.Current, Where("sau Xoá hết phải về Lobby"));
+            Assert.IsFalse(hub.State.MenuOpen, Where("sau Xoá hết Menu không được mở"));
+            foreach (var panel in new[] { "CharactersPanel_PH_1920x1080", "StageMapPanel_PH_1920x1080", "GachaPanel_PH_1920x1080", "MenuPanel_PH_1920x1080" })
+                Assert.IsNull(GameObject.Find(panel), Where($"{panel} còn bật sau Xoá hết"));
+            Assert.IsFalse(HubPending.TryTake(out _, out _), Where("Xoá hết không được để lại ô chờ"));
+            var loaded = new SaveService(_savePath).Load();
+            Assert.IsNotNull(loaded, Where("sau Reset phải có file save mới"));
+            Assert.AreEqual(newGems, new Wallet(loaded).Get(CurrencyType.Gem), Where("Gem trong file save sau Reset"));
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Menu_Language_KeepsTabAndPersists()
+        {
+            _step = "G1 Boot (Việt)";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var combat = ServiceLocator.Get<CombatService>();
+            // Máy dev có thể là tiếng Anh: ép về tiếng Việt rồi nạp lại để nhãn bắt đầu bằng tiếng Việt.
+            Assert.IsTrue(session.SetLanguage(Language.Vi), Where("SetLanguage(Vi)"));
+            SceneManager.LoadScene("Restaurant");
+            yield return null;
+            yield return WaitForScene("Restaurant");
+
+            _step = "G2 Màn chơi → Chọn đội (dở)";
+            yield return OpenTeamSelectOfFirstBattle(combat);
+            yield return ClickWhenReady("TeamCard0");
+            var teamBefore = session.Roster.GetBattleTeam().Select(c => c.Id).ToList();
+
+            _step = "G3 Menu → Ngôn ngữ";
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            Assert.AreEqual("Ngôn ngữ: Tiếng Việt", GameObject.Find("MenuLanguageBtn_PH_700x100").GetComponentInChildren<Text>().text, Where("nhãn Ngôn ngữ trước khi đổi"));
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            yield return ClickWhenReady("MenuLanguageBtn_PH_700x100");
+            yield return WaitForNewHub(oldHub);
+            yield return null; // LocalizedText.OnEnable của scene mới
+
+            _step = "G4 kiểm sau khi nạp lại";
+            var hub = Object.FindFirstObjectByType<HubNav>();
+            Assert.AreEqual(Language.En, GameLanguage.Current, Where("GameLanguage"));
+            Assert.AreEqual(HubTab.Stages, hub.State.Current, Where("đổi ngôn ngữ phải ở lại ô Màn chơi"));
+            Assert.IsTrue(hub.State.MenuOpen, Where("đổi ngôn ngữ xong Menu phải còn mở"));
+            Assert.AreEqual("Language: English", GameObject.Find("MenuLanguageBtn_PH_700x100").GetComponentInChildren<Text>().text, Where("nhãn Ngôn ngữ"));
+            Assert.AreEqual("Restaurant", GameObject.Find("NavTabRestaurant_PH_320x120").GetComponentInChildren<Text>().text, Where("nhãn ô Quán phải theo tiếng Anh"));
+            CollectionAssert.AreEqual(teamBefore, session.Roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("đội đổi sau khi đổi ngôn ngữ"));
+
+            _step = "G5 nạp lại save tạm";
+            var loaded = new SaveService(_savePath).Load();
+            Assert.IsNotNull(loaded, Where("không đọc lại được save tạm"));
+            Assert.AreEqual("en", loaded.Language, Where("Language trong save"));
+            CollectionAssert.AreEqual(teamBefore, loaded.BattleTeam, Where("đội trong save"));
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_BattleBack_OpensStageMap()
+        {
+            _step = "B1 Boot, vào trận màn Battle đầu";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var combat = ServiceLocator.Get<CombatService>();
+            yield return OpenTeamSelectOfFirstBattle(combat);
+            var teamSize = Math.Min(session.Roster.GetOwned().Count, Roster.MaxBattleTeamSize);
+            for (var i = 0; i < teamSize; i++) yield return ClickWhenReady("TeamCard" + i);
+            yield return ClickWhenReady("StartButton");
+            if (BattleFormation.GetEntryStatus(teamSize) == TeamEntryStatus.NeedsConfirm)
+                yield return ClickWhenReady("SmallConfirmYesButton");
+            yield return WaitForScene(BattleView.BattleScene);
+
+            _step = "B2 Menu tạm dừng → Bỏ cuộc → Quay lại";
+            yield return WaitForButtonStep("MenuButton");
+            yield return ClickWhenReady("MenuButton");
+            yield return ClickWhenReady("SurrenderButton");
+            yield return ClickWhenReady("ConfirmYesButton");
+            yield return ClickWhenReady("BackButton");
+
+            _step = "B3 về Lobby với bản đồ mở sẵn";
+            yield return WaitForScene(BattleView.RestaurantScene);
+            var hub = Object.FindFirstObjectByType<HubNav>();
+            Assert.IsNotNull(hub, Where("Restaurant nạp mà không có HubNav"));
+            Assert.AreEqual(HubTab.Stages, hub.State.Current, Where("về từ trận phải ở ô Màn chơi"));
+            Assert.IsFalse(hub.State.MenuOpen, Where("về từ trận không mở Menu"));
+            Assert.IsNotNull(GameObject.Find("StageMapPanel_PH_1920x1080"), Where("bản đồ phải bật sẵn"));
+        }
+
 #if UNITY_EDITOR
         // --- Panel DEV (DevOverlay): chỉ tự dựng lúc Play khởi động khi chưa có service (L-024), nên test dựng tay sau khi Boot xong.
 

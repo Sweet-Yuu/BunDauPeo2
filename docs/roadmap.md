@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- UI hub đợt A (khung), phiên 🔨 A1 (Task 1–3) xong, chờ 📋 commit trên nhánh `feature/ui-hub`: kiểu thuần và chữ `hub.*`, khoá đồng hồ sự cố, Lobby có thanh dưới 6 ô, 3 panel kín màn, vỏ Menu và lối vào DEV, 3 scene cũ đã xoá (849 EditMode, 16 PlayMode xanh). Còn A2 (Task 4–5), A3 (Task 6–7, dừng playtest) ([spec](superpowers/specs/2026-11-09-ui-hub-design.md), [kế hoạch](superpowers/plans/2026-11-09-ui-hub.md)).
+- UI hub đợt A (khung), nhánh `feature/ui-hub`: phiên 🔨 A1 (Task 1–3) đã commit `15e5e70` (thanh dưới 6 ô, 3 panel kín màn, vỏ Menu, 3 scene cũ đã xoá). Phiên 🔨 A2 (Task 4–5) xong, chờ 📋 commit: Menu Ngôn ngữ và Reset nối `MenuView`, trang kín màn của Nhân viên, Nâng cấp, Chất lượng, hộp vẽ trên thanh (`OverBar`) (854 EditMode, 19 PlayMode xanh). Còn A3 (Task 6–7, dừng playtest) ([spec](superpowers/specs/2026-11-09-ui-hub-design.md), [kế hoạch](superpowers/plans/2026-11-09-ui-hub.md)).
 
 ## Tiếp theo
 

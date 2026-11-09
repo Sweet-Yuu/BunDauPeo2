@@ -153,7 +153,7 @@ namespace BunDauPeo.Tests
         public void DrawOrder_PanelsMenuBar() =>
             WithLobby(scene =>
             {
-                var canvas = RestaurantSceneTests.All<Canvas>(scene).Single().transform;
+                var canvas = RestaurantSceneTests.All<Canvas>(scene).Single(c => !c.overrideSorting).transform;
                 int Index(string name)
                 {
                     var rect = Named(scene, name);

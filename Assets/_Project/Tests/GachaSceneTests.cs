@@ -37,7 +37,7 @@ namespace BunDauPeo.Tests
         public void GachaScene_ViewIsWired_AndUsesOnlyImageAndText() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene =>
             {
-                Assert.AreEqual(1, All<Canvas>(scene).Length);
+                Assert.AreEqual(1, All<Canvas>(scene).Count(c => !c.overrideSorting), "one main canvas; boxes drawn over the bar own a child Canvas");
                 var view = All<GachaView>(scene).Single();
                 var so = new SerializedObject(view);
                 foreach (var field in new[]

@@ -75,7 +75,7 @@ namespace BunDauPeo.Tests
         public void RestaurantScene_ViewAndHudAreWired_AndUseOnlyImageAndText() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene =>
             {
-                Assert.AreEqual(1, All<Canvas>(scene).Length);
+                Assert.AreEqual(1, All<Canvas>(scene).Count(c => !c.overrideSorting), "one main canvas; boxes drawn over the bar own a child Canvas");
                 AssertAllReferencesAssigned(All<RestaurantView>(scene).Single());
                 AssertAllReferencesAssigned(All<RestaurantHud>(scene).Single());
                 Assert.AreEqual(0, All<RawImage>(scene).Length);

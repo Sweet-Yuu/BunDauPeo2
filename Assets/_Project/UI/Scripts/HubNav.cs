@@ -145,7 +145,7 @@ namespace BunDauPeo.UI
                 if (page.IsOpen) page.Close();
         }
 
-        private void CloseOpenPages() => ClosePages(_pages.OfType<IHubPage>());
+        public void CloseOpenPages() => ClosePages(_pages.OfType<IHubPage>());
 
         private void ApplyPanels()
         {

@@ -35,6 +35,9 @@ namespace BunDauPeo.EditorTools
         private static readonly Color Dark = new(0.10f, 0.10f, 0.14f);
         private static readonly Color Muted = new(0.35f, 0.36f, 0.42f);
 
+        // Khớp tên ResetConfirm_PH_800x420; test đọc lại hằng này.
+        internal static readonly Vector2 ResetConfirmSize = new(800, 420);
+
         private static readonly Vector2 Center = new(0.5f, 0.5f);
         private static readonly Vector2 TopCenter = new(0.5f, 1);
         private static readonly Vector2 BottomCenter = new(0.5f, 0);
@@ -119,12 +122,13 @@ namespace BunDauPeo.EditorTools
             Place(status.rectTransform, Center, Center, new Vector2(0, -190), new Vector2(1000, 60));
             var close = BattleSceneBuilder.LabelButton("MenuCloseBtn_PH_300x90", panel, sprite, font, "common.close", GreyButton, Center, new Vector2(0, -300), new Vector2(300, 90));
 
-            // Hộp xác nhận Reset: nền mờ kín màn và hộp đỏ giữa màn; Task 5 đưa nó lên trên thanh bằng OverBar.
+            // Hộp xác nhận Reset: nền mờ kín màn che cả thanh (OverBar) và hộp đỏ giữa màn.
             var confirmRoot = NewRect("ResetConfirmRoot", panel);
             Stretch(confirmRoot);
             AddImage(confirmRoot, null, Dim, raycast: true);
+            OverBar(confirmRoot);
             var box = NewRect("ResetConfirm_PH_800x420", confirmRoot);
-            Place(box, Center, Center, Vector2.zero, new Vector2(800, 420));
+            Place(box, Center, Center, Vector2.zero, ResetConfirmSize);
             AddImage(box, sprite, DangerPanel, raycast: false);
             var prompt = NewLabel("PromptText", box, font, "hub.reset_confirm", 40, TextAnchor.MiddleCenter, Color.white);
             Place(prompt.rectTransform, TopCenter, TopCenter, new Vector2(0, -40), new Vector2(720, 200));
