@@ -26,6 +26,10 @@
 
 ## Đang hiệu lực
 
+### L-034 — MonoBehaviour giả trong assembly Tests không gắn được (2026-11-09)  #script #process
+- Triệu chứng: `FakeHubPage : MonoBehaviour` trong `Assets/_Project/Tests` làm 4 test `HubNavTests` đỏ: "Can't add script behaviour 'FakeHubPage' because it is an editor script"; `AddComponent` trả null nên `_pages` không có phần tử.
+- Nguyên nhân gốc: `BunDauPeo.Tests` chỉ có ở Editor (`includePlatforms: Editor`), nên mọi MonoBehaviour khai trong đó đều là "editor script".
+- Luật từ nay: test EditMode cần một giao diện của view thì tách phần logic thành hàm tĩnh nhận `IEnumerable<IGiaoDien>` (như `HubNav.ClosePages`) và dùng lớp giả thuần C#; không khai MonoBehaviour giả trong assembly Tests.
 ### L-033 — Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn (2026-11-09)  #ui #process
 - Triệu chứng: mô phỏng hub bản 1 có banner Gacha và Menu là hộp giữa màn, các popup con giữ cỡ cũ; user sửa: popup phải che kín màn, chỉ hộp xác nhận và phần thưởng giữ cỡ.
 - Nguyên nhân gốc: 📐 lấy cỡ popup đang có làm mặc định, không hỏi luật kín màn trước khi vẽ.

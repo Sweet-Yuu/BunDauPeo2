@@ -5,8 +5,6 @@ using BunDauPeo.UI;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace BunDauPeo.Tests
@@ -14,21 +12,10 @@ namespace BunDauPeo.Tests
     public class StageSelectSceneTests
     {
         private static void WithStageSelect(System.Action<UnityEngine.SceneManagement.Scene> check) =>
-            RestaurantSceneTests.WithScene(ProjectSetup.StageSelectScenePath, check);
+            RestaurantSceneTests.WithScene(ProjectSetup.RestaurantScenePath, check);
 
         private static GameObject RootOf(Component popup) =>
             (GameObject)new SerializedObject(popup).FindProperty("_root").objectReferenceValue;
-
-        [Test]
-        public void StageSelectScene_HasCameraAndEventSystemWithInputSystemModule() =>
-            WithStageSelect(scene =>
-            {
-                Assert.AreEqual(1, RestaurantSceneTests.All<Camera>(scene).Length);
-                var systems = RestaurantSceneTests.All<EventSystem>(scene);
-                Assert.AreEqual(1, systems.Length);
-                Assert.IsNotNull(systems[0].GetComponent<InputSystemUIInputModule>());
-                Assert.IsNull(systems[0].GetComponent<StandaloneInputModule>());
-            });
 
         [Test]
         public void StageSelectScene_ViewAndPopupsWired_NoRawImage() =>
@@ -306,16 +293,6 @@ namespace BunDauPeo.Tests
                     }
                 }
             });
-
-        [Test]
-        public void BuildSettings_Order_IsBootGachaRestaurantStageSelectBattle()
-        {
-            var paths = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
-            CollectionAssert.AreEqual(
-                new[] { ProjectSetup.BootScenePath, ProjectSetup.GachaScenePath, ProjectSetup.RestaurantScenePath,
-                        ProjectSetup.StageSelectScenePath, ProjectSetup.BattleScenePath },
-                paths.Take(5).ToArray());
-        }
 
         // B1: nhãn đợt do view giữ nên view phải tự ghi chữ lúc Open, không dựa vào chữ builder đã ghi sẵn (builder chạy ở tiếng Việt).
         [Test]

@@ -33,15 +33,9 @@ namespace BunDauPeo.EditorTools
         private static readonly Vector2 BottomRight = new(1, 0);
         private static readonly Vector2 TopCenter = new(0.5f, 1);
 
-        public static void Create(string scenePath)
+        // Panel Gacha của Lobby (spec UI hub 5.4): kín màn, nền đặc chặn bấm, lúc đầu tắt. Gọi sau NewScene của RestaurantSceneBuilder (L-002).
+        public static RectTransform BuildPanel(RectTransform canvas, Sprite sprite, Font font)
         {
-            // Giống CreateBootScene: batch mode chỉ có scene Untitled chưa lưu nên phải dùng Single.
-            var mode = Application.isBatchMode ? NewSceneMode.Single : NewSceneMode.Additive;
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, mode);
-
-            // Nạp sau NewScene (L-002): Single dỡ asset không được scene nào dùng.
-            var sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             var banner = AssetDatabase.LoadAssetAtPath<GachaBannerDefinition>(ProjectSetup.BannerPath);
             var characters = AssetDatabase.LoadAssetAtPath<CharacterCatalog>(CharacterCatalogPath);
             var commonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(CutsceneDir + "CommonSummon.prefab");
@@ -49,43 +43,39 @@ namespace BunDauPeo.EditorTools
             if (banner == null || characters == null || commonPrefab == null || legendaryPrefab == null)
                 throw new InvalidOperationException("Gacha scene inputs are missing (banner, character catalog or cutscene prefabs); run ProjectSetup after copying the cutscene assets.");
 
-            CreateCamera(scene);
-            CreateEventSystem(scene);
-            var canvas = CreateCanvas(scene);
+            var panel = NewRect("GachaPanel_PH_1920x1080", canvas);
+            Stretch(panel);
+            AddImage(panel, sprite, Background, raycast: true);
 
-            var back = NewRect("Background", canvas);
-            Stretch(back);
-            AddImage(back, sprite, Background, raycast: false);
-
-            // Trang roll (G1): ô giữ chỗ banner ở giữa, khối tên/Gem ở hai góc trên, nút quay ở góc dưới phải (trên nút Cài đặt DEV).
-            var art = NewRect("BannerArt", canvas);
-            Place(art, TopLeft, Center, new Vector2(860, -520), new Vector2(900, 560));
+            // Trang roll (G1): ô giữ chỗ banner ở giữa, khối tên/Gem ở hai góc trên, nút quay ở góc dưới phải (trên vạch 120 px của thanh dưới).
+            var art = NewRect("BannerArt", panel);
+            Place(art, TopLeft, Center, new Vector2(860, -480), new Vector2(900, 560));
             AddImage(art, sprite, new Color(0.45f, 0.47f, 0.55f), raycast: false);
-            var bannerPanel = NewRect("BannerPanel", canvas);
+            var bannerPanel = NewRect("BannerPanel", panel);
             Place(bannerPanel, TopLeft, TopLeft, new Vector2(40, -30), new Vector2(760, 150));
             AddImage(bannerPanel, sprite, Panel, raycast: false);
             var bannerName = NewText("BannerNameText", bannerPanel, font, banner.DisplayName, 48, TextAnchor.MiddleLeft, Color.white);
             Place(bannerName.rectTransform, TopLeft, TopLeft, new Vector2(30, -10), new Vector2(700, 70));
             var pity = NewText("PityText", bannerPanel, font, "", 32, TextAnchor.MiddleLeft, Color.white);
             Place(pity.rectTransform, TopLeft, TopLeft, new Vector2(30, -85), new Vector2(700, 50));
-            var gemCard = NewRect("GemCard", canvas);
+            var gemCard = NewRect("GemCard", panel);
             Place(gemCard, TopRight, TopRight, new Vector2(-40, -30), new Vector2(360, 80));
             AddImage(gemCard, sprite, Panel, raycast: false);
             var gem = NewText("GemText", gemCard, font, "Gem: 0", 44, TextAnchor.MiddleCenter, Color.white);
             Stretch(gem.rectTransform);
-            var message = NewText("MessageText", canvas, font, "", 32, TextAnchor.MiddleRight, new Color(1f, 0.85f, 0.4f));
-            Place(message.rectTransform, BottomRight, BottomRight, new Vector2(-40, 400), new Vector2(560, 50));
+            var message = NewText("MessageText", panel, font, "", 32, TextAnchor.MiddleRight, new Color(1f, 0.85f, 0.4f));
+            Place(message.rectTransform, BottomRight, BottomRight, new Vector2(-40, 420), new Vector2(560, 50));
 
-            var single = NewButton("SingleButton", canvas, sprite, font, GachaViewText.PullLabel(1, banner.SingleCost), ButtonColor,
-                BottomRight, new Vector2(-360, 110), new Vector2(300, 160));
-            var ten = NewButton("TenButton", canvas, sprite, font, GachaViewText.PullLabel(10, banner.TenCost), ButtonColor,
-                BottomRight, new Vector2(-40, 110), new Vector2(300, 160));
-            var history = NewButton("HistoryButton", canvas, sprite, font, UiText.Get("gacha.history"), GreyButton,
-                BottomRight, new Vector2(-40, 300), new Vector2(300, 80));
+            var single = NewButton("SingleButton", panel, sprite, font, GachaViewText.PullLabel(1, banner.SingleCost), ButtonColor,
+                BottomRight, new Vector2(-360, 140), new Vector2(300, 160));
+            var ten = NewButton("TenButton", panel, sprite, font, GachaViewText.PullLabel(10, banner.TenCost), ButtonColor,
+                BottomRight, new Vector2(-40, 140), new Vector2(300, 160));
+            var history = NewButton("HistoryButton", panel, sprite, font, UiText.Get("gacha.history"), GreyButton,
+                BottomRight, new Vector2(-40, 320), new Vector2(300, 80));
             Localize(history.GetComponentInChildren<Text>(), "gacha.history");
 
             // Reveal: hai cutscene (prefab của user) và thẻ nhân vật. Ẩn mặc định; GachaRevealView bật khi quay.
-            var revealRoot = NewRect("RevealRoot", canvas);
+            var revealRoot = NewRect("RevealRoot", panel);
             Stretch(revealRoot);
             AddImage(revealRoot, sprite, Background, raycast: true);
             var common = InstantiateCutscene(commonPrefab, revealRoot);
@@ -119,7 +109,7 @@ namespace BunDauPeo.EditorTools
             revealRoot.gameObject.SetActive(false);
 
             // Trang tổng: lưới 5 cột (10 icon thành 5 trên + 5 dưới), icon mẫu ẩn để GachaTotalView nhân bản.
-            var totalRoot = NewRect("TotalRoot", canvas);
+            var totalRoot = NewRect("TotalRoot", panel);
             Stretch(totalRoot);
             AddImage(totalRoot, sprite, Background, raycast: true);
             var totalPanel = NewRect("TotalPanel", totalRoot);
@@ -155,13 +145,13 @@ namespace BunDauPeo.EditorTools
             totalRoot.gameObject.SetActive(false);
 
             // Nút Bỏ qua: đặt trên reveal để bấm được; GachaView bật tắt theo luật của GachaRevealSequence.
-            // Góc trên phải, vì nút Cài đặt DEV chiếm góc dưới phải (G4).
-            var skip = NewButton("SkipButton", canvas, sprite, font, UiText.Get("gacha.skip"), GreyButton, TopRight, new Vector2(-40, -40), new Vector2(300, 90));
+            // Góc trên phải, xa hai nút quay ở góc dưới phải (G4).
+            var skip = NewButton("SkipButton", panel, sprite, font, UiText.Get("gacha.skip"), GreyButton, TopRight, new Vector2(-40, -40), new Vector2(300, 90));
             Localize(skip.GetComponentInChildren<Text>(), "gacha.skip");
             skip.gameObject.SetActive(false);
 
             // Popup quay tiếp.
-            var againRoot = NewRect("RollAgainPopup", canvas);
+            var againRoot = NewRect("RollAgainPopup", panel);
             Stretch(againRoot);
             AddImage(againRoot, sprite, Dim, raycast: true);
             var againBox = NewRect("Box", againRoot);
@@ -185,11 +175,11 @@ namespace BunDauPeo.EditorTools
             againRoot.gameObject.SetActive(false);
 
             // Popup lịch sử: danh sách nằm trong ScrollRect để 50 mục vẫn cuộn được.
-            var historyRoot = NewRect("HistoryPopup", canvas);
+            var historyRoot = NewRect("HistoryPopup", panel);
             Stretch(historyRoot);
             AddImage(historyRoot, sprite, Dim, raycast: true);
             var historyBox = NewRect("Box", historyRoot);
-            // Vừa với canvas cao 866 (Game view rộng) lẫn 1080.
+            // Vừa với panel cao 866 (Game view rộng) lẫn 1080.
             Place(historyBox, Center, Center, Vector2.zero, new Vector2(1100, 780));
             AddImage(historyBox, sprite, Panel, raycast: false);
             var historyTitle = NewLabel("TitleText", historyBox, font, "gacha.history_title", 48, TextAnchor.MiddleCenter, Color.white);
@@ -224,7 +214,7 @@ namespace BunDauPeo.EditorTools
             historySo.ApplyModifiedPropertiesWithoutUndo();
             historyRoot.gameObject.SetActive(false);
 
-            var viewObject = NewRect("GachaView", canvas);
+            var viewObject = NewRect("GachaView", panel);
             var view = viewObject.gameObject.AddComponent<GachaView>();
             var so = new SerializedObject(view);
             so.FindProperty("_banner").objectReferenceValue = banner;
@@ -243,8 +233,8 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_historyPopup").objectReferenceValue = historyPopup;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            EditorSceneManager.SaveScene(scene, scenePath);
-            if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
+            panel.gameObject.SetActive(false);
+            return panel;
         }
 
         internal static void CreateCamera(Scene scene)

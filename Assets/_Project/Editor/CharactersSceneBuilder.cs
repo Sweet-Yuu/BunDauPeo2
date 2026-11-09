@@ -1,6 +1,5 @@
 using BunDauPeo.UI;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,24 +20,14 @@ namespace BunDauPeo.EditorTools
         private static readonly Vector2 TopLeft = new(0, 1);
         private static readonly Vector2 TopRight = new(1, 1);
 
-        public static void Create(string scenePath)
+        // Panel Nhân vật của Lobby (spec UI hub 5.4): kín màn, nền đặc chặn bấm, lúc đầu tắt. Lưới và panel chi tiết đã nằm trên vạch 120 px.
+        public static RectTransform BuildPanel(RectTransform canvas, Sprite sprite, Font font)
         {
-            var mode = Application.isBatchMode ? NewSceneMode.Single : NewSceneMode.Additive;
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, mode);
+            var root = GachaSceneBuilder.NewRect("CharactersPanel_PH_1920x1080", canvas);
+            GachaSceneBuilder.Stretch(root);
+            GachaSceneBuilder.AddImage(root, sprite, Background, raycast: true);
 
-            // Nạp sau NewScene (L-002): Single dỡ asset không được scene nào dùng.
-            var sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-            GachaSceneBuilder.CreateCamera(scene);
-            GachaSceneBuilder.CreateEventSystem(scene);
-            var canvas = GachaSceneBuilder.CreateCanvas(scene);
-
-            var back = GachaSceneBuilder.NewRect("Background", canvas);
-            GachaSceneBuilder.Stretch(back);
-            GachaSceneBuilder.AddImage(back, sprite, Background, raycast: false);
-
-            var title = GachaSceneBuilder.NewLabel("TitleText", canvas, font, "characters.title", 56, TextAnchor.MiddleLeft, Color.white);
+            var title = GachaSceneBuilder.NewLabel("TitleText", root, font, "characters.title", 56, TextAnchor.MiddleLeft, Color.white);
             GachaSceneBuilder.Place(title.rectTransform, TopLeft, TopLeft, new Vector2(40, -30), new Vector2(800, 80));
 
             // Lưới thẻ bên trái.
@@ -47,11 +36,11 @@ namespace BunDauPeo.EditorTools
             for (var i = 0; i < CardCount; i++)
             {
                 var position = new Vector2(40 + (i % Columns) * (cardW + gap), -140 - (i / Columns) * (cardH + gap));
-                cards[i] = NewCard(i, canvas, sprite, font, position, new Vector2(cardW, cardH));
+                cards[i] = NewCard(i, root, sprite, font, position, new Vector2(cardW, cardH));
             }
 
             // Panel phải.
-            var panel = GachaSceneBuilder.NewRect("DetailPanel", canvas);
+            var panel = GachaSceneBuilder.NewRect("DetailPanel", root);
             GachaSceneBuilder.Place(panel, TopRight, TopRight, new Vector2(-40, -140), new Vector2(760, 820));
             GachaSceneBuilder.AddImage(panel, sprite, Panel, raycast: false);
 
@@ -69,7 +58,7 @@ namespace BunDauPeo.EditorTools
             var buttonLabel = button.GetComponentInChildren<Text>();
             var status = Line("StarUpStatus", panel, font, 34, TextAnchor.MiddleCenter, Gold, -700, 80);
 
-            var viewObject = GachaSceneBuilder.NewRect("CharactersView", canvas);
+            var viewObject = GachaSceneBuilder.NewRect("CharactersView", root);
             var view = viewObject.gameObject.AddComponent<CharactersView>();
             var so = new SerializedObject(view);
             var cardsProp = so.FindProperty("_cards");
@@ -88,8 +77,8 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_statusText").objectReferenceValue = status;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            EditorSceneManager.SaveScene(scene, scenePath);
-            if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
+            root.gameObject.SetActive(false);
+            return root;
         }
 
         // Dòng chữ ghi lúc chạy (không LocalizedText): rộng hết panel trừ lề 40.

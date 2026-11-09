@@ -21,7 +21,7 @@ using Object = UnityEngine.Object;
 namespace BunDauPeo.PlayModeTests
 {
     // Vòng Combat trọn vẹn qua UI thật: Boot → bản đồ → đội → trận AUTO → thưởng → nạp lại save. Chạy trên save tạm.
-    // Cùng fixture (chung save tạm và guard) có thêm ba test panel DEV: nút Cài đặt không che nút game, luồng xác nhận Reset, Reset thất bại.
+    // Cùng fixture (chung save tạm và guard) có thêm các test panel DEV: mở từ Menu của hub, luồng xác nhận Reset, Reset thất bại.
     public class SmokeLoopTests
     {
         private const float SceneTimeout = 30f;
@@ -87,10 +87,9 @@ namespace BunDauPeo.PlayModeTests
             var staminaBefore = combat.Stamina.Current; // đọc một lần để chốt số thô (L-021)
             Assert.AreEqual(combat.Stamina.Max, staminaBefore, Where("game mới phải đầy thể lực"));
 
-            // DevOverlay chỉ được dựng lúc Play khởi động (khi chưa có service) nên không có nút "Màn chơi" trong test: nạp bản đồ trực tiếp.
+            // Bản đồ là panel của Lobby: bấm ô Màn chơi của thanh dưới.
             _step = "2 vào bản đồ";
-            SceneManager.LoadScene(BattleView.StageSelectScene);
-            yield return WaitForScene(BattleView.StageSelectScene);
+            yield return ClickWhenReady("NavTabStages_PH_320x120");
 
             _step = "3 chọn màn 1 và đội";
             for (var i = 0; i < battleIndex; i++)
@@ -144,7 +143,7 @@ namespace BunDauPeo.PlayModeTests
 
             _step = "8 về bản đồ";
             yield return ClickWhenReady("ConfirmButton");
-            yield return WaitForScene(BattleView.StageSelectScene);
+            yield return WaitForScene(BattleView.RestaurantScene);
 
             // So từng trường chứ không so cả JSON: quán còn chạy ngầm và đổi Afk/DailyPresence trong bộ nhớ sau lần lưu cuối.
             _step = "9 nạp lại save";
@@ -175,8 +174,7 @@ namespace BunDauPeo.PlayModeTests
 
             _step = "C2 cấp mảnh, mở màn Nhân vật";
             roster.AddFragments(starter, cost);
-            SceneManager.LoadScene("Characters");
-            yield return WaitForScene("Characters");
+            yield return ClickWhenReady("NavTabCharacters_PH_320x120");
 
             _step = "C3 bấm thẻ đầu và nút nâng";
             yield return ClickWhenReady("CharacterCard0");
@@ -216,8 +214,7 @@ namespace BunDauPeo.PlayModeTests
             var stars = ServiceLocator.Get<StarService>();
             var starter = roster.GetOwned()[0].Id;
             Assert.AreEqual(0, roster.GetFragments(starter), Where("nhân vật đầu phải chưa có mảnh"));
-            SceneManager.LoadScene("Characters");
-            yield return WaitForScene("Characters");
+            yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
             Assert.IsFalse(StarUpButton().interactable, Where("không có mảnh mà nút nâng bấm được"));
 
@@ -252,8 +249,7 @@ namespace BunDauPeo.PlayModeTests
             var starter = roster.GetOwned()[0].Id;
             var startStars = stars.GetStars(starter);
             roster.AddFragments(starter, stars.GetNextCost(starter));
-            SceneManager.LoadScene("Characters");
-            yield return WaitForScene("Characters");
+            yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
 
             _step = "P2 khoá file save rồi nâng";
@@ -285,19 +281,11 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsNotNull(GameObject.Find("DevOverlay"), Where("DevOverlay không dựng được"));
         }
 
-        // Nút Cài đặt phải không đè lên nút nào của game (L-025): so hình chữ nhật trên màn hình với mọi nút ngoài DevOverlay,
-        // kể cả nút đang tắt, vì nút Bỏ qua, nút popup và nút kết quả chỉ bật trong luồng chơi.
-        private void AssertSettingsButtonClear(string screen)
+        // Panel DEV mở từ Menu → DEV (nút "Cài đặt" ở góc đã bỏ).
+        private IEnumerator OpenDevPanel()
         {
-            var buttons = Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            var settings = buttons.Single(b => b.name == "Cài đặtButton");
-            var settingsRect = ScreenRect(settings);
-            foreach (var b in buttons)
-            {
-                if (b == settings || b.GetComponentInParent<Canvas>(true).rootCanvas.name == "DevOverlay") continue;
-                Assert.IsFalse(settingsRect.Overlaps(ScreenRect(b)),
-                    Where($"nút Cài đặt {settingsRect} đè lên '{b.name}' {ScreenRect(b)} ở màn {screen}"));
-            }
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuDevBtn_PH_700x100");
         }
 
         // Mọi nút trong panel Cài đặt (kể cả nút của hộp xác nhận đang tắt) không đè nhau (L-027): thêm nút DEV mới sai chỗ thì đỏ.
@@ -323,36 +311,29 @@ namespace BunDauPeo.PlayModeTests
         }
 
         [UnityTest, Timeout(180000)]
-        public IEnumerator DevOverlay_SettingsButton_DoesNotCoverGameButtons_AndMenuButtonClicks()
+        public IEnumerator DevOverlay_OpensFromMenu_AndFromBattlePause()
         {
             _step = "D1 Boot";
             yield return BootWithDevOverlay();
-            AssertSettingsButtonClear("Restaurant");
+            Assert.AreEqual(0, UiDriver.FindButtons("Chiến đấu thử").Count, Where("panel DEV không được mở sẵn"));
 
-            _step = "D2 Gacha";
-            SceneManager.LoadScene("Gacha");
-            yield return WaitForScene("Gacha");
-            AssertSettingsButtonClear("Gacha");
-
-            _step = "D3 bản đồ";
-            SceneManager.LoadScene(BattleView.StageSelectScene);
-            yield return WaitForScene(BattleView.StageSelectScene);
-            AssertSettingsButtonClear("StageSelect");
-
-            _step = "D3b nút DEV Nhân vật";
-            yield return ClickWhenReady("Cài đặt");
+            _step = "D2 Menu → DEV mở panel, Đóng trả về Menu";
+            yield return OpenDevPanel();
+            Assert.AreEqual(1, UiDriver.FindButtons("Chiến đấu thử").Count, Where("Menu → DEV phải mở panel"));
             AssertDevPanelButtonsDoNotOverlap();
-            yield return ClickWhenReady("Nhân vật");
-            yield return WaitForScene("Characters");
-            AssertSettingsButtonClear("Characters");
+            yield return ClickWhenReady("ĐóngButton");
+            Assert.AreEqual(0, UiDriver.FindButtons("Chiến đấu thử").Count, Where("Đóng phải tắt panel DEV"));
+            Assert.AreEqual(1, UiDriver.FindButtons("MenuDevBtn_PH_700x100").Count, Where("Menu vẫn mở sau khi đóng panel DEV"));
 
-            _step = "D4 trận";
-            yield return ClickWhenReady("Cài đặt"); // mọi nút DEV nằm trong panel Cài đặt
+            _step = "D3 trận, Menu tạm dừng → Cài đặt";
+            yield return ClickWhenReady("MenuDevBtn_PH_700x100");
             yield return ClickWhenReady("Chiến đấu thử");
             yield return WaitForScene(BattleView.BattleScene);
             yield return WaitForButtonStep("MenuButton");
-            AssertSettingsButtonClear("Battle");
-            yield return ClickWhenReady("MenuButton"); // Clicked chứ không Blocked bởi nút Cài đặt
+            yield return ClickWhenReady("MenuButton");
+            yield return ClickWhenReady("SettingsButton");
+            Assert.AreEqual(1, UiDriver.FindButtons("Chiến đấu thử").Count, Where("Cài đặt trong Menu tạm dừng phải mở panel DEV"));
+            yield return ClickWhenReady("ĐóngButton");
             yield return ClickWhenReady("ResumeButton");
         }
 
@@ -373,7 +354,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual("Nhân viên", GameObject.Find("StaffButton").GetComponentInChildren<Text>().text, Where("nhãn trước khi đổi"));
 
             _step = "L2 bấm LanguageButton";
-            yield return ClickWhenReady("Cài đặt");
+            yield return OpenDevPanel();
             yield return ClickWhenReady("LanguageButton");
 
             _step = "L3 chờ scene nạp lại";
@@ -405,13 +386,13 @@ namespace BunDauPeo.PlayModeTests
             var startGems = wallet.Get(CurrencyType.Gem);
 
             _step = "D2 +Gem";
-            yield return ClickWhenReady("Cài đặt");
+            yield return OpenDevPanel();
             yield return ClickWhenReady($"+{DevOverlay.GemGrant} Gem");
             var played = startGems + DevOverlay.GemGrant;
             Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("Gem sau khi cộng"));
 
             _step = "D3 bấm Reset dữ liệu";
-            yield return ClickWhenReady("Reset dữ liệu");
+            yield return ClickWhenReady("Reset dữ liệuButton");
             Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("mới bấm Reset dữ liệu mà đã reset: bỏ qua bước xác nhận (D-005)"));
             Assert.AreEqual(1, UiDriver.FindButtons("Xoá hết").Count, Where("hộp xác nhận phải hiện"));
 
@@ -421,11 +402,11 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(0, UiDriver.FindButtons("Xoá hết").Count, Where("Huỷ phải đóng hộp xác nhận"));
 
             _step = "D5 Xoá hết";
-            yield return ClickWhenReady("Reset dữ liệu");
+            yield return ClickWhenReady("Reset dữ liệuButton");
             Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("bấm Reset lần hai mà đã reset"));
             yield return ClickWhenReady("Xoá hết");
             Assert.AreEqual(startGems, wallet.Get(CurrencyType.Gem), Where("Xoá hết phải đưa Gem về lúc mới"));
-            Assert.AreEqual(0, UiDriver.FindButtons("Reset dữ liệu").Count, Where("reset thành công thì panel phải đóng"));
+            Assert.AreEqual(0, UiDriver.FindButtons("Reset dữ liệuButton").Count, Where("reset thành công thì panel phải đóng"));
         }
 
         [UnityTest, Timeout(180000)]
@@ -438,7 +419,7 @@ namespace BunDauPeo.PlayModeTests
             var startGems = wallet.Get(CurrencyType.Gem);
 
             _step = "D2 +Gem và khoá file save";
-            yield return ClickWhenReady("Cài đặt");
+            yield return OpenDevPanel();
             yield return ClickWhenReady($"+{DevOverlay.GemGrant} Gem");
             var played = startGems + DevOverlay.GemGrant;
             Assert.IsTrue(session.Persist(), Where("ghi save tạm"));
@@ -446,7 +427,7 @@ namespace BunDauPeo.PlayModeTests
             try
             {
                 _step = "D3 Xoá hết khi file bị khoá";
-                yield return ClickWhenReady("Reset dữ liệu");
+                yield return ClickWhenReady("Reset dữ liệuButton");
                 LogAssert.Expect(LogType.Error, new Regex("Reset failed"));
                 LogAssert.Expect(LogType.Error, new Regex("DevOverlay: Reset Save Data FAILED"));
                 yield return ClickWhenReady("Xoá hết");
@@ -462,7 +443,7 @@ namespace BunDauPeo.PlayModeTests
             _step = "D4 thử lại sau khi nhả khoá";
             yield return ClickWhenReady("Xoá hết");
             Assert.AreEqual(startGems, wallet.Get(CurrencyType.Gem), Where("thử lại phải reset được"));
-            Assert.AreEqual(0, UiDriver.FindButtons("Reset dữ liệu").Count, Where("reset thành công thì panel phải đóng"));
+            Assert.AreEqual(0, UiDriver.FindButtons("Reset dữ liệuButton").Count, Where("reset thành công thì panel phải đóng"));
         }
 #endif
 

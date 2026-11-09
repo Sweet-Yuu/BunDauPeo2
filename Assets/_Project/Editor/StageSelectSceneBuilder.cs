@@ -1,8 +1,6 @@
 using BunDauPeo.UI;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static BunDauPeo.EditorTools.GachaSceneBuilder;
 
@@ -27,29 +25,17 @@ namespace BunDauPeo.EditorTools
         private static readonly Vector2 TopLeft = new(0, 1);
         private static readonly Vector2 TopRight = new(1, 1);
 
-        public static void Create(string scenePath)
+        // Panel Bản đồ của Lobby (spec UI hub 5.4): kín màn, nền đặc chặn bấm, lúc đầu tắt. Trong hàm này `canvas` là chính panel.
+        // Nút Quay lại bỏ (thanh dưới lo); tiêu đề chương dời sang chỗ nút cũ; dòng gợi ý lên trên vạch 120 px.
+        public static RectTransform BuildPanel(RectTransform parent, Sprite sprite, Sprite knob, Font font)
         {
-            var mode = Application.isBatchMode ? NewSceneMode.Single : NewSceneMode.Additive;
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, mode);
+            var canvas = NewRect("StageMapPanel_PH_1920x1080", parent);
+            Stretch(canvas);
+            AddImage(canvas, null, Background, raycast: true);
 
-            // Nạp sau NewScene (L-002).
-            var sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-            var knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-            CreateCamera(scene);
-            CreateEventSystem(scene);
-            var canvas = CreateCanvas(scene);
-            canvas.GetComponent<CanvasScaler>().matchWidthOrHeight = 1f;
-
-            var back = NewRect("Background", canvas);
-            Stretch(back);
-            AddImage(back, null, Background, raycast: false);
-
-            var backButton = BattleSceneBuilder.LabelButton("BackButton", canvas, sprite, font, "combat.back", ButtonColor, TopLeft, new Vector2(20, -20), new Vector2(220, 90));
             var chapter = NewLabel("ChapterText", canvas, font, "combat.chapter_1", 56, TextAnchor.MiddleLeft, Gold);
             chapter.fontStyle = FontStyle.Bold;
-            Place(chapter.rectTransform, TopLeft, TopLeft, new Vector2(270, -30), new Vector2(500, 70));
+            Place(chapter.rectTransform, TopLeft, TopLeft, new Vector2(30, -30), new Vector2(500, 70));
 
             var staminaText = Card(canvas, "StaminaCard", sprite, font, new Vector2(-500, -20), new Vector2(520, 70));
             var materialText = Card(canvas, "MaterialCard", sprite, font, new Vector2(-260, -20), new Vector2(220, 70));
@@ -67,7 +53,7 @@ namespace BunDauPeo.EditorTools
             var next = BuildNextMarker(map, font);
 
             var hint = NewText("HintText", canvas, font, "", 44, TextAnchor.MiddleCenter, Warning);
-            Place(hint.rectTransform, Center, Center, new Vector2(0, -400), new Vector2(1000, 70));
+            Place(hint.rectTransform, Center, Center, new Vector2(0, -370), new Vector2(1000, 70));
             hint.gameObject.SetActive(false);
             var invalid = NewText("InvalidText", canvas, font, "", 56, TextAnchor.MiddleCenter, Warning);
             Place(invalid.rectTransform, Center, Center, Vector2.zero, new Vector2(1000, 100));
@@ -80,7 +66,6 @@ namespace BunDauPeo.EditorTools
             var viewObject = NewRect("StageMapView", canvas);
             var view = viewObject.gameObject.AddComponent<StageMapView>();
             var so = new SerializedObject(view);
-            so.FindProperty("_backButton").objectReferenceValue = backButton;
             so.FindProperty("_staminaText").objectReferenceValue = staminaText;
             so.FindProperty("_materialText").objectReferenceValue = materialText;
             so.FindProperty("_gemText").objectReferenceValue = gemText;
@@ -95,8 +80,8 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_team").objectReferenceValue = team;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            EditorSceneManager.SaveScene(scene, scenePath);
-            if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
+            canvas.gameObject.SetActive(false);
+            return canvas;
         }
 
         private static Text Card(RectTransform canvas, string name, Sprite sprite, Font font, Vector2 position, Vector2 size)
@@ -454,16 +439,6 @@ namespace BunDauPeo.EditorTools
         {
             array.arraySize = values.Length;
             for (var i = 0; i < values.Length; i++) array.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
-        }
-
-        private static void CreateCamera(Scene scene)
-        {
-            var go = new GameObject("Main Camera") { tag = "MainCamera" };
-            SceneManager.MoveGameObjectToScene(go, scene);
-            var camera = go.AddComponent<Camera>();
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = Background;
-            go.AddComponent<AudioListener>();
         }
     }
 }

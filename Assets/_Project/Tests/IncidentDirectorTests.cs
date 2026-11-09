@@ -336,6 +336,67 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(3, f.Random.Calls, "sự cố xong thì đặt đồng hồ mới");
         }
 
+        // Panel của hub che quán: đồng hồ kịp/trễ đứng yên, nhưng không phải bị bỏ lỡ oan.
+        [Test]
+        public void ClockPaused_ActiveIncident_ElapsedStopsAndNotMissed()
+        {
+            var f = Spawned();
+            var owner = new object();
+            f.Director.Update(3f);
+
+            f.Director.SetClockPaused(owner, true);
+            f.Director.Update(25f);
+
+            Assert.IsTrue(f.Director.Active.HasValue, "đồng hồ dừng thì không bỏ lỡ");
+            Assert.AreEqual(3f, f.Director.Active.Value.Elapsed, 1e-4f);
+            Assert.AreEqual(0, f.Save.IncidentScores.Count);
+
+            f.Director.SetClockPaused(owner, false);
+            f.Director.Update(21f);
+
+            Assert.IsFalse(f.Director.Active.HasValue, "mở lại đồng hồ thì chạy tiếp tới bỏ lỡ");
+            CollectionAssert.AreEqual(new[] { 0 }, f.Save.IncidentScores);
+        }
+
+        [Test]
+        public void ClockPaused_NoIncident_StillSpawns()
+        {
+            var f = Make();
+            f.Director.SetPresent(true);
+            f.Director.SetClockPaused(new object(), true);
+
+            f.Director.Update(60f);
+
+            Assert.IsTrue(f.Director.Active.HasValue, "chủ dừng không chặn sinh");
+        }
+
+        // Review Focus 4: hai chủ; vào trận (Cancel) huỷ sự cố không tính điểm dù đồng hồ đang dừng.
+        [Test]
+        public void ClockPaused_TwoOwners_AndCancel()
+        {
+            var f = Spawned();
+            var a = new object();
+            var b = new object();
+            f.Director.Update(2f);
+            f.Director.SetClockPaused(a, true);
+            f.Director.SetClockPaused(b, true);
+
+            f.Director.SetClockPaused(a, false);
+            f.Director.Update(5f);
+            Assert.AreEqual(2f, f.Director.Active.Value.Elapsed, 1e-4f, "còn chủ b nên đồng hồ vẫn đứng");
+
+            f.Director.SetClockPaused(b, false);
+            f.Director.Update(1f);
+            Assert.AreEqual(3f, f.Director.Active.Value.Elapsed, 1e-4f, "hết chủ thì chạy");
+
+            f.Director.SetClockPaused(a, true);
+            f.Director.Cancel();
+            Assert.IsFalse(f.Director.Active.HasValue);
+            Assert.AreEqual(0, f.Save.IncidentScores.Count);
+
+            Assert.Throws<System.ArgumentNullException>(() => f.Director.SetClockPaused(null, true));
+        }
+
         [Test]
         public void Outcome_IsRecordedInQuality()
         {

@@ -34,6 +34,7 @@ namespace BunDauPeo.Restaurant
         private bool _present;
         // Mỗi panel/popup đang che màn là một chủ; chặn khi còn ít nhất một chủ (đóng cái này không mở khoá cái kia).
         private readonly HashSet<object> _spawnBlockers = new();
+        private readonly HashSet<object> _clockPausers = new();
         private IncidentDefinition _active;
         private double _elapsed;
         // null = chưa đặt. Đếm ngược chạy cả khi không được sinh và dừng ở 0 để sinh ngay khi được mở lại.
@@ -67,12 +68,23 @@ namespace BunDauPeo.Restaurant
             else _spawnBlockers.Remove(owner);
         }
 
+        // Panel của hub đang che quán: sự cố vẫn sinh, nhưng đồng hồ kịp/trễ của sự cố đang chạy đứng yên (game-design, 2026-11-09).
+        // Bộ chủ như SetSpawnBlocked; Cancel/Reset/SetPresent(false) không xoá bộ này, chủ tự trả ở OnDisable.
+        public void SetClockPaused(object owner, bool paused)
+        {
+            if (owner == null) throw new ArgumentNullException(nameof(owner));
+            if (paused) _clockPausers.Add(owner);
+            else _clockPausers.Remove(owner);
+        }
+
         public void Update(float dt)
         {
             if (!_present || dt < 0f) return;
 
             if (_active != null)
             {
+                if (_clockPausers.Count > 0) return;
+
                 _elapsed += dt;
                 if (_elapsed > _config.IncidentLateSeconds) Finish(IncidentOutcome.Missed);
                 return;

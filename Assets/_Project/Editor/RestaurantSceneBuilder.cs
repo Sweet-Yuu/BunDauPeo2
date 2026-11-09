@@ -193,10 +193,18 @@ namespace BunDauPeo.EditorTools
             BuildStaffPanel(canvas, column, font, sprite, knob);
             BuildUpgradePanel(canvas, column, font, sprite, knob);
             BuildAfkButton(column, font, knob, hud);
-
-            // Popup dựng sau cùng nên vẽ trên mọi thứ khác.
-            var afkPopup = BuildAfkPopup(canvas, font, sprite);
             BuildQualityPopup(canvas, font, sprite, statsButton);
+
+            // Lớp vẽ của Lobby (spec UI hub 5.1), từ dưới lên: quán, trang của quán (ở trên), ba panel của thanh, Menu, thanh dưới, rồi hộp phần thưởng.
+            var charactersPanel = CharactersSceneBuilder.BuildPanel(canvas, sprite, font);
+            var stagesPanel = StageSelectSceneBuilder.BuildPanel(canvas, sprite, knob, font);
+            var gachaPanel = GachaSceneBuilder.BuildPanel(canvas, sprite, font);
+            var menuPanel = NavBarBuilder.BuildMenu(canvas, font, sprite, out var menuView);
+            var hub = NavBarBuilder.Build(canvas, font, sprite);
+            NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[0]);
+
+            // Hộp Thu AFK dựng sau thanh nên vẽ đè lên thanh (Task 5 đưa nó vào OverBar).
+            var afkPopup = BuildAfkPopup(canvas, font, sprite);
             viewSo.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 

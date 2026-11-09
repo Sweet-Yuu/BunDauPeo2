@@ -65,11 +65,19 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void BuildSettings_ContainsCharactersScene()
+        public void BuildSettings_BootRestaurantBattle_OldScenesGone()
         {
-            var entry = EditorBuildSettings.scenes.FirstOrDefault(x => x.path == ProjectSetup.CharactersScenePath);
-            Assert.IsNotNull(entry);
-            Assert.IsTrue(entry.enabled);
+            ProjectSetup.Run();
+
+            // Đọc lại sau Run (L-032): dựng Restaurant.unity bằng NewScene(Single) dỡ mọi asset đã nạp trước đó.
+            var scenes = EditorBuildSettings.scenes;
+            CollectionAssert.AreEqual(
+                new[] { ProjectSetup.BootScenePath, ProjectSetup.RestaurantScenePath, ProjectSetup.BattleScenePath },
+                scenes.Select(s => s.path).ToArray());
+            Assert.IsTrue(scenes.All(s => s.enabled));
+            foreach (var path in ProjectSetup.RemovedScenePaths)
+                Assert.IsNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(path), $"{path} must be deleted");
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.RestaurantScenePath));
         }
 
         [Test]

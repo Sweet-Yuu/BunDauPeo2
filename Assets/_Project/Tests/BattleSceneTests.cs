@@ -200,11 +200,10 @@ namespace BunDauPeo.Tests
         public void BattleScene_InBuildSettings_AfterRestaurant()
         {
             var scenes = EditorBuildSettings.scenes;
-            Assert.GreaterOrEqual(scenes.Length, 5);
-            Assert.AreEqual(ProjectSetup.RestaurantScenePath, scenes[2].path);
-            Assert.AreEqual(ProjectSetup.StageSelectScenePath, scenes[3].path, "the map sits between the restaurant and the battle");
-            Assert.AreEqual(ProjectSetup.BattleScenePath, scenes[4].path);
-            Assert.IsTrue(scenes[4].enabled);
+            Assert.GreaterOrEqual(scenes.Length, 3);
+            Assert.AreEqual(ProjectSetup.RestaurantScenePath, scenes[1].path);
+            Assert.AreEqual(ProjectSetup.BattleScenePath, scenes[2].path, "the map is a Lobby panel now, so the battle follows the restaurant");
+            Assert.IsTrue(scenes[2].enabled);
         }
 
         // B1 (user chốt 2026-11-06): Đợt và thanh lượt ở góc trên trái; góc trên phải một hàng x1, AUTO, Menu.
