@@ -112,7 +112,7 @@ Danh sách, theo thứ tự (user chốt 2026-11-09):
 - Mọi việc làm UI phải có **ảnh mô phỏng** cho user duyệt trước, rồi mới làm thật.
 - Object chưa có hình đặt tên `<Tên>_PH_<rộng>x<cao>`, ví dụ `BannerGacha_PH_360x200`, để user hoặc agent dễ thay hình sau.
 
-Hai luật này áp dụng cho mọi kênh, nên cần được ghi vào guide chung (việc của 🎯, đã báo).
+Hai luật này áp dụng cho mọi kênh; 🎯 đã ghi vào [unity-workflow.md](../guides/unity-workflow.md#ui-và-hình-tạm) mục "UI và hình tạm" (2026-11-09), nơi đó là bản chính.
 
 ## Khác với đề xuất UI hub
 

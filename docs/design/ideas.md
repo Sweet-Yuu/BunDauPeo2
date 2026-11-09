@@ -7,7 +7,7 @@ Mỗi ý ghi ngày và người đề xuất. Luồng màn ở [screen-flow.md](
 
 ## Đang bàn
 
-- **Game có online, xong trong bản 31/12** (user, 2026-11-09). Lệch với [vision](../vision/vision.md) (online đang "ngoài phạm vi") và roadmap. Cần user chốt phạm vi online (đăng nhập, lưu trên server, Hộp quà, Thông báo, Nhiệm vụ, Hội…) trước khi sửa vision.
+- **Game có online, xong trong bản 31/12** (user, 2026-11-09). Lệch với [vision](../vision/vision.md) (online đang "ngoài phạm vi") và roadmap. User chốt 2026-11-09 là online vào bản 31/12 (đã sửa vision và roadmap); còn phải chốt phạm vi online (đăng nhập, lưu trên server, Hộp quà, Thông báo, Nhiệm vụ, Hội…) trước khi sửa vision.
 - **Mua thể lực trong Shop** (user, 2026-11-09). Ngược luật hiện tại ([D-008](../decisions/decisions.md), [Thể lực](game-design.md#thể-lực)). `TODO(user)`: mua bằng Gem hay tiền thật, giá, giới hạn mỗi ngày.
 - **Mua Coin trong Shop** (user, 2026-11-09): nút + ở Coin. `TODO(user)`: giá, có làm lệch vòng lặp "quán kiếm Coin" không.
 - **Nâng cấp nhân vật tốn Coin** (user, 2026-11-09): chọn nhân vật ở màn Nhân vật sẽ sang màn nâng cấp (`Mota/character-upgrade.png`), màn này hiện Coin. Hiện chỉ có nâng sao bằng mảnh. Cấp nhân vật đang "chưa thiết kế" ([game-design](game-design.md#nhân-vật)), và 2026-11-03 user đã không lấy "cấp nhân vật bằng Gold" từ master plan. `TODO(user)`: Coin dùng để nâng gì.

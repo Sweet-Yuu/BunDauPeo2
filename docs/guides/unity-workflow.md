@@ -103,6 +103,8 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 
 ## UI và hình tạm
 
+- **Ảnh mô phỏng trước** (user đặt 2026-11-09): mọi việc làm UI (màn mới, popup, đổi bố cục) phải có ảnh mô phỏng bố cục cho user duyệt trước, rồi mới dựng thật. Ảnh mô phỏng nằm ngoài `Assets/` và không vào build. Spec ghi bản ảnh nào user đã duyệt.
+- **Tên object chưa có hình** (user đặt 2026-11-09): `<Tên>_PH_<rộng>x<cao>`, ví dụ `BannerGacha_PH_360x200` (kích thước tính theo px ở độ phân giải tham chiếu 1920×1080), để sau này dễ thay hình. Chỉ áp cho object mới; object đã có giữ tên cũ, vì test và `PlaytestTools.ClickButton` bấm nút theo tên.
 - UI và mọi hình cần tạm chỉ dùng hình có sẵn của Unity: sprite hình học (vuông, tròn, tam giác… trong `Assets > Create > 2D > Sprites`) và sprite mặc định `UI/Skin/UISprite.psd`, `Knob.psd`. Không thêm file ảnh; phân biệt thành phần bằng màu, kích thước và chữ.
 - Việc liên quan đến Canvas (nút, panel, thanh, biểu tượng…): dùng component `Image` (uGUI) và gán các sprite có sẵn ở trên vào `Image`; không dùng `Raw Image` hay ảnh import.
 - Ngoại lệ đã được user cho phép: 3 PNG cutscene Gacha (`Gacha/Art/Summoning/`), xem mục 6 của [spec reveal](../superpowers/specs/2026-10-31-gacha-reveal-design.md).

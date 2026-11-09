@@ -32,12 +32,12 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - Chiến đấu turn-based theo màn chơi: mỗi nhân vật có 1 đánh thường, 1 skill, 1 ultimate.
 - UI hub có thanh điều hướng dưới.
 - Lưu game cục bộ.
+- Online, xong trong bản 31/12 (user chốt 2026-11-09). Phạm vi chưa chốt: đăng nhập, lưu save trên server, Hộp quà, Thông báo tin, Nhiệm vụ, Hội, Hồ sơ online (xem [ideas](../design/ideas.md)), và có làm xếp hạng hay PvP không. `TODO(user)`: chốt trong spec Online.
 - Mua trong game (gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu) và quảng cáo thưởng nhận Gem. Luật và `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
 - Nhân vật trùng thành mảnh để nâng sao (tối đa 5★); nâng sao tăng HP, Tấn công, Thủ (user chốt 2026-11-08, [spec Nâng sao](../superpowers/specs/2026-11-08-star-up-design.md)).
 
 ## Ngoài phạm vi (chưa làm)
 
-- Tính năng online (xếp hạng, PvP, đồng bộ nhiều máy) và server riêng.
 - Hệ nguyên tố, trang bị.
 - Cấp nhân vật (chưa thiết kế).
 - Cốt truyện và hội thoại (sẽ làm sau MVP).
