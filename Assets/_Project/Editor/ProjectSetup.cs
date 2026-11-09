@@ -22,16 +22,20 @@ namespace BunDauPeo.EditorTools
         public const string BootScenePath = "Assets/_Project/Scenes/Boot.unity";
         public const string CatalogPath = "Assets/_Project/Characters/Data/CharacterCatalog.asset";
         public const string NewGameConfigPath = "Assets/_Project/Boot/Data/NewGameConfig.asset";
-        public const string GachaScenePath = "Assets/_Project/Scenes/Gacha.unity";
         public const string RestaurantScenePath = "Assets/_Project/Scenes/Restaurant.unity";
         public const string BattleScenePath = "Assets/_Project/Scenes/Battle.unity";
-        public const string StageSelectScenePath = "Assets/_Project/Scenes/StageSelect.unity";
+        // Ba scene cũ đã thành panel trong Restaurant.unity (UI hub); Run xoá chúng bằng AssetDatabase.DeleteAsset khi còn.
+        public static readonly string[] RemovedScenePaths =
+        {
+            "Assets/_Project/Scenes/Gacha.unity", "Assets/_Project/Scenes/Characters.unity", "Assets/_Project/Scenes/StageSelect.unity",
+        };
         public const string BannerPath ="Assets/_Project/Gacha/Data/banner_standard.asset";
         public const string BannerCatalogPath = "Assets/_Project/Gacha/Data/GachaBannerCatalog.asset";
         public const string RestaurantConfigPath = "Assets/_Project/Restaurant/Data/RestaurantConfig.asset";
         public const string UpgradeCatalogPath = "Assets/_Project/Restaurant/Data/UpgradeCatalog.asset";
         public const string CombatConfigPath = "Assets/_Project/Combat/Data/CombatConfig.asset";
         public const string StageCatalogPath = "Assets/_Project/Combat/Data/StageCatalog.asset";
+        public const string StarConfigPath = "Assets/_Project/Characters/Data/StarConfig.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
         private const string SkillsFolder = CharacterData + "/Skills";
@@ -159,14 +163,16 @@ namespace BunDauPeo.EditorTools
             GetOrCreateAsset<GachaBannerCatalog>(BannerCatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), new Object[] { banner })));
 
+            // Số khởi điểm nằm ở field initializer của StarConfig; asset đã có thì giữ số bạn đã chỉnh.
+            GetOrCreateAsset<StarConfig>(StarConfigPath, null);
+
             CreateRestaurantData();
             CreateCombatData();
             FillEnglishNames();
 
             CreateBootScene();
-            CreateGachaScene();
             CreateRestaurantScene();
-            CreateStageSelectScene();
+            DeleteRemovedScenes();
             CreateBattleScene();
             WireBootScene();
             ApplyBuildSettings();
@@ -176,12 +182,6 @@ namespace BunDauPeo.EditorTools
         // Run giữ scene Restaurant đã có; lệnh này dựng lại từ builder (ghi đè cùng đường dẫn nên GUID và Build Settings không đổi).
         [MenuItem("Tools/BunDauPeo/Rebuild Restaurant Scene")]
         public static void RebuildRestaurantScene() => RestaurantSceneBuilder.Create(RestaurantScenePath);
-
-        [MenuItem("Tools/BunDauPeo/Rebuild Gacha Scene")]
-        public static void RebuildGachaScene() => GachaSceneBuilder.Create(GachaScenePath);
-
-        [MenuItem("Tools/BunDauPeo/Rebuild StageSelect Scene")]
-        public static void RebuildStageSelectScene() => StageSelectSceneBuilder.Create(StageSelectScenePath);
 
         [MenuItem("Tools/BunDauPeo/Rebuild Battle Scene")]
         public static void RebuildBattleScene() => BattleSceneBuilder.Create(BattleScenePath);
@@ -245,9 +245,16 @@ namespace BunDauPeo.EditorTools
                         changed = true;
                     }
 
+                    var stars = so.FindProperty("_starConfig");
+                    if (stars.objectReferenceValue == null)
+                    {
+                        stars.objectReferenceValue = AssetDatabase.LoadAssetAtPath<StarConfig>(StarConfigPath);
+                        changed = true;
+                    }
+
                     // Chỉ đổi giá trị trống hoặc "Gacha" (mặc định cũ): lựa chọn khác của user được giữ.
                     var start = so.FindProperty("_startScene");
-                    if (string.IsNullOrEmpty(start.stringValue) || start.stringValue == Path.GetFileNameWithoutExtension(GachaScenePath))
+                    if (string.IsNullOrEmpty(start.stringValue) || start.stringValue == "Gacha")
                     {
                         start.stringValue = Path.GetFileNameWithoutExtension(RestaurantScenePath);
                         changed = true;
@@ -527,19 +534,20 @@ namespace BunDauPeo.EditorTools
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
         }
 
-        private static void CreateGachaScene()
-        {
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(GachaScenePath) == null) GachaSceneBuilder.Create(GachaScenePath);
-        }
-
+        // Dựng khi chưa có, và dựng lại một lần khi còn scene cũ (Run đầu tiên sau UI hub): Restaurant.unity cũ chưa có panel,
+        // xoá 3 scene trước khi dựng lại thì mất đường lui. Sau khi scene cũ biến mất thì Run giữ scene hiện có như trước.
         private static void CreateRestaurantScene()
         {
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(RestaurantScenePath) == null) RestaurantSceneBuilder.Create(RestaurantScenePath);
+            var migrating = RemovedScenePaths.Any(path => AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null);
+            if (migrating || AssetDatabase.LoadAssetAtPath<SceneAsset>(RestaurantScenePath) == null) RestaurantSceneBuilder.Create(RestaurantScenePath);
         }
 
-        private static void CreateStageSelectScene()
+        // Chỉ qua AssetDatabase.DeleteAsset (xoá kèm .meta); gọi sau khi Restaurant.unity đã dựng xong.
+        private static void DeleteRemovedScenes()
         {
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(StageSelectScenePath) == null) StageSelectSceneBuilder.Create(StageSelectScenePath);
+            foreach (var path in RemovedScenePaths)
+                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null && !AssetDatabase.DeleteAsset(path))
+                    Debug.LogError($"ProjectSetup: could not delete {path}.");
         }
 
         private static void CreateBattleScene()
@@ -547,12 +555,13 @@ namespace BunDauPeo.EditorTools
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(BattleScenePath) == null) BattleSceneBuilder.Create(BattleScenePath);
         }
 
-        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Gacha, Restaurant, StageSelect, Battle.
+        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Restaurant (Lobby) và Battle.
         private static void PutScenesInBuildOrder()
         {
-            var ordered = new[] { BootScenePath, GachaScenePath, RestaurantScenePath, StageSelectScenePath, BattleScenePath };
-            // Scene ngoài Assets/_Project/Scenes/ (SampleScene) bị bỏ khỏi build; file scene giữ nguyên.
-            var rest = EditorBuildSettings.scenes.Where(s => !ordered.Contains(s.path) && s.path.StartsWith("Assets/_Project/Scenes/"));
+            var ordered = new[] { BootScenePath, RestaurantScenePath, BattleScenePath };
+            // Scene ngoài Assets/_Project/Scenes/ (SampleScene) bị bỏ khỏi build; file scene giữ nguyên. Ba scene cũ đã xoá thì cũng bỏ.
+            var rest = EditorBuildSettings.scenes.Where(s => !ordered.Contains(s.path) && !RemovedScenePaths.Contains(s.path)
+                                                             && s.path.StartsWith("Assets/_Project/Scenes/"));
             EditorBuildSettings.scenes = ordered
                 .Select(path => new EditorBuildSettingsScene(path, true))
                 .Concat(rest)

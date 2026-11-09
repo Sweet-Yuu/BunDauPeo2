@@ -197,6 +197,35 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void SpendFragments_Enough_SubtractsAndRaisesChanged()
+        {
+            _roster.AddFragments("c0", 5);
+            var raised = 0;
+            _roster.Changed += () => raised++;
+            Assert.IsTrue(_roster.SpendFragments("c0", 2));
+            Assert.AreEqual(3, _roster.GetFragments("c0"));
+            Assert.AreEqual(1, raised);
+
+            // Biên: tiêu đúng hết số đang có vẫn được.
+            Assert.IsTrue(_roster.SpendFragments("c0", 3));
+            Assert.AreEqual(0, _roster.GetFragments("c0"));
+        }
+
+        [Test]
+        public void SpendFragments_InvalidOrShort_ChangesNothing()
+        {
+            _roster.AddFragments("c0", 5);
+            var raised = 0;
+            _roster.Changed += () => raised++;
+            Assert.IsFalse(_roster.SpendFragments("c0", 0));
+            Assert.IsFalse(_roster.SpendFragments("c0", -1));
+            Assert.IsFalse(_roster.SpendFragments(null, 1));
+            Assert.IsFalse(_roster.SpendFragments("c0", 6));
+            Assert.AreEqual(5, _roster.GetFragments("c0"));
+            Assert.AreEqual(0, raised);
+        }
+
+        [Test]
         public void GetFragments_NoEntry_ReturnsZero()
         {
             Assert.AreEqual(0, _roster.GetFragments("c0"));

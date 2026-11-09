@@ -75,7 +75,7 @@ namespace BunDauPeo.Tests
         public void RestaurantScene_ViewAndHudAreWired_AndUseOnlyImageAndText() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene =>
             {
-                Assert.AreEqual(1, All<Canvas>(scene).Length);
+                Assert.AreEqual(1, All<Canvas>(scene).Count(c => !c.overrideSorting), "one main canvas; boxes drawn over the bar own a child Canvas");
                 AssertAllReferencesAssigned(All<RestaurantView>(scene).Single());
                 AssertAllReferencesAssigned(All<RestaurantHud>(scene).Single());
                 Assert.AreEqual(0, All<RawImage>(scene).Length);
@@ -316,14 +316,13 @@ namespace BunDauPeo.Tests
             });
 
         [Test]
-        public void RestaurantScene_IsThirdInBuildSettings()
+        public void RestaurantScene_IsSecondInBuildSettings()
         {
             var scenes = EditorBuildSettings.scenes;
-            Assert.GreaterOrEqual(scenes.Length, 3);
+            Assert.GreaterOrEqual(scenes.Length, 2);
             Assert.AreEqual(ProjectSetup.BootScenePath, scenes[0].path);
-            Assert.AreEqual(ProjectSetup.GachaScenePath, scenes[1].path);
-            Assert.AreEqual(ProjectSetup.RestaurantScenePath, scenes[2].path);
-            Assert.IsTrue(scenes[2].enabled);
+            Assert.AreEqual(ProjectSetup.RestaurantScenePath, scenes[1].path);
+            Assert.IsTrue(scenes[1].enabled);
         }
 
         [Test]

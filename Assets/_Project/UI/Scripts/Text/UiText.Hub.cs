@@ -1,0 +1,25 @@
+namespace BunDauPeo.UI
+{
+    public static partial class UiText
+    {
+        private static readonly (string Key, string Vi, string En)[] Hub =
+        {
+            ("hub.tab_restaurant", "Quán", "Restaurant"),
+            ("hub.tab_characters", "Nhân vật", "Characters"),
+            ("hub.tab_story", "Cốt truyện", "Story"),
+            ("hub.tab_stages", "Màn chơi", "Quests"),
+            ("hub.tab_gacha", "Gacha", "Gacha"),
+            ("hub.tab_menu", "Menu", "Menu"),
+            ("hub.coming_soon", "Sắp có", "Coming soon"),
+            ("hub.menu_title", "Menu", "Menu"),
+            ("hub.language", "Ngôn ngữ: Tiếng Việt", "Language: English"),
+            ("hub.language_not_saved", "Chưa lưu được, giữ ngôn ngữ cũ", "Couldn't save. Language not changed"),
+            ("hub.reset", "Reset dữ liệu", "Reset data"),
+            ("hub.reset_confirm", "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.", "Delete ALL saved data and start over?\nThis can't be undone."),
+            ("hub.reset_yes", "Xoá hết", "Delete all"),
+            ("hub.reset_failed", "Reset chưa xong: không ghi được file save. Thử lại.", "Reset didn't finish: couldn't write the save file. Try again."),
+            ("hub.dev", "DEV", "DEV"),
+            ("hub.back", "Quay lại", "Back"),
+        };
+    }
+}

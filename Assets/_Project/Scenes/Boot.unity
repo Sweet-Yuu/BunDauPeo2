@@ -153,6 +153,7 @@ MonoBehaviour:
   _bannerCatalog: {fileID: 11400000, guid: 3dd6e6af34bffbe4b8dfe0c429776610, type: 2}
   _restaurantConfig: {fileID: 11400000, guid: aef5a893b081a2742b49a3797be60a70, type: 2}
   _combatConfig: {fileID: 11400000, guid: bc1300bfe5791e14098333ba2b62ab92, type: 2}
+  _starConfig: {fileID: 11400000, guid: 747b3a665150ff34ca99ca9b2a765714, type: 2}
   _startScene: Restaurant
 --- !u!4 &1435306805
 Transform:

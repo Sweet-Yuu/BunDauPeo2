@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-07 · Trạng thái: **đã duyệt** (user, 2026-11-07, cả thiết kế lẫn bản viết) · Phạm vi: chọn ngôn ngữ (Core, Boot, `PlayerSave`), bảng chữ `UiText` cho mọi chữ người chơi thấy, tên tiếng Anh cho ScriptableObject, nút đổi ngôn ngữ trong panel Cài đặt DEV, test chặn chữ viết cứng.
 > Nguồn: [roadmap](../../roadmap.md) (dòng "Song ngữ Việt–Anh", user chốt 2026-11-03), [D-005](../../decisions/decisions.md) (save, reset), [D-007](../../decisions/decisions.md) (Android trước), [unity-workflow.md](../../guides/unity-workflow.md) (UI và hình tạm). Kế hoạch: [plans/2026-11-07-bilingual.md](../plans/2026-11-07-bilingual.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code, [D-012](../../decisions/decisions.md) hoặc [code-style.md](../../guides/code-style.md), những nơi đó thắng; không sửa spec này để theo kịp. Khác biệt đã biết: Reset đưa ngôn ngữ về theo máy ngay trong `GameSession.ResetToDefaults` (sửa N1 sau review), không qua `GameBootstrap` nghe `ResetCompleted`.
 
 ## 1. Mục tiêu
 

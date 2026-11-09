@@ -57,6 +57,33 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void StatsOf_Given_AlliesUseIt()
+        {
+            var team = new[] { Hero("a"), Hero("b") };
+            var stage = CombatTestData.Stage("s", new[] { Foe("e", hp: 500, attack: 20, defense: 5, speed: 40) });
+            var session = CombatTestData.Battle(team, stage, statsOf: c => c.Id == "a"
+                ? new CombatStats { HP = 999, Attack = 77, Defense = 33, Speed = 50 }
+                : new CombatStats { HP = 888, Attack = 66, Defense = 22, Speed = 60 });
+
+            var a = session.Allies.Single(u => u.DisplayName == "a");
+            var b = session.Allies.Single(u => u.DisplayName == "b");
+            Assert.AreEqual((999, 999, 77, 33, 50), (a.MaxHp, a.Hp, a.Attack, a.Defense, a.Speed));
+            Assert.AreEqual((888, 888, 66, 22, 60), (b.MaxHp, b.Hp, b.Attack, b.Defense, b.Speed));
+            var e = session.Enemies[0];
+            Assert.AreEqual((500, 500, 20, 5, 40), (e.MaxHp, e.Hp, e.Attack, e.Defense, e.Speed));
+        }
+
+        [Test]
+        public void StatsOf_Null_UsesDefinitionStats()
+        {
+            var hero = Hero("a", hp: 900, attack: 70, defense: 25, speed: 88);
+            var session = Battle(new[] { hero }, new[] { Foe("e") });
+
+            var a = session.Allies[0];
+            Assert.AreEqual((900, 900, 70, 25, 88), (a.MaxHp, a.Hp, a.Attack, a.Defense, a.Speed));
+        }
+
+        [Test]
         public void Start_RoundOneWaveZero_OrderBySpeedDescending()
         {
             var s = Battle(new[] { Hero("a1", speed: 120), Hero("a2", speed: 100), Hero("a3", speed: 80) },

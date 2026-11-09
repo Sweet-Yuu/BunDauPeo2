@@ -60,6 +60,19 @@ namespace BunDauPeo.Characters
             return true;
         }
 
+        // Public như mọi hàm sửa khác của Roster; ngoài StarService thì không ai nên gọi.
+        public bool SpendFragments(string id, long count)
+        {
+            if (count <= 0 || id == null) return false;
+
+            var index = _save.Fragments.FindIndex(f => f.CharacterId == id);
+            if (index < 0 || _save.Fragments[index].Count < count) return false;
+
+            _save.Fragments[index] = new FragmentCount { CharacterId = id, Count = _save.Fragments[index].Count - count };
+            Changed.SafeInvoke();
+            return true;
+        }
+
         public long GetFragments(string id)
         {
             if (id == null) return 0;
@@ -84,6 +97,32 @@ namespace BunDauPeo.Characters
             if (_save.BattleTeam.RemoveAll(x => x == id) == 0) return false;
             Changed.SafeInvoke();
             return true;
+        }
+
+        // Chọn đội dở rồi Hủy: trả đội và vai ở quán về như lúc mở. Cả hai danh sách, vì AddToTeam gỡ người khỏi quán.
+        public TeamSnapshot SnapshotTeam() => new(_save.BattleTeam.ToArray(), _save.Staff.ToArray());
+
+        public void RestoreTeam(TeamSnapshot snapshot)
+        {
+            if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+
+            _save.BattleTeam.Clear();
+            _save.BattleTeam.AddRange(snapshot.Team);
+            _save.Staff.Clear();
+            _save.Staff.AddRange(snapshot.Staff);
+            Changed.SafeInvoke();
+        }
+
+        public sealed class TeamSnapshot
+        {
+            internal TeamSnapshot(string[] team, StaffAssignment[] staff)
+            {
+                Team = team;
+                Staff = staff;
+            }
+
+            internal string[] Team { get; }
+            internal StaffAssignment[] Staff { get; }
         }
 
         public bool AssignStaff(string id, StaffRole role)

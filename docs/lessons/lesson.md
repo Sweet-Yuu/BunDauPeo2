@@ -26,11 +26,14 @@
 
 ## Đang hiệu lực
 
-### L-030 — 🎯 đưa id transcript thay cho id session vào brief, kênh con không nhắn lại được (2026-11-08)  #process
-- Triệu chứng: 🔍 Review Song ngữ báo "không tìm thấy phiên" khi nhắn 🎯 Điều phối #2 theo id `local_5e714e6d-…` ghi trong brief.
-- Nguyên nhân gốc: 🎯 lấy id từ tên file transcript (`…/projects/…/5e714e6d-….jsonl`). Đó là id cuộc hội thoại, không phải id session của app (`local_f37812f1-…`).
-- Luật từ nay: brief cần id của kênh 🎯 thì lấy bằng `get_session` với `"self"`, không suy từ đường dẫn transcript hay bản tóm tắt.
-
+### L-034 — MonoBehaviour giả trong assembly Tests không gắn được (2026-11-09)  #script #process
+- Triệu chứng: `FakeHubPage : MonoBehaviour` trong `Assets/_Project/Tests` làm 4 test `HubNavTests` đỏ: "Can't add script behaviour 'FakeHubPage' because it is an editor script"; `AddComponent` trả null nên `_pages` không có phần tử.
+- Nguyên nhân gốc: `BunDauPeo.Tests` chỉ có ở Editor (`includePlatforms: Editor`), nên mọi MonoBehaviour khai trong đó đều là "editor script".
+- Luật từ nay: test EditMode cần một giao diện của view thì tách phần logic thành hàm tĩnh nhận `IEnumerable<IGiaoDien>` (như `HubNav.ClosePages`) và dùng lớp giả thuần C#; không khai MonoBehaviour giả trong assembly Tests.
+### L-033 — Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn (2026-11-09)  #ui #process
+- Triệu chứng: mô phỏng hub bản 1 có banner Gacha và Menu là hộp giữa màn, các popup con giữ cỡ cũ; user sửa: popup phải che kín màn, chỉ hộp xác nhận và phần thưởng giữ cỡ.
+- Nguyên nhân gốc: 📐 lấy cỡ popup đang có làm mặc định, không hỏi luật kín màn trước khi vẽ.
+- Luật từ nay: popup và trang mới mặc định kín 1920×1080 (thanh dưới vẫn hiện); chỉ popup xác nhận và phần thưởng là hộp, nền mờ kín màn che cả thanh ([spec UI hub 5.5](../superpowers/specs/2026-11-09-ui-hub-design.md)).
 ### L-029 — Kế hoạch ghi test EditMode cho `OnEnable`, nhưng EditMode không gọi `OnEnable` của MonoBehaviour thường (2026-11-07)  #script #process
 - Triệu chứng: `LocalizedTextTests` theo kế hoạch (tạo GameObject, bật lại, đọc `Text`) đỏ vì chữ vẫn rỗng; code đúng.
 - Nguyên nhân gốc: ngoài Play, Unity chỉ chạy `Awake`/`OnEnable` cho lớp có `[ExecuteAlways]`. Thêm `ExecuteAlways` chỉ để qua test thì `OnEnable` chạy cả khi mở scene trong Editor.
@@ -59,6 +62,9 @@
 
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
 
+- L-032 (2026-11-09) Test giữ biến asset qua `ProjectSetup.Run()` (dựng scene bằng `NewScene(Single)` dỡ asset): `finally` ném lỗi và để id `renamed_by_test` trên đĩa, 9 test đỏ theo (lặp L-002, lần này ở test)  #unity-files #script #process → [code-style, Test](../guides/code-style.md#test)
+- L-030, L-031 (2026-11-08, `#process`): id kênh lấy bằng `get_session` với `"self"`, không suy từ đường dẫn scratchpad hay transcript → [session-brief.md](../guides/session-brief.md), skill worker (Báo cáo cuối kênh), skill coordinator (Mở kênh con).
+
 - L-028 (2026-11-06) Play đứng ở khung 2 khi cửa sổ Editor không ở trước, dù đã bật chạy nền (lặp L-009)  #process #unity-files → [unity-workflow](../guides/unity-workflow.md#công-cụ-chính-unity-cli-unity)
 - L-027 (2026-11-06) Test đè nút chỉ xét nút đang bật bỏ sót nút Bỏ qua của Gacha (lặp L-025)  #ui #process → [code-style, Test](../guides/code-style.md#test)
 - L-025 (2026-11-06) Nút DEV đè nút của màn game vì `DevOverlay` vẽ trên cùng  #ui #process → [unity-workflow, UI và hình tạm](../guides/unity-workflow.md#ui-và-hình-tạm), [code-style, Test](../guides/code-style.md#test)
@@ -82,4 +88,4 @@ Nội dung đầy đủ nằm trong lịch sử git của file này (trước 20
 - L-005 (2026-10-31) `git add` từng file `.cs` bỏ sót `.meta`  #git #unity-files → [unity-workflow, mục Git](../guides/unity-workflow.md#git)
 - L-004 (2026-10-31) Kết luận cơ chế khi chưa tách biến  #process #unity-files → [unity-workflow](../guides/unity-workflow.md)
 - L-003 (2026-10-31) Code tiền/save nuốt lỗi IO và bắn event trần  #script → [code-style, Service](../guides/code-style.md#service-tiền-và-save)
-- L-002 (2026-10-30) Tham chiếu asset giữ qua `NewScene(Single)` thành null  #unity-files #scene-prefab #script → [code-style, Code Editor](../guides/code-style.md#code-editor)
+- L-002 (2026-10-30) Tham chiếu asset giữ qua `NewScene(Single)` thành null  #unity-files #scene-prefab #script → [code-style, Code Editor](../guides/code-style.md#code-editor), [code-style, Test](../guides/code-style.md#test) (lặp ở L-032)

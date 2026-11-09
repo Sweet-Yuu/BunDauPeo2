@@ -34,7 +34,7 @@ Luật chung của studio ở `docs/studio/README.md`. Vai và phạm vi nằm �
 
 ## Báo cáo cuối kênh (cả ba vai)
 
-Kết thúc bằng khối này, để 📋 commit và điều phối kiểm được:
+Kết thúc bằng khối này, để 📋 commit và điều phối kiểm được. `<session id>` lấy bằng `get_session` với `"self"` (trường `sessionId`), không suy từ đường dẫn scratchpad hay transcript (L-030, L-031).
 
 ```
 Xong: Task a–b  ·  Nhánh: <nhánh> (chưa commit)  ·  Kênh: <tên kênh> (<session id>)

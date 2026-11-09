@@ -19,6 +19,7 @@ Luật chung của studio ở `docs/studio/README.md`. Đọc file đó trước
 
 - Dùng `start_session` với `initiation: "user_asked"` (user đã xác nhận ở bước 4), `context: "fresh"`, `use_worktree: false`, đặt `model`/`effort` theo bảng ở `docs/guides/agent-routing.md`.
 - `title` theo quy ước tên của studio, có icon. `prompt` theo mẫu `docs/guides/session-brief.md`, dòng đầu là `Nạp skill worker. Vai: <📐|🔨|🔍>`. `background`: mục tiêu feature, quyết định đã chốt, phần này nằm ở đâu trong kế hoạch.
+- Brief cần id của kênh 🎯 (để kênh con nhắn lại) thì lấy bằng `get_session` với `"self"` (trường `sessionId`), không suy từ đường dẫn scratchpad hay transcript (L-030).
 - Xong thì xếp kênh con vào mục "🔨 BunDauPeo · Phiên con" (`move_sessions`).
 - Mỗi lúc chỉ một kênh 🔨 hoặc 🔍 đụng Unity. Kênh 📐 chỉ viết docs, nên có thể chạy song song với kênh khác.
 

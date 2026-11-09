@@ -24,6 +24,7 @@ namespace BunDauPeo.Characters
 
         public string DisplayName => GameLanguage.Pick(_displayName, _displayNameEn);
         public Rarity Rarity => _rarity;
+        // Sao khởi điểm; sao hiện tại ở StarService.GetStars.
         public int Stars => _stars;
         public CharacterClass Class => _class;
         public Sprite Portrait => _portrait;

@@ -46,6 +46,36 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void OldSave_WithoutStarUps_LoadsEmpty()
+        {
+            var loaded = JsonUtility.FromJson<PlayerSave>("{\"Version\":1,\"OwnedCharacterIds\":[\"a\"]}");
+            Assert.IsNotNull(loaded.StarUps);
+            Assert.AreEqual(0, loaded.StarUps.Count);
+        }
+
+        [Test]
+        public void StarUps_RoundTripThroughSaveService()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            try
+            {
+                var service = new SaveService(Path.Combine(dir, "save.json"));
+                var save = new PlayerSave();
+                save.StarUps.Add(new StarUpEntry { CharacterId = "a", Count = 2 });
+                Assert.IsTrue(service.Save(save));
+                var loaded = service.Load();
+                Assert.AreEqual(1, loaded.StarUps.Count);
+                Assert.AreEqual("a", loaded.StarUps[0].CharacterId);
+                Assert.AreEqual(2, loaded.StarUps[0].Count);
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        }
+
+        [Test]
         public void FragmentsAndPity_RoundTripThroughSaveService()
         {
             var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

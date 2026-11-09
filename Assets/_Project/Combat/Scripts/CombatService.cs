@@ -48,11 +48,12 @@ namespace BunDauPeo.Combat
         private readonly System.Random _random;
         private readonly Func<bool> _persist;
 
-        public CombatService(CombatConfig config, Roster roster, StaminaService stamina, StageProgressService progress,
-            System.Random random, Func<bool> persist)
+        public CombatService(CombatConfig config, Roster roster, StarService stars, StaminaService stamina,
+            StageProgressService progress, System.Random random, Func<bool> persist)
         {
             Config = config ?? throw new ArgumentNullException(nameof(config));
             _roster = roster ?? throw new ArgumentNullException(nameof(roster));
+            Stars = stars ?? throw new ArgumentNullException(nameof(stars));
             Stamina = stamina ?? throw new ArgumentNullException(nameof(stamina));
             Progress = progress ?? throw new ArgumentNullException(nameof(progress));
             _random = random ?? throw new ArgumentNullException(nameof(random));
@@ -65,6 +66,7 @@ namespace BunDauPeo.Combat
         }
 
         public CombatConfig Config { get; }
+        public StarService Stars { get; }
         public StaminaService Stamina { get; }
         public StageProgressService Progress { get; }
         public bool IsRunning { get; }
@@ -84,7 +86,7 @@ namespace BunDauPeo.Combat
             if (team.Count == 0) return new StartBattleResult(StartBattleStatus.EmptyTeam);
             if (team.Any(c => !IsBattleReady(c))) return new StartBattleResult(StartBattleStatus.InvalidCharacter);
 
-            Current = new BattleSession(team, stage, Config, _random);
+            Current = new BattleSession(team, stage, Config, _random, Stars.GetCombatStats);
             return new StartBattleResult(StartBattleStatus.Success, Current);
         }
 
@@ -104,7 +106,7 @@ namespace BunDauPeo.Combat
 
             // CanEnter vừa tra được màn này; nếu hai danh mục lệch nhau thì dừng trước bước trừ.
             if (!Config.Stages.TryGet(stageId, out var stage)) return new EnterStageResult(EnterStageStatus.Unknown);
-            var session = new BattleSession(team, stage, Config, _random);
+            var session = new BattleSession(team, stage, Config, _random, Stars.GetCombatStats);
             switch (Stamina.TrySpend(stage.StaminaCost, _persist))
             {
                 case StaminaSpendStatus.SaveFailed: return new EnterStageResult(EnterStageStatus.SaveFailed);

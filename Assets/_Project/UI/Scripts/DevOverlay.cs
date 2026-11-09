@@ -12,22 +12,20 @@ using UnityEngine.UI;
 namespace BunDauPeo.UI
 {
     // Nút DEV (trong panel Cài đặt) để thử trong Editor và Development Build; tự dựng bằng code nên không có gì của nó trong bản phát hành.
-    // Hub sau này thay panel này. Không [SerializeField] trong #if (lệch bố cục serialize), không OnGUI (bản chỉ dùng Input System không nhận IMGUI).
+    // Mở từ Menu → DEV của hub và từ Menu tạm dừng của trận; không còn nút nào ngoài panel.
+    // Không [SerializeField] trong #if (lệch bố cục serialize), không OnGUI (bản chỉ dùng Input System không nhận IMGUI).
     public static class DevOverlay
     {
-        public const string RestaurantScene = "Restaurant";
-        public const string GachaScene = "Gacha";
         public const long MaterialGrant = 50;
         public const long GemGrant = 1000;
         public const int AfkRewindHours = 1;
         private const string ConfirmPrompt = "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.";
         private const string ResetFailedMessage = "RESET THẤT BẠI: không xoá được file save (đang bị khoá?).\nDữ liệu giữ nguyên.";
 
-        public static readonly string[] SceneNames = { RestaurantScene, GachaScene, BattleView.StageSelectScene, BattleView.BattleScene };
+        // Scene panel DEV còn nạp: nạp lại khi đổi ngôn ngữ, Chiến đấu thử.
+        public static readonly string[] SceneNames = { BattleView.RestaurantScene, BattleView.BattleScene };
 
         private static GameObject _root;
-        // Nút Cài đặt góc dưới phải (ẩn ở màn trận, nơi Menu có nút Cài đặt) và việc mở panel.
-        private static GameObject _openButton;
         private static Action _openPanel;
         // Màn mà nút "Chiến đấu thử" dùng; nút "Màn thử" xoay vòng nó.
         private static string _trialStageId;
@@ -36,9 +34,7 @@ namespace BunDauPeo.UI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
-            SceneManager.activeSceneChanged -= OnSceneChanged;
             _root = null;
-            _openButton = null;
             _openPanel = null;
             _trialStageId = null;
         }
@@ -74,16 +70,9 @@ namespace BunDauPeo.UI
             _trialStageId = NextBattleStageId(combat.Config.Stages, null);
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             BuildSettings(font, combat);
-            SceneManager.activeSceneChanged += OnSceneChanged;
-            _openButton.SetActive(SceneManager.GetActiveScene().name != BattleView.BattleScene);
         }
 
-        private static void OnSceneChanged(Scene _, Scene next)
-        {
-            if (_openButton != null) _openButton.SetActive(next.name != BattleView.BattleScene);
-        }
-
-        // Menu tạm dừng của màn trận gọi hàm này thay cho nút Cài đặt góc màn.
+        // Đường duy nhất mở panel: Menu → DEV của hub và Menu tạm dừng của trận.
         public static void OpenSettings() => _openPanel?.Invoke();
 
         // Qua ví như +Material: không chạm file save, Changed bắn và Reset Save Data xoá sạch như thường.
@@ -108,17 +97,10 @@ namespace BunDauPeo.UI
             return "";
         }
 
-        // Mọi nút DEV nằm trong panel Cài đặt; ngoài panel chỉ còn một nút nhỏ, để bố cục game (theo Mota) không phải né dải DEV. Nút neo góc
-        // dưới phải: mọi góc trên đều có nút hoặc ô số của game (Menu, Gem...), neo cạnh phải thì màn hẹp (4:3) vẫn thấy nút (L-025).
-        // Reset luôn qua hộp xác nhận (D-005).
+        // Mọi nút DEV nằm trong panel Cài đặt, chỉ người thử bấm Menu → DEV mới mở; ngoài panel không có nút nào nên không đè nút game (L-025).
+        // Chuyển màn do thanh dưới của hub làm. Reset luôn qua hộp xác nhận (D-005).
         private static void BuildSettings(Font font, CombatService combat)
         {
-            var open = AddButton((RectTransform)_root.transform, font, "Cài đặt", Vector2.zero, 150, () => { });
-            var openRect = (RectTransform)open.transform.parent;
-            openRect.anchorMin = openRect.anchorMax = openRect.pivot = new Vector2(1, 0);
-            openRect.anchoredPosition = new Vector2(-16, 24);
-            open.fontSize = 28;
-
             // Nền mờ chặn bấm xuyên xuống game khi panel mở.
             var dim = NewRect("SettingsPanel", _root.transform, Vector2.zero, Vector2.zero);
             dim.anchorMin = Vector2.zero;
@@ -126,46 +108,36 @@ namespace BunDauPeo.UI
             dim.offsetMin = dim.offsetMax = Vector2.zero;
             dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
 
-            var box = NewRect("Box", dim, Vector2.zero, new Vector2(1000, 820));
+            // Chín nút xếp hai cột, từ trên xuống; hộp thấp vừa đủ chín nút và hộp xác nhận Reset (cao 170, ở đáy).
+            var box = NewRect("Box", dim, Vector2.zero, new Vector2(1000, 640));
             box.anchorMin = box.anchorMax = box.pivot = new Vector2(0.5f, 0.5f);
             box.anchoredPosition = Vector2.zero;
             box.gameObject.AddComponent<Image>().color = new Color(0.12f, 0.12f, 0.16f, 1f);
 
-            AddLabel(box, font, "Cài đặt (DEV)", new Vector2(0, 745), new Vector2(1000, 60), 40);
-            AddButton(box, font, "Đóng", new Vector2(820, 745), 160, () => dim.gameObject.SetActive(false));
+            AddLabel(box, font, "Cài đặt (DEV)", new Vector2(0, 565), new Vector2(1000, 60), 40);
+            AddButton(box, font, "Đóng", new Vector2(820, 565), 160, () => dim.gameObject.SetActive(false));
 
-            // Nút chuyển màn thì đóng panel, nếu không panel còn mở che màn mới (Canvas này sống qua mọi scene).
-            Action Go(string scene) => () =>
-            {
-                dim.gameObject.SetActive(false);
-                SceneManager.LoadScene(scene);
-            };
-
-            // Lưới hai cột, từ trên xuống.
             const float Left = 40, Right = 520, Width = 440;
-            AddButton(box, font, "Quán", new Vector2(Left, 655), Width, Go(RestaurantScene));
-            AddButton(box, font, "Gacha", new Vector2(Right, 655), Width, Go(GachaScene));
-            AddButton(box, font, "Màn chơi", new Vector2(Left, 575), Width, Go(BattleView.StageSelectScene));
-            AddButton(box, font, "Chiến đấu thử", new Vector2(Right, 575), Width, () =>
+            AddButton(box, font, "Chiến đấu thử", new Vector2(Left, 475), Width, () =>
             {
                 if (StartTrialBattle(combat)) dim.gameObject.SetActive(false);
             });
             Text stageLabel = null;
-            stageLabel = AddButton(box, font, StageLabel(combat), new Vector2(Left, 495), Width, () =>
+            stageLabel = AddButton(box, font, StageLabel(combat), new Vector2(Right, 475), Width, () =>
             {
                 _trialStageId = NextBattleStageId(combat.Config.Stages, _trialStageId);
                 stageLabel.text = StageLabel(combat);
             });
-            AddButton(box, font, "Hồi đầy thể lực", new Vector2(Right, 495), Width, combat.Stamina.Refill);
+            AddButton(box, font, "Hồi đầy thể lực", new Vector2(Left, 395), Width, combat.Stamina.Refill);
             // Qua ví như mọi nguồn thu khác (không chạm file save), nên Changed bắn và Reset Save Data xoá sạch như thường.
-            AddButton(box, font, $"+{MaterialGrant} Material", new Vector2(Left, 415), Width,
+            AddButton(box, font, $"+{MaterialGrant} Material", new Vector2(Right, 395), Width,
                 () => ServiceLocator.Get<Wallet>().Add(CurrencyType.Material, MaterialGrant));
-            AddButton(box, font, $"+{GemGrant} Gem", new Vector2(Right, 415), Width,
+            AddButton(box, font, $"+{GemGrant} Gem", new Vector2(Left, 315), Width,
                 () => GrantGems(ServiceLocator.Get<Wallet>()));
-            AddButton(box, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(Left, 335), Width, RewindAfk);
+            AddButton(box, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(Right, 315), Width, RewindAfk);
             // Dòng báo (lỗi lưu, đang ở Battle) hiện ngay trên nhãn nút; mở lại panel thì nhãn trở về ngôn ngữ hiện tại.
             Text languageLabel = null;
-            languageLabel = AddButton(box, font, LanguageButtonLabel(GameLanguage.Current), new Vector2(Right, 335), Width, () =>
+            languageLabel = AddButton(box, font, LanguageButtonLabel(GameLanguage.Current), new Vector2(Left, 235), Width, () =>
             {
                 var message = SwitchLanguage();
                 if (message == "") dim.gameObject.SetActive(false);
@@ -195,21 +167,19 @@ namespace BunDauPeo.UI
             AddButton(confirm, font, "Huỷ", new Vector2(480, 10), 400, () => confirm.gameObject.SetActive(false));
             confirm.gameObject.SetActive(false);
 
-            AddButton(box, font, "Reset dữ liệu", new Vector2(Left, 235), 920, () =>
+            AddButton(box, font, "Reset dữ liệu", new Vector2(Right, 235), Width, () =>
             {
                 prompt.text = ConfirmPrompt;
                 prompt.color = Color.white;
                 confirm.gameObject.SetActive(true);
             });
             dim.gameObject.SetActive(false);
-            _openButton = open.transform.parent.gameObject;
             _openPanel = () =>
             {
                 languageLabel.text = LanguageButtonLabel(GameLanguage.Current);
                 confirm.gameObject.SetActive(false);
                 dim.gameObject.SetActive(true);
             };
-            open.GetComponentInParent<Button>().onClick.AddListener(() => _openPanel());
         }
 
         private static Text AddLabel(RectTransform parent, Font font, string text, Vector2 position, Vector2 size, int fontSize)

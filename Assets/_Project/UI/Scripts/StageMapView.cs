@@ -4,7 +4,6 @@ using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace BunDauPeo.UI
@@ -17,7 +16,6 @@ namespace BunDauPeo.UI
         private static readonly Color LinkIdle = new(0.35f, 0.36f, 0.42f);
         private static readonly Color LinkDone = new(0.30f, 0.70f, 0.40f);
 
-        [SerializeField] private Button _backButton;
         [SerializeField] private Text _staminaText;
         [SerializeField] private Text _materialText;
         [SerializeField] private Text _gemText;
@@ -79,7 +77,6 @@ namespace BunDauPeo.UI
                 _roster = null;
             }
 
-            _backButton.onClick.AddListener(Back);
             _info.Challenge += OnChallenge;
             if (_service != null) _service.Progress.Changed += MarkDirty;
             if (_wallet != null) _wallet.Changed += MarkDirty;
@@ -91,7 +88,6 @@ namespace BunDauPeo.UI
         private void OnDisable()
         {
             _ready = false;
-            if (_backButton != null) _backButton.onClick.RemoveListener(Back);
             if (_info != null) _info.Challenge -= OnChallenge;
             if (_service != null) _service.Progress.Changed -= MarkDirty;
             if (_wallet != null) _wallet.Changed -= MarkDirty;
@@ -99,7 +95,7 @@ namespace BunDauPeo.UI
 
         private bool HasAllReferences()
         {
-            var ok = _backButton != null && _staminaText != null && _materialText != null && _gemText != null && _nodesRoot != null
+            var ok = _staminaText != null && _materialText != null && _gemText != null && _nodesRoot != null
                      && _nodeTemplate != null && _linkTemplate != null && _nextMarker != null && _hintText != null && _invalidText != null
                      && _info != null && _story != null && _team != null;
             if (!ok) Debug.LogError($"{nameof(StageMapView)}: references are not assigned.", this);
@@ -107,8 +103,6 @@ namespace BunDauPeo.UI
         }
 
         private void MarkDirty() => _dirty = true;
-
-        private static void Back() => SceneManager.LoadScene(BattleView.RestaurantScene);
 
         private void Update()
         {

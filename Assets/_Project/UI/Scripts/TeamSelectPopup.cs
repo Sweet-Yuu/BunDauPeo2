@@ -10,7 +10,7 @@ namespace BunDauPeo.UI
 {
     // Chọn đội trước khi vào trận (spec Combat 5.3). Đổi đội ghi bộ nhớ (Roster); EnterStage kiểm lại mọi thứ, trừ thể lực và lưu
     // cả đội một lần. Thể lực chỉ bị trừ khi bấm Vào trận (hoặc Có ở hộp xác nhận), không phải lúc mở popup hay hộp.
-    public class TeamSelectPopup : MonoBehaviour
+    public class TeamSelectPopup : MonoBehaviour, IHubPage
     {
         public const int CardsPerPage = 16;
         private static readonly Color OnChip = new(0.20f, 0.23f, 0.32f);
@@ -40,6 +40,7 @@ namespace BunDauPeo.UI
 
         private CombatService _service;
         private Roster _roster;
+        private Roster.TeamSnapshot _opened;
         private StageDefinition _stage;
         private int _page;
         private string _pendingStaffId;
@@ -54,6 +55,7 @@ namespace BunDauPeo.UI
 
             _service = service;
             _roster = roster;
+            _opened = roster.SnapshotTeam();
             _stage = stage;
             _page = 0;
             _busy = false;
@@ -67,16 +69,21 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
-        // Hủy: lưu đội đã đổi (Roster chỉ ghi bộ nhớ) rồi đóng.
+        // Hủy: trả đội và vai ở quán về như lúc mở (spec UI hub 5.5), không lưu đội chọn dở. Roster chỉ ghi bộ nhớ,
+        // nên không có gì để lưu lại; chỉ Vào trận (EnterStage) mới lưu đội.
         public void Cancel()
         {
-            _service?.Persist();
-            Close();
+            if (IsOpen && _roster != null && _opened != null) _roster.RestoreTeam(_opened);
+            Hide();
         }
 
-        public void Close()
+        // IHubPage: bấm ô khác của thanh hay đổi ngôn ngữ đóng trang đúng như nút Hủy.
+        public void Close() => Cancel();
+
+        private void Hide()
         {
             _stage = null;
+            _opened = null;
             _pendingStaffId = null;
             if (_smallConfirmRoot != null) _smallConfirmRoot.SetActive(false);
             if (_staffConfirmRoot != null) _staffConfirmRoot.SetActive(false);
@@ -149,7 +156,7 @@ namespace BunDauPeo.UI
         {
             if (_roster == null || _stage == null) return;
 
-            var rows = TeamSelectRows.Build(_roster);
+            var rows = TeamSelectRows.Build(_roster, _service.Stars);
             var pageCount = Math.Max(1, (rows.Count + CardsPerPage - 1) / CardsPerPage);
             _page = Mathf.Clamp(_page, 0, pageCount - 1);
             for (var i = 0; i < _cards.Length; i++)
