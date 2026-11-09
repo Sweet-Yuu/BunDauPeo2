@@ -10,8 +10,7 @@ namespace BunDauPeo.Tests
     {
         private static readonly string[] GameScenes =
         {
-            ProjectSetup.BootScenePath, ProjectSetup.GachaScenePath, ProjectSetup.RestaurantScenePath,
-            ProjectSetup.StageSelectScenePath, ProjectSetup.BattleScenePath,
+            ProjectSetup.BootScenePath, ProjectSetup.RestaurantScenePath, ProjectSetup.BattleScenePath,
         };
 
         private static AndroidBuild.Config Valid() => new AndroidBuild.Config
@@ -58,7 +57,7 @@ namespace BunDauPeo.Tests
             var cases = new (string Name, string[] Scenes, string MustMention)[]
             {
                 ("empty", new string[0], null),
-                ("boot not first", new[] { GameScenes[1], GameScenes[0], GameScenes[2], GameScenes[3], GameScenes[4] }, null),
+                ("boot not first", new[] { GameScenes[1], GameScenes[0], GameScenes[2] }, null),
                 ("sample scene at the end", GameScenes.Append(sample).ToArray(), sample),
                 ("missing file", GameScenes.Append(missing).ToArray(), missing),
             };

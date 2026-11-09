@@ -25,6 +25,8 @@ namespace BunDauPeo.UI
         [SerializeField] private GachaTotalView _totalView;
         [SerializeField] private GachaRollAgainPopup _rollAgainPopup;
         [SerializeField] private GachaHistoryPopup _historyPopup;
+        // Thanh dưới ẩn từ lúc bấm quay (cutscene, lộ, tổng) tới lúc về trang roll (spec UI hub 5.3).
+        [SerializeField] private HubNav _hub;
 
         private Wallet _wallet;
         private Roster _roster;
@@ -73,6 +75,8 @@ namespace BunDauPeo.UI
         {
             if (!_subscribed) return;
             _subscribed = false;
+            // Panel tắt giữa lượt quay (nạp lại scene...) thì trả chủ ẩn thanh, để thanh không kẹt.
+            _hub.SetBarHidden(this, false);
             _wallet.Changed -= Redraw;
             _roster.Changed -= Redraw;
             _singleButton.onClick.RemoveListener(PullSingle);
@@ -97,7 +101,7 @@ namespace BunDauPeo.UI
             var ok = _banner != null && _characters != null && _gemText != null && _bannerNameText != null
                      && _pityText != null && _messageText != null && _singleButton != null && _tenButton != null
                      && _skipButton != null && _historyButton != null && _revealView != null && _totalView != null
-                     && _rollAgainPopup != null && _historyPopup != null;
+                     && _rollAgainPopup != null && _historyPopup != null && _hub != null;
             if (!ok) Debug.LogError($"{nameof(GachaView)}: a serialized reference is not assigned.", this);
             return ok;
         }
@@ -194,6 +198,7 @@ namespace BunDauPeo.UI
             SetButton(_singleButton, 1, _banner.SingleCost);
             SetButton(_tenButton, 10, _banner.TenCost);
             _historyButton.interactable = !_busy;
+            _hub.SetBarHidden(this, _busy);
         }
 
         private void SetButton(Button button, int count, CurrencyAmount[] cost)

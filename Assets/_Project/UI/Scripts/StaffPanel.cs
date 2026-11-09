@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace BunDauPeo.UI
 {
     // Ba cột (đầu bếp, phục vụ, thu ngân), mỗi cột tối đa ba ô. Bấm ô mở danh sách nhân vật đã có; mọi tính toán nằm ở StaffPanelRows.
-    public class StaffPanel : MonoBehaviour
+    public class StaffPanel : MonoBehaviour, IHubPage
     {
         private const int SlotsPerRole = 3;
         private static readonly StaffRole[] Roles = { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier };
@@ -34,6 +34,8 @@ namespace BunDauPeo.UI
 
         private RestaurantService _service;
         private Roster _roster;
+
+        public bool IsOpen => _root != null && _root.activeSelf;
         private StaffRole _listRole;
         private string _replacingId;
         private CandidateRow _pending;
@@ -121,7 +123,7 @@ namespace BunDauPeo.UI
             Redraw();
         }
 
-        private void Close()
+        public void Close()
         {
             _service.Incidents.SetSpawnBlocked(this, false);
             _root.SetActive(false);

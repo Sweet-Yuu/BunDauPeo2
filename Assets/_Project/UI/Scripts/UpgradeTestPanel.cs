@@ -9,7 +9,7 @@ namespace BunDauPeo.UI
 {
     // Bản thử: một cột nút, mỗi nâng cấp một nút. UI nâng cấp thật thay view này mà không đụng UpgradeService.
     // Nút "mờ" vẫn bấm được để hiện lý do trong dòng thông báo.
-    public class UpgradeTestPanel : MonoBehaviour
+    public class UpgradeTestPanel : MonoBehaviour, IHubPage
     {
         private const float DimAlpha = 0.45f;
 
@@ -30,6 +30,8 @@ namespace BunDauPeo.UI
         private readonly List<Row> _rows = new();
         private RestaurantService _service;
         private Wallet _wallet;
+
+        public bool IsOpen => _root != null && _root.activeSelf;
 
         private void OnEnable()
         {
@@ -105,7 +107,7 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
-        private void Close()
+        public void Close()
         {
             _service.Incidents.SetSpawnBlocked(this, false);
             _root.SetActive(false);

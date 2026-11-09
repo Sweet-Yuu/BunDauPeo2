@@ -13,7 +13,7 @@ namespace BunDauPeo.UI
     // Hoạt hình phát từng BattleActionResult theo Time.unscaledDeltaTime (không dùng Time.timeScale, để quán không bị ảnh hưởng).
     public class BattleView : MonoBehaviour
     {
-        public const string BattleScene = "Battle", StageSelectScene = "StageSelect", RestaurantScene = "Restaurant";
+        public const string BattleScene = "Battle", RestaurantScene = "Restaurant";
 
         private const int SlotCount = 5, TurnCellCount = 10;
         private const float StrikeDistance = 60f, FloatRise = 90f;
@@ -153,7 +153,12 @@ namespace BunDauPeo.UI
             return true;
         }
 
-        private static void Back() => SceneManager.LoadScene(StageSelectScene);
+        // Bản đồ là panel của Lobby: về quán với ô Màn chơi mở sẵn (spec UI hub 5.7).
+        private static void Back()
+        {
+            HubNav.OpenOnNextLoad(HubTab.Stages, menu: false);
+            SceneManager.LoadScene(RestaurantScene);
+        }
 
         private void OnMenuClicked()
         {

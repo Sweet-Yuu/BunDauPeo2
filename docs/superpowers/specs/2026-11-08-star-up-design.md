@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-08 · Trạng thái: **đã duyệt** (user, 2026-11-08, cả thiết kế lẫn bản viết) · Phạm vi: tiêu mảnh để nâng sao (tối đa 5★), chỉ số trận theo sao, save sao, màn "Nhân vật" tạm, hiện ★ hiện tại ở thẻ chọn đội và màn lộ Gacha.
 > Nguồn: [roadmap](../../roadmap.md) (dòng "Nâng sao nhân vật"), [game-design](../../design/game-design.md#nhân-vật) (mảnh, sao khởi điểm), [spec Gacha](2026-10-31-gacha-design.md) (mảnh trong `Roster`), [spec Combat](2026-11-02-combat-design.md) (chỉ số trong trận), [D-005](../../decisions/decisions.md) (save, reset), [D-012](../../decisions/decisions.md) (chữ qua `UiText`). Kế hoạch: [plans/2026-11-08-star-up.md](../plans/2026-11-08-star-up.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code, [game-design](../../design/game-design.md#nhân-vật) hoặc [code-style.md](../../guides/code-style.md), những nơi đó thắng; không sửa spec này để theo kịp. Khác biệt đã biết: `TryStarUp` từ chối thêm khi giá ≤ 0 (`InvalidConfig`, sửa N1 sau review); PlayMode cuối nhánh là 16 test chứ không phải 14.
 
 ## 1. Mục tiêu
 

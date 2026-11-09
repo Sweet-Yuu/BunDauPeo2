@@ -11,6 +11,7 @@ Desktop app không cho đặt ảnh logo riêng cho session, nên mỗi kênh ma
 |---|---|---|---|---|---|
 | 🎯 | **Điều phối**: giữ danh sách task, chia phiên, mở kênh con, kiểm kết quả | `/coordinator` | user | Sonnet 5.5 medium | chỉ [history.md](history.md) (📋 commit) |
 | 📋 | **Thư ký**: commit + push khi worker báo xong; báo cáo đã làm gì, đang làm gì, làm gì tiếp, chỗ lệch | `/secretary` | user, điều phối | Sonnet 5.5 low | chỉ git (commit, push); không sửa file |
+| 🎨 | **Game designer**: bàn ý tưởng với user, ghi và sửa sổ ý tưởng, vẽ luồng màn từ Lobby (user lập 2026-11-09) | `/designer` | user, điều phối | Opus 5.5 high | `docs/design/screen-flow.md`, `docs/design/ideas.md`, game-design và vision khi user chốt, `ui-screens.md` |
 | 📐 | **Thiết kế**: brainstorm với user, viết spec và kế hoạch | `/worker` | điều phối | Opus 5.5 high | spec, plan, docs liên quan |
 | 🔨 | **Code**: làm Task a–b của một kế hoạch, có thể chạy subagent song song | `/worker` | điều phối | Sonnet 5.5 medium/high | code, test, roadmap, lesson |
 | 🔍 | **Review**: review độc lập cuối nhánh | `/worker` | điều phối | Opus 5.5 high/xhigh | lesson, ghi chú review |

@@ -130,7 +130,8 @@ namespace BunDauPeo.UI
         private void ToMap()
         {
             _service?.EndBattle();
-            SceneManager.LoadScene(BattleView.StageSelectScene);
+            HubNav.OpenOnNextLoad(HubTab.Stages, menu: false);
+            SceneManager.LoadScene(BattleView.RestaurantScene);
         }
 
         // Nút mờ khi không vào lại được, kèm lý do (thiếu thể lực thì kèm thời gian chờ). Trận DEV (chưa trả thể lực) luôn thử lại được.
