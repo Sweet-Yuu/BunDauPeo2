@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Playtest;
+using BunDauPeo.Restaurant;
 using BunDauPeo.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -369,10 +371,12 @@ namespace BunDauPeo.PlayModeTests
             yield return null;
             yield return WaitForScene("Restaurant");
 
+            // Review Focus 2: đội chọn dở bị trả về như lúc mở Chọn đội, cả trong bộ nhớ lẫn trong file save (lưu ngôn ngữ ghi cả save).
             _step = "G2 Màn chơi → Chọn đội (dở)";
+            var teamBefore = session.Roster.GetBattleTeam().Select(c => c.Id).ToList();
             yield return OpenTeamSelectOfFirstBattle(combat);
             yield return ClickWhenReady("TeamCard0");
-            var teamBefore = session.Roster.GetBattleTeam().Select(c => c.Id).ToList();
+            CollectionAssert.AreNotEqual(teamBefore, session.Roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("bấm TeamCard0 phải đổi đội, nếu không ca này không thử gì"));
 
             _step = "G3 Menu → Ngôn ngữ";
             yield return ClickWhenReady("NavTabMenu_PH_320x120");
@@ -389,7 +393,8 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsTrue(hub.State.MenuOpen, Where("đổi ngôn ngữ xong Menu phải còn mở"));
             Assert.AreEqual("Language: English", GameObject.Find("MenuLanguageBtn_PH_700x100").GetComponentInChildren<Text>().text, Where("nhãn Ngôn ngữ"));
             Assert.AreEqual("Restaurant", GameObject.Find("NavTabRestaurant_PH_320x120").GetComponentInChildren<Text>().text, Where("nhãn ô Quán phải theo tiếng Anh"));
-            CollectionAssert.AreEqual(teamBefore, session.Roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("đội đổi sau khi đổi ngôn ngữ"));
+            CollectionAssert.AreEqual(teamBefore, session.Roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("đội chọn dở phải về như lúc mở Chọn đội"));
+            Assert.AreEqual(0, Object.FindObjectsByType<TeamSelectPopup>(FindObjectsInactive.Include, FindObjectsSortMode.None).Count(p => p.IsOpen), Where("Chọn đội còn mở sau khi nạp lại"));
 
             _step = "G5 nạp lại save tạm";
             var loaded = new SaveService(_savePath).Load();
@@ -428,6 +433,244 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(HubTab.Stages, hub.State.Current, Where("về từ trận phải ở ô Màn chơi"));
             Assert.IsFalse(hub.State.MenuOpen, Where("về từ trận không mở Menu"));
             Assert.IsNotNull(GameObject.Find("StageMapPanel_PH_1920x1080"), Where("bản đồ phải bật sẵn"));
+        }
+
+        // --- Vòng ô của hub, thanh Gacha, Reset lỗi trong Menu, ảnh chụp cho playtest (spec UI hub 7).
+
+        private static readonly string[] HubPanels = { "CharactersPanel_PH_1920x1080", "StageMapPanel_PH_1920x1080", "GachaPanel_PH_1920x1080" };
+
+        // GameObject.Find bỏ qua object đang tắt, mà ở đây cần đọc cả trạng thái tắt.
+        private static GameObject FindAny(string name) =>
+            Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None).Single(t => t.name == name).gameObject;
+
+        private void AssertOnlyPanelOpen(string open)
+        {
+            foreach (var panel in HubPanels)
+                Assert.AreEqual(panel == open, FindAny(panel).activeSelf, Where($"{panel} phải {(panel == open ? "bật" : "tắt")}"));
+        }
+
+        [UnityTest, Timeout(240000)]
+        public IEnumerator Hub_TabLoop_OpensEachPanel()
+        {
+            _step = "T1 Boot";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var restaurant = ServiceLocator.Get<RestaurantService>();
+            var hub = Object.FindFirstObjectByType<HubNav>();
+            AssertOnlyPanelOpen(null);
+            Assert.IsTrue(restaurant.IsPresent, Where("vào Lobby mà quán không có mặt"));
+
+            _step = "T2 Nhân vật, Màn chơi, Gacha";
+            foreach (var (tab, panel, expected) in new[]
+                     {
+                         ("NavTabCharacters_PH_320x120", HubPanels[0], HubTab.Characters),
+                         ("NavTabStages_PH_320x120", HubPanels[1], HubTab.Stages),
+                         ("NavTabGacha_PH_320x120", HubPanels[2], HubTab.Gacha),
+                     })
+            {
+                yield return ClickWhenReady(tab);
+                AssertOnlyPanelOpen(panel);
+                Assert.AreEqual(expected, hub.State.Current, Where($"{tab} không đổi ô hiện tại"));
+                Assert.IsTrue(restaurant.IsPresent, Where($"mở {panel} mà quán rời đi: sự cố và chuyên cần sẽ dừng"));
+            }
+
+            _step = "T3 Cốt truyện (khoá) → Sắp có, không đổi ô";
+            yield return ClickWhenReady("NavTabStory_PH_320x120");
+            Assert.IsTrue(FindAny("ComingSoonToast").activeSelf, Where("ô Cốt truyện phải hiện dòng Sắp có"));
+            Assert.AreEqual(HubTab.Gacha, hub.State.Current, Where("ô Cốt truyện không được đổi ô hiện tại"));
+            AssertOnlyPanelOpen(HubPanels[2]);
+
+            _step = "T4 Menu mở rồi Quán";
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            Assert.IsTrue(FindAny("MenuPanel_PH_1920x1080").activeSelf, Where("ô Menu phải mở Menu"));
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+            AssertOnlyPanelOpen(null);
+            Assert.IsFalse(FindAny("MenuPanel_PH_1920x1080").activeSelf, Where("bấm ô Quán phải đóng Menu"));
+            Assert.AreEqual(HubTab.Restaurant, hub.State.Current);
+            Assert.IsTrue(restaurant.IsPresent);
+
+            // Review Focus 1: trang của quán đang mở mà bấm ô khác thì trang phải đóng qua IHubPage.Close() và trả SetSpawnBlocked,
+            // nếu không sự cố không bao giờ sinh lại.
+            _step = "T5 Nhân viên → bấm Gacha";
+            yield return ClickWhenReady("StaffButton");
+            Assert.IsTrue(FindAny("StaffPanelRoot").activeSelf, Where("StaffButton không mở trang Nhân viên"));
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+            Assert.IsFalse(FindAny("StaffPanelRoot").activeSelf, Where("bấm ô khác mà trang Nhân viên còn mở"));
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+
+            // Giờ thật như các ca chờ khác, nhưng rút bộ đếm sinh xuống 1–2 giây (mặc định 60–120) rồi trả lại; Reset xoá bộ đếm đã đặt.
+            _step = "T6 sự cố vẫn sinh sau khi đóng trang";
+            var config = restaurant.Config;
+            var min = typeof(RestaurantConfig).GetField("_incidentSpawnMin", BindingFlags.NonPublic | BindingFlags.Instance);
+            var max = typeof(RestaurantConfig).GetField("_incidentSpawnMax", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(min, Where("RestaurantConfig đổi tên _incidentSpawnMin"));
+            Assert.IsNotNull(max, Where("RestaurantConfig đổi tên _incidentSpawnMax"));
+            var oldMin = min.GetValue(config);
+            var oldMax = max.GetValue(config);
+            min.SetValue(config, 1f);
+            max.SetValue(config, 2f);
+            try
+            {
+                restaurant.Incidents.Reset();
+                var deadline = Time.realtimeSinceStartup + 20f;
+                while (restaurant.Incidents.Active == null)
+                {
+                    if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where("20s sau khi đóng trang mà không có sự cố nào sinh: SetSpawnBlocked còn kẹt"));
+                    yield return null;
+                }
+            }
+            finally
+            {
+                min.SetValue(config, oldMin);
+                max.SetValue(config, oldMax);
+            }
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_GachaPull_HidesBar_UntilBackOnRollPage()
+        {
+            _step = "H1 Boot, Gacha";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            session.Wallet.Add(CurrencyType.Gem, 5000);
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+            Assert.IsTrue(FindAny("NavBar_PH_1920x120").activeSelf, Where("thanh phải hiện ở trang roll"));
+
+            _step = "H2 Quay 10 → thanh ẩn";
+            yield return ClickWhenReady("TenButton");
+            yield return null;
+            Assert.IsFalse(FindAny("NavBar_PH_1920x120").activeSelf, Where("đang lộ nhân vật mà thanh còn hiện"));
+
+            _step = "H3 về trang roll → thanh hiện lại";
+            // Đường tới đây (cutscene, chạm từng thẻ, trang tổng) cần chuột thật; gọi thẳng hàm Thôi của GachaView, nơi trả lượt quay.
+            typeof(GachaView).GetMethod("Dismiss", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Object.FindFirstObjectByType<GachaView>(), null);
+            yield return null;
+            Assert.IsTrue(FindAny("NavBar_PH_1920x120").activeSelf, Where("về trang roll mà thanh vẫn ẩn"));
+        }
+
+        // Reset lỗi trong Menu (ResetFailed): file save bị khoá nên xoá thất bại. Hộp đóng, dòng trạng thái báo lỗi và không hứa
+        // "dữ liệu giữ nguyên"; Menu còn mở; thử lại sau khi nhả khoá thì reset được.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Menu_ResetFails_ShowsError_KeepsMenu_RetryWorks()
+        {
+            _step = "F1 Boot, +Gem";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var startGems = session.Wallet.Get(CurrencyType.Gem);
+            session.Wallet.Add(CurrencyType.Gem, 1000);
+            Assert.IsTrue(session.Persist(), Where("ghi save tạm"));
+            var played = session.Wallet.Get(CurrencyType.Gem);
+
+            _step = "F2 Menu → Reset → Xoá hết khi file bị khoá";
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            var locked = new FileStream(_savePath, FileMode.Open, FileAccess.Read, FileShare.None); // File.Delete sẽ ném IOException
+            try
+            {
+                LogAssert.Expect(LogType.Error, new Regex("Reset failed"));
+                LogAssert.Expect(LogType.Error, new Regex("MenuView: Reset Save Data FAILED"));
+                yield return ClickWhenReady("ResetYesBtn_PH_340x110");
+                Assert.AreEqual(played, session.Wallet.Get(CurrencyType.Gem), Where("reset thất bại mà bộ nhớ vẫn đổi"));
+                Assert.AreEqual(0, UiDriver.FindButtons("ResetYesBtn_PH_340x110").Count, Where("reset thất bại thì hộp xác nhận phải đóng"));
+                Assert.AreEqual(1, UiDriver.FindButtons("MenuResetBtn_PH_700x100").Count, Where("reset thất bại thì Menu phải còn mở"));
+                var status = GameObject.Find("MenuStatus").GetComponent<Text>().text;
+                Assert.AreEqual(MenuViewText.ResetFailed(), status, Where("dòng trạng thái phải báo Reset chưa xong"));
+                StringAssert.DoesNotContain("giữ nguyên", status, Where("câu lỗi không được hứa dữ liệu giữ nguyên"));
+            }
+            finally
+            {
+                locked.Dispose();
+            }
+
+            _step = "F3 thử lại sau khi nhả khoá";
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            yield return ClickWhenReady("ResetYesBtn_PH_340x110");
+            yield return WaitForNewHub(oldHub);
+            Assert.AreEqual(startGems, session.Wallet.Get(CurrencyType.Gem), Where("thử lại phải reset được"));
+        }
+
+        // Ảnh cho lần dừng playtest: mọi panel và trang con ở tiếng Việt rồi tiếng Anh, ra D:/bdp_BunDauPeo/shots/hub-<màn>[-en].png.
+        // Đi cả đường đóng trang bằng ô khác (Chọn đội, Lịch sử quay), nên cũng là smoke test của IHubPage.
+        private IEnumerator Shot(string screen, string suffix)
+        {
+            yield return null;
+            yield return null;
+            var path = ScreenCapture1080.Capture($"hub-{screen}{suffix}.png");
+            Assert.IsFalse(path.StartsWith("ERROR", StringComparison.Ordinal), Where(path));
+        }
+
+        private IEnumerator ShootAllPages(string suffix)
+        {
+            var combat = ServiceLocator.Get<CombatService>();
+            _step = "S Lobby" + suffix;
+            yield return Shot("lobby", suffix);
+            yield return ClickWhenReady("NavTabCharacters_PH_320x120");
+            yield return Shot("characters", suffix);
+            yield return ClickWhenReady("NavTabStages_PH_320x120");
+            yield return Shot("stages", suffix);
+
+            var stages = combat.Config.Stages.Items;
+            var battleIndex = stages.Select((st, i) => (st, i)).First(x => x.st.Kind == StageKind.Battle).i;
+            for (var i = 0; i < battleIndex; i++)
+            {
+                yield return ClickWhenReady("Node" + i);
+                if (i == 0) yield return Shot("story", suffix);
+                yield return ClickWhenReady("ContinueButton");
+            }
+
+            yield return ClickWhenReady("Node" + battleIndex);
+            yield return Shot("stage-info", suffix);
+            yield return ClickWhenReady("ChallengeButton");
+            yield return Shot("team", suffix);
+
+            _step = "S Gacha" + suffix;
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+            yield return Shot("gacha", suffix);
+            yield return ClickWhenReady("HistoryButton");
+            yield return Shot("gacha-history", suffix);
+
+            _step = "S Quán" + suffix;
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+            yield return ClickWhenReady("StaffButton");
+            yield return Shot("staff", suffix);
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+            yield return ClickWhenReady("UpgradeButton");
+            yield return Shot("upgrade", suffix);
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+
+            _step = "S Menu" + suffix;
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return Shot("menu", suffix);
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            yield return Shot("reset", suffix);
+            yield return ClickWhenReady("ResetNoBtn_PH_340x110");
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+        }
+
+        [UnityTest, Timeout(240000)]
+        public IEnumerator Hub_Screenshots_VietnameseAndEnglish()
+        {
+            _step = "S0 Boot (Việt)";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            Assert.IsTrue(session.SetLanguage(Language.Vi), Where("SetLanguage(Vi)"));
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            SceneManager.LoadScene("Restaurant");
+            yield return WaitForNewHub(oldHub);
+            yield return null;
+            yield return ShootAllPages("");
+
+            _step = "S0 đổi English";
+            Assert.IsTrue(session.SetLanguage(Language.En), Where("SetLanguage(En)"));
+            oldHub = Object.FindFirstObjectByType<HubNav>();
+            SceneManager.LoadScene("Restaurant");
+            yield return WaitForNewHub(oldHub);
+            yield return null;
+            yield return ShootAllPages("-en");
         }
 
 #if UNITY_EDITOR

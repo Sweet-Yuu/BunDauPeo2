@@ -32,7 +32,8 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(new Vector2(1920, 1080), canvas.referenceResolution);
             });
 
-        // S1: hai cột. Trái: tên, quái, thưởng; phải dưới: thể lực, cảnh báo và hai nút cạnh nhau.
+        // S1 (trang kín màn): hai cột trong vùng trên vạch. Trái: tên, quái. Phải: thưởng, thể lực, cảnh báo, nút Thách đấu dưới-phải.
+        // Nút Hủy là nút Quay lại ở góc trên-trái.
         [Test]
         public void StageSelectScene_InfoPopup_TwoColumns_InsideBox() =>
             WithStageSelect(scene =>
@@ -42,7 +43,7 @@ namespace BunDauPeo.Tests
                 var box = (RectTransform)RootOf(popup).transform.Find("InfoBox");
                 Assert.IsNotNull(box);
                 var boxRect = RestaurantSceneTests.InReferenceCanvas(box);
-                Assert.AreEqual(new Vector2(1600, 820), boxRect.size);
+                Assert.AreEqual(new Rect(0, HubNav.BarHeight, 1920, 1080 - HubNav.BarHeight), boxRect, "the page box covers the screen above the bar");
 
                 var row = (RewardRow)so.FindProperty("_rewardRow").objectReferenceValue;
                 Assert.IsNotNull(row);
@@ -58,30 +59,29 @@ namespace BunDauPeo.Tests
                                   && rect.yMin >= boxRect.yMin - 1f && rect.yMax <= boxRect.yMax + 1f, $"{member.name} {rect} leaves the box {boxRect}");
                 }
 
-                var third = boxRect.width / 3f;
-                var twoThirds = boxRect.xMin + third * 2f;
+                var middle = boxRect.center.x;
                 var title = (Text)so.FindProperty("_title").objectReferenceValue;
                 Assert.AreEqual(TextAnchor.MiddleLeft, title.alignment, "the stage name is left-aligned");
-                Assert.Less(RestaurantSceneTests.InReferenceCanvas(title.rectTransform).center.x, boxRect.xMin + third, "Title sits in the left third");
+                var titleRect = RestaurantSceneTests.InReferenceCanvas(title.rectTransform);
+                Assert.Greater(titleRect.center.y, boxRect.center.y + boxRect.height / 4f, "the stage name sits at the top");
 
                 foreach (var image in ReadArray<Image>(so.FindProperty("_cells")))
-                    Assert.LessOrEqual(RestaurantSceneTests.InReferenceCanvas(image.rectTransform).xMax, twoThirds, $"{image.name} enemy cell crosses into the right third");
-                Assert.LessOrEqual(RestaurantSceneTests.InReferenceCanvas((RectTransform)row.transform).xMax, twoThirds, "RewardRow stays in the left two thirds");
+                    Assert.LessOrEqual(RestaurantSceneTests.InReferenceCanvas(image.rectTransform).xMax, middle, $"{image.name} enemy cell crosses into the right column");
+                Assert.GreaterOrEqual(RestaurantSceneTests.InReferenceCanvas((RectTransform)row.transform).xMin, middle, "RewardRow sits in the right column");
 
-                var rightThird = boxRect.xMin + third * 2f;
                 foreach (var name in new[] { "_staminaText", "_warningText", "_messageText" })
                 {
                     var text = (Text)so.FindProperty(name).objectReferenceValue;
-                    Assert.GreaterOrEqual(RestaurantSceneTests.InReferenceCanvas(text.rectTransform).xMin, rightThird - 1f, $"{name} sits in the right third");
+                    Assert.GreaterOrEqual(RestaurantSceneTests.InReferenceCanvas(text.rectTransform).xMin, middle, $"{name} sits in the right column");
                 }
 
                 var cancel = RestaurantSceneTests.InReferenceCanvas((RectTransform)((Button)so.FindProperty("_cancelButton").objectReferenceValue).transform);
                 var challenge = RestaurantSceneTests.InReferenceCanvas((RectTransform)((Button)so.FindProperty("_challengeButton").objectReferenceValue).transform);
-                Assert.GreaterOrEqual(cancel.xMin, rightThird - 1f, "Cancel sits in the right third");
-                Assert.GreaterOrEqual(challenge.xMin, rightThird - 1f, "Challenge sits in the right third");
+                Assert.Greater(challenge.xMin, middle, "Challenge sits in the right column");
+                Assert.Less(challenge.center.y, boxRect.center.y, "Challenge sits at the bottom");
+                Assert.Greater(challenge.center.x, boxRect.center.x + boxRect.width / 4f, "Challenge sits at the bottom right");
                 Assert.IsFalse(cancel.Overlaps(challenge), "Cancel and Challenge overlap");
-                Assert.AreEqual(cancel.center.y, challenge.center.y, 5f, "the two buttons share a row");
-                Assert.Less(cancel.center.y, boxRect.center.y, "the buttons sit at the bottom");
+                Assert.IsFalse(cancel.Overlaps(titleRect), "the Back button overlaps the stage name");
             });
 
         private static T[] ReadArray<T>(SerializedProperty array) where T : Object
@@ -123,7 +123,7 @@ namespace BunDauPeo.Tests
 
         private static Rect RectOf(Component part) => RestaurantSceneTests.InReferenceCanvas((RectTransform)part.transform);
 
-        // T1: 16 thẻ 8×2 không đè, 5 chip cùng hàng, Hủy / Vào trận cùng hàng chip và bên phải chip cuối.
+        // T1 (trang kín màn): 16 thẻ 8×2 không đè, 5 chip cùng hàng, Vào trận cùng hàng chip và bên phải chip cuối; Hủy là nút Quay lại trên-trái.
         [Test]
         public void StageSelectScene_TeamPopup_SixteenCards_NoOverlap_ButtonsBesideChips() =>
             WithStageSelect(scene =>
@@ -151,7 +151,6 @@ namespace BunDauPeo.Tests
                 Assert.Less(rects[0].center.x, rects[7].center.x, "eight columns");
 
                 var chips = ReadArray<Image>(so.FindProperty("_chips")).Select(RectOf).ToArray();
-                var cancel = RectOf(ReadButton(so, "_cancelButton"));
                 var start = RectOf(ReadButton(so, "_startButton"));
                 var lowest = rects.Min(r => r.yMin);
                 for (var i = 0; i < chips.Length; i++)
@@ -160,16 +159,14 @@ namespace BunDauPeo.Tests
                     Assert.AreEqual(chips[0].center.y, chips[i].center.y, 1f, $"Chip{i} shares the row");
                     Assert.Less(chips[i].yMax, lowest, $"Chip{i} sits under the card grid");
                     for (var j = i + 1; j < chips.Length; j++) Assert.IsFalse(chips[i].Overlaps(chips[j]), $"Chip{i} overlaps Chip{j}");
-                    Assert.IsFalse(chips[i].Overlaps(cancel) || chips[i].Overlaps(start), $"Chip{i} overlaps a button");
+                    Assert.IsFalse(chips[i].Overlaps(start), $"Chip{i} overlaps Start");
                 }
 
                 var lastChip = chips.Max(c => c.xMax);
-                Assert.GreaterOrEqual(cancel.xMin, lastChip, "Cancel sits right of the last chip");
-                Assert.GreaterOrEqual(start.xMin, cancel.xMax, "Start sits right of Cancel");
+                Assert.GreaterOrEqual(start.xMin, lastChip, "Start sits right of the last chip");
                 Assert.LessOrEqual(start.xMax, boxRect.xMax, "Start stays in the box");
-                Assert.IsFalse(cancel.Overlaps(start));
-                Assert.AreEqual(chips[0].center.y, cancel.center.y, 5f, "Cancel shares the chip row");
                 Assert.AreEqual(chips[0].center.y, start.center.y, 5f, "Start shares the chip row");
+                Assert.AreEqual(new Rect(0, HubNav.BarHeight, 1920, 1080 - HubNav.BarHeight), boxRect, "the page box covers the screen above the bar");
             });
 
         private static Button ReadButton(SerializedObject so, string field) => (Button)so.FindProperty(field).objectReferenceValue;
@@ -228,6 +225,55 @@ namespace BunDauPeo.Tests
                 Assert.IsFalse(ReadButton(so, "_nextButton").interactable);
                 Assert.IsTrue(ReadButton(so, "_prevButton").interactable);
                 popup.Close();
+            });
+
+        // Review Focus 2: Hủy (cũng là Close() của IHubPage) trả đội và vai ở quán về như lúc mở popup. AddToTeam gỡ người khỏi quán,
+        // nên phải trả cả hai danh sách; chỉ trả đội thì người đó mất chỗ ở quán.
+        [Test]
+        public void TeamSelect_Cancel_RestoresTeamAndStaffAsOpened() =>
+            WithStageSelect(scene =>
+            {
+                var heroes = Enumerable.Range(0, 4).Select(i => CombatTestData.Hero($"h{i:00}")).ToArray();
+                var stage = CombatTestData.Stage("s1", new[] { CombatTestData.Enemy() });
+                var rig = new CombatRig(new[] { stage }, heroes);
+                rig.Roster.RemoveFromTeam("h02");
+                rig.Roster.RemoveFromTeam("h03");
+                Assert.IsTrue(rig.Roster.AssignStaff("h02", StaffRole.Cook));
+                var teamBefore = rig.Roster.GetBattleTeam().Select(c => c.Id).ToArray();
+                var staffBefore = rig.Roster.GetStaff(StaffRole.Cook).Select(c => c.Id).ToArray();
+                var persistsBefore = rig.PersistCalls;
+                var popup = RestaurantSceneTests.All<TeamSelectPopup>(scene).Single();
+                popup.Open(rig.Service, rig.Roster, stage);
+
+                // Giữa chừng: bỏ h00, thêm h03 và kéo h02 từ quán vào đội.
+                Assert.IsTrue(rig.Roster.RemoveFromTeam("h00"));
+                Assert.IsTrue(rig.Roster.AddToTeam("h03"));
+                Assert.IsTrue(rig.Roster.AddToTeam("h02"));
+                Assert.IsEmpty(rig.Roster.GetStaff(StaffRole.Cook), "h02 left the restaurant");
+
+                popup.Cancel();
+
+                Assert.IsFalse(popup.IsOpen);
+                CollectionAssert.AreEqual(teamBefore, rig.Roster.GetBattleTeam().Select(c => c.Id).ToArray(), "team after Cancel");
+                CollectionAssert.AreEqual(staffBefore, rig.Roster.GetStaff(StaffRole.Cook).Select(c => c.Id).ToArray(), "h02 must be back in the kitchen");
+                Assert.AreEqual(persistsBefore, rig.PersistCalls, "Cancel must not save a half-made team");
+            });
+
+        // Bấm ô khác của thanh gọi Close() qua IHubPage: phải là đường Hủy chứ không chỉ ẩn popup.
+        [Test]
+        public void TeamSelect_Close_IsCancel() =>
+            WithStageSelect(scene =>
+            {
+                var heroes = Enumerable.Range(0, 2).Select(i => CombatTestData.Hero($"h{i:00}")).ToArray();
+                var stage = CombatTestData.Stage("s1", new[] { CombatTestData.Enemy() });
+                var rig = new CombatRig(new[] { stage }, heroes);
+                var popup = RestaurantSceneTests.All<TeamSelectPopup>(scene).Single();
+                popup.Open(rig.Service, rig.Roster, stage);
+                rig.Roster.RemoveFromTeam("h01");
+
+                ((IHubPage)popup).Close();
+
+                CollectionAssert.AreEqual(new[] { "h00", "h01" }, rig.Roster.GetBattleTeam().Select(c => c.Id).ToArray());
             });
 
         [Test]

@@ -73,6 +73,9 @@ namespace BunDauPeo.UI
         // Đổi sang ngôn ngữ kia rồi nạp lại Restaurant: người chơi ở đúng ô với Menu mở, chữ do builder dựng vẽ lại qua LocalizedText.
         private void SwitchLanguage()
         {
+            // Trang đang mở (Chọn đội...) đóng sạch trước, rồi mới lưu: Set ghi cả save, nên đội chọn dở phải được trả về
+            // trước đó, nếu không file save giữ đội nửa chừng (spec Review Focus 2).
+            _hub.CloseOpenPages();
             var next = GameLanguage.Current == Language.Vi ? Language.En : Language.Vi;
             if (!_language.Set(next))
             {
@@ -80,8 +83,6 @@ namespace BunDauPeo.UI
                 return;
             }
 
-            // Trang đang mở (Chọn đội...) đóng sạch trước khi scene bị huỷ (spec Review Focus 2).
-            _hub.CloseOpenPages();
             HubNav.OpenOnNextLoad(_hub.State.Current, menu: true);
             SceneManager.LoadScene(BattleView.RestaurantScene);
         }

@@ -135,7 +135,8 @@ namespace BunDauPeo.UI
             if (owner == null) throw new ArgumentNullException(nameof(owner));
             if (hidden) _barHiders.Add(owner);
             else _barHiders.Remove(owner);
-            _bar.SetActive(_barHiders.Count == 0);
+            // Rời scene thì _bar có thể đã bị huỷ trước OnDisable của người gọi.
+            if (_bar != null) _bar.SetActive(_barHiders.Count == 0);
         }
 
         // Bấm ô khác: trang kín màn đang mở đóng qua đúng đường nút Quay lại của nó (trả SetSpawnBlocked...).

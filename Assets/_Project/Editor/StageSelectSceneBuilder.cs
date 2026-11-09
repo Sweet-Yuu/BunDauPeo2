@@ -19,7 +19,9 @@ namespace BunDauPeo.EditorTools
         private static readonly Color LockedColor = new(0.35f, 0.36f, 0.42f);
         private static readonly Color Dark = new(0.10f, 0.10f, 0.14f);
         private static readonly Color EnemyColor = new(0.55f, 0.12f, 0.15f);
-        private static readonly Color Dim = new(0f, 0f, 0f, 0.65f);
+
+        // Hộp xác nhận của Chọn đội (SmallConfirm, StaffConfirm) giữ cỡ cũ; test đọc lại hằng này.
+        internal static readonly Vector2 ConfirmSize = new(900, 380);
 
         private static readonly Vector2 Center = new(0.5f, 0.5f);
         private static readonly Vector2 TopLeft = new(0, 1);
@@ -168,49 +170,47 @@ namespace BunDauPeo.EditorTools
             return root;
         }
 
-        // Nền tối chặn chạm; hộp giữa 1600×820 hai cột (S1). Trái: tên, tối đa 4 hàng đợt (5 ô vuông, boss lớn hơn), hàng ô thưởng.
-        // Phải dưới: thể lực, cảnh báo, hai nút cạnh nhau. Toạ độ tính từ tâm hộp, y hướng lên.
+        // Trang kín màn (S1, spec UI hub 5.5), hai cột trong vùng trên vạch: tên màn ở trên; trái: tối đa 4 hàng đợt (5 ô vuông, boss
+        // lớn hơn); phải: hàng ô thưởng, thể lực, cảnh báo, nút Thách đấu dưới-phải (neo mép phải hộp). Hủy là nút Quay lại trên-trái.
+        // Toạ độ tính từ tâm hộp nội dung (1920×960 trên thanh), y hướng lên; nội dung nằm trong ±800 để màn 4:3 nhỏ của test vẫn thấy hết.
         private static StageInfoPopup BuildInfoPopup(RectTransform canvas, Sprite sprite, Font font)
         {
             var holder = NewRect("StageInfoPopup", canvas);
             Stretch(holder);
             var root = NewRect("InfoRoot", holder);
             Stretch(root);
-            AddImage(root, null, Dim, raycast: true);
-
-            var box = NewRect("InfoBox", root);
-            Place(box, Center, Center, Vector2.zero, new Vector2(1600, 820));
-            AddImage(box, sprite, CardColor, raycast: false);
+            AddImage(root, null, Background, raycast: true);
+            var box = PageBox(root, "InfoBox");
 
             var title = NewText("Title", box, font, "", 56, TextAnchor.MiddleLeft, Gold);
             title.fontStyle = FontStyle.Bold;
-            Place(title.rectTransform, Center, Center, new Vector2(-480, 340), new Vector2(520, 80));
+            Place(title.rectTransform, Center, Center, new Vector2(-300, 410), new Vector2(800, 80));
             var enemyHeader = NewLabel("EnemyHeader", box, font, "combat.enemies", 36, TextAnchor.MiddleLeft, Gold);
-            Place(enemyHeader.rectTransform, Center, Center, new Vector2(-660, 265), new Vector2(160, 50));
+            Place(enemyHeader.rectTransform, Center, Center, new Vector2(-700, 300), new Vector2(160, 50));
 
             var labels = new Text[StageInfoPopup.WaveRows];
             var cells = new Image[StageInfoPopup.WaveRows * StageInfoPopup.CellsPerRow];
             for (var row = 0; row < labels.Length; row++)
             {
-                var y = 190 - row * 85;
+                var y = 220 - row * 110;
                 labels[row] = NewText($"WaveLabel{row}", box, font, UiText.Format("combat.wave_row", row + 1), 32, TextAnchor.MiddleLeft, Color.white);
-                Place(labels[row].rectTransform, Center, Center, new Vector2(-660, y), new Vector2(160, 50));
+                Place(labels[row].rectTransform, Center, Center, new Vector2(-700, y), new Vector2(160, 50));
                 for (var col = 0; col < StageInfoPopup.CellsPerRow; col++)
                 {
                     var cell = NewRect($"Cell{row}_{col}", box);
-                    Place(cell, Center, Center, new Vector2(-480 + col * 100, y), new Vector2(64, 64));
+                    Place(cell, Center, Center, new Vector2(-520 + col * 100, y), new Vector2(64, 64));
                     cells[row * StageInfoPopup.CellsPerRow + col] = AddImage(cell, null, EnemyColor, raycast: false);
                 }
             }
 
-            var rewardRow = BuildRewardRow(box, "RewardRow", font, Center, new Vector2(-740, -150));
+            var rewardRow = BuildRewardRow(box, "RewardRow", font, Center, new Vector2(100, 320));
 
-            var stamina = RightLine(box, font, "StaminaText", 40, Color.white, -110, 60);
-            var warning = RightLine(box, font, "WarningText", 26, Warning, -185, 90);
-            var message = RightLine(box, font, "MessageText", 32, Warning, -260, 50);
+            var stamina = RightLine(box, font, "StaminaText", 40, Color.white, 100, 60);
+            var warning = RightLine(box, font, "WarningText", 26, Warning, 10, 90);
+            var message = RightLine(box, font, "MessageText", 32, Warning, -80, 50);
 
-            var cancel = BattleSceneBuilder.LabelButton("CancelButton", box, sprite, font, "common.cancel", CardFrame, Center, new Vector2(395, -350), new Vector2(230, 100));
-            var challenge = BattleSceneBuilder.LabelButton("ChallengeButton", box, sprite, font, "combat.challenge", ButtonColor, Center, new Vector2(630, -350), new Vector2(230, 100));
+            var cancel = BackButton("CancelButton", box, sprite, font);
+            var challenge = BattleSceneBuilder.LabelButton("ChallengeButton", box, sprite, font, "combat.challenge", ButtonColor, new Vector2(1, 0), new Vector2(-60, 50), new Vector2(300, 100));
             root.gameObject.SetActive(false);
 
             var popup = holder.gameObject.AddComponent<StageInfoPopup>();
@@ -235,18 +235,17 @@ namespace BunDauPeo.EditorTools
             Stretch(holder);
             var root = NewRect("StoryRoot", holder);
             Stretch(root);
-            AddImage(root, null, Dim, raycast: true);
+            AddImage(root, null, Background, raycast: true);
 
-            var box = NewRect("StoryBox", root);
-            Place(box, Center, Center, Vector2.zero, new Vector2(900, 520));
-            AddImage(box, sprite, CardColor, raycast: false);
+            // Trang kín màn: tên màn, "Chưa có nội dung", Tiếp tục giữa; Đóng là nút Quay lại trên-trái.
+            var box = PageBox(root, "StoryBox");
             var title = NewText("Title", box, font, "", 56, TextAnchor.MiddleCenter, Gold);
             title.fontStyle = FontStyle.Bold;
-            Place(title.rectTransform, Center, Center, new Vector2(0, 180), new Vector2(800, 70));
-            var body = Line(box, font, "BodyText", 42, Color.white, 40, 800);
-            var message = Line(box, font, "MessageText", 32, Warning, -60, 800);
-            var proceed = BattleSceneBuilder.LabelButton("ContinueButton", box, sprite, font, "common.continue", ButtonColor, Center, new Vector2(190, -170), new Vector2(340, 100));
-            var close = BattleSceneBuilder.LabelButton("CloseButton", box, sprite, font, "common.close", CardFrame, Center, new Vector2(-190, -170), new Vector2(340, 100));
+            Place(title.rectTransform, Center, Center, new Vector2(0, 150), new Vector2(800, 70));
+            var body = Line(box, font, "BodyText", 42, Color.white, 20, 800);
+            var message = Line(box, font, "MessageText", 32, Warning, -70, 800);
+            var proceed = BattleSceneBuilder.LabelButton("ContinueButton", box, sprite, font, "common.continue", ButtonColor, Center, new Vector2(0, -200), new Vector2(340, 100));
+            var close = BackButton("CloseButton", box, sprite, font);
             root.gameObject.SetActive(false);
 
             var popup = holder.gameObject.AddComponent<StoryPlaceholderPopup>();
@@ -261,20 +260,17 @@ namespace BunDauPeo.EditorTools
             return popup;
         }
 
-        // Hộp 1700×880 (T1): lưới 16 thẻ chân dung 150×190 (8×2, phân trang); hàng dưới: 5 chip 150×120 chia theo đội hình tự xếp
-        // bên trái, Hủy / Vào trận cạnh nhau bên phải. Toạ độ từ tâm hộp, y hướng lên.
-        // Hai hộp xác nhận nằm trong cùng nền chặn chạm và tắt sẵn (thể lực chưa bị trừ khi hộp mở).
+        // Trang kín màn (T1, spec UI hub 5.5): lưới 16 thẻ chân dung 150×190 (8×2, phân trang); hàng dưới: 5 chip 150×120 chia theo
+        // đội hình tự xếp bên trái, Vào trận bên phải; Hủy là nút Quay lại trên-trái. Toạ độ từ tâm hộp nội dung (1920×960 trên thanh).
+        // Hai hộp xác nhận nằm trong cùng nền chặn chạm và tắt sẵn (thể lực chưa bị trừ khi hộp mở); chúng giữ cỡ cũ, vẽ trên thanh.
         private static TeamSelectPopup BuildTeamPopup(RectTransform canvas, Sprite sprite, Sprite knob, Font font)
         {
             var holder = NewRect("TeamSelectPopup", canvas);
             Stretch(holder);
             var root = NewRect("TeamRoot", holder);
             Stretch(root);
-            AddImage(root, null, Dim, raycast: true);
-
-            var box = NewRect("TeamBox", root);
-            Place(box, Center, Center, Vector2.zero, new Vector2(1700, 880));
-            AddImage(box, sprite, CardColor, raycast: false);
+            AddImage(root, null, Background, raycast: true);
+            var box = PageBox(root, "TeamBox");
 
             var title = NewText("Title", box, font, "", 48, TextAnchor.MiddleCenter, Gold);
             title.fontStyle = FontStyle.Bold;
@@ -315,8 +311,8 @@ namespace BunDauPeo.EditorTools
 
             var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
             Place(message.rectTransform, Center, Center, new Vector2(0, -385), new Vector2(1200, 40));
-            var cancel = BattleSceneBuilder.LabelButton("CancelButton", box, sprite, font, "common.cancel", CardFrame, Center, new Vector2(370, -255), new Vector2(300, 100));
-            var start = BattleSceneBuilder.LabelButton("StartButton", box, sprite, font, "combat.start", ButtonColor, Center, new Vector2(690, -255), new Vector2(300, 100));
+            var cancel = BackButton("CancelButton", box, sprite, font);
+            var start = BattleSceneBuilder.LabelButton("StartButton", box, sprite, font, "combat.start", ButtonColor, Center, new Vector2(660, -255), new Vector2(300, 100));
 
             var small = BuildConfirm(root, sprite, font, "SmallConfirm", "combat.start", "common.no", out var smallText, out var smallYes, out var smallNo);
             var staff = BuildConfirm(root, sprite, font, "StaffConfirm", "common.move", "common.no", out var staffText, out var staffYes, out var staffNo);
@@ -409,8 +405,9 @@ namespace BunDauPeo.EditorTools
             var confirm = NewRect(name + "Root", parent);
             Stretch(confirm);
             AddImage(confirm, null, new Color(0f, 0f, 0f, 0.5f), raycast: true);
+            NavBarBuilder.OverBar(confirm);
             var box = NewRect(name + "Box", confirm);
-            Place(box, Center, Center, Vector2.zero, new Vector2(900, 380));
+            Place(box, Center, Center, Vector2.zero, ConfirmSize);
             AddImage(box, sprite, CardFrame, raycast: false);
             text = NewText(name + "Text", box, font, "", 42, TextAnchor.MiddleCenter, Color.white);
             Place(text.rectTransform, Center, Center, new Vector2(0, 70), new Vector2(820, 170));
@@ -427,11 +424,11 @@ namespace BunDauPeo.EditorTools
             return text;
         }
 
-        // Dòng trong cột phải của popup màn: rộng 460, từ x 280 tới 740 tính từ tâm hộp, canh trái.
+        // Dòng trong cột phải của trang màn: rộng 640, từ x 140 tới 780 tính từ tâm hộp, canh trái.
         private static Text RightLine(RectTransform parent, Font font, string name, int size, Color color, float y, float height)
         {
             var text = NewText(name, parent, font, "", size, TextAnchor.MiddleLeft, color);
-            Place(text.rectTransform, Center, Center, new Vector2(510, y), new Vector2(460, height));
+            Place(text.rectTransform, Center, Center, new Vector2(460, y), new Vector2(640, height));
             return text;
         }
 

@@ -117,13 +117,15 @@ namespace BunDauPeo.Tests
             WithScene(ProjectSetup.RestaurantScenePath, scene =>
             {
                 var screen = new Rect(0, 0, 1920, 1080);
-                var names = new[] { "BannerPanel", "GemCard", "BannerArt", "SingleButton", "TenButton", "HistoryButton", "MessageText" };
+                // Banner kín panel nằm dưới mọi khối khác (mục 5 index 2), nên không tính đè nhau với nó.
+                var names = new[] { "BannerPanel", "GemCard", "GachaBanner_PH_1920x1080", "SingleButton", "TenButton", "HistoryButton", "MessageText" };
                 var rects = names.Select(n => Box(scene, n)).ToArray();
                 for (var i = 0; i < names.Length; i++)
                 {
                     Assert.IsTrue(screen.Contains(rects[i].min) && screen.Contains(rects[i].max - Vector2.one), $"{names[i]} {rects[i]} leaves the screen");
                     for (var j = i + 1; j < names.Length; j++)
-                        Assert.IsFalse(Overlap(rects[i], rects[j]), $"{names[i]} {rects[i]} overlaps {names[j]} {rects[j]}");
+                        if (i != 2 && j != 2)
+                            Assert.IsFalse(Overlap(rects[i], rects[j]), $"{names[i]} {rects[i]} overlaps {names[j]} {rects[j]}");
                 }
 
                 foreach (var i in new[] { 3, 4, 5, 6 })
@@ -141,14 +143,33 @@ namespace BunDauPeo.Tests
                 Assert.GreaterOrEqual(rects[0].yMin, 900f, "BannerPanel is at the top");
                 Assert.Greater(rects[1].xMin, 1500f, "GemCard is top right");
                 Assert.GreaterOrEqual(rects[1].yMin, 900f, "GemCard is at the top");
-                Assert.Less(Mathf.Abs(rects[2].center.x - 860f), 40f, "BannerArt is left of centre");
-                Assert.IsFalse(All<Image>(scene).Single(i => i.name == "BannerArt").raycastTarget, "BannerArt must not block touches");
+                Assert.IsFalse(All<Image>(scene).Single(i => i.name == "GachaBanner_PH_1920x1080").raycastTarget, "the banner must not block touches");
                 Assert.AreEqual(new Vector2(300, 160), rects[3].size);
                 Assert.AreEqual(new Vector2(300, 160), rects[4].size);
                 Assert.Greater(rects[4].xMin, rects[3].xMin, "TenButton is right of SingleButton");
                 Assert.GreaterOrEqual(rects[3].yMin, rects[4].yMin - 1f);
                 Assert.Greater(rects[5].yMin, rects[3].yMax - 1f, "HistoryButton sits above the pull buttons");
                 Assert.Greater(rects[4].xMin, 1500f, "pull buttons are bottom right");
+            });
+
+        // Spec UI hub 5.4: banner kéo kín panel (kể cả phần dưới thanh), nút quay trên vạch, GachaView biết HubNav để ẩn thanh lúc lộ.
+        [Test]
+        public void Banner_FillsPanel() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                var banner = In(scene, "GachaBanner_PH_1920x1080");
+                Assert.AreSame(LobbySceneTests.Named(scene, LobbySceneTests.GachaPanel), banner.parent, "the banner is a direct child of the Gacha panel");
+                Assert.AreEqual(Vector2.zero, banner.anchorMin);
+                Assert.AreEqual(Vector2.one, banner.anchorMax);
+                Assert.AreEqual(Vector2.zero, banner.offsetMin);
+                Assert.AreEqual(Vector2.zero, banner.offsetMax);
+                Assert.AreEqual(0, banner.GetSiblingIndex(), "the banner draws under everything else in the panel");
+                foreach (var name in new[] { "SingleButton", "TenButton" })
+                    Assert.GreaterOrEqual(Box(scene, name).yMin, HubNav.BarHeight, $"{name} reaches the bar strip");
+
+                var hub = new SerializedObject(All<GachaView>(scene).Single()).FindProperty("_hub").objectReferenceValue;
+                Assert.IsNotNull(hub, "GachaView._hub");
+                Assert.AreSame(All<HubNav>(scene).Single(), hub);
             });
 
         private static bool Overlap(Rect a, Rect b) => a.xMin < b.xMax - 1 && b.xMin < a.xMax - 1 && a.yMin < b.yMax - 1 && b.yMin < a.yMax - 1;

@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- UI hub đợt A (khung), nhánh `feature/ui-hub`: phiên 🔨 A1 (Task 1–3) đã commit `15e5e70` (thanh dưới 6 ô, 3 panel kín màn, vỏ Menu, 3 scene cũ đã xoá). Phiên 🔨 A2 (Task 4–5) xong, chờ 📋 commit: Menu Ngôn ngữ và Reset nối `MenuView`, trang kín màn của Nhân viên, Nâng cấp, Chất lượng, hộp vẽ trên thanh (`OverBar`) (854 EditMode, 19 PlayMode xanh). Còn A3 (Task 6–7, dừng playtest) ([spec](superpowers/specs/2026-11-09-ui-hub-design.md), [kế hoạch](superpowers/plans/2026-11-09-ui-hub.md)).
+- UI hub đợt A (khung), nhánh `feature/ui-hub`: A1 (Task 1–3) `15e5e70`, A2 (Task 4–5) `29a3051` đã commit. Phiên 🔨 A3 (Task 6–7) xong, chờ 📋 commit: trang kín màn của Bản đồ (Popup màn, Chọn đội, cốt truyện) và Gacha (Lịch sử, banner kín màn, thanh ẩn lúc lộ), Hủy ở Chọn đội trả đội về như lúc mở, vòng ô và ảnh hai ngôn ngữ (861 EditMode, 23 PlayMode xanh). **Đang dừng chờ user playtest** theo spec mục 7, rồi 🎯 mở 🔍 review xhigh ([spec](superpowers/specs/2026-11-09-ui-hub-design.md), [kế hoạch](superpowers/plans/2026-11-09-ui-hub.md)).
 
 ## Tiếp theo
 

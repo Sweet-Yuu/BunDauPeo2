@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace BunDauPeo.UI
 {
     // Màn cốt truyện giữ chỗ: chưa có nội dung. Khi có spec cốt truyện chỉ thay popup này bằng hội thoại; catalog và save không đổi.
-    public class StoryPlaceholderPopup : MonoBehaviour
+    public class StoryPlaceholderPopup : MonoBehaviour, IHubPage
     {
         // _root chặn chạm; component nằm ở object luôn bật để còn nhận Open.
         [SerializeField] private GameObject _root;

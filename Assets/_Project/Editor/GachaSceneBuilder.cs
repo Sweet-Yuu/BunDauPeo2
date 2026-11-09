@@ -25,6 +25,10 @@ namespace BunDauPeo.EditorTools
         private static readonly Color ButtonColor = new(0.30f, 0.50f, 0.90f);
         private static readonly Color GreyButton = new(0.45f, 0.47f, 0.55f);
         private static readonly Color Warning = new(1f, 0.55f, 0.45f);
+        private static readonly Color BannerColor = new(0.28f, 0.31f, 0.43f);
+
+        // Hộp quay tiếp giữ cỡ cũ; test đọc lại hằng này.
+        internal static readonly Vector2 RollAgainSize = new(900, 540);
 
         private static readonly Vector2 TopLeft = new(0, 1);
         private static readonly Vector2 TopRight = new(1, 1);
@@ -47,10 +51,11 @@ namespace BunDauPeo.EditorTools
             Stretch(panel);
             AddImage(panel, sprite, Background, raycast: true);
 
-            // Trang roll (G1): ô giữ chỗ banner ở giữa, khối tên/Gem ở hai góc trên, nút quay ở góc dưới phải (trên vạch 120 px của thanh dưới).
-            var art = NewRect("BannerArt", panel);
-            Place(art, TopLeft, Center, new Vector2(860, -480), new Vector2(900, 560));
-            AddImage(art, sprite, new Color(0.45f, 0.47f, 0.55f), raycast: false);
+            // Trang roll (G1): banner kín panel (kể cả phần dưới thanh, spec UI hub 5.4); khối tên/Gem ở hai góc trên và nút quay
+            // ở góc dưới phải (trên vạch 120 px của thanh dưới) nằm trên banner. Banner là ô giữ chỗ cho tới khi có ảnh.
+            var art = NewRect("GachaBanner_PH_1920x1080", panel);
+            Stretch(art);
+            AddImage(art, sprite, BannerColor, raycast: false);
             var bannerPanel = NewRect("BannerPanel", panel);
             Place(bannerPanel, TopLeft, TopLeft, new Vector2(40, -30), new Vector2(760, 150));
             AddImage(bannerPanel, sprite, Panel, raycast: false);
@@ -154,8 +159,10 @@ namespace BunDauPeo.EditorTools
             var againRoot = NewRect("RollAgainPopup", panel);
             Stretch(againRoot);
             AddImage(againRoot, sprite, Dim, raycast: true);
+            // Hộp giữ cỡ cũ nhưng nền mờ kín màn và vẽ trên thanh (spec 5.5).
+            NavBarBuilder.OverBar(againRoot);
             var againBox = NewRect("Box", againRoot);
-            Place(againBox, Center, Center, Vector2.zero, new Vector2(900, 540));
+            Place(againBox, Center, Center, Vector2.zero, RollAgainSize);
             AddImage(againBox, sprite, Panel, raycast: false);
             var againTitle = NewLabel("TitleText", againBox, font, "gacha.roll_again_title", 52, TextAnchor.MiddleCenter, Color.white);
             Place(againTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -50), new Vector2(800, 70));
@@ -174,18 +181,15 @@ namespace BunDauPeo.EditorTools
             againSo.ApplyModifiedPropertiesWithoutUndo();
             againRoot.gameObject.SetActive(false);
 
-            // Popup lịch sử: danh sách nằm trong ScrollRect để 50 mục vẫn cuộn được.
+            // Trang lịch sử kín màn (spec 5.5): danh sách nằm trong ScrollRect để 50 mục vẫn cuộn được.
             var historyRoot = NewRect("HistoryPopup", panel);
             Stretch(historyRoot);
-            AddImage(historyRoot, sprite, Dim, raycast: true);
-            var historyBox = NewRect("Box", historyRoot);
-            // Vừa với panel cao 866 (Game view rộng) lẫn 1080.
-            Place(historyBox, Center, Center, Vector2.zero, new Vector2(1100, 780));
-            AddImage(historyBox, sprite, Panel, raycast: false);
+            AddImage(historyRoot, sprite, Background, raycast: true);
+            var historyBox = PageBox(historyRoot, "Box");
             var historyTitle = NewLabel("TitleText", historyBox, font, "gacha.history_title", 48, TextAnchor.MiddleCenter, Color.white);
             Place(historyTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(1000, 70));
             var scrollRect = NewRect("ScrollView", historyBox);
-            Place(scrollRect, Center, Center, new Vector2(0, -10), new Vector2(1000, 520));
+            Place(scrollRect, Center, Center, new Vector2(0, -60), new Vector2(1400, 740));
             var viewport = NewRect("Viewport", scrollRect);
             Stretch(viewport);
             viewport.gameObject.AddComponent<RectMask2D>();
@@ -204,8 +208,7 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
-            var close = NewButton("CloseButton", historyBox, sprite, font, UiText.Get("common.close"), GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(320, 80));
-            Localize(close.GetComponentInChildren<Text>(), "common.close");
+            var close = BackButton("CloseButton", historyBox, sprite, font);
             var historyPopup = historyRoot.gameObject.AddComponent<GachaHistoryPopup>();
             var historySo = new SerializedObject(historyPopup);
             historySo.FindProperty("_root").objectReferenceValue = historyRoot.gameObject;
@@ -236,6 +239,20 @@ namespace BunDauPeo.EditorTools
             panel.gameObject.SetActive(false);
             return panel;
         }
+
+        // Trang kín màn (spec UI hub 5.5): root nền đặc phủ 1920×1080 do người gọi dựng; hộp nội dung chỉ phủ phần trên thanh
+        // (offsetMin.y = BarHeight), nên con neo theo mép trên/dưới của hộp không lọt xuống dải 0–120.
+        internal static RectTransform PageBox(RectTransform root, string name)
+        {
+            var box = NewRect(name, root);
+            Stretch(box);
+            box.offsetMin = new Vector2(0, HubNav.BarHeight);
+            return box;
+        }
+
+        // Nút Quay lại của trang: góc trên-trái, nhãn hub.back, giữ tên cũ (CloseButton, CancelButton).
+        internal static Button BackButton(string name, RectTransform box, Sprite sprite, Font font) =>
+            BattleSceneBuilder.LabelButton(name, box, sprite, font, "hub.back", GreyButton, TopLeft, new Vector2(30, -25), new Vector2(200, 80));
 
         internal static void CreateCamera(Scene scene)
         {

@@ -99,6 +99,32 @@ namespace BunDauPeo.Characters
             return true;
         }
 
+        // Chọn đội dở rồi Hủy: trả đội và vai ở quán về như lúc mở. Cả hai danh sách, vì AddToTeam gỡ người khỏi quán.
+        public TeamSnapshot SnapshotTeam() => new(_save.BattleTeam.ToArray(), _save.Staff.ToArray());
+
+        public void RestoreTeam(TeamSnapshot snapshot)
+        {
+            if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+
+            _save.BattleTeam.Clear();
+            _save.BattleTeam.AddRange(snapshot.Team);
+            _save.Staff.Clear();
+            _save.Staff.AddRange(snapshot.Staff);
+            Changed.SafeInvoke();
+        }
+
+        public sealed class TeamSnapshot
+        {
+            internal TeamSnapshot(string[] team, StaffAssignment[] staff)
+            {
+                Team = team;
+                Staff = staff;
+            }
+
+            internal string[] Team { get; }
+            internal StaffAssignment[] Staff { get; }
+        }
+
         public bool AssignStaff(string id, StaffRole role)
         {
             if (!IsOwned(id) || !_catalog.TryGet(id, out _)) return false;

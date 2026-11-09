@@ -205,7 +205,13 @@ namespace BunDauPeo.EditorTools
             var gachaPanel = GachaSceneBuilder.BuildPanel(canvas, sprite, font);
             var menuPanel = NavBarBuilder.BuildMenu(canvas, font, sprite, out var menuView);
             var hub = NavBarBuilder.Build(canvas, font, sprite);
-            NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[] { staffPanel, upgradePanel, qualityPopup });
+            // Trang kín màn: bấm ô khác thì HubNav đóng từng trang đang mở qua IHubPage.Close() (Chọn đội trả đội như lúc mở).
+            NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[]
+            {
+                staffPanel, upgradePanel, qualityPopup,
+                stagesPanel.GetComponentInChildren<StageInfoPopup>(true), stagesPanel.GetComponentInChildren<StoryPlaceholderPopup>(true),
+                stagesPanel.GetComponentInChildren<TeamSelectPopup>(true), gachaPanel.GetComponentInChildren<GachaHistoryPopup>(true),
+            });
 
             // Hộp Thu AFK dựng sau thanh và có Canvas con (OverBar) nên vẽ đè lên thanh.
             var afkPopup = BuildAfkPopup(canvas, font, sprite);

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace BunDauPeo.UI
 {
     // Chỉ đọc lịch sử. Danh sách nằm trong ScrollRect ở scene, nên một Text dài vẫn cuộn được.
-    public class GachaHistoryPopup : MonoBehaviour
+    public class GachaHistoryPopup : MonoBehaviour, IHubPage
     {
         [SerializeField] private GameObject _root;
         [SerializeField] private Text _listText;
@@ -33,6 +33,8 @@ namespace BunDauPeo.UI
             _listText.text = history.Count == 0 ? UiText.Get("gacha.history_empty") : text.ToString();
             _root.SetActive(true);
         }
+
+        public bool IsOpen => _root != null && _root.activeSelf;
 
         public void Close() => _root.SetActive(false);
     }

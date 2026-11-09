@@ -10,13 +10,14 @@ using static BunDauPeo.Tests.LobbySceneTests;
 
 namespace BunDauPeo.Tests
 {
-    // Trang của quán (Nhân viên, Chọn người cho ô, Nâng cấp, Chất lượng) kín màn dưới thanh, và các hộp vẽ trên thanh (spec UI hub 5.1, 5.5).
+    // Trang của quán (Nhân viên, Chọn người cho ô, Nâng cấp, Chất lượng) kín màn dưới thanh, và các hộp vẽ trên thanh (spec UI hub 5.1, 5.5);
+    // `FullScreenPage` dùng chung với PanelPagesTests (trang của Bản đồ và Gacha).
     // Đọc lại từ file Restaurant.unity (L-002).
     public class LobbyPagesTests
     {
         // Trang kín màn: root phủ 1920×1080, nền đặc chặn bấm, vẽ dưới thanh; nút Quay lại ở góc trên-trái nhãn hub.back;
         // mọi nút (kể cả nút đang tắt, L-025) nằm trên vạch; view của trang nằm trong HubNav._pages.
-        private static void FullScreenPage(Scene scene, string rootName, string backPath, System.Type viewType)
+        internal static void FullScreenPage(Scene scene, string rootName, string backPath, System.Type viewType)
         {
             var root = Named(scene, rootName);
             Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(root), $"{rootName} is full screen");
@@ -76,6 +77,9 @@ namespace BunDauPeo.Tests
                              ("StaffConfirmPopup", "Box", RestaurantSceneBuilder.StaffConfirmSize),
                              ("AfkPopupRoot", "AfkPopupBox", RestaurantSceneBuilder.AfkPopupSize),
                              ("ResetConfirmRoot", "ResetConfirm_PH_800x420", NavBarBuilder.ResetConfirmSize),
+                             ("SmallConfirmRoot", "SmallConfirmBox", StageSelectSceneBuilder.ConfirmSize),
+                             ("StaffConfirmRoot", "StaffConfirmBox", StageSelectSceneBuilder.ConfirmSize),
+                             ("RollAgainPopup", "Box", GachaSceneBuilder.RollAgainSize),
                          })
                 {
                     var root = Named(scene, rootName);

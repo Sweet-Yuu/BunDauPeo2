@@ -90,6 +90,11 @@ namespace BunDauPeo.EditorTools
             var menuSo = new SerializedObject(menu);
             menuSo.FindProperty("_hub").objectReferenceValue = hub;
             menuSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // Gacha ẩn thanh lúc cutscene, lộ, tổng (spec 5.3): GachaView cần HubNav, mà thanh dựng sau panel.
+            var gachaSo = new SerializedObject(gacha.GetComponentInChildren<GachaView>(true));
+            gachaSo.FindProperty("_hub").objectReferenceValue = hub;
+            gachaSo.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Hộp con vẽ trên thanh (spec 5.1 bước 6): Canvas con overrideSorting cao hơn canvas chính, kèm GraphicRaycaster.
