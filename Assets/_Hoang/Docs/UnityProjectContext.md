@@ -1,5 +1,7 @@
 # Ngữ cảnh dự án Unity — 08/11/2026
 
+> Cập nhật mới nhất 10/11/2026: main đã merge vào Hoang (`5e4327d`); game gốc hiện dùng hub A với Boot/Restaurant/Battle. User duyệt artwork cho ba trang remake **và Lobby gốc**, ngoại lệ riêng task cho phép chỉnh phần nhìn `_Project` và dùng ảnh mới. Xem [RestaurantArtHandoff.md](RestaurantArtHandoff.md) trước khi tiếp tục; các ghi chú “chưa commit”, “scene gốc 5 màn” và “không có artwork” dưới đây là lịch sử triển khai 08/11.
+
 - Đã xác nhận project root: `D:/MakeGame/MyGame/GameWithVu/BunDauPeo2`, nhánh `Hoang`, ban đầu working tree sạch.
 - Unity 6000.3.15f1, URP 2D 17.3.0, Input System 1.19.0, uGUI 2.0.0, Test Framework 1.6.0.
 - Code gốc trong `Assets/_Project`: Core/Characters/Restaurant/Combat/Gacha/Boot/UI, mỗi module có asmdef. GameSession giữ PlayerSave, Wallet và Roster; SaveService ghi temp/replace/backup. UI dùng uGUI Text.

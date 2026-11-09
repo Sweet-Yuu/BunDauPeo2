@@ -14,6 +14,8 @@
 
 ## Danh sách
 
+Artwork Restaurant mới (user chọn phương án 1 ngày 09/11, thêm Lobby gốc ngày 10/11): `restaurant-skills-art-preview.png` là mẫu phong cách, không lấy số liệu/luật trong ảnh. Nguồn/prompt: [restaurant-art.md](../art/restaurant-art.md).
+
 | Nhóm | File (trong `Mota/`) | Xem gì |
 |---|---|---|
 | Vào game | `title-touch-to-start.jpg` | Màn tiêu đề: logo, "Touch To Start", nút menu góc trên |

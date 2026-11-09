@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: hospitality
   SkillName: Thoughtful service
   Description: Increase patience and meal revenue.
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: 949910629, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 5
   IsExclusive: 0
   NormalPointCost: 1

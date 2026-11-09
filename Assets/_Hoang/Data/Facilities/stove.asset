@@ -17,7 +17,7 @@ MonoBehaviour:
   ShortName: STOVE
   Description: 'Powered: cooking speed +20%. Needs 35 W.'
   ThemeColor: {r: 0.91, g: 0.49, b: 0.3, a: 1}
-  Icon: {fileID: 0}
+  Icon: {fileID: 1386474857, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   ShapeCoords:
   - {x: 0, y: 0}
   - {x: 1, y: 0}

@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: patience
   SkillName: Warm welcome
   Description: Customers wait longer before leaving.
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: 1853483070, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 5
   IsExclusive: 0
   NormalPointCost: 1

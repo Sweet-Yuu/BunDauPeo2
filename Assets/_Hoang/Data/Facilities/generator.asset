@@ -17,7 +17,7 @@ MonoBehaviour:
   ShortName: GEN
   Description: 'Source: supplies 120 W to adjacent devices.'
   ThemeColor: {r: 0.95, g: 0.75, b: 0.25, a: 1}
-  Icon: {fileID: 0}
+  Icon: {fileID: 1645627981, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   ShapeCoords:
   - {x: 0, y: 0}
   - {x: 1, y: 0}

@@ -17,7 +17,7 @@ MonoBehaviour:
   ShortName: RELAY
   Description: Conducts power and supplies sensitive high-load devices.
   ThemeColor: {r: 0.65, g: 0.48, b: 0.85, a: 1}
-  Icon: {fileID: 0}
+  Icon: {fileID: -1033168853, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   ShapeCoords:
   - {x: 0, y: 0}
   IsPowerSource: 0

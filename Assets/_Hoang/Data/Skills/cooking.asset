@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: cooking
   SkillName: Quick hands
   Description: Cook meals faster.
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: 532748987, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 5
   IsExclusive: 0
   NormalPointCost: 1

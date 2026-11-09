@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: revenue
   SkillName: Menu craft
   Description: Earn more Gold for each meal.
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: -1183879877, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 5
   IsExclusive: 0
   NormalPointCost: 1

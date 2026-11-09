@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: master_chef
   SkillName: Master chef
   Description: 'Exclusive: cook much faster.'
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: 920455292, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 3
   IsExclusive: 1
   NormalPointCost: 1

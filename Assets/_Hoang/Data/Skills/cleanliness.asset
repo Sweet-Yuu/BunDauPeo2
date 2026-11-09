@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: cleanliness
   SkillName: Clean kitchen
   Description: Improve your restaurant reputation.
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: 1663246404, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 5
   IsExclusive: 0
   NormalPointCost: 1

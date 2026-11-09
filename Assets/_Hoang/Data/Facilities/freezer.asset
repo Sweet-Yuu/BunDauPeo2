@@ -18,7 +18,7 @@ MonoBehaviour:
   Description: Requires source or powered relay next to it. Saves 15% on ingredients.
     Needs 60 W.
   ThemeColor: {r: 0.33, g: 0.68, b: 0.86, a: 1}
-  Icon: {fileID: 0}
+  Icon: {fileID: 569477598, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   ShapeCoords:
   - {x: 0, y: 0}
   - {x: 0, y: 1}

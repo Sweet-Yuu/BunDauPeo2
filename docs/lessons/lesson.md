@@ -30,6 +30,11 @@
 - Triệu chứng: `FakeHubPage : MonoBehaviour` trong `Assets/_Project/Tests` làm 4 test `HubNavTests` đỏ: "Can't add script behaviour 'FakeHubPage' because it is an editor script"; `AddComponent` trả null nên `_pages` không có phần tử.
 - Nguyên nhân gốc: `BunDauPeo.Tests` chỉ có ở Editor (`includePlatforms: Editor`), nên mọi MonoBehaviour khai trong đó đều là "editor script".
 - Luật từ nay: test EditMode cần một giao diện của view thì tách phần logic thành hàm tĩnh nhận `IEnumerable<IGiaoDien>` (như `HubNav.ClosePages`) và dùng lớp giả thuần C#; không khai MonoBehaviour giả trong assembly Tests.
+### L-034 — Chụp Canvas ở scale mới nhưng chữ cố định giữ raster cũ (2026-11-10) #ui #process
+- Triệu chứng: ảnh 1920×1080 có artwork/header rõ nhưng chữ skill và nút Menu mềm dù font cố định 21; tắt BestFit không giải quyết.
+- Bằng chứng: lúc capture, Game view 640×480, canvas/renderingDisplaySize đã 1920×1080, scaleFactor/pixelsPerUnit=1. CanvasScaler có callback preWillRenderCanvases, nên không thiếu lượt Update; nhãn kích thước cố định không bị dirty như nhãn stretch.
+- Sửa: sau ForceUpdateCanvases cập nhật scale, SetVerticesDirty cho Text của các canvas vừa đổi rồi ForceUpdateCanvases lần nữa. Khi trả Overlay cũng dựng lại chữ theo scale cũ. Chỉ tác động công cụ chụp, không sửa font/scale gameplay để che lỗi ảnh QA.
+
 ### L-033 — Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn (2026-11-09)  #ui #process
 - Triệu chứng: mô phỏng hub bản 1 có banner Gacha và Menu là hộp giữa màn, các popup con giữ cỡ cũ; user sửa: popup phải che kín màn, chỉ hộp xác nhận và phần thưởng giữ cỡ.
 - Nguyên nhân gốc: 📐 lấy cỡ popup đang có làm mặc định, không hỏi luật kín màn trước khi vẽ.

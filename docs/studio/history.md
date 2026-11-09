@@ -5,6 +5,13 @@
 
 ## Bắt đầu từ đây
 
+### Cập nhật phiên Codex 09–10/11/2026
+
+- User yêu cầu kiểm nhánh UI hub: đã có đủ 7 task, tất cả đã push tới `7818670`. Sau đó user yêu cầu merge: tạo merge commit `05a9d30` trên main bằng Git (GitHub connector không có quyền tạo PR, lỗi 403); 861 EditMode + 23 PlayMode xanh trước merge.
+- User yêu cầu merge main vào Hoang: `5e4327d`, đã push origin/Hoang, 906 EditMode + 24 PlayMode xanh. Giữ commit remake `36f71bd`.
+- User yêu cầu artwork Restaurant, chọn mẫu phong cách 1 (quán Việt xanh–kem–gỗ) và thêm cả Lobby gốc; yêu cầu đọc README, báo cáo rõ và ghi chép để chat sau hiểu. Đã đọc các cổng README và workflow. Ngoại lệ riêng task: được sửa phần nhìn `_Project` + `_Hoang`, dùng ảnh ImageGen thay hình tạm; không mở rộng sang gameplay/Packages/ProjectSettings.
+- Đường tiếp tục và trạng thái mới nhất: [RestaurantArtHandoff](../../Assets/_Hoang/Docs/RestaurantArtHandoff.md), [kế hoạch](../superpowers/plans/2026-11-09-restaurant-art.md). Không tự merge artwork vào main.
+
 _Cập nhật 2026-11-03 bởi 🎯 Điều phối #1._
 
 - **Nhánh `main`** có Foundation, Gacha, Gacha reveal, Restaurant, Combat (PR #5) và quy trình studio (PR #7, `abd34bd`). Nhánh mặc định trên GitHub là `main`. Không có kênh con nào đang chạy.

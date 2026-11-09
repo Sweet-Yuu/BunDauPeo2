@@ -218,6 +218,7 @@ namespace BunDauPeo.EditorTools
             viewSo.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
+            RestaurantLobbySkin.Apply(canvas);
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
         }

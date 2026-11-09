@@ -1,5 +1,6 @@
 using System;
 using BunDauPeo.Core;
+using BunDauPeo.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,7 @@ namespace Hoang.Remake
         [SerializeField] private GameObject[] _pages;
         [SerializeField] private Button[] _navigation;
         [SerializeField] private Text _balance;
+        [SerializeField] private Text[] _resourceLabels = Array.Empty<Text>();
         [SerializeField] private Text _shopTabLabel;
         [SerializeField] private Text _feedback;
         [SerializeField] private SkillTreeUI _skillTree;
@@ -32,6 +34,7 @@ namespace Hoang.Remake
         public void Bind(RemakeBootstrap bootstrap)
         {
             if (_bootstrap != null) return;
+            RemakeRestaurantTheme.Apply(this);
             _bootstrap = bootstrap;
             _skillTree.Bind(bootstrap.Skills);
             _facilityGrid.Bind(bootstrap.Facilities);
@@ -58,7 +61,8 @@ namespace Hoang.Remake
             for (var i = 0; i < _pages.Length; i++)
             {
                 _pages[i].SetActive(i == index);
-                _navigation[i].GetComponent<Image>().color = i == index ? RemakeUI.Green : new Color(0.39f, 0.42f, 0.45f);
+                _navigation[i].GetComponent<Image>().color = i == index ? RestaurantArt.Jade : RestaurantArt.Cream;
+                _navigation[i].GetComponentInChildren<Text>().color = i == index ? Color.white : RestaurantArt.Ink;
             }
             UITooltipSystem.HideTooltip();
         }
@@ -77,6 +81,18 @@ namespace Hoang.Remake
             var available = ShopDailyRewardsService.VietnamDay(DateTimeOffset.UtcNow) > _bootstrap.Context.Save.ShopDaily.DailyRewardDay;
             _shopTabLabel.text = available ? "Shop & daily  [READY]" : "Shop & daily";
             _balance.text = $"Gold  {wallet.Get(CurrencyType.Coin):N0}     Diamond  {wallet.Get(CurrencyType.Gem):N0}     Ingredients  {wallet.Get(CurrencyType.Material):N0}";
+            if (_resourceLabels.Length == 3)
+            {
+                _resourceLabels[0].text = $"Gold\n{wallet.Get(CurrencyType.Coin):N0}";
+                _resourceLabels[1].text = $"Diamond\n{wallet.Get(CurrencyType.Gem):N0}";
+                _resourceLabels[2].text = $"Ingredients\n{wallet.Get(CurrencyType.Material):N0}";
+            }
+        }
+
+        public void ConfigureBalanceLabels(Text[] labels)
+        {
+            _resourceLabels = labels;
+            _balance.gameObject.SetActive(labels.Length == 0);
         }
         private void OpenSettings() { _settings.SetActive(true); _resetConfirmation.SetActive(false); }
         private void CloseSettings() => _settings.SetActive(false);
@@ -138,6 +154,7 @@ namespace Hoang.Remake
                 Vector2.zero, new Vector2(1, 0.035f), new Vector2(32, 0), new Vector2(-32, 0));
             shell.BuildSettings(safe);
             for (var i = 1; i < shell._pages.Length; i++) shell._pages[i].SetActive(false);
+            RemakeRestaurantTheme.Apply(shell);
             return shell;
         }
 

@@ -5,7 +5,9 @@
 
 ## Đang làm
 
-- UI hub đợt A (khung), nhánh `feature/ui-hub`: A1 (Task 1–3) `15e5e70`, A2 (Task 4–5) `29a3051` đã commit. Phiên 🔨 A3 (Task 6–7) xong, chờ 📋 commit: trang kín màn của Bản đồ (Popup màn, Chọn đội, cốt truyện) và Gacha (Lịch sử, banner kín màn, thanh ẩn lúc lộ), Hủy ở Chọn đội trả đội về như lúc mở, vòng ô và ảnh hai ngôn ngữ (861 EditMode, 23 PlayMode xanh). **Đang dừng chờ user playtest** theo spec mục 7, rồi 🎯 mở 🔍 review xhigh ([spec](superpowers/specs/2026-11-09-ui-hub-design.md), [kế hoạch](superpowers/plans/2026-11-09-ui-hub.md)).
+- Artwork Restaurant (09–10/11/2026), nhánh `Hoang`: hoàn tất triển khai 24 icon + nền cho ba trang remake và Lobby gốc theo mẫu user chọn; **910 EditMode + 24 PlayMode xanh**, đã xem ảnh runtime và review độc lập. Sửa thêm lỗi chữ mờ trong công cụ chụp (L-034), chạy lại 24 PlayMode xanh. Đã lưu working tree, **chưa commit/push**, chưa APK/thiết bị. [Kế hoạch](superpowers/plans/2026-11-09-restaurant-art.md), [bàn giao](../Assets/_Hoang/Docs/RestaurantArtHandoff.md). Không tự merge main.
+
+- UI hub A đã merge main ở `05a9d30` theo yêu cầu user, và main đã merge vào Hoang ở `5e4327d`. Mốc cũ “chờ commit/playtest” không còn áp dụng. Lượt trước artwork: main 861 EditMode + 23 PlayMode, Hoang 906 EditMode + 24 PlayMode xanh.
 
 ## Tiếp theo
 
@@ -13,7 +15,7 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
-- [ ] UI hub đợt A (khung, đang làm): Lobby = màn quán; Nhân vật, Gacha, Bản đồ thành panel kín màn trong `Restaurant.unity`; thanh dưới 6 ô; Menu (ngôn ngữ, Reset dữ liệu có xác nhận theo [D-005](decisions/decisions.md), DEV); 8 popup con thành trang kín màn; trận xong về bản đồ. [Spec](superpowers/specs/2026-11-09-ui-hub-design.md).
+- [x] UI hub đợt A (khung): đã merge main ở `05a9d30`, merge vào Hoang ở `5e4327d`. Lobby có ba panel, thanh 6 ô, Menu, trang con và đường về bản đồ sau trận. [Spec](superpowers/specs/2026-11-09-ui-hub-design.md).
 - [ ] UI hub đợt B (bố cục Lobby theo [luồng màn](design/screen-flow.md#bố-cục-lobby-user-duyệt-ảnh-mô-phỏng-bản-2-2026-11-09)): avatar, thanh tài nguyên chung (mỗi popup chỉ hiện tiền nó dùng), thanh chất lượng, banner trái, hàng nút tròn (Shop khoá), thanh quán thu gọn, kéo camera. Cần spec riêng.
 - [ ] UI hub đợt C: màn Tiêu đề, Chọn chế độ trước bản đồ, nút Thông báo, Hồ sơ ([luồng màn](design/screen-flow.md)). Cần spec riêng.
 - [ ] Online (user chốt 2026-11-09: xong trong bản 31/12, làm ngay sau UI hub): server, đăng nhập, lưu save trên server, rồi các tính năng cần mạng (Hộp quà, Thông báo tin, Nhiệm vụ, Hội, Hồ sơ online; danh sách ở [ideas](design/ideas.md)). `TODO(user)` trong spec: chọn dịch vụ server, phạm vi cho 31/12, cách ghép với save cục bộ và Reset Save Data ([D-005](decisions/decisions.md)). Rủi ro: việc lớn nhất còn lại, dễ làm trễ hạn 31/12.

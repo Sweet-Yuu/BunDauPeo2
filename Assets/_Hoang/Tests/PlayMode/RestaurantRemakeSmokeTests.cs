@@ -104,6 +104,11 @@ namespace Hoang.Remake.Tests
             {
                 shell.ShowPage(page);
                 yield return null;
+                foreach (var art in shell.GetComponentsInChildren<Image>(true).Where(image => image.name.Contains("Artwork") || image.name == "RestaurantEmblem"))
+                {
+                    Assert.That(art.sprite, Is.Not.Null, art.name);
+                    Assert.That(art.raycastTarget, Is.False, art.name + " must not steal pointer events");
+                }
                 Assert.That(ScreenCapture1080.Capture("remake-" + page + ".png", shots), Does.Not.StartWith("ERROR:"));
             }
             var goldBeforeCancel = context.Wallet.Get(CurrencyType.Coin);

@@ -239,6 +239,7 @@ namespace Hoang.Remake
             ui._errorAd = MakeButton(dialog, "ErrorAd", "Simulate error", Purple, new Vector2(.52f, .04f), new Vector2(.92f, .20f), Vector2.zero, Vector2.zero);
             ui._editorAdDialog = overlay.gameObject;
             overlay.gameObject.SetActive(false);
+            RemakeRestaurantTheme.ApplyShop(ui);
             return ui;
         }
 

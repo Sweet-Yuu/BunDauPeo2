@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: master_owner
   SkillName: Restaurant owner
   Description: 'Exclusive: boost revenue and reputation.'
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: 2073733300, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 3
   IsExclusive: 1
   NormalPointCost: 1

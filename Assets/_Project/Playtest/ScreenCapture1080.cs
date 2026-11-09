@@ -48,6 +48,11 @@ namespace BunDauPeo.Playtest
                 }
 
                 Canvas.ForceUpdateCanvases();
+                // Fixed-size labels do not receive a dimensions change when the render scale changes.
+                // Rebuild their glyphs at the capture scale rather than magnifying Game-view raster text.
+                foreach (var (canvas, _) in overlays)
+                    foreach (var text in canvas.GetComponentsInChildren<UnityEngine.UI.Text>()) text.SetVerticesDirty();
+                Canvas.ForceUpdateCanvases();
                 camera.Render();
 
                 var previousActive = RenderTexture.active;
@@ -74,6 +79,11 @@ namespace BunDauPeo.Playtest
                     canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                     canvas.worldCamera = previous;
                 }
+                Canvas.ForceUpdateCanvases();
+                foreach (var (canvas, _) in overlays)
+                    if (canvas != null)
+                        foreach (var text in canvas.GetComponentsInChildren<UnityEngine.UI.Text>()) text.SetVerticesDirty();
+                Canvas.ForceUpdateCanvases();
                 // DestroyImmediate: Destroy chỉ chạy cuối khung, nên camera tạm còn sống ngay sau khi hàm trả về.
                 Object.DestroyImmediate(cameraObject);
                 if (rt != null) rt.Release();

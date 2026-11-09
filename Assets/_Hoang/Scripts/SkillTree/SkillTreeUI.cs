@@ -39,6 +39,7 @@ namespace Hoang.Remake
                 new Vector2(0.75f, 0.2f), new Vector2(0.97f, 0.75f), Vector2.zero, Vector2.zero);
             ui._feedback = RemakeUI.Label(root, "Feedback", "Unlock connected skills. Each upgrade is saved automatically.", 20, TextAnchor.MiddleLeft,
                 new Vector2(0.03f, 0.02f), new Vector2(0.97f, 0.1f), Vector2.zero, Vector2.zero);
+            RemakeRestaurantTheme.ApplySkills(ui);
             return ui;
         }
 

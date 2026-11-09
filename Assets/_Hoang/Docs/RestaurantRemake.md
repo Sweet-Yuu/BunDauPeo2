@@ -53,7 +53,7 @@ Settings > Reset all progress có xác nhận và xóa toàn bộ tiến trình 
 - `Tools > Hoang > Skill Tree`: validate và căn chỉnh graph đang chọn.
 - `Hoang > Restaurant Remake > Build Windows player`: build riêng scene remake qua `BuildPlayerOptions.scenes`, không sửa Build Settings chung.
 
-UI dùng uGUI `Text` và font Unity có sẵn, đồng nhất với dự án hiện tại, thay cho yêu cầu TMP của dự án cũ. Không thêm package/font/ảnh/SDK.
+UI dùng uGUI `Text` và font Unity có sẵn, đồng nhất với dự án hiện tại, thay cho yêu cầu TMP của dự án cũ. Không thêm package/font/SDK. User duyệt artwork ImageGen ngày 09–10/11/2026: ba trang remake và Lobby gốc dùng chung bộ hình quán Việt xanh–kem–gỗ; xem [RestaurantArtHandoff.md](RestaurantArtHandoff.md) để biết phạm vi, file và cách áp dụng lại.
 
 ## Kiểm chứng
 

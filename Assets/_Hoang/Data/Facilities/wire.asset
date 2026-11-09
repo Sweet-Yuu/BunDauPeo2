@@ -17,7 +17,7 @@ MonoBehaviour:
   ShortName: WIRE
   Description: Conducts power. No consumption.
   ThemeColor: {r: 0.62, g: 0.65, b: 0.7, a: 1}
-  Icon: {fileID: 0}
+  Icon: {fileID: 1749896263, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   ShapeCoords:
   - {x: 0, y: 0}
   IsPowerSource: 0

@@ -3,6 +3,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using BunDauPeo.UI;
 
 namespace Hoang.Remake
 {
@@ -11,6 +12,7 @@ namespace Hoang.Remake
         [SerializeField] private SkillSO _skill;
         [SerializeField] private Button _button;
         [SerializeField] private Text _label;
+        [SerializeField] private Image _icon;
         private SkillTreeManager _manager;
         private SkillTreeUI _owner;
 
@@ -36,15 +38,38 @@ namespace Hoang.Remake
         public void Refresh()
         {
             if (_skill == null || _button == null || _label == null) return;
+            ApplyAppearance();
             var level = _manager?.GetLevel(_skill.Id) ?? 0;
             var unlocked = _manager?.IsUnlocked(_skill) ?? (_skill.Prerequisites == null || _skill.Prerequisites.Length == 0);
             var cost = _skill.IsExclusive ? $"{_skill.SpecialPointCost} special" : $"{_skill.NormalPointCost} point(s)";
             _label.text = $"{_skill.SkillName}\nLevel {level} / {_skill.MaxLevel}\n{(level >= _skill.MaxLevel ? "MAX LEVEL" : !unlocked ? "LOCKED" : cost)}";
             _label.fontSize = 21;
             _button.interactable = _manager != null;
-            _button.GetComponent<Image>().color = level >= _skill.MaxLevel ? new Color(0.64f, 0.47f, 0.19f)
-                : !unlocked ? new Color(0.43f, 0.46f, 0.47f)
-                : _skill.IsExclusive ? new Color(0.48f, 0.31f, 0.6f) : RemakeUI.Green;
+            _button.GetComponent<Image>().color = level >= _skill.MaxLevel ? new Color(1f, .88f, .56f)
+                : !unlocked ? new Color(.84f, .85f, .80f)
+                : _skill.IsExclusive ? new Color(.93f, .87f, .97f) : RestaurantArt.Cream;
+            _icon.color = !unlocked ? new Color(.70f, .73f, .69f) : Color.white;
+        }
+
+        public void ApplyAppearance()
+        {
+            if (_button == null || _skill == null) return;
+            var rect = (RectTransform)transform;
+            rect.sizeDelta = new Vector2(300, 138);
+            RestaurantArt.Card(_button.GetComponent<Image>(), RestaurantArt.Cream);
+            if (_icon == null)
+                _icon = RemakeRestaurantTheme.Art(rect, "SkillArtwork", _skill.Id,
+                    new Vector2(0, .08f), new Vector2(.35f, .92f), new Vector2(6, 4), new Vector2(-2, -4));
+            _icon.sprite = _skill.SkillIcon != null ? _skill.SkillIcon : RestaurantArt.Icon(_skill.Id);
+            _icon.raycastTarget = false;
+            _icon.preserveAspect = true;
+            RemakeUI.Layout(_label.rectTransform, new Vector2(.35f, .04f), new Vector2(.98f, .96f), Vector2.zero, Vector2.zero);
+            _label.color = RestaurantArt.Ink;
+            _label.fontStyle = FontStyle.Bold;
+            _label.resizeTextForBestFit = false;
+            _label.fontSize = 21;
+            _label.resizeTextMinSize = 14;
+            _label.resizeTextMaxSize = 21;
         }
 
         public void OnPointerEnter(PointerEventData eventData)

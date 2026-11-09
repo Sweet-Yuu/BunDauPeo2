@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: ingredients
   SkillName: Smart sourcing
   Description: Reduce ingredient restocking costs.
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: -920128760, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 5
   IsExclusive: 0
   NormalPointCost: 1

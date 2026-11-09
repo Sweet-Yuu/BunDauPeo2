@@ -16,8 +16,8 @@ namespace BunDauPeo.UI
         public const float BarHeight = 120f;
 
         private const float ToastSeconds = 2f;
-        private static readonly Color TabColor = new(0.20f, 0.23f, 0.31f);
-        private static readonly Color TabHighlight = new(0.30f, 0.50f, 0.90f);
+        private static readonly Color TabColor = new(0.22f, 0.33f, 0.25f);
+        private static readonly Color TabHighlight = new(0.18f, 0.43f, 0.31f);
 
         // Thứ tự đúng HubTab.
         [SerializeField] private Button[] _tabButtons;

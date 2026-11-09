@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using BunDauPeo.UI;
 
 namespace Hoang.Remake
 {
@@ -100,6 +101,7 @@ namespace Hoang.Remake
             view._feedback = NewText(root, "Feedback", "Only powered devices grant bonuses.", 16, TextAnchor.LowerLeft);
             SetRect(view._feedback.rectTransform, new Vector2(0.02f, 0), new Vector2(0.98f, 0.04f), Vector2.zero, Vector2.zero);
             view.WireButtons();
+            RemakeRestaurantTheme.ApplyKitchen(view);
             return view;
         }
 
@@ -323,10 +325,21 @@ namespace Hoang.Remake
                 descriptor.Label.text = $"{definition.ItemName}{count}\n{(definition.IsPowerSource ? "+" + definition.PowerOutput : "-" + definition.PowerConsumption)} W";
                 descriptor.Label.color = _manager == null || InventoryCount(definition.Id) > 0
                     ? new Color(0.12f, 0.18f, 0.20f) : new Color(0.43f, 0.47f, 0.46f);
+                RestaurantArt.Card(descriptor.Root.GetComponent<UnityEngine.UI.Image>(), new Color(1f, .98f, .91f));
+                var artwork = RemakeRestaurantTheme.Art(descriptor.Root, "FacilityArtwork", definition.Id,
+                    new Vector2(0, 0), new Vector2(.17f, 1), new Vector2(5, 3), new Vector2(-3, -3));
+                artwork.sprite = definition.Icon != null ? definition.Icon : RestaurantArt.Icon(definition.Id);
+                SetRect(descriptor.Label.rectTransform, new Vector2(.18f, 0), Vector2.one, new Vector2(6, 3), new Vector2(-8, -3));
+                descriptor.Label.fontSize = 17;
+                descriptor.Label.resizeTextForBestFit = true;
+                descriptor.Label.resizeTextMinSize = 12;
+                descriptor.Label.resizeTextMaxSize = 17;
             }
             foreach (var descriptor in _inventoryRows.Values)
                 if (!activeIds.Contains(descriptor.ItemId) && descriptor.Root.gameObject.activeSelf) descriptor.Root.gameObject.SetActive(false);
         }
+
+        public void ApplyInventoryArtwork() => RefreshInventory();
 
         private int InventoryCount(string id)
         {
@@ -430,7 +443,7 @@ namespace Hoang.Remake
             label.fontSize = size;
             label.alignment = alignment;
             label.text = text;
-            label.color = new Color(0.16f, 0.21f, 0.23f);
+            label.color = RestaurantArt.Ink;
             label.raycastTarget = false;
             label.verticalOverflow = VerticalWrapMode.Truncate;
             return label;
@@ -441,7 +454,7 @@ namespace Hoang.Remake
             var rect = NewRect(parent, name);
             SetRect(rect, min, max, Vector2.zero, Vector2.zero);
             var image = rect.gameObject.AddComponent<UnityEngine.UI.Image>();
-            image.color = new Color(0.20f, 0.43f, 0.33f);
+            RestaurantArt.Card(image, RestaurantArt.Jade);
             var button = rect.gameObject.AddComponent<UnityEngine.UI.Button>();
             button.targetGraphic = image;
             var label = NewText(rect, "Label", text, 17, TextAnchor.MiddleCenter);

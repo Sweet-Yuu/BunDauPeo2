@@ -1,5 +1,7 @@
 # Kết quả kiểm chứng — 08/11/2026
 
+> Báo cáo này giữ bằng chứng lịch sử. Lượt artwork 10/11 có kết quả và ảnh mới tại [RestaurantArtHandoff.md](RestaurantArtHandoff.md); không dùng giới hạn “chưa có artwork” bên dưới làm trạng thái hiện tại.
+
 Môi trường: Unity 6000.3.15f1, Windows Editor, nhánh Hoang, commit nền a9027e8. Working tree ban đầu sạch. Không có test baseline chạy trước khi thêm code; báo cáo dưới đây là regression toàn bộ suite sau triển khai, không suy diễn baseline chưa đo.
 
 ## Thay đổi sau yêu cầu bỏ tab Restaurant

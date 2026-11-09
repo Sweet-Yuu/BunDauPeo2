@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using BunDauPeo.UI;
 
 namespace Hoang.Remake
 {
@@ -12,6 +13,7 @@ namespace Hoang.Remake
         [SerializeField] private List<FacilityDraggableItemUI> _handles = new();
         private Vector2Int _cachedOrigin = new(-1, -1);
         private int _cachedRotation = -1;
+        private UnityEngine.UI.Image _artwork;
 
         public static FacilityPlacedItemUI Create(Transform parent, FacilityGridUI owner, FacilityPlacedItem item)
         {
@@ -44,6 +46,11 @@ namespace Hoang.Remake
         {
             var shape = item.ItemSO.GetRotatedCoords(item.RotationIndex);
             var dimensions = item.ItemSO.GetDimensions(item.RotationIndex);
+            if (_artwork == null)
+                _artwork = RemakeRestaurantTheme.Art(_rect, "DeviceArtwork", item.ItemSO.Id,
+                    Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            _artwork.sprite = item.ItemSO.Icon != null ? item.ItemSO.Icon : RestaurantArt.Icon(item.ItemSO.Id);
+            _label.enabled = _artwork.sprite == null;
             if (_cachedOrigin != item.OriginCoord || _cachedRotation != item.RotationIndex)
             {
                 _rect.anchorMin = (Vector2)item.OriginCoord / FacilityGrid.GridSize;
@@ -67,13 +74,16 @@ namespace Hoang.Remake
                     new Vector2(2, 10), new Vector2(-2, -1));
                 FacilityGridUI.SetRect(_status.rectTransform, _label.rectTransform.anchorMin, _label.rectTransform.anchorMax,
                     new Vector2(1, 1), new Vector2(-1, -16));
+                FacilityGridUI.SetRect(_artwork.rectTransform, _label.rectTransform.anchorMin, _label.rectTransform.anchorMax,
+                    new Vector2(3, 12), new Vector2(-3, -2));
                 _cachedOrigin = item.OriginCoord;
                 _cachedRotation = item.RotationIndex;
             }
 
-            var color = item.IsPowered ? item.ItemSO.ThemeColor : Color.Lerp(item.ItemSO.ThemeColor, new Color(0.16f, 0.18f, 0.23f), 0.6f);
-            if (selected) color = Color.Lerp(color, Color.white, 0.3f);
-            foreach (var cell in _cells) cell.color = color;
+            var color = selected ? new Color(1f, .84f, .42f) : item.IsPowered ? RestaurantArt.SoftGreen : new Color(.67f, .68f, .62f);
+            foreach (var cell in _cells) RestaurantArt.Card(cell, color);
+            _artwork.color = item.IsPowered ? Color.white : new Color(.66f, .66f, .63f);
+            _status.color = RestaurantArt.Ink;
             _status.text = item.ItemSO.IsPowerSource ? "SOURCE" : item.IsPowered ? "ON" : "OFF";
         }
     }

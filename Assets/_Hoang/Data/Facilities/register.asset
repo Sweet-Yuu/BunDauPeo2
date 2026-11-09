@@ -17,7 +17,7 @@ MonoBehaviour:
   ShortName: TILL
   Description: 'Powered: revenue +15%. Needs 20 W.'
   ThemeColor: {r: 0.42, g: 0.73, b: 0.5, a: 1}
-  Icon: {fileID: 0}
+  Icon: {fileID: 489731355, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   ShapeCoords:
   - {x: 0, y: 0}
   IsPowerSource: 0

@@ -1,14 +1,15 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using BunDauPeo.UI;
 
 namespace Hoang.Remake
 {
     public static class RemakeUI
     {
-        public static readonly Color Ink = new(0.15f, 0.20f, 0.23f);
-        public static readonly Color Paper = new(0.98f, 0.96f, 0.90f);
-        public static readonly Color Green = new(0.19f, 0.43f, 0.34f);
+        public static readonly Color Ink = RestaurantArt.Ink;
+        public static readonly Color Paper = RestaurantArt.Cream;
+        public static readonly Color Green = RestaurantArt.Jade;
         private static Font _font;
         public static Font Font => _font != null ? _font : _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -20,7 +21,7 @@ namespace Hoang.Remake
             rect.SetParent(parent, false);
             Layout(rect, anchorMin, anchorMax, offsetMin, offsetMax);
             var image = go.GetComponent<Image>();
-            image.color = color;
+            RestaurantArt.Card(image, color);
             image.raycastTarget = color.a > 0;
             return rect;
         }

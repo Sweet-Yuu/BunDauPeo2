@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: master_host
   SkillName: Beloved host
   Description: 'Exclusive: guests stay patient and ingredients cost less.'
-  SkillIcon: {fileID: 0}
+  SkillIcon: {fileID: 1440606063, guid: 698d06c58a0ebf44aa074adbf6964ac5, type: 3}
   MaxLevel: 3
   IsExclusive: 1
   NormalPointCost: 1
