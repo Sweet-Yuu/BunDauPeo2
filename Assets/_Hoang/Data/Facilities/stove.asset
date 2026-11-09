@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95662c2c71b721f468a2e3962a2deee5, type: 3}
+  m_Name: stove
+  m_EditorClassIdentifier: Hoang.Remake::Hoang.Remake.FacilityItemSO
+  Id: stove
+  ItemName: Fast stove
+  ShortName: STOVE
+  Description: 'Powered: cooking speed +20%. Needs 35 W.'
+  ThemeColor: {r: 0.91, g: 0.49, b: 0.3, a: 1}
+  Icon: {fileID: 0}
+  ShapeCoords:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  IsPowerSource: 0
+  CanConductPower: 1
+  IsRelay: 0
+  RequiresRelay: 0
+  PowerOutput: 0
+  PowerConsumption: 35
+  Stats:
+    ProductionSpeedBonus: 0.2
+    RevenueBonus: 0
+    CustomerPatienceBonus: 0
+    IngredientCostReduction: 0
+    CleanlinessBonus: 0

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc4e6505e90b19e40b2606175299cbff, type: 3}
+  m_Name: cleanliness
+  m_EditorClassIdentifier: Hoang.Remake::Hoang.Remake.SkillSO
+  Id: cleanliness
+  SkillName: Clean kitchen
+  Description: Improve your restaurant reputation.
+  SkillIcon: {fileID: 0}
+  MaxLevel: 5
+  IsExclusive: 0
+  NormalPointCost: 1
+  SpecialPointCost: 1
+  Prerequisites:
+  - Skill: {fileID: 11400000, guid: 3991c9e630df23e46b5d3e64974f310b, type: 2}
+    MinimumLevel: 2
+  GraphPosition: {x: 0.5, y: 0.45}
+  ProductionSpeedBonusPerLevel: 0
+  RevenueBonusPerLevel: 0
+  CustomerPatienceBonusPerLevel: 0
+  IngredientCostReductionPerLevel: 0
+  CleanlinessBonusPerLevel: 3

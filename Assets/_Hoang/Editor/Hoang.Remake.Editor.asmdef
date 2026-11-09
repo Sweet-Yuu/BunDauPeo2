@@ -1,0 +1,7 @@
+{
+  "name": "Hoang.Remake.Editor",
+  "rootNamespace": "Hoang.Remake.Editor",
+  "references": ["Hoang.Remake", "BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Restaurant", "BunDauPeo.Boot", "UnityEngine.UI", "Unity.InputSystem"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

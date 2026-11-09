@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc4e6505e90b19e40b2606175299cbff, type: 3}
+  m_Name: hospitality
+  m_EditorClassIdentifier: Hoang.Remake::Hoang.Remake.SkillSO
+  Id: hospitality
+  SkillName: Thoughtful service
+  Description: Increase patience and meal revenue.
+  SkillIcon: {fileID: 0}
+  MaxLevel: 5
+  IsExclusive: 0
+  NormalPointCost: 1
+  SpecialPointCost: 1
+  Prerequisites:
+  - Skill: {fileID: 11400000, guid: 423745be1b7de3f4e98f9829e82ed562, type: 2}
+    MinimumLevel: 2
+  GraphPosition: {x: 0.83, y: 0.45}
+  ProductionSpeedBonusPerLevel: 0
+  RevenueBonusPerLevel: 0.02
+  CustomerPatienceBonusPerLevel: 0.05
+  IngredientCostReductionPerLevel: 0
+  CleanlinessBonusPerLevel: 0

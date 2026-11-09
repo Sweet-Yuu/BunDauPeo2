@@ -1,0 +1,7 @@
+{
+  "name": "Hoang.Remake.PlayModeTests",
+  "rootNamespace": "Hoang.Remake.Tests",
+  "references": ["Hoang.Remake", "BunDauPeo.Core", "BunDauPeo.Boot", "BunDauPeo.PlaytestKit", "UnityEngine.UI"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

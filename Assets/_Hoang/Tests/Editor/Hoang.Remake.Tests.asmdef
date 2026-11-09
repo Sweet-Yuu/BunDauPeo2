@@ -1,0 +1,8 @@
+{
+  "name": "Hoang.Remake.Tests",
+  "rootNamespace": "Hoang.Remake.Tests",
+  "references": ["Hoang.Remake", "Hoang.Remake.Editor", "BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Restaurant", "BunDauPeo.Boot", "UnityEngine.UI", "Unity.InputSystem"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

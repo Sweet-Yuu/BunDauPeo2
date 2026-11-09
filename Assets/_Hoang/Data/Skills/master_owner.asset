@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc4e6505e90b19e40b2606175299cbff, type: 3}
+  m_Name: master_owner
+  m_EditorClassIdentifier: Hoang.Remake::Hoang.Remake.SkillSO
+  Id: master_owner
+  SkillName: Restaurant owner
+  Description: 'Exclusive: boost revenue and reputation.'
+  SkillIcon: {fileID: 0}
+  MaxLevel: 3
+  IsExclusive: 1
+  NormalPointCost: 1
+  SpecialPointCost: 1
+  Prerequisites:
+  - Skill: {fileID: 11400000, guid: 5e1a46cce07ded548a605b45a87910e1, type: 2}
+    MinimumLevel: 2
+  - Skill: {fileID: 11400000, guid: 9810e9c932888ec4a9b85e4979145425, type: 2}
+    MinimumLevel: 1
+  GraphPosition: {x: 0.5, y: 0.14}
+  ProductionSpeedBonusPerLevel: 0
+  RevenueBonusPerLevel: 0.15
+  CustomerPatienceBonusPerLevel: 0
+  IngredientCostReductionPerLevel: 0
+  CleanlinessBonusPerLevel: 5

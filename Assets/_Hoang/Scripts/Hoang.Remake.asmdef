@@ -1,0 +1,6 @@
+{
+  "name": "Hoang.Remake",
+  "rootNamespace": "Hoang.Remake",
+  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Restaurant", "BunDauPeo.Boot", "UnityEngine.UI", "Unity.InputSystem"],
+  "autoReferenced": true
+}
