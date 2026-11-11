@@ -35,10 +35,16 @@ namespace BunDauPeo.EditorTools
         private static readonly Color Dark = new(0.10f, 0.10f, 0.14f);
         private static readonly Color Muted = new(0.35f, 0.36f, 0.42f);
 
+        private static readonly Color ResourceBarColor = new(1f, 1f, 1f, 0.92f);
+        private static readonly Color ResourceTextColor = new(0.20f, 0.22f, 0.30f);
+        private static readonly Color ResourceSubTextColor = new(0.36f, 0.38f, 0.46f);
+        private const float ResourceSlotWidth = 280f;
+
         // Khớp tên ResetConfirm_PH_800x420; test đọc lại hằng này.
         internal static readonly Vector2 ResetConfirmSize = new(800, 420);
 
         private static readonly Vector2 Center = new(0.5f, 0.5f);
+        private static readonly Vector2 TopLeft = new(0, 1);
         private static readonly Vector2 TopCenter = new(0.5f, 1);
         private static readonly Vector2 BottomCenter = new(0.5f, 0);
 
@@ -95,6 +101,80 @@ namespace BunDauPeo.EditorTools
             var gachaSo = new SerializedObject(gacha.GetComponentInChildren<GachaView>(true));
             gachaSo.FindProperty("_hub").objectReferenceValue = hub;
             gachaSo.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Thanh tài nguyên chung (spec UI hub B 5.3, lớp 3b): 4 ô 280×76 liền nhau, bố cục Lobby (neo trái cạnh avatar); ResourceBarView đổi bố cục
+        // và bật/tắt ô lúc chạy. Dựng sau ba panel, trước Menu. View nằm ngoài thanh để còn chạy khi thanh tắt; HubNav nối ở WireLobby.
+        public static ResourceBarView BuildResourceBar(RectTransform canvas, Font font, Sprite sprite, Sprite knob)
+        {
+            var viewRect = NewRect("ResourceBarView", canvas);
+            var view = viewRect.gameObject.AddComponent<ResourceBarView>();
+
+            var bar = NewRect("ResourceBar_PH_1120x76", canvas);
+            Place(bar, TopLeft, TopLeft, new Vector2(180, -20), new Vector2(4 * ResourceSlotWidth, 76));
+            AddImage(bar, sprite, ResourceBarColor, raycast: false);
+
+            var slotNames = new[] { "ResStamina_PH_280x76", "ResCoin_PH_280x76", "ResMaterial_PH_280x76", "ResGem_PH_280x76" };
+            var slots = new GameObject[slotNames.Length];
+            var texts = new Text[slotNames.Length];
+            var plus = new System.Collections.Generic.List<Button>();
+            Text next = null;
+            for (var i = 0; i < slotNames.Length; i++)
+            {
+                var slot = NewRect(slotNames[i], bar);
+                Place(slot, TopLeft, TopLeft, new Vector2(i * ResourceSlotWidth, 0), new Vector2(ResourceSlotWidth, 76));
+                slots[i] = slot.gameObject;
+                var hasPlus = i != 2;
+                var value = NewText("ValueText", slot, font, "", 32, TextAnchor.MiddleLeft, ResourceTextColor);
+                if (i == 0)
+                {
+                    // Thể lực: số ở dòng trên, "+1 sau m:ss" nhỏ ở dòng dưới.
+                    Place(value.rectTransform, TopLeft, TopLeft, new Vector2(24, -4), new Vector2(190, 42));
+                    next = NewText("NextText", slot, font, "", 22, TextAnchor.MiddleLeft, ResourceSubTextColor);
+                    Place(next.rectTransform, TopLeft, TopLeft, new Vector2(24, -44), new Vector2(190, 28));
+                }
+                else
+                {
+                    Place(value.rectTransform, TopLeft, TopLeft, new Vector2(24, 0), new Vector2(hasPlus ? 190 : 244, 76));
+                }
+
+                value.resizeTextForBestFit = true;
+                value.resizeTextMinSize = 18;
+                value.resizeTextMaxSize = 32;
+                value.horizontalOverflow = HorizontalWrapMode.Wrap;
+                texts[i] = value;
+
+                if (!hasPlus) continue;
+                var button = NewButton("ResPlus_PH_56x56", slot, knob, font, "+", ButtonColor, new Vector2(1, 0.5f), new Vector2(-10, 0), new Vector2(56, 56));
+                ((Image)button.targetGraphic).type = Image.Type.Simple;
+                var label = button.GetComponentInChildren<Text>();
+                label.fontSize = 44;
+                label.fontStyle = FontStyle.Bold;
+                plus.Add(button);
+            }
+
+            var so = new SerializedObject(view);
+            so.FindProperty("_bar").objectReferenceValue = bar;
+            SetRefs(so.FindProperty("_slots"), slots);
+            SetRefs(so.FindProperty("_slotTexts"), texts);
+            so.FindProperty("_staminaNextText").objectReferenceValue = next;
+            SetRefs(so.FindProperty("_plusButtons"), plus.ToArray());
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return view;
+        }
+
+        // Nối phần HUD Lobby vào HubNav và ResourceBarView vào HubNav (HubNav dựng sau cả hai).
+        public static void WireLobby(HubNav hub, ResourceBarView resources, GameObject lobbyHud, Button[] comingSoon, Button banner)
+        {
+            var so = new SerializedObject(hub);
+            so.FindProperty("_lobbyHud").objectReferenceValue = lobbyHud;
+            SetRefs(so.FindProperty("_comingSoonButtons"), comingSoon);
+            so.FindProperty("_bannerButton").objectReferenceValue = banner;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var resourcesSo = new SerializedObject(resources);
+            resourcesSo.FindProperty("_hub").objectReferenceValue = hub;
+            resourcesSo.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Hộp con vẽ trên thanh (spec 5.1 bước 6): Canvas con overrideSorting cao hơn canvas chính, kèm GraphicRaycaster.
@@ -176,15 +256,15 @@ namespace BunDauPeo.EditorTools
             label.resizeTextMinSize = 22;
             label.resizeTextMaxSize = 36;
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
-            if (locked) BuildLock(tab);
+            if (locked) BuildLock(tab, "Lock_PH_40x48", new Vector2(125, 0));
             return button;
         }
 
-        // Ổ khoá ghép từ hình vuông, như ổ khoá ở nút bản đồ: quai, lỗ quai, thân vàng.
-        private static void BuildLock(RectTransform tab)
+        // Ổ khoá ghép từ hình vuông, như ổ khoá ở nút bản đồ: quai, lỗ quai, thân vàng. Dùng cho ô Cốt truyện và nút Shop.
+        internal static void BuildLock(RectTransform parent, string name, Vector2 position)
         {
-            var root = NewRect("Lock_PH_40x48", tab);
-            Place(root, Center, Center, new Vector2(125, 0), new Vector2(40, 48));
+            var root = NewRect(name, parent);
+            Place(root, Center, Center, position, new Vector2(40, 48));
             var shackle = NewRect("Shackle", root);
             Place(shackle, Center, Center, new Vector2(0, 12), new Vector2(22, 24));
             AddImage(shackle, null, Dark, raycast: false);

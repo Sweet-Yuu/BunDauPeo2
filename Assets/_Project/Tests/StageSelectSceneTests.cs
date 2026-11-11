@@ -32,6 +32,22 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(new Vector2(1920, 1080), canvas.referenceResolution);
             });
 
+        // Đợt B: thẻ tiền của Bản đồ và khối Gem của Gacha nhường chỗ cho thanh tài nguyên chung; hai view vẫn đủ tham chiếu.
+        [Test]
+        public void OldCurrencyCards_Gone_PanelStillWired() =>
+            WithStageSelect(scene =>
+            {
+                var stages = LobbySceneTests.In<Transform>(scene, LobbySceneTests.StagesPanel).Select(t => t.name).ToArray();
+                foreach (var gone in new[] { "StaminaCard", "MaterialCard", "GemCard" })
+                    CollectionAssert.DoesNotContain(stages, gone, "stage map panel still has " + gone);
+                var gacha = LobbySceneTests.In<Transform>(scene, LobbySceneTests.GachaPanel).Select(t => t.name).ToArray();
+                foreach (var gone in new[] { "GemCard", "GemText" })
+                    CollectionAssert.DoesNotContain(gacha, gone, "Gacha panel still has " + gone);
+
+                RestaurantSceneTests.AssertAllReferencesAssigned(RestaurantSceneTests.All<StageMapView>(scene).Single());
+                RestaurantSceneTests.AssertAllReferencesAssigned(RestaurantSceneTests.All<GachaView>(scene).Single());
+            });
+
         // S1 (trang kín màn): hai cột trong vùng trên vạch. Trái: tên, quái. Phải: thưởng, thể lực, cảnh báo, nút Thách đấu dưới-phải.
         // Nút Hủy là nút Quay lại ở góc trên-trái.
         [Test]

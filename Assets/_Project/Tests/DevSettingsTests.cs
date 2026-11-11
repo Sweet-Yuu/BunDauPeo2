@@ -21,6 +21,8 @@ namespace BunDauPeo.Tests
         [TearDown]
         public void TearDown()
         {
+            // GrantGemsThenResetViaResetter...: ResetToDefaults đưa GameLanguage.Current về En.
+            GameLanguage.Current = Language.Vi;
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
         }
 

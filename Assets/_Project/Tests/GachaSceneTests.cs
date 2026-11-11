@@ -42,7 +42,7 @@ namespace BunDauPeo.Tests
                 var so = new SerializedObject(view);
                 foreach (var field in new[]
                          {
-                             "_banner", "_characters", "_singleButton", "_tenButton", "_skipButton", "_historyButton", "_gemText",
+                             "_banner", "_characters", "_singleButton", "_tenButton", "_skipButton", "_historyButton",
                              "_bannerNameText", "_pityText", "_messageText", "_revealView", "_totalView", "_rollAgainPopup", "_historyPopup",
                          })
                     Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, field);
@@ -105,7 +105,7 @@ namespace BunDauPeo.Tests
                 Assert.LessOrEqual(1080f - rect.yMax, 140f, "SkipButton must hug the top edge, clear of the pull buttons at the bottom right");
             });
 
-        // GemCard, MessageText... trùng tên với màn quán và bản đồ nên chỉ tìm trong panel Gacha.
+        // MessageText... trùng tên với màn quán và bản đồ nên chỉ tìm trong panel Gacha.
         private static RectTransform In(Scene scene, string name) =>
             LobbySceneTests.In<RectTransform>(scene, LobbySceneTests.GachaPanel).Single(r => r.name == name);
 
@@ -118,17 +118,17 @@ namespace BunDauPeo.Tests
             {
                 var screen = new Rect(0, 0, 1920, 1080);
                 // Banner kín panel nằm dưới mọi khối khác (mục 5 index 2), nên không tính đè nhau với nó.
-                var names = new[] { "BannerPanel", "GemCard", "GachaBanner_PH_1920x1080", "SingleButton", "TenButton", "HistoryButton", "MessageText" };
+                var names = new[] { "BannerPanel", "GachaBanner_PH_1920x1080", "SingleButton", "TenButton", "HistoryButton", "MessageText" };
                 var rects = names.Select(n => Box(scene, n)).ToArray();
                 for (var i = 0; i < names.Length; i++)
                 {
                     Assert.IsTrue(screen.Contains(rects[i].min) && screen.Contains(rects[i].max - Vector2.one), $"{names[i]} {rects[i]} leaves the screen");
                     for (var j = i + 1; j < names.Length; j++)
-                        if (i != 2 && j != 2)
+                        if (i != 1 && j != 1)
                             Assert.IsFalse(Overlap(rects[i], rects[j]), $"{names[i]} {rects[i]} overlaps {names[j]} {rects[j]}");
                 }
 
-                foreach (var i in new[] { 3, 4, 5, 6 })
+                foreach (var i in new[] { 2, 3, 4, 5 })
                     Assert.GreaterOrEqual(rects[i].yMin, HubNav.BarHeight, $"{names[i]} reaches the bar strip");
 
                 var panel = In(scene, "BannerPanel");
@@ -141,15 +141,13 @@ namespace BunDauPeo.Tests
 
                 Assert.LessOrEqual(rects[0].xMax, 800f, "BannerPanel is top left");
                 Assert.GreaterOrEqual(rects[0].yMin, 900f, "BannerPanel is at the top");
-                Assert.Greater(rects[1].xMin, 1500f, "GemCard is top right");
-                Assert.GreaterOrEqual(rects[1].yMin, 900f, "GemCard is at the top");
                 Assert.IsFalse(All<Image>(scene).Single(i => i.name == "GachaBanner_PH_1920x1080").raycastTarget, "the banner must not block touches");
+                Assert.AreEqual(new Vector2(300, 160), rects[2].size);
                 Assert.AreEqual(new Vector2(300, 160), rects[3].size);
-                Assert.AreEqual(new Vector2(300, 160), rects[4].size);
-                Assert.Greater(rects[4].xMin, rects[3].xMin, "TenButton is right of SingleButton");
-                Assert.GreaterOrEqual(rects[3].yMin, rects[4].yMin - 1f);
-                Assert.Greater(rects[5].yMin, rects[3].yMax - 1f, "HistoryButton sits above the pull buttons");
-                Assert.Greater(rects[4].xMin, 1500f, "pull buttons are bottom right");
+                Assert.Greater(rects[3].xMin, rects[2].xMin, "TenButton is right of SingleButton");
+                Assert.GreaterOrEqual(rects[2].yMin, rects[3].yMin - 1f);
+                Assert.Greater(rects[4].yMin, rects[2].yMax - 1f, "HistoryButton sits above the pull buttons");
+                Assert.Greater(rects[3].xMin, 1500f, "pull buttons are bottom right");
             });
 
         // Spec UI hub 5.4: banner kéo kín panel (kể cả phần dưới thanh), nút quay trên vạch, GachaView biết HubNav để ẩn thanh lúc lộ.

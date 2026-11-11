@@ -16,9 +16,6 @@ namespace BunDauPeo.UI
         private static readonly Color LinkIdle = new(0.35f, 0.36f, 0.42f);
         private static readonly Color LinkDone = new(0.30f, 0.70f, 0.40f);
 
-        [SerializeField] private Text _staminaText;
-        [SerializeField] private Text _materialText;
-        [SerializeField] private Text _gemText;
         [SerializeField] private RectTransform _nodesRoot;
         [SerializeField] private StageNodeView _nodeTemplate;
         [SerializeField] private Image _linkTemplate;
@@ -95,7 +92,7 @@ namespace BunDauPeo.UI
 
         private bool HasAllReferences()
         {
-            var ok = _staminaText != null && _materialText != null && _gemText != null && _nodesRoot != null
+            var ok = _nodesRoot != null
                      && _nodeTemplate != null && _linkTemplate != null && _nextMarker != null && _hintText != null && _invalidText != null
                      && _info != null && _story != null && _team != null;
             if (!ok) Debug.LogError($"{nameof(StageMapView)}: references are not assigned.", this);
@@ -119,11 +116,6 @@ namespace BunDauPeo.UI
 
             if (!_built) Build();
             if (_dirty) Redraw();
-
-            var stamina = _service.Stamina;
-            _staminaText.text = CombatViewText.StaminaCard(stamina.Current, stamina.Max, stamina.SecondsToNext);
-            _materialText.text = $"Material {_wallet.Get(CurrencyType.Material)}";
-            _gemText.text = $"Gem {_wallet.Get(CurrencyType.Gem)}";
 
             if (_hintLeft > 0f)
             {

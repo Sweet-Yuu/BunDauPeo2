@@ -46,6 +46,9 @@ namespace BunDauPeo.EditorTools
         private static readonly Color AfkGreen = new(0.20f, 0.60f, 0.35f);
         private static readonly Color GreyButton = new(0.45f, 0.47f, 0.55f);
         private static readonly Color Warning = new(1f, 0.55f, 0.45f);
+        private static readonly Color AvatarColor = new(0.45f, 0.55f, 0.85f);
+        private static readonly Color AvatarFace = new(0.78f, 0.84f, 0.97f);
+        private static readonly Color BannerColor = new(0.55f, 0.38f, 0.82f);
         // Popup sáng theo màn quán: thẻ trắng, chữ tối; hai màu này đủ tối để đọc trên thẻ (RestaurantSceneTests kiểm độ tương phản).
         private static readonly Color SoftText = new(0.36f, 0.38f, 0.46f);
         private static readonly Color FullText = new(0.78f, 0.35f, 0f);
@@ -188,23 +191,25 @@ namespace BunDauPeo.EditorTools
             viewSo.FindProperty("_incidentHint").objectReferenceValue = incidentHint;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
-            var hud = BuildHud(canvas, font, sprite, knob, counter, out var statsButton);
-
-            // Cột nút phải: dải trắng bo góc sát mép phải, ba ô; ô chưa có nút để trống (Thu AFK ở ô thứ ba).
-            var column = NewRect("RightColumn", canvas);
-            Place(column, TopRight, TopRight, new Vector2(-20, -110), new Vector2(170, 520));
-            AddImage(column, sprite, CardColor, raycast: false);
-            var staffPanel = BuildStaffPanel(canvas, column, font, sprite, knob);
-            var upgradePanel = BuildUpgradePanel(canvas, column, font, sprite, knob);
-            BuildAfkButton(column, font, knob, hud);
+            // HUD Lobby (spec UI hub B 5.1, 5.4): gom trong LobbyHud để HubNav bật/tắt cả nhóm. RestaurantView và RestaurantHud nằm ngoài nhóm nên quán vẫn chạy.
+            var lobbyHud = NewRect("LobbyHud", canvas);
+            Stretch(lobbyHud);
+            var hud = BuildHud(canvas, lobbyHud, font, sprite, knob, counter, out var statsButton);
+            var (avatar, banner, shop) = BuildLobbyButtons(lobbyHud, font, sprite, knob);
+            var restaurantBar = BuildRestaurantBar(lobbyHud, font, sprite, knob);
+            var staffPanel = BuildStaffPanel(canvas, restaurantBar, font, sprite, knob);
+            var upgradePanel = BuildUpgradePanel(canvas, restaurantBar, font, sprite, knob);
+            BuildAfkButton(restaurantBar, font, knob, hud);
             var qualityPopup = BuildQualityPopup(canvas, font, sprite, statsButton);
 
-            // Lớp vẽ của Lobby (spec UI hub 5.1), từ dưới lên: quán, trang của quán (ở trên), ba panel của thanh, Menu, thanh dưới, rồi hộp phần thưởng.
+            // Lớp vẽ của Lobby (spec UI hub 5.1), từ dưới lên: quán, HUD Lobby, trang của quán (ở trên), ba panel của thanh, thanh tài nguyên, Menu, thanh dưới, rồi hộp phần thưởng.
             var charactersPanel = CharactersSceneBuilder.BuildPanel(canvas, sprite, font);
             var stagesPanel = StageSelectSceneBuilder.BuildPanel(canvas, sprite, knob, font);
             var gachaPanel = GachaSceneBuilder.BuildPanel(canvas, sprite, font);
+            var resourceBar = NavBarBuilder.BuildResourceBar(canvas, font, sprite, knob);
             var menuPanel = NavBarBuilder.BuildMenu(canvas, font, sprite, out var menuView);
             var hub = NavBarBuilder.Build(canvas, font, sprite);
+            NavBarBuilder.WireLobby(hub, resourceBar, lobbyHud.gameObject, new[] { avatar, shop }, banner);
             // Trang kín màn: bấm ô khác thì HubNav đóng từng trang đang mở qua IHubPage.Close() (Chọn đội trả đội như lúc mở).
             NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[]
             {
@@ -277,19 +282,6 @@ namespace BunDauPeo.EditorTools
             }
         }
 
-        private static Text Card(RectTransform canvas, Font font, Sprite sprite, string name, string textName, string text, Vector2 position)
-        {
-            var card = NewRect(name, canvas);
-            Place(card, TopLeft, TopLeft, position, new Vector2(260, 76));
-            AddImage(card, sprite, CardColor, raycast: false);
-            var label = NewText(textName, card, font, text, 40, TextAnchor.MiddleLeft, DarkText);
-            Stretch(label.rectTransform);
-            label.rectTransform.offsetMin = new Vector2(26, 0);
-            label.rectTransform.offsetMax = new Vector2(-12, 0);
-            FitText(label, 24, 40);
-            return label;
-        }
-
         // Ô hẹp: chữ co lại thay vì tràn ra ngoài ô.
         private static void FitText(Text text, int min, int max)
         {
@@ -299,16 +291,11 @@ namespace BunDauPeo.EditorTools
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
 
-        private static RestaurantHud BuildHud(RectTransform canvas, Font font, Sprite sprite, Sprite knob, RectTransform counter, out Button statsButton)
+        // Thanh chất lượng một hàng (spec UI hub B 5.4), neo trên-trái trong LobbyHud: sao, cảnh báo + nhãn thu nhập, bộ đếm. `lobbyHud` giữ HUD cố định; chữ bay ở lại `canvas`.
+        private static RestaurantHud BuildHud(RectTransform canvas, RectTransform lobbyHud, Font font, Sprite sprite, Sprite knob, RectTransform counter, out Button statsButton)
         {
-            // Ba thẻ tiền trên-trái.
-            var coin = Card(canvas, font, sprite, "CoinCard", "CoinText", "Coin 0", new Vector2(30, -20));
-            var material = Card(canvas, font, sprite, "MaterialCard", "MaterialText", "Material 0", new Vector2(310, -20));
-            var gem = Card(canvas, font, sprite, "GemCard", "GemText", "Gem 0", new Vector2(590, -20));
-
-            // Thanh thông tin ở hàng trên cùng, bên phải ba thẻ tiền (R1): sao và bộ đếm ở hàng trên, cảnh báo và nhãn thu nhập ở hàng dưới; không đè phòng và cột phải.
-            var bar = NewRect("InfoBar", canvas);
-            Place(bar, TopCenter, TopLeft, new Vector2(860 - ReferenceWidth / 2f, -20), new Vector2(840, 120));
+            var bar = NewRect("InfoBar", lobbyHud);
+            Place(bar, TopLeft, TopLeft, new Vector2(180, -108), new Vector2(800, 68));
             // Cả thanh là nút mở QualityPopup (spec 5.4: bấm thẻ sao); con của nó đều tắt raycast nên bấm đâu cũng trúng thanh.
             var barImage = AddImage(bar, sprite, BarColor, raycast: true);
             statsButton = bar.gameObject.AddComponent<Button>();
@@ -319,7 +306,7 @@ namespace BunDauPeo.EditorTools
             for (var i = 0; i < stars.Length; i++)
             {
                 var slot = NewRect($"Star{i}", bar);
-                Place(slot, TopLeft, TopLeft, new Vector2(24 + i * 56, -10), new Vector2(48, 48));
+                Place(slot, TopLeft, TopLeft, new Vector2(14 + i * 38, -16), new Vector2(36, 36));
                 AddImage(slot, knob, StarOff, raycast: false).type = Image.Type.Simple;
                 var fill = NewRect("Fill", slot);
                 Stretch(fill);
@@ -330,19 +317,20 @@ namespace BunDauPeo.EditorTools
                 stars[i] = fill;
             }
 
-            var counterText = NewText("CounterText", bar, font, "", 34, TextAnchor.MiddleRight, DarkText);
-            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-24, -10), new Vector2(480, 48));
-            FitText(counterText, 20, 34);
+            // Bộ đếm dài ("Phục vụ 12 · Bỏ về 2 · Chất lượng 37/100"): ô 290×48 cho chữ co lại và xuống hai dòng.
+            var counterText = NewText("CounterText", bar, font, "", 26, TextAnchor.MiddleRight, DarkText);
+            Place(counterText.rectTransform, TopRight, TopRight, new Vector2(-14, -10), new Vector2(290, 48));
+            FitText(counterText, 14, 26);
             var warning = NewRect("WarningIcon", bar);
-            Place(warning, TopLeft, TopLeft, new Vector2(24, -70), new Vector2(36, 36));
+            Place(warning, TopLeft, TopLeft, new Vector2(212, -19), new Vector2(30, 30));
             var warningImage = AddImage(warning, null, new Color(0.95f, 0.40f, 0.30f), raycast: false);
-            var income = NewText("IncomeText", bar, font, "", 34, TextAnchor.MiddleLeft, DarkText);
-            Place(income.rectTransform, TopLeft, TopLeft, new Vector2(74, -64), new Vector2(740, 48));
-            FitText(income, 20, 34);
+            var income = NewText("IncomeText", bar, font, "", 30, TextAnchor.MiddleLeft, DarkText);
+            Place(income.rectTransform, TopLeft, TopLeft, new Vector2(250, -10), new Vector2(240, 48));
+            FitText(income, 16, 30);
 
-            // Thanh báo lỗi lưu khi thu AFK, ngay dưới thanh thông tin; RestaurantHud bật 6 giây rồi tắt.
-            var messageRoot = NewRect("AfkMessage", canvas);
-            Place(messageRoot, TopCenter, TopLeft, new Vector2(860 - ReferenceWidth / 2f, -150), new Vector2(840, 56));
+            // Thanh báo lỗi lưu khi thu AFK, ngay dưới thanh chất lượng; RestaurantHud bật 6 giây rồi tắt.
+            var messageRoot = NewRect("AfkMessage", lobbyHud);
+            Place(messageRoot, TopLeft, TopLeft, new Vector2(180, -186), new Vector2(800, 56));
             AddImage(messageRoot, sprite, BarColor, raycast: false);
             var messageText = NewText("AfkMessageText", messageRoot, font, "", 30, TextAnchor.MiddleCenter, IncidentHintText);
             Stretch(messageText.rectTransform);
@@ -359,9 +347,6 @@ namespace BunDauPeo.EditorTools
             var hudObject = NewRect("RestaurantHud", canvas);
             var hud = hudObject.gameObject.AddComponent<RestaurantHud>();
             var so = new SerializedObject(hud);
-            so.FindProperty("_coinText").objectReferenceValue = coin;
-            so.FindProperty("_materialText").objectReferenceValue = material;
-            so.FindProperty("_gemText").objectReferenceValue = gem;
             so.FindProperty("_incomeText").objectReferenceValue = income;
             so.FindProperty("_counterText").objectReferenceValue = counterText;
             so.FindProperty("_warningIcon").objectReferenceValue = warningImage;
@@ -376,10 +361,64 @@ namespace BunDauPeo.EditorTools
             return hud;
         }
 
-        // Ô thứ ba của cột phải, cùng cỡ với hai nút trên; RestaurantHud ẩn/hiện theo Coin AFK đang chờ.
+        // Avatar, banner Gacha và nút tròn Shop khoá (spec UI hub B 5.4). Chỉ dựng nút; HubNav nối cú bấm ở NavBarBuilder.WireLobby.
+        private static (Button Avatar, Button Banner, Button Shop) BuildLobbyButtons(RectTransform hud, Font font, Sprite sprite, Sprite knob)
+        {
+            // Avatar: vòng tròn ngoài và vòng trong nhạt hơn, không chữ (Hồ sơ là đợt C).
+            var avatar = NewButton("Avatar_PH_140x140", hud, knob, font, "", AvatarColor, TopLeft, new Vector2(20, -20), new Vector2(140, 140));
+            ((Image)avatar.targetGraphic).type = Image.Type.Simple;
+            var face = NewRect("Face", (RectTransform)avatar.transform);
+            Place(face, Center, Center, Vector2.zero, new Vector2(100, 100));
+            AddImage(face, knob, AvatarFace, raycast: false).type = Image.Type.Simple;
+
+            var banner = LabelButton("BannerGacha_PH_360x200", hud, sprite, font, "hub.banner_gacha", BannerColor, TopLeft, new Vector2(20, -200), new Vector2(360, 200));
+            var bannerText = banner.GetComponentInChildren<Text>();
+            bannerText.fontSize = 44;
+            bannerText.fontStyle = FontStyle.Bold;
+            FitText(bannerText, 24, 44);
+
+            // Shop khoá: nút tròn xám, ổ khoá ở nửa trên, chữ ở nửa dưới.
+            var shop = LabelButton("HubRoundBtnShop_PH_110x110", hud, knob, font, "hub.shop", GreyButton, new Vector2(1, 0), new Vector2(-20, 140), new Vector2(110, 110));
+            ((Image)shop.targetGraphic).type = Image.Type.Simple;
+            var shopText = shop.GetComponentInChildren<Text>();
+            shopText.fontSize = 28;
+            shopText.rectTransform.offsetMax = new Vector2(0, -60);
+            NavBarBuilder.BuildLock((RectTransform)shop.transform, "ShopLock_PH_40x48", new Vector2(0, 20));
+            return (avatar, banner, shop);
+        }
+
+        // Thanh quán thu gọn (spec UI hub B 5.5): nút mép phải và hộp trắng bo góc chứa ba nút của quán; lúc đầu tắt, RestaurantBarView áp trạng thái đã lưu.
+        private static RectTransform BuildRestaurantBar(RectTransform hud, Font font, Sprite sprite, Sprite knob)
+        {
+            var right = new Vector2(1, 0.5f);
+            var toggle = NewButton("RestaurantBarToggle_PH_60x160", hud, sprite, font, "<", ButtonColor, right, Vector2.zero, new Vector2(60, 160));
+            var toggleText = toggle.GetComponentInChildren<Text>();
+            toggleText.fontSize = 56;
+            toggleText.fontStyle = FontStyle.Bold;
+            var dot = NewRect("RestaurantBarDot_PH_24x24", (RectTransform)toggle.transform);
+            Place(dot, TopLeft, TopLeft, new Vector2(4, -4), new Vector2(24, 24));
+            AddImage(dot, knob, IncidentRed, raycast: false).type = Image.Type.Simple;
+            dot.gameObject.SetActive(false);
+
+            var bar = NewRect("RestaurantBar_PH_180x460", hud);
+            Place(bar, right, right, new Vector2(-60, 0), new Vector2(180, 460));
+            AddImage(bar, sprite, CardColor, raycast: false);
+
+            var view = NewRect("RestaurantBarView", hud).gameObject.AddComponent<RestaurantBarView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_toggle").objectReferenceValue = toggle;
+            so.FindProperty("_toggleText").objectReferenceValue = toggleText;
+            so.FindProperty("_bar").objectReferenceValue = bar.gameObject;
+            so.FindProperty("_dot").objectReferenceValue = dot.gameObject;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            bar.gameObject.SetActive(false);
+            return bar;
+        }
+
+        // Ô thứ ba của thanh quán, cùng cỡ với hai nút trên; RestaurantHud ẩn/hiện theo Coin AFK đang chờ.
         private static void BuildAfkButton(RectTransform column, Font font, Sprite knob, RestaurantHud hud)
         {
-            var button = NewButton("AfkButton", column, knob, font, "Thu AFK", AfkGreen, TopCenter, new Vector2(0, -350), new Vector2(130, 130));
+            var button = NewButton("AfkButton", column, knob, font, "Thu AFK", AfkGreen, TopCenter, new Vector2(0, -320), new Vector2(130, 130));
             ((Image)button.targetGraphic).type = Image.Type.Simple;
             var text = button.GetComponentInChildren<Text>();
             text.fontSize = 22;
@@ -543,8 +582,8 @@ namespace BunDauPeo.EditorTools
         // Trang Nâng cấp (bản thử, spec 5.3): mỗi nâng cấp một hàng nút do UpgradeTestPanel dựng từ hàng mẫu.
         private static UpgradeTestPanel BuildUpgradePanel(RectTransform canvas, RectTransform column, Font font, Sprite sprite, Sprite knob)
         {
-            // Ô thứ hai của cột phải, cùng cỡ với nút Nhân viên.
-            var open = LabelButton("UpgradeButton", column, knob, font, "restaurant.upgrade", ButtonColor, TopCenter, new Vector2(0, -185), new Vector2(130, 130));
+            // Ô thứ hai của thanh quán, cùng cỡ với nút Nhân viên.
+            var open = LabelButton("UpgradeButton", column, knob, font, "restaurant.upgrade", ButtonColor, TopCenter, new Vector2(0, -170), new Vector2(130, 130));
             ((Image)open.targetGraphic).type = Image.Type.Simple;
             open.GetComponentInChildren<Text>().fontSize = 24;
 

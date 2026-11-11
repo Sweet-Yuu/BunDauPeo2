@@ -282,45 +282,67 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void ApplyLanguage_UsesSavedChoiceElseDevice()
+        public void ApplyLanguage_UsesSavedChoiceElseEnglish()
         {
             var session = new GameSession(_service, _catalog, _config);
+            GameLanguage.Current = Language.Vi;
             session.Save.Language = "";
-            session.ApplyLanguage(SystemLanguage.English);
-            Assert.AreEqual(Language.En, GameLanguage.Current, "chưa chọn, máy tiếng Anh");
-            session.ApplyLanguage(SystemLanguage.Vietnamese);
-            Assert.AreEqual(Language.Vi, GameLanguage.Current, "chưa chọn, máy tiếng Việt");
+            session.ApplyLanguage();
+            Assert.AreEqual(Language.En, GameLanguage.Current, "chưa chọn thì tiếng Anh");
+            session.Save.Language = "vi";
+            session.ApplyLanguage();
+            Assert.AreEqual(Language.Vi, GameLanguage.Current, "đã chọn Vi");
             session.Save.Language = "en";
-            session.ApplyLanguage(SystemLanguage.Vietnamese);
-            Assert.AreEqual(Language.En, GameLanguage.Current, "đã chọn En thắng máy tiếng Việt");
+            session.ApplyLanguage();
+            Assert.AreEqual(Language.En, GameLanguage.Current, "đã chọn En");
         }
 
-        // N1: dây Reset → ngôn ngữ theo máy nằm trong GameSession để giả lập được máy tiếng Việt trên máy dev tiếng Anh.
+        // Reset về tiếng Anh, và đổi TRƯỚC ResetCompleted để view nạp lại thấy ngôn ngữ mới.
         [Test]
-        public void ResetToDefaults_AfterChoosingEnglish_FollowsDeviceLanguage()
-        {
-            var device = SystemLanguage.Vietnamese;
-            var session = new GameSession(_service, _catalog, _config, () => device);
-            Assert.IsTrue(session.SetLanguage(Language.En));
-            Assert.AreEqual(Language.En, GameLanguage.Current);
-
-            Assert.IsTrue(session.ResetToDefaults());
-            Assert.AreEqual("", session.Save.Language);
-            Assert.AreEqual(Language.Vi, GameLanguage.Current, "máy tiếng Việt");
-
-            device = SystemLanguage.English;
-            Assert.IsTrue(session.SetLanguage(Language.Vi));
-            Assert.IsTrue(session.ResetToDefaults());
-            Assert.AreEqual(Language.En, GameLanguage.Current, "máy tiếng Anh");
-        }
-
-        [Test]
-        public void ResetToDefaults_WithoutDeviceLanguage_LeavesCurrentAlone()
+        public void ResetToDefaults_AfterChoosingVietnamese_IsEnglish()
         {
             var session = new GameSession(_service, _catalog, _config);
-            GameLanguage.Current = Language.En;
+            Assert.IsTrue(session.SetLanguage(Language.Vi));
+            Assert.AreEqual(Language.Vi, GameLanguage.Current);
+            var seenInHandler = new System.Collections.Generic.List<Language>();
+            session.ResetCompleted += () => seenInHandler.Add(GameLanguage.Current);
+
             Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.AreEqual("", session.Save.Language);
             Assert.AreEqual(Language.En, GameLanguage.Current);
+            CollectionAssert.AreEqual(new[] { Language.En }, seenInHandler, "ngôn ngữ đã đổi trước khi ResetCompleted chạy");
+        }
+
+        [Test]
+        public void RestaurantBarOpen_DefaultFalse_PersistsAndResets()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            Assert.IsFalse(session.Save.RestaurantBarOpen, "game mới: thanh quán đóng");
+
+            Assert.IsTrue(session.SetRestaurantBarOpen(true));
+            Assert.IsTrue(session.Save.RestaurantBarOpen);
+            var reopened = new GameSession(new SaveService(_path), _catalog, _config);
+            Assert.IsTrue(reopened.Save.RestaurantBarOpen, "đã ghi xuống đĩa");
+
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.IsFalse(session.Save.RestaurantBarOpen);
+            var afterReset = new GameSession(new SaveService(_path), _catalog, _config);
+            Assert.IsFalse(afterReset.Save.RestaurantBarOpen, "file sau Reset cũng false");
+        }
+
+        // Khác SetLanguage: cờ giao diện nên lưu lỗi vẫn giữ giá trị mới trong bộ nhớ, lần lưu sau sẽ ghi lại.
+        [Test]
+        public void SetRestaurantBarOpen_SaveFails_KeepsValueInMemory()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            LogAssert.Expect(LogType.Error, new Regex("Save failed"));
+            using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+                Assert.IsFalse(session.SetRestaurantBarOpen(true));
+            Assert.IsTrue(session.Save.RestaurantBarOpen);
+
+            Assert.IsTrue(session.Persist(), "khoá đã nhả, lần lưu sau ghi lại được");
+            Assert.IsTrue(new GameSession(new SaveService(_path), _catalog, _config).Save.RestaurantBarOpen);
         }
 
         [Test]

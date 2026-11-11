@@ -25,7 +25,6 @@ namespace BunDauPeo.EditorTools
 
         private static readonly Vector2 Center = new(0.5f, 0.5f);
         private static readonly Vector2 TopLeft = new(0, 1);
-        private static readonly Vector2 TopRight = new(1, 1);
 
         // Panel Bản đồ của Lobby (spec UI hub 5.4): kín màn, nền đặc chặn bấm, lúc đầu tắt. Trong hàm này `canvas` là chính panel.
         // Nút Quay lại bỏ (thanh dưới lo); tiêu đề chương dời sang chỗ nút cũ; dòng gợi ý lên trên vạch 120 px.
@@ -38,10 +37,6 @@ namespace BunDauPeo.EditorTools
             var chapter = NewLabel("ChapterText", canvas, font, "combat.chapter_1", 56, TextAnchor.MiddleLeft, Gold);
             chapter.fontStyle = FontStyle.Bold;
             Place(chapter.rectTransform, TopLeft, TopLeft, new Vector2(30, -30), new Vector2(500, 70));
-
-            var staminaText = Card(canvas, "StaminaCard", sprite, font, new Vector2(-500, -20), new Vector2(520, 70));
-            var materialText = Card(canvas, "MaterialCard", sprite, font, new Vector2(-260, -20), new Vector2(220, 70));
-            var gemText = Card(canvas, "GemCard", sprite, font, new Vector2(-20, -20), new Vector2(220, 70));
 
             // Gốc của nút, đoạn nối và dấu NEXT; mẫu tắt sẵn, view nhân bản lúc chạy.
             var map = NewRect("Map", canvas);
@@ -68,9 +63,6 @@ namespace BunDauPeo.EditorTools
             var viewObject = NewRect("StageMapView", canvas);
             var view = viewObject.gameObject.AddComponent<StageMapView>();
             var so = new SerializedObject(view);
-            so.FindProperty("_staminaText").objectReferenceValue = staminaText;
-            so.FindProperty("_materialText").objectReferenceValue = materialText;
-            so.FindProperty("_gemText").objectReferenceValue = gemText;
             so.FindProperty("_nodesRoot").objectReferenceValue = map;
             so.FindProperty("_nodeTemplate").objectReferenceValue = node;
             so.FindProperty("_linkTemplate").objectReferenceValue = link;
@@ -84,16 +76,6 @@ namespace BunDauPeo.EditorTools
 
             canvas.gameObject.SetActive(false);
             return canvas;
-        }
-
-        private static Text Card(RectTransform canvas, string name, Sprite sprite, Font font, Vector2 position, Vector2 size)
-        {
-            var rect = NewRect(name, canvas);
-            Place(rect, TopRight, TopRight, position, size);
-            AddImage(rect, sprite, CardColor, raycast: false);
-            var text = NewText("Text", rect, font, "", 34, TextAnchor.MiddleCenter, Color.white);
-            Stretch(text.rectTransform);
-            return text;
         }
 
         // Nút tròn 120 px: nhãn giữa, ổ khoá ở đỉnh giữa khi khoá, dấu tích trong huy hiệu trắng góc trên phải khi đã clear.

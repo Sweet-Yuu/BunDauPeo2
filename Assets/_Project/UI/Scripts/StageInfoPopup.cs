@@ -7,7 +7,7 @@ namespace BunDauPeo.UI
 {
     // Thông tin một màn Battle: các đợt quái (ô vuông, boss lớn hơn), thưởng, thể lực trước/sau và cảnh báo không hoàn.
     // Không tự vào trận: bấm Thách đấu thì bắn Challenge, bản đồ mở popup chọn đội.
-    public class StageInfoPopup : MonoBehaviour, IHubPage
+    public class StageInfoPopup : MonoBehaviour, IHubPage, IResourcePage
     {
         public const int WaveRows = 4, CellsPerRow = WaveDefinition.MaxEnemies;
         private const float NormalCell = 64f, BossCell = 84f;
@@ -33,6 +33,8 @@ namespace BunDauPeo.UI
         public event Action<StageDefinition> Challenge;
 
         public bool IsOpen => _root != null && _root.activeSelf;
+
+        public ResourceSlots Slots => ResourceSlots.Stamina;
 
         public void Open(CombatService service, StageDefinition stage)
         {

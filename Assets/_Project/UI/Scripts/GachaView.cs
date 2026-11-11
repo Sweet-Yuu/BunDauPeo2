@@ -13,7 +13,6 @@ namespace BunDauPeo.UI
     {
         [SerializeField] private GachaBannerDefinition _banner;
         [SerializeField] private CharacterCatalog _characters;
-        [SerializeField] private Text _gemText;
         [SerializeField] private Text _bannerNameText;
         [SerializeField] private Text _pityText;
         [SerializeField] private Text _messageText;
@@ -98,7 +97,7 @@ namespace BunDauPeo.UI
 
         private bool HasAllReferences()
         {
-            var ok = _banner != null && _characters != null && _gemText != null && _bannerNameText != null
+            var ok = _banner != null && _characters != null && _bannerNameText != null
                      && _pityText != null && _messageText != null && _singleButton != null && _tenButton != null
                      && _skipButton != null && _historyButton != null && _revealView != null && _totalView != null
                      && _rollAgainPopup != null && _historyPopup != null && _hub != null;
@@ -192,7 +191,6 @@ namespace BunDauPeo.UI
 
         private void Redraw()
         {
-            _gemText.text = $"Gem: {_wallet.Get(CurrencyType.Gem)}";
             _bannerNameText.text = _banner.DisplayName;
             _pityText.text = GachaViewText.PityLine(_banner.SsrPityThreshold, _gacha.GetPity(_banner.Id));
             SetButton(_singleButton, 1, _banner.SingleCost);

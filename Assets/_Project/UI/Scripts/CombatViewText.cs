@@ -98,7 +98,7 @@ namespace BunDauPeo.UI
         public static string InvalidConfigLine() => UiText.Get("combat.invalid_config");
 
         // m:ss, từ một giờ trở lên h:mm:ss.
-        private static string Clock(double seconds)
+        internal static string Clock(double seconds)
         {
             var total = (long)Math.Ceiling(Math.Max(0d, seconds));
             var h = total / 3600;

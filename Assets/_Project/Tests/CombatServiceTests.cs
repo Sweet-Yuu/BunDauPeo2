@@ -15,6 +15,10 @@ namespace BunDauPeo.Tests
 {
     public class CombatServiceTests
     {
+        // GameSessionReset_ThroughResetCompleted_ClearsCurrent: ResetToDefaults đưa GameLanguage.Current về En.
+        [TearDown]
+        public void TearDown() => GameLanguage.Current = Language.Vi;
+
         private static CharacterDefinition Hero(string id, CharacterClass cls = CharacterClass.Fighter) =>
             CombatTestData.Hero(id, cls);
 

@@ -20,6 +20,9 @@ namespace BunDauPeo.UI
             ("hub.reset_failed", "Reset chưa xong: không ghi được file save. Thử lại.", "Reset didn't finish: couldn't write the save file. Try again."),
             ("hub.dev", "DEV", "DEV"),
             ("hub.back", "Quay lại", "Back"),
+            ("hub.banner_gacha", "Gacha\nQuay ngay", "Gacha\nPull now"),
+            ("hub.shop", "Shop", "Shop"),
+            ("hub.res_stamina_next", "+1 sau {0}", "+1 in {0}"),
         };
     }
 }

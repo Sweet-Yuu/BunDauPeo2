@@ -7,16 +7,13 @@ using UnityEngine.UI;
 
 namespace BunDauPeo.UI
 {
-    // Thanh trên của màn quán: số dư, nhãn thu nhập, bộ đếm, sao chất lượng và chữ "+N" bay lên từ quầy.
+    // Thanh chất lượng của màn quán: nhãn thu nhập, bộ đếm, sao chất lượng và chữ "+N" bay lên từ quầy. Số dư nằm ở ResourceBarView.
     public class RestaurantHud : MonoBehaviour
     {
         private const float FloatSeconds = 1f;
         private const float FloatRise = 90f;
         private const float MessageSeconds = 6f;
 
-        [SerializeField] private Text _coinText;
-        [SerializeField] private Text _materialText;
-        [SerializeField] private Text _gemText;
         [SerializeField] private Text _incomeText;
         [SerializeField] private Text _counterText;
         [SerializeField] private Image _warningIcon;
@@ -31,7 +28,6 @@ namespace BunDauPeo.UI
         // Bể 8 đối tượng, dùng vòng tròn: chữ cũ nhất bị ghi đè khi có quá nhiều khoản thu cùng lúc.
         [SerializeField] private Text[] _floatTexts;
 
-        private Wallet _wallet;
         private RestaurantService _service;
         private float[] _floatAge;
         private Vector3[] _floatStart;
@@ -48,7 +44,6 @@ namespace BunDauPeo.UI
 
             try
             {
-                _wallet = ServiceLocator.Get<Wallet>();
                 _service = ServiceLocator.Get<RestaurantService>();
             }
             catch (InvalidOperationException e)
@@ -66,7 +61,6 @@ namespace BunDauPeo.UI
                 _floatTexts[i].gameObject.SetActive(false);
             }
 
-            _wallet.Changed += RedrawWallet;
             _service.ProfileChanged += RedrawIncome;
             _service.Simulation.CustomerPaid += OnCustomerPaid;
             _afkButton.onClick.AddListener(CollectAfk);
@@ -76,7 +70,6 @@ namespace BunDauPeo.UI
             _shownTotal = -1;
             _messageLeft = 0f;
             _afkMessageRoot.SetActive(false);
-            RedrawWallet();
             RedrawIncome();
             RedrawStars();
         }
@@ -90,7 +83,6 @@ namespace BunDauPeo.UI
         private void OnDisable()
         {
             if (_service == null) return;
-            _wallet.Changed -= RedrawWallet;
             _service.ProfileChanged -= RedrawIncome;
             _service.Simulation.CustomerPaid -= OnCustomerPaid;
             _afkButton.onClick.RemoveListener(CollectAfk);
@@ -150,19 +142,12 @@ namespace BunDauPeo.UI
 
         private bool HasAllReferences()
         {
-            var ok = _coinText != null && _materialText != null && _gemText != null && _incomeText != null
+            var ok = _incomeText != null
                      && _counterText != null && _warningIcon != null && _floatOrigin != null
                      && _afkButton != null && _afkText != null && _afkMessageRoot != null && _afkMessageText != null
                      && _stars != null && _stars.Length > 0 && _floatTexts != null && _floatTexts.Length > 0;
             if (!ok) Debug.LogError($"{nameof(RestaurantHud)}: a serialized reference is not assigned.", this);
             return ok;
-        }
-
-        private void RedrawWallet()
-        {
-            _coinText.text = $"Coin {_wallet.Get(CurrencyType.Coin)}";
-            _materialText.text = $"Material {_wallet.Get(CurrencyType.Material)}";
-            _gemText.text = $"Gem {_wallet.Get(CurrencyType.Gem)}";
         }
 
         private void RedrawIncome()

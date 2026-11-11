@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- UI hub đợt B (bố cục Lobby, quán 2.5D, mặc định tiếng Anh): user đã duyệt spec, ảnh mô phỏng và kế hoạch (2026-11-11), nhánh `docs/ui-hub-b-spec`; chờ 🎯 mở 🔨 phiên B1 ([spec](superpowers/specs/2026-11-11-ui-hub-b-design.md), [kế hoạch](superpowers/plans/2026-11-11-ui-hub-b.md)).
+- UI hub đợt B (bố cục Lobby, quán 2.5D, mặc định tiếng Anh): user đã duyệt spec, ảnh mô phỏng và kế hoạch (2026-11-11). 🔨 B1 (Task 1–3: kiểu thuần, mặc định tiếng Anh + cờ thanh quán, HUD Lobby + thanh tài nguyên + thanh quán) xong, nhánh `feature/ui-hub-b`, 878 EditMode + 28 PlayMode xanh, chờ 📋 commit; tiếp theo 🔨 B2 (Task 4–5) ([spec](superpowers/specs/2026-11-11-ui-hub-b-design.md), [kế hoạch](superpowers/plans/2026-11-11-ui-hub-b.md)).
 
 ## Tiếp theo
 

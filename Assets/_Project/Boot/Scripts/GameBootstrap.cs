@@ -86,7 +86,7 @@ namespace BunDauPeo.Boot
             var saveService = new SaveService(SavePath);
             try
             {
-                _session = new GameSession(saveService, _catalog, _newGameConfig, () => Application.systemLanguage);
+                _session = new GameSession(saveService, _catalog, _newGameConfig);
             }
             catch (System.Exception e) when (e is IOException || e is System.UnauthorizedAccessException)
             {
@@ -100,8 +100,9 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(_session.Wallet);
             ServiceLocator.Register(_session.Roster);
             ServiceLocator.Register(new GameResetter(_session.ResetToDefaults));
-            _session.ApplyLanguage(Application.systemLanguage);
+            _session.ApplyLanguage();
             ServiceLocator.Register(new LanguageSwitcher(_session.SetLanguage));
+            ServiceLocator.Register(new RestaurantBarPref(() => _session.Save.RestaurantBarOpen, _session.SetRestaurantBarOpen));
             ServiceLocator.Register(new GachaService(_session.Save, _session.Wallet, _session.Roster, _catalog,
                 _bannerCatalog, new System.Random(), _session.Persist));
 

@@ -10,7 +10,7 @@ namespace BunDauPeo.UI
 {
     // Chọn đội trước khi vào trận (spec Combat 5.3). Đổi đội ghi bộ nhớ (Roster); EnterStage kiểm lại mọi thứ, trừ thể lực và lưu
     // cả đội một lần. Thể lực chỉ bị trừ khi bấm Vào trận (hoặc Có ở hộp xác nhận), không phải lúc mở popup hay hộp.
-    public class TeamSelectPopup : MonoBehaviour, IHubPage
+    public class TeamSelectPopup : MonoBehaviour, IHubPage, IResourcePage
     {
         public const int CardsPerPage = 16;
         private static readonly Color OnChip = new(0.20f, 0.23f, 0.32f);
@@ -48,6 +48,8 @@ namespace BunDauPeo.UI
         private bool _busy;
 
         public bool IsOpen => _root != null && _root.activeSelf;
+
+        public ResourceSlots Slots => ResourceSlots.Stamina;
 
         public void Open(CombatService service, Roster roster, StageDefinition stage)
         {

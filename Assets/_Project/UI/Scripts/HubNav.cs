@@ -29,12 +29,45 @@ namespace BunDauPeo.UI
         [SerializeField] private GameObject _comingSoonToast;
         // Mỗi phần tử cài IHubPage; bấm ô khác thì trang đang mở đóng qua Close().
         [SerializeField] private MonoBehaviour[] _pages;
+        // HUD của Lobby (spec UI hub B 5.1): chỉ bật khi ResourceBarRule.IsLobbyLayout. Ba trường dưới tuỳ chọn để HubNav dựng tay trong test vẫn chạy.
+        [SerializeField] private GameObject _lobbyHud;
+        // Avatar và Shop: bấm ra dòng "Sắp có". Banner Gacha: bấm mở ô Gacha.
+        [SerializeField] private Button[] _comingSoonButtons;
+        [SerializeField] private Button _bannerButton;
 
         private readonly HashSet<object> _barHiders = new();
+        private readonly List<IHubPage> _openPages = new();
         private RestaurantService _service;
         private float _toastLeft;
 
         public HubNavState State { get; private set; } = new HubNavState();
+
+        // Thanh dưới đang bị ẩn (Gacha lúc cutscene, lộ, tổng); thanh tài nguyên ẩn theo.
+        public bool BarHidden => _barHiders.Count > 0;
+
+        public bool AnyPageOpen
+        {
+            get
+            {
+                if (_pages == null) return false;
+                foreach (var behaviour in _pages)
+                    if (behaviour is IHubPage page && page.IsOpen) return true;
+                return false;
+            }
+        }
+
+        // Các trang đang mở. Trả về cùng một danh sách dùng lại mỗi lần gọi: đọc ngay, đừng giữ.
+        public IEnumerable<IHubPage> OpenPages
+        {
+            get
+            {
+                _openPages.Clear();
+                if (_pages == null) return _openPages;
+                foreach (var behaviour in _pages)
+                    if (behaviour is IHubPage page && page.IsOpen) _openPages.Add(page);
+                return _openPages;
+            }
+        }
 
         // Gọi trước LoadScene("Restaurant"): Awake của lần nạp sau mở đúng ô (và Menu) rồi xoá.
         public static void OpenOnNextLoad(HubTab tab, bool menu) => HubPending.Set(tab, menu);
@@ -68,6 +101,11 @@ namespace BunDauPeo.UI
                 _tabButtons[i].onClick.AddListener(() => Select(tab));
             }
 
+            if (_comingSoonButtons != null)
+                foreach (var button in _comingSoonButtons)
+                    if (button != null) button.onClick.AddListener(ShowComingSoon);
+            if (_bannerButton != null) _bannerButton.onClick.AddListener(OpenGacha);
+
             Refresh();
         }
 
@@ -76,6 +114,10 @@ namespace BunDauPeo.UI
             if (_tabButtons != null)
                 foreach (var button in _tabButtons)
                     if (button != null) button.onClick.RemoveAllListeners();
+            if (_comingSoonButtons != null)
+                foreach (var button in _comingSoonButtons)
+                    if (button != null) button.onClick.RemoveListener(ShowComingSoon);
+            if (_bannerButton != null) _bannerButton.onClick.RemoveListener(OpenGacha);
             // Rời scene (vào trận) thì trả chủ dừng, để sự cố của lần sau không kẹt.
             _service?.Incidents.SetClockPaused(this, false);
             _service = null;
@@ -83,6 +125,8 @@ namespace BunDauPeo.UI
 
         private void Update()
         {
+            // Trang của quán mở từ nút trong thanh quán nên không có event: xét lại mỗi khung (rẻ).
+            ApplyLobbyHud();
             if (_toastLeft <= 0f) return;
 
             _toastLeft -= Time.unscaledDeltaTime;
@@ -113,13 +157,21 @@ namespace BunDauPeo.UI
                     ApplyPanels();
                     break;
                 case HubNavResult.ComingSoon:
-                    _comingSoonToast.SetActive(true);
-                    _toastLeft = ToastSeconds;
+                    ShowComingSoon();
                     return;
             }
 
             Refresh();
         }
+
+        // Dòng "Sắp có" tự tắt sau vài giây; dùng chung cho ô Cốt truyện, avatar, Shop và các nút + của thanh tài nguyên.
+        public void ShowComingSoon()
+        {
+            _comingSoonToast.SetActive(true);
+            _toastLeft = ToastSeconds;
+        }
+
+        private void OpenGacha() => Select(HubTab.Gacha);
 
         // Nút Đóng của Menu.
         public void CloseMenu()
@@ -154,6 +206,15 @@ namespace BunDauPeo.UI
             _stagesPanel.SetActive(State.Current == HubTab.Stages);
             _gachaPanel.SetActive(State.Current == HubTab.Gacha);
             _menuPanel.SetActive(State.MenuOpen);
+            ApplyLobbyHud();
+        }
+
+        private void ApplyLobbyHud()
+        {
+            if (_lobbyHud == null) return;
+
+            var lobby = ResourceBarRule.IsLobbyLayout(State.Current, State.MenuOpen, AnyPageOpen);
+            if (_lobbyHud.activeSelf != lobby) _lobbyHud.SetActive(lobby);
         }
 
         private void Refresh()

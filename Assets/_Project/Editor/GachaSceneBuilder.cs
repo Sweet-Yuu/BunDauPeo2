@@ -63,11 +63,6 @@ namespace BunDauPeo.EditorTools
             Place(bannerName.rectTransform, TopLeft, TopLeft, new Vector2(30, -10), new Vector2(700, 70));
             var pity = NewText("PityText", bannerPanel, font, "", 32, TextAnchor.MiddleLeft, Color.white);
             Place(pity.rectTransform, TopLeft, TopLeft, new Vector2(30, -85), new Vector2(700, 50));
-            var gemCard = NewRect("GemCard", panel);
-            Place(gemCard, TopRight, TopRight, new Vector2(-40, -30), new Vector2(360, 80));
-            AddImage(gemCard, sprite, Panel, raycast: false);
-            var gem = NewText("GemText", gemCard, font, "Gem: 0", 44, TextAnchor.MiddleCenter, Color.white);
-            Stretch(gem.rectTransform);
             var message = NewText("MessageText", panel, font, "", 32, TextAnchor.MiddleRight, new Color(1f, 0.85f, 0.4f));
             Place(message.rectTransform, BottomRight, BottomRight, new Vector2(-40, 420), new Vector2(560, 50));
 
@@ -222,7 +217,6 @@ namespace BunDauPeo.EditorTools
             var so = new SerializedObject(view);
             so.FindProperty("_banner").objectReferenceValue = banner;
             so.FindProperty("_characters").objectReferenceValue = characters;
-            so.FindProperty("_gemText").objectReferenceValue = gem;
             so.FindProperty("_bannerNameText").objectReferenceValue = bannerName;
             so.FindProperty("_pityText").objectReferenceValue = pity;
             so.FindProperty("_messageText").objectReferenceValue = message;
