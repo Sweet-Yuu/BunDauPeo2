@@ -57,7 +57,7 @@ flowchart TD
 | Lobby (quán) | ô **Quán**; về từ Trận | — | `hub-home-annotated-en.png`, `restaurant-layout-*` | có (đợt A): quán + thanh 6 ô. Phần hub của bố cục (avatar, thanh tài nguyên…) là đợt B |
 | Thanh dưới 6 ô | mọi màn trừ Trận | — | `hub-home-annotated-en.png` | có (đợt A): `NavBar_PH_1920x120`, 6 ô `NavTab*_PH_320x120`, ô đang mở tô nổi. Ẩn trong cutscene, lộ, tổng của Gacha |
 | Popup thu AFK | tự hiện khi vào Lobby sau khi vắng ≥ 5 phút; nút Thu AFK; dòng AFK trong Thông báo (C) | Lobby | — | có, giữ cỡ hộp |
-| Nhân viên, Nâng cấp, Chất lượng | cột nút phải và thẻ sao ở Lobby | Quay lại → Lobby | `quest-team-select-popup.jpg` (Nhân viên) | có, thành trang kín màn (đợt A). Ba trang này vẫn chặn sinh sự cố ([game-design](game-design.md#quán)) |
+| Nhân viên, Nâng cấp, Chất lượng | cột nút phải và thẻ sao ở Lobby | Quay lại → Lobby | `quest-team-select-popup.jpg` (Nhân viên) | có, thành trang kín màn (đợt A). Ba trang này vẫn chặn sinh sự cố ([game-design](game-design.md#quán)). Đợt B làm lại Nhân viên (ô to) và Nâng cấp (lưới thẻ có nút Mua) |
 | Nhân vật | ô **Nhân vật**; dòng "đủ mảnh" trong Thông báo (C) | ô khác của thanh | `character-list-en.png`, `character-upgrade.png` | có, panel kín màn (đợt A) |
 | Cốt truyện | ô **Cốt truyện** | — | — (thiếu, xem [dưới](#ảnh-còn-thiếu)) | khoá: ô có ổ khoá, bấm hiện "Sắp có" (đợt A) tới khi có hội thoại Chương 1 |
 | Chọn chế độ | ô **Màn chơi** | Lobby | `quest-mode-select.jpg` | mới, đợt C: thẻ "Chương chính" mở, ô khác khoá. Đợt A ô Màn chơi mở thẳng bản đồ |
@@ -65,18 +65,22 @@ flowchart TD
 | Popup màn, chọn đội | bấm một nút màn đánh trên bản đồ | Quay lại → Bản đồ | `quest-stage-info-popup.jpg`, `quest-team-select-popup.jpg` | có, trang kín màn (đợt A). Popup màn: quái bên trái, thưởng và thể lực ở cột phải, nút Thách đấu neo mép phải |
 | Màn cốt truyện giữ chỗ | bấm một nút màn cốt truyện trên bản đồ | Tiếp tục / Quay lại → Bản đồ | — | có, trang kín màn (đợt A) |
 | Trận | chọn đội → vào trận; DEV "Chiến đấu thử" | Quay lại → Lobby, bản đồ mở sẵn; Thử lại → trận mới | `battle-*` | có (`Battle`), scene riêng, không có thanh. Vào trận là rời quán, sự cố bị huỷ |
-| Gacha | ô **Gacha**; banner Gacha ở Lobby (B) | ô khác của thanh | `gacha-*` | có, panel kín màn (đợt A); banner kín panel; Lịch sử quay là trang kín màn |
+| Gacha | ô **Gacha**; banner Gacha ở Lobby (B) | ô khác của thanh | `gacha-*` | có, panel kín màn (đợt A); banner kín panel. Lịch sử quay: đợt A là trang kín màn, đợt B đổi thành **hộp** giống hộp xác nhận, nền mờ che cả thanh |
 | Shop | nút tròn Shop; nút + của Thể lực, Coin, Gem | Lobby | — (thiếu) | khoá, đợt B (nút); nội dung khi làm quảng cáo thưởng / mua |
-| Menu | ô **Menu**, mở trên panel đang đứng | Đóng → panel đang đứng; bấm ô khác → ô đó | — (thiếu) | có, panel kín màn (đợt A): Ngôn ngữ (đổi xong vẫn ở đúng ô, Menu vẫn mở), Reset dữ liệu (hỏi xác nhận, xoá hết rồi về Lobby như game mới, [D-005](../decisions/decisions.md)), DEV (chỉ bản dev), Đóng |
+| Menu | ô **Menu**, mở trên panel đang đứng | Đóng → panel đang đứng; bấm ô khác → ô đó | — (thiếu) | có, panel kín màn (đợt A): Ngôn ngữ (đổi xong vẫn ở đúng ô, Menu vẫn mở; từ đợt B vào game lần đầu và sau Reset mặc định **tiếng Anh**, không theo máy, user chốt 2026-11-11), Reset dữ liệu (hỏi xác nhận, xoá hết rồi về Lobby như game mới, [D-005](../decisions/decisions.md)), DEV (chỉ bản dev), Đóng |
 | Hồ sơ | bấm avatar | Lobby | — (thiếu) | mới, đợt C: tên người chơi, đổi avatar bằng nhân vật đã có; online thêm ID, tài khoản. Chưa kịp 31/12 thì avatar chỉ là hình |
 | Panel DEV | Menu → DEV; menu tạm dừng trong trận → Cài đặt | Đóng | — | có (đợt A): bỏ nút góc và 4 nút chuyển màn; còn Chiến đấu thử, Màn thử, Hồi thể lực, +Material, +Gem, Tua AFK, Ngôn ngữ, Reset, Đóng |
 | Hộp quà, Thông báo tin, Nhiệm vụ, Hội | nút tròn ở Lobby | Lobby | — | sau, cần online ([ideas](ideas.md#để-sau)) |
 
-Mỗi panel chỉ hiện loại tiền nó dùng (user chốt 2026-11-09; làm ở đợt B cùng thanh tài nguyên, đợt A mỗi màn giữ khối số tiền cũ). Lobby hiện đủ 4 loại; bản đồ và chọn đội hiện Thể lực; Gacha hiện Gem; Shop hiện Thể lực, Coin, Gem; **Nhân vật hiện Coin**, vì chọn một nhân vật sẽ sang màn nâng cấp nhân vật (`character-upgrade.png`; nâng cấp tốn gì đang bàn ở [ideas](ideas.md#đang-bàn)); Cốt truyện, Menu, Hồ sơ không hiện. Trong cutscene và màn lộ của Gacha thì ẩn thanh dưới và nút Thông báo.
+Mỗi panel chỉ hiện loại tiền nó dùng (user chốt 2026-11-09; làm ở đợt B cùng thanh tài nguyên, đợt A mỗi màn giữ khối số tiền cũ). Lobby hiện đủ 4 loại; bản đồ, popup màn và chọn đội hiện Thể lực; Gacha (trang roll) hiện Gem; Shop hiện Thể lực, Coin, Gem; **Nhân vật hiện Coin**, vì chọn một nhân vật sẽ sang màn nâng cấp nhân vật (`character-upgrade.png`; nâng cấp tốn gì đang bàn ở [ideas](ideas.md#đang-bàn)); **Nâng cấp quán hiện Material**; Nhân viên, Chất lượng, Cốt truyện, màn cốt truyện giữ chỗ, Menu, Hồ sơ không hiện; Lịch sử quay là hộp che thanh nên không cần (phần thêm user chốt 2026-11-11, [spec đợt B](../superpowers/specs/2026-11-11-ui-hub-b-design.md)). Trong cutscene và màn lộ của Gacha thì ẩn thanh dưới và nút Thông báo.
 
 ## Bố cục Lobby (user duyệt ảnh mô phỏng bản 2, 2026-11-09)
 
-**Đợt B, chưa làm.** Đợt A mới có thanh dưới 6 ô; Lobby vẫn giữ khối số tiền, thanh chất lượng và cột nút phải cũ (ảnh `hub-lobby.png` của đợt A). Khung 1920×1080. Kích thước ghi trong tên là cỡ thật.
+**Đợt B: spec và kế hoạch user duyệt 2026-11-11 ([spec](../superpowers/specs/2026-11-11-ui-hub-b-design.md)), chưa code.** Đợt A mới có thanh dưới 6 ô; Lobby vẫn giữ khối số tiền, thanh chất lượng và cột nút phải cũ (ảnh `hub-lobby.png` của đợt A). Khung 1920×1080. Kích thước ghi trong tên là cỡ thật.
+
+Đợt B còn thêm (user yêu cầu 2026-11-11):
+- **Kéo quán hai chiều**, dừng ở mép, không zoom. Bấm "!" của sự cố vẫn ăn khi không kéo.
+- **Quán vẽ kiểu 2.5D** như ảnh `restaurant-layout-*`: bếp, quầy, bàn, tường, luống, cây có chiều cao (mặt trước tối hơn) và bóng; khách và nhân viên đứng có thân, đầu, bóng, khi đi thì nhún và đung đưa hai bên; bàn có khách đang ăn thì có đĩa; khách chờ món có bóng "...", chờ trả tiền có đồng xu.
 
 ```
 [Avatar] [Thể lực 80/100 + | Coin + | Material | Gem +]                 [Báo 3]
@@ -92,11 +96,11 @@ Mỗi panel chỉ hiện loại tiền nó dùng (user chốt 2026-11-09; làm �
 |---|---|---|
 | Avatar trên-trái | `Avatar_PH_140x140` | bấm mở Hồ sơ |
 | Thanh tài nguyên | `ResourceBar_PH_1120x76` | **một** thanh chung: Thể lực x/100, Coin, Material, Gem. Thể lực, Coin, Gem có nút + mở Shop; Material không có |
-| Thanh chất lượng | `QualityBar_PH_800x68` | sao chất lượng, Coin/giây, bộ đếm. Chỉ ở Lobby |
-| Nút Thông báo trên-phải | `NotifyBtn_PH_110x100` | thay 4 icon nhỏ trong ảnh; có số đếm |
-| Banner trái | `BannerGacha_PH_360x200` | giữ chỗ từ giờ, banner đầu trỏ tới Gacha; có chấm trang |
+| Thanh chất lượng | `InfoBar` (giữ tên object cũ vì test và `UiDriver` bấm theo tên; cỡ 800×68, một hàng) | sao chất lượng, Coin/giây, bộ đếm. Chỉ ở Lobby; bấm mở Chất lượng |
+| Nút Thông báo trên-phải | `NotifyBtn_PH_110x100` | thay 4 icon nhỏ trong ảnh; có số đếm. Đợt B chỉ chừa chỗ, nút làm ở đợt C |
+| Banner trái | `BannerGacha_PH_360x200` | banner đầu trỏ tới Gacha. Chấm trang làm khi có nhiều banner (đợt B chỉ có 1) |
 | Thanh quán thu gọn | `RestaurantBarToggle_PH_60x160`, `RestaurantBar_PH_180x460` | 3 nút đã có: Nhân viên, Nâng cấp, Thu AFK. Mặc định đóng, nhớ trạng thái lần trước; có Coin AFK chờ thu thì nút ‹ có chấm báo |
-| Hàng nút tròn | `HubRoundBtn_PH_110x110` × 5 | nay chỉ hiện Shop (khoá). 4 ô còn lại giữ chỗ, mở khi có online |
+| Hàng nút tròn | `HubRoundBtnShop_PH_110x110` | đợt B chỉ dựng Shop (khoá). 4 ô online (Hộp quà, Thông báo, Nhiệm vụ, Hội) chưa dựng; chừa chỗ trong bố cục, dựng khi có online |
 | Thanh dưới | `NavTab<Ô>_PH_320x120` × 6 trong `NavBar_PH_1920x120` | Quán · Nhân vật · Cốt truyện (khoá) · Màn chơi · Gacha · Menu. **Có từ đợt A** |
 
 Bỏ từ ảnh: cấp và EXP người chơi, Mana, nhân vật lớn và bong bóng thoại, 4 icon nhỏ trên-phải, Guildhouse, Story tách khỏi bản đồ (Cốt truyện ở đây là mục xem lại), Clan và Announcement dạng cũ.
