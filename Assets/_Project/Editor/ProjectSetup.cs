@@ -252,9 +252,9 @@ namespace BunDauPeo.EditorTools
                         changed = true;
                     }
 
-                    // Chỉ đổi giá trị trống hoặc "Gacha" (mặc định cũ): lựa chọn khác của user được giữ.
+                    // Chỉ đổi giá trị trống hoặc scene đã xoá (Gacha là mặc định cũ): lựa chọn khác của user được giữ.
                     var start = so.FindProperty("_startScene");
-                    if (string.IsNullOrEmpty(start.stringValue) || start.stringValue == "Gacha")
+                    if (IsStaleStartScene(start.stringValue))
                     {
                         start.stringValue = Path.GetFileNameWithoutExtension(RestaurantScenePath);
                         changed = true;
@@ -270,6 +270,9 @@ namespace BunDauPeo.EditorTools
                 if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
             }
         }
+
+        public static bool IsStaleStartScene(string sceneName) =>
+            string.IsNullOrEmpty(sceneName) || RemovedScenePaths.Any(path => Path.GetFileNameWithoutExtension(path) == sceneName);
 
         // Chỉ tạo asset còn thiếu; số bạn đã chỉnh trong Inspector được giữ nguyên.
         private static void CreateRestaurantData()

@@ -592,6 +592,40 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(startGems, session.Wallet.Get(CurrencyType.Gem), Where("thử lại phải reset được"));
         }
 
+        // N1: Reset lỗi thì Menu còn mở, Chọn đội cũng còn mở bên dưới nếu Reset không đóng nó; Hủy sau đó sẽ ghi lại đội cũ vào
+        // save vừa bị ghi đè. Reset phải đóng trang trước (đội chọn dở về như lúc mở) rồi mới chạy.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Menu_Reset_ClosesOpenTeamSelect_BeforeResetting()
+        {
+            _step = "C1 Boot, Chọn đội (dở)";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var combat = ServiceLocator.Get<CombatService>();
+            var teamBefore = session.Roster.GetBattleTeam().Select(c => c.Id).ToList();
+            yield return OpenTeamSelectOfFirstBattle(combat);
+            yield return ClickWhenReady("TeamCard0");
+            CollectionAssert.AreNotEqual(teamBefore, session.Roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("bấm TeamCard0 phải đổi đội, nếu không ca này không thử gì"));
+
+            _step = "C2 Menu → Reset → Xoá hết khi file bị khoá";
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            var locked = new FileStream(_savePath, FileMode.Open, FileAccess.Read, FileShare.None);
+            try
+            {
+                LogAssert.Expect(LogType.Error, new Regex("Save failed")); // Hủy lưu đội đã trả về, file đang khoá
+                LogAssert.Expect(LogType.Error, new Regex("Reset failed"));
+                LogAssert.Expect(LogType.Error, new Regex("MenuView: Reset Save Data FAILED"));
+                yield return ClickWhenReady("ResetYesBtn_PH_340x110");
+                Assert.AreEqual(0, Object.FindObjectsByType<TeamSelectPopup>(FindObjectsInactive.Include, FindObjectsSortMode.None).Count(p => p.IsOpen), Where("Reset phải đóng Chọn đội trước khi chạy"));
+                CollectionAssert.AreEqual(teamBefore, session.Roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("đội chọn dở phải về như lúc mở"));
+            }
+            finally
+            {
+                locked.Dispose();
+            }
+        }
+
         // Ảnh cho lần dừng playtest: mọi panel và trang con ở tiếng Việt rồi tiếng Anh, ra D:/bdp_BunDauPeo/shots/hub-<màn>[-en].png.
         // Đi cả đường đóng trang bằng ô khác (Chọn đội, Lịch sử quay), nên cũng là smoke test của IHubPage.
         private IEnumerator Shot(string screen, string suffix)
@@ -812,6 +846,69 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(0, UiDriver.FindButtons("Reset dữ liệuButton").Count, Where("reset thành công thì panel phải đóng"));
         }
 
+        // Id có trong catalog mà game mới không cấp: cho ca "ảnh chụp đội mang người không còn sở hữu sau Reset".
+        private static string UnownedCharacterId(GameBootstrap bootstrap)
+        {
+            var catalog = (CharacterCatalog)typeof(GameBootstrap).GetField("_catalog", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(bootstrap);
+            return catalog.Items.First(c => !bootstrap.Session.Roster.IsOwned(c.Id)).Id;
+        }
+
+        // N1 đường DEV: Reset ở panel DEV không nạp lại scene, nên Chọn đội mở dở phải được đóng (trả đội) trước khi xoá;
+        // nếu không, Hủy sau đó ghi người đã mất vào save mới (D-005).
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DevOverlay_Reset_ClosesOpenTeamSelect_NoStaleTeamAfterCancel()
+        {
+            _step = "N1 Boot, thêm người ngoài game mới vào đội, mở Chọn đội";
+            yield return BootWithDevOverlay();
+            var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
+            var session = bootstrap.Session;
+            var extra = UnownedCharacterId(bootstrap);
+            Assert.IsTrue(session.Roster.Add(extra), Where("thêm người"));
+            Assert.IsTrue(session.Roster.AddToTeam(extra), Where("đưa vào đội"));
+            yield return OpenTeamSelectOfFirstBattle(ServiceLocator.Get<CombatService>());
+
+            _step = "N2 DEV → Reset → Xoá hết";
+            yield return OpenDevPanel();
+            yield return ClickWhenReady("Reset dữ liệuButton");
+            yield return ClickWhenReady("Xoá hết");
+            Assert.IsFalse(session.Roster.IsOwned(extra), Where("Reset phải xoá người thêm"));
+
+            _step = "N3 Hủy (nếu popup còn mở)";
+            var popups = Object.FindObjectsByType<TeamSelectPopup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Assert.AreEqual(0, popups.Count(p => p.IsOpen), Where("Reset phải đóng Chọn đội trước khi xoá"));
+            foreach (var popup in popups) popup.Cancel();
+            CollectionAssert.DoesNotContain(session.Save.BattleTeam, extra, Where("đội sau Hủy mang người không còn sở hữu"));
+        }
+
+        // Góp ý 1: đổi ngôn ngữ ở DEV lưu cả save, nên đội chọn dở phải được trả về trước đó, như đường Menu.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DevOverlay_Language_ClosesOpenTeamSelect_BeforeSaving()
+        {
+            _step = "M1 Boot (Việt), Chọn đội (dở)";
+            yield return BootWithDevOverlay();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            Assert.IsTrue(session.SetLanguage(Language.Vi), Where("SetLanguage(Vi)"));
+            SceneManager.LoadScene("Restaurant");
+            yield return null;
+            yield return WaitForScene("Restaurant");
+            var teamBefore = session.Roster.GetBattleTeam().Select(c => c.Id).ToList();
+            yield return OpenTeamSelectOfFirstBattle(ServiceLocator.Get<CombatService>());
+            yield return ClickWhenReady("TeamCard0");
+            CollectionAssert.AreNotEqual(teamBefore, session.Roster.GetBattleTeam().Select(c => c.Id).ToList(), Where("bấm TeamCard0 phải đổi đội, nếu không ca này không thử gì"));
+
+            _step = "M2 DEV → Ngôn ngữ";
+            yield return OpenDevPanel();
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            yield return ClickWhenReady("LanguageButton");
+            yield return WaitForNewHub(oldHub);
+
+            _step = "M3 kiểm file save";
+            var loaded = new SaveService(_savePath).Load();
+            Assert.IsNotNull(loaded, Where("không đọc lại được save tạm"));
+            Assert.AreEqual("en", loaded.Language, Where("Language trong save"));
+            CollectionAssert.AreEqual(teamBefore, loaded.BattleTeam, Where("đội trong file save phải là đội lúc mở Chọn đội"));
+        }
+
         [UnityTest, Timeout(180000)]
         public IEnumerator DevOverlay_ResetFails_KeepsPanelOpen_ShowsError_KeepsData()
         {
@@ -837,6 +934,7 @@ namespace BunDauPeo.PlayModeTests
                 Assert.AreEqual(played, wallet.Get(CurrencyType.Gem), Where("reset thất bại mà bộ nhớ vẫn đổi"));
                 Assert.AreEqual(1, UiDriver.FindButtons("Xoá hết").Count, Where("reset thất bại thì không được đóng panel như thành công"));
                 Assert.IsTrue(AllTexts().Any(t => t.text.Contains("RESET THẤT BẠI")), Where("phải báo lỗi trên panel"));
+                Assert.IsFalse(AllTexts().Any(t => t.text.Contains("giữ nguyên")), Where("câu lỗi không được hứa dữ liệu giữ nguyên (ResetToDefaults có thể đã ghi đè bộ nhớ)"));
             }
             finally
             {

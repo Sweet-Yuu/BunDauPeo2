@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BunDauPeo.Core;
 using UnityEngine;
 
@@ -106,10 +107,15 @@ namespace BunDauPeo.Characters
         {
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
 
+            // Save có thể đã bị ghi đè từ lúc chụp (Reset): id không còn sở hữu không được quay lại (D-005).
+            var team = snapshot.Team.Where(IsOwned).ToList();
+            var staff = snapshot.Staff.Where(s => IsOwned(s.CharacterId)).ToList();
+            if (team.SequenceEqual(_save.BattleTeam) && staff.SequenceEqual(_save.Staff)) return;
+
             _save.BattleTeam.Clear();
-            _save.BattleTeam.AddRange(snapshot.Team);
+            _save.BattleTeam.AddRange(team);
             _save.Staff.Clear();
-            _save.Staff.AddRange(snapshot.Staff);
+            _save.Staff.AddRange(staff);
             Changed.SafeInvoke();
         }
 

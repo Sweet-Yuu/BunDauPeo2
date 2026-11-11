@@ -28,6 +28,22 @@ namespace BunDauPeo.Tests
             AssetDatabase.DeleteAsset(TempBanner);
         }
 
+        // Boot không được nạp scene đã xoá: mọi tên scene trong RemovedScenePaths (không chỉ "Gacha") phải được sửa; scene còn sống thì giữ.
+        [Test]
+        public void IsStaleStartScene_EmptyAndEveryRemovedScene_ButNotLiveOnes()
+        {
+            Assert.IsTrue(ProjectSetup.IsStaleStartScene(""));
+            Assert.IsTrue(ProjectSetup.IsStaleStartScene(null));
+            foreach (var path in ProjectSetup.RemovedScenePaths)
+            {
+                var name = System.IO.Path.GetFileNameWithoutExtension(path);
+                Assert.IsTrue(ProjectSetup.IsStaleStartScene(name), name);
+            }
+
+            foreach (var live in new[] { "Restaurant", "Battle", "Boot" })
+                Assert.IsFalse(ProjectSetup.IsStaleStartScene(live), live);
+        }
+
         [Test]
         public void GetOrCreateAsset_Existing_KeepsItAndSkipsInit()
         {

@@ -95,6 +95,8 @@ namespace BunDauPeo.UI
         private void ConfirmReset()
         {
             _resetConfirmRoot.SetActive(false);
+            // Trang đang mở (Chọn đội...) giữ ảnh chụp đội cũ: đóng trước, kẻo Hủy sau Reset lỗi ghi đội cũ vào save mới (D-005, L-035).
+            _hub.CloseOpenPages();
             if (_resetter.Reset())
             {
                 SceneManager.LoadScene(BattleView.RestaurantScene);

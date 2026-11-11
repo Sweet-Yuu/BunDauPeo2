@@ -20,7 +20,7 @@ namespace BunDauPeo.UI
         public const long GemGrant = 1000;
         public const int AfkRewindHours = 1;
         private const string ConfirmPrompt = "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.";
-        private const string ResetFailedMessage = "RESET THẤT BẠI: không xoá được file save (đang bị khoá?).\nDữ liệu giữ nguyên.";
+        private const string ResetFailedMessage = "RESET THẤT BẠI: không xoá hay ghi được file save (đang bị khoá?).\nThử lại.";
 
         // Scene panel DEV còn nạp: nạp lại khi đổi ngôn ngữ, Chiến đấu thử.
         public static readonly string[] SceneNames = { BattleView.RestaurantScene, BattleView.BattleScene };
@@ -83,9 +83,24 @@ namespace BunDauPeo.UI
         // Battle không nạp lại: scene đang chạy trận, nạp lại làm hỏng trận.
         public static bool ShouldReloadScene(string activeScene) => activeScene != BattleView.BattleScene;
 
+        // Trang kín màn của hub đang mở (Chọn đội...) giữ ảnh chụp đội cũ: đóng trước khi lưu hay xoá save, kẻo Hủy sau đó ghi đội cũ
+        // vào save mới (D-005, L-035). Battle không có hub.
+        private static void CloseHubPages()
+        {
+            var hub = UnityEngine.Object.FindFirstObjectByType<HubNav>();
+            if (hub != null) hub.CloseOpenPages();
+        }
+
+        public static bool ResetAll()
+        {
+            CloseHubPages();
+            return ServiceLocator.Get<GameResetter>().Reset();
+        }
+
         // Trả dòng báo cho nút: "" khi đã nạp lại scene.
         public static string SwitchLanguage()
         {
+            CloseHubPages();
             var next = GameLanguage.Current == Language.Vi ? Language.En : Language.Vi;
             if (!ServiceLocator.Get<LanguageSwitcher>().Set(next)) return "Chưa lưu được, giữ ngôn ngữ cũ";
 
@@ -151,8 +166,8 @@ namespace BunDauPeo.UI
             var prompt = AddLabel(confirm, font, ConfirmPrompt, new Vector2(20, 80), new Vector2(880, 80), 32);
             var yes = AddButton(confirm, font, "Xoá hết", new Vector2(40, 10), 400, () =>
             {
-                // Thất bại (file bị khoá...) thì giữ panel mở và báo rõ, không đóng như thành công; dữ liệu còn nguyên (GameSession).
-                if (ServiceLocator.Get<GameResetter>().Reset())
+                // Thất bại (file bị khoá...) thì giữ panel mở và báo rõ, không đóng như thành công.
+                if (ResetAll())
                 {
                     Debug.Log("DevOverlay: Reset Save Data = True");
                     dim.gameObject.SetActive(false);
@@ -161,7 +176,7 @@ namespace BunDauPeo.UI
 
                 prompt.text = ResetFailedMessage;
                 prompt.color = new Color(1f, 0.9f, 0.3f);
-                Debug.LogError("DevOverlay: Reset Save Data FAILED, data kept.");
+                Debug.LogError("DevOverlay: Reset Save Data FAILED.");
             });
             yes.GetComponentInParent<Image>().color = new Color(0.85f, 0.2f, 0.2f);
             AddButton(confirm, font, "Huỷ", new Vector2(480, 10), 400, () => confirm.gameObject.SetActive(false));
