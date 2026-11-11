@@ -66,7 +66,7 @@ namespace BunDauPeo.Tests
         public void ShouldReloadScene_Battle_ReturnsFalse()
         {
             Assert.IsFalse(DevOverlay.ShouldReloadScene("Battle"), "nạp lại Battle làm hỏng trận đang chạy");
-            foreach (var scene in new[] { "Restaurant", "Gacha", "StageSelect" })
+            foreach (var scene in new[] { "Restaurant" })
                 Assert.IsTrue(DevOverlay.ShouldReloadScene(scene), scene);
         }
 

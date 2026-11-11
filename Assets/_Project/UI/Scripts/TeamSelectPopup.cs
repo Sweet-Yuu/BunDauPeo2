@@ -69,12 +69,15 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
-        // Hủy: trả đội và vai ở quán về như lúc mở (spec UI hub 5.5), không lưu đội chọn dở. Roster chỉ ghi bộ nhớ,
-        // nên không có gì để lưu lại; chỉ Vào trận (EnterStage) mới lưu đội.
+        // Hủy: trả đội và vai ở quán về như lúc mở (spec UI hub 5.5). Không lưu đội chọn dở; chỉ Vào trận (EnterStage) lưu đội mới.
+        // Nhưng autosave của quán có thể đã ghi đội dở xuống đĩa lúc popup mở, nên lưu lại đội đã trả về để đĩa khớp bộ nhớ.
         public void Cancel()
         {
-            if (IsOpen && _roster != null && _opened != null) _roster.RestoreTeam(_opened);
+            var restore = IsOpen && _roster != null && _opened != null;
+            if (restore) _roster.RestoreTeam(_opened);
+            var service = _service;
             Hide();
+            if (restore) service?.Persist();
         }
 
         // IHubPage: bấm ô khác của thanh hay đổi ngôn ngữ đóng trang đúng như nút Hủy.

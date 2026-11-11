@@ -238,5 +238,44 @@ namespace BunDauPeo.Tests
             _roster.AddFragments("c0", 4);
             Assert.AreEqual(4, new Roster(_save, _catalog).GetFragments("c0"));
         }
+
+        // N1 (D-005): ảnh chụp đội chụp trước Reset; sau Reset save là game mới, nên Hủy không được ghi lại id không còn sở hữu.
+        [Test]
+        public void RestoreTeam_AfterSaveOverwritten_DropsIdsNoLongerOwned()
+        {
+            _roster.AddToTeam("c0");
+            _roster.AddToTeam("c1");
+            _roster.AssignStaff("c2", StaffRole.Cook);
+            _roster.AssignStaff("c3", StaffRole.Cook);
+            var snapshot = _roster.SnapshotTeam();
+
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(new PlayerSave()), _save);
+            _roster.Add("c0");
+            _roster.Add("c2");
+            _roster.RestoreTeam(snapshot);
+
+            CollectionAssert.AreEqual(new[] { "c0" }, _save.BattleTeam, "c1 is no longer owned");
+            CollectionAssert.AreEqual(new[] { "c2" }, _save.Staff.Select(s => s.CharacterId).ToArray(), "c3 is no longer owned");
+            Assert.IsFalse(_roster.IsOwned("c1"));
+        }
+
+        [Test]
+        public void RestoreTeam_NothingChanged_DoesNotRaiseChanged()
+        {
+            _roster.AddToTeam("c0");
+            _roster.AssignStaff("c1", StaffRole.Cook);
+            var snapshot = _roster.SnapshotTeam();
+            var raised = 0;
+            _roster.Changed += () => raised++;
+
+            _roster.RestoreTeam(snapshot);
+            Assert.AreEqual(0, raised, "same team and staff as the snapshot");
+
+            _roster.AddToTeam("c2");
+            raised = 0;
+            _roster.RestoreTeam(snapshot);
+            Assert.AreEqual(1, raised, "a real change is announced exactly once");
+            CollectionAssert.AreEqual(new[] { "c0" }, _save.BattleTeam);
+        }
     }
 }

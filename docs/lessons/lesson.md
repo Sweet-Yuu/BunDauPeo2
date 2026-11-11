@@ -26,18 +26,11 @@
 
 ## Đang hiệu lực
 
-### L-034 — MonoBehaviour giả trong assembly Tests không gắn được (2026-11-09)  #script #process
-- Triệu chứng: `FakeHubPage : MonoBehaviour` trong `Assets/_Project/Tests` làm 4 test `HubNavTests` đỏ: "Can't add script behaviour 'FakeHubPage' because it is an editor script"; `AddComponent` trả null nên `_pages` không có phần tử.
-- Nguyên nhân gốc: `BunDauPeo.Tests` chỉ có ở Editor (`includePlatforms: Editor`), nên mọi MonoBehaviour khai trong đó đều là "editor script".
-- Luật từ nay: test EditMode cần một giao diện của view thì tách phần logic thành hàm tĩnh nhận `IEnumerable<IGiaoDien>` (như `HubNav.ClosePages`) và dùng lớp giả thuần C#; không khai MonoBehaviour giả trong assembly Tests.
-### L-033 — Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn (2026-11-09)  #ui #process
-- Triệu chứng: mô phỏng hub bản 1 có banner Gacha và Menu là hộp giữa màn, các popup con giữ cỡ cũ; user sửa: popup phải che kín màn, chỉ hộp xác nhận và phần thưởng giữ cỡ.
-- Nguyên nhân gốc: 📐 lấy cỡ popup đang có làm mặc định, không hỏi luật kín màn trước khi vẽ.
-- Luật từ nay: popup và trang mới mặc định kín 1920×1080 (thanh dưới vẫn hiện); chỉ popup xác nhận và phần thưởng là hộp, nền mờ kín màn che cả thanh ([spec UI hub 5.5](../superpowers/specs/2026-11-09-ui-hub-design.md)).
-### L-029 — Kế hoạch ghi test EditMode cho `OnEnable`, nhưng EditMode không gọi `OnEnable` của MonoBehaviour thường (2026-11-07)  #script #process
-- Triệu chứng: `LocalizedTextTests` theo kế hoạch (tạo GameObject, bật lại, đọc `Text`) đỏ vì chữ vẫn rỗng; code đúng.
-- Nguyên nhân gốc: ngoài Play, Unity chỉ chạy `Awake`/`OnEnable` cho lớp có `[ExecuteAlways]`. Thêm `ExecuteAlways` chỉ để qua test thì `OnEnable` chạy cả khi mở scene trong Editor.
-- Luật từ nay: test EditMode cần chạy `OnEnable` thì gọi hàm đó bằng reflection (`GetMethod("OnEnable", NonPublic | Instance)`), không thêm `ExecuteAlways`. Việc "bật lên Unity có gọi thật" phủ bằng test PlayMode hoặc test đọc scene.
+### L-035 — Ảnh chụp để Hủy trả về còn sống qua Reset, Hủy ghi người đã mất vào save mới (2026-11-11)  #script #process
+- Triệu chứng: review cuối nhánh UI hub A thấy Chọn đội mở dở rồi Reset (DEV, hoặc Menu khi lưu cuối lỗi) mà không nạp lại scene: `Hủy` chép ảnh chụp đội/nhân viên cũ vào save mới, người không còn sở hữu vẫn ra trận và làm quán (`Roster.Resolve` không lọc sở hữu). Vi phạm D-005.
+- Nguyên nhân gốc: mọi đường ghi đè hay lưu save (Reset, đổi ngôn ngữ) phải đóng trang đang giữ ảnh chụp trước, nhưng chỉ đường Menu → Ngôn ngữ làm; ba đường còn lại quên.
+- Luật từ nay: trang giữ ảnh chụp trạng thái (Chọn đội…) thì mọi đường ghi đè hoặc lưu cả save gọi `HubNav.CloseOpenPages()` trước (kể cả panel DEV), và hàm trả ảnh chụp bỏ id không còn sở hữu. Thêm đường ghi save mới thì tự hỏi "trang nào đang mở giữ ảnh chụp?".
+
 ### L-026 — `Capture1080("tên")` không tự thêm đuôi `.png` (2026-11-06)  #ui #process
 - Triệu chứng: lúc rà layout, `Capture1080("lm-restaurant")` ghi ra file `lm-restaurant` không đuôi; công cụ đọc ảnh không mở được, phải đổi tên tay.
 - Nguyên nhân gốc: `ScreenCapture1080.Capture` chỉ dùng `Path.GetFileName(fileName)`, tên mặc định mới có `.png`.
@@ -62,6 +55,8 @@
 
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
 
+- L-029, L-034 (2026-11-07, 2026-11-09) Test EditMode với MonoBehaviour: `OnEnable` không chạy ngoài Play, MonoBehaviour giả trong assembly Tests không gắn được  #script #process → [code-style, Test](../guides/code-style.md#test)
+- L-033 (2026-11-09) Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn  #ui #process → [unity-workflow, UI và hình tạm](../guides/unity-workflow.md#ui-và-hình-tạm)
 - L-032 (2026-11-09) Test giữ biến asset qua `ProjectSetup.Run()` (dựng scene bằng `NewScene(Single)` dỡ asset): `finally` ném lỗi và để id `renamed_by_test` trên đĩa, 9 test đỏ theo (lặp L-002, lần này ở test)  #unity-files #script #process → [code-style, Test](../guides/code-style.md#test)
 - L-030, L-031 (2026-11-08, `#process`): id kênh lấy bằng `get_session` với `"self"`, không suy từ đường dẫn scratchpad hay transcript → [session-brief.md](../guides/session-brief.md), skill worker (Báo cáo cuối kênh), skill coordinator (Mở kênh con).
 

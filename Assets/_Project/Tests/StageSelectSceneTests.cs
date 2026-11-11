@@ -256,7 +256,8 @@ namespace BunDauPeo.Tests
                 Assert.IsFalse(popup.IsOpen);
                 CollectionAssert.AreEqual(teamBefore, rig.Roster.GetBattleTeam().Select(c => c.Id).ToArray(), "team after Cancel");
                 CollectionAssert.AreEqual(staffBefore, rig.Roster.GetStaff(StaffRole.Cook).Select(c => c.Id).ToArray(), "h02 must be back in the kitchen");
-                Assert.AreEqual(persistsBefore, rig.PersistCalls, "Cancel must not save a half-made team");
+                // Autosave của quán có thể đã ghi đội chọn dở xuống đĩa lúc popup mở: Hủy lưu lại đội đã trả về (một lần).
+                Assert.AreEqual(persistsBefore + 1, rig.PersistCalls, "Cancel saves the restored team once, never the half-made one");
             });
 
         // Bấm ô khác của thanh gọi Close() qua IHubPage: phải là đường Hủy chứ không chỉ ẩn popup.
