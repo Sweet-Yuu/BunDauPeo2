@@ -2,6 +2,7 @@
 
 > Ngày: 2026-11-09 · Trạng thái: **đã duyệt** (user, 2026-11-09, thiết kế, ảnh mô phỏng và bản viết) · Phạm vi: Lobby = màn quán; Nhân vật, Gacha, Bản đồ màn thành panel kín màn trong `Restaurant.unity`; thanh dưới 6 ô; popup Menu (ngôn ngữ, Reset dữ liệu, DEV); 8 popup con thành trang kín màn; trận xong về Lobby với bản đồ mở sẵn; luật sự cố theo panel; sửa panel DEV.
 > Nguồn: [luồng màn](../../design/screen-flow.md) (user duyệt 2026-11-09, **bản chính** của cấu trúc và bố cục Lobby), [roadmap](../../roadmap.md) (dòng "UI hub"), [game-design, Quán](../../design/game-design.md#quán) (sự cố khi mở popup, chuyên cần), [D-005](../../decisions/decisions.md) (Reset), [D-012](../../decisions/decisions.md) (chữ qua `UiText`), [unity-workflow, UI và hình tạm](../../guides/unity-workflow.md#ui-và-hình-tạm) (ảnh mô phỏng trước, tên `_PH_`). Kế hoạch: [plans/2026-11-09-ui-hub.md](../plans/2026-11-09-ui-hub.md).
+> **Đã xong, đây là lịch sử.** Khi spec khác code, [luồng màn](../../design/screen-flow.md), [unity-workflow.md](../../guides/unity-workflow.md) hoặc [code-style.md](../../guides/code-style.md), những nơi đó thắng; không sửa spec này để theo kịp. Khác biệt đã biết: Huỷ ở Chọn đội trả cả đội lẫn vai ở quán và bỏ nhân vật không còn sở hữu (`Roster.SnapshotTeam/RestoreTeam`, sửa sau review); Menu và panel DEV đóng trang đang mở trước Reset và đổi ngôn ngữ; PlayMode cuối nhánh là 26 test, EditMode 864.
 
 ## 1. Mục tiêu
 

@@ -9,7 +9,6 @@ namespace BunDauPeo.Boot
     {
         private readonly SaveService _saveService;
         private readonly NewGameConfig _newGame;
-        private readonly Func<SystemLanguage> _deviceLanguage;
 
         public PlayerSave Save { get; }
         public Wallet Wallet { get; }
@@ -19,10 +18,8 @@ namespace BunDauPeo.Boot
         // Trạng thái chạy ngoài PlayerSave (D-005) nối vào đây để xoá theo.
         public event Action ResetCompleted;
 
-        // deviceLanguage: ngôn ngữ máy để Reset đưa GameLanguage.Current về theo máy; null thì Reset không đụng GameLanguage (test).
-        public GameSession(SaveService saveService, CharacterCatalog catalog, NewGameConfig newGame, Func<SystemLanguage> deviceLanguage = null)
+        public GameSession(SaveService saveService, CharacterCatalog catalog, NewGameConfig newGame)
         {
-            _deviceLanguage = deviceLanguage;
             _saveService = saveService ?? throw new ArgumentNullException(nameof(saveService));
             if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             _newGame = newGame != null ? newGame : throw new ArgumentNullException(nameof(newGame));
@@ -57,9 +54,14 @@ namespace BunDauPeo.Boot
             return true;
         }
 
-        // Nhận SystemLanguage qua tham số để test truyền vào được.
-        public void ApplyLanguage(SystemLanguage system) =>
-            GameLanguage.Current = GameLanguage.Resolve(Save.Language, system);
+        public void ApplyLanguage() => GameLanguage.Current = GameLanguage.Resolve(Save.Language);
+
+        // Khác SetLanguage: đây là cờ giao diện nên lưu lỗi vẫn giữ giá trị mới trong bộ nhớ, lần lưu sau sẽ ghi lại.
+        public bool SetRestaurantBarOpen(bool open)
+        {
+            Save.RestaurantBarOpen = open;
+            return Persist();
+        }
 
         // Đưa MỌI thứ đã lưu về như game mới: xoá cả file sao lưu, rồi ghi đè cả PlayerSave thay vì xoá từng field,
         // nên field thêm về sau tự được reset mà không ai phải nhớ. Chỉ gọi sau khi người chơi đã xác nhận.
@@ -74,8 +76,8 @@ namespace BunDauPeo.Boot
             GrantNewGame();
             Wallet.NotifyChanged();
             Roster.NotifyChanged();
-            // Save.Language vừa về "" nên quay về theo máy (D-005 luật 3); làm trước ResetCompleted để view nạp lại thấy ngôn ngữ mới.
-            if (_deviceLanguage != null) ApplyLanguage(_deviceLanguage());
+            // Save.Language vừa về "" nên quay về tiếng Anh (D-005 luật 3); làm trước ResetCompleted để view nạp lại thấy ngôn ngữ mới.
+            ApplyLanguage();
             ResetCompleted.SafeInvoke();
             return Persist();
         }

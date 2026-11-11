@@ -16,6 +16,10 @@ namespace BunDauPeo.Tests
     // Catalog: Story s1, Battle b1, Battle b2; thể lực 100, mỗi màn Battle tốn 10, quái 1 HP.
     public class StageProgressServiceTests
     {
+        // AfterGameSessionReset_FirstStageAvailableAgain_StaminaFull: ResetToDefaults đưa GameLanguage.Current về En.
+        [TearDown]
+        public void TearDown() => GameLanguage.Current = Language.Vi;
+
         private static StageDefinition Battle(string id) => CombatTestData.Stage(id, new[] { CombatTestData.Enemy(hp: 1) });
 
         private static CombatRig Rig() =>

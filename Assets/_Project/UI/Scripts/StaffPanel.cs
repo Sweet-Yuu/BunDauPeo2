@@ -12,6 +12,9 @@ namespace BunDauPeo.UI
     {
         private const int SlotsPerRole = 3;
         private static readonly StaffRole[] Roles = { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier };
+        private static readonly Color OccupiedColor = new(0.30f, 0.50f, 0.90f);
+        private static readonly Color EmptyColor = new(0.24f, 0.38f, 0.68f);
+        private static readonly Color LockedColor = new(0.28f, 0.29f, 0.34f);
 
         [SerializeField] private Button _openButton;
         [SerializeField] private Button _closeButton;
@@ -21,6 +24,9 @@ namespace BunDauPeo.UI
         // Chỉ số = vai × 3 + ô.
         [SerializeField] private Button[] _slotButtons;
         [SerializeField] private Text[] _slotTexts;
+        // Dòng phụ "SR ★★★" và hình tròn màu theo độ hiếm, chỉ hiện ở ô có người.
+        [SerializeField] private Text[] _slotInfoTexts;
+        [SerializeField] private Image[] _portraits;
         [SerializeField] private Button[] _removeButtons;
         [SerializeField] private GameObject _listRoot;
         [SerializeField] private Text _listTitle;
@@ -34,6 +40,7 @@ namespace BunDauPeo.UI
 
         private RestaurantService _service;
         private Roster _roster;
+        private StarService _stars;
 
         public bool IsOpen => _root != null && _root.activeSelf;
         private StaffRole _listRole;
@@ -48,6 +55,7 @@ namespace BunDauPeo.UI
             {
                 _service = ServiceLocator.Get<RestaurantService>();
                 _roster = ServiceLocator.Get<Roster>();
+                _stars = ServiceLocator.Get<StarService>();
             }
             catch (InvalidOperationException e)
             {
@@ -97,6 +105,7 @@ namespace BunDauPeo.UI
             var ok = _openButton != null && _closeButton != null && _root != null && _messageText != null
                      && Has(_columnTitles, Roles.Length) && Has(_slotButtons, Roles.Length * SlotsPerRole)
                      && Has(_slotTexts, Roles.Length * SlotsPerRole) && Has(_removeButtons, Roles.Length * SlotsPerRole)
+                     && Has(_slotInfoTexts, Roles.Length * SlotsPerRole) && Has(_portraits, Roles.Length * SlotsPerRole)
                      && _listRoot != null && _listTitle != null && _listContent != null && _rowTemplate != null
                      && _listCloseButton != null && _confirmRoot != null && _confirmText != null
                      && _confirmYesButton != null && _confirmNoButton != null;
@@ -147,10 +156,21 @@ namespace BunDauPeo.UI
                     var unlocked = s < profile.Slots(role);
                     var occupied = unlocked && s < workers.Count;
                     _slotButtons[index].interactable = unlocked;
+                    // Có người xanh đậm, trống xanh nhạt viền sáng, khoá xám đậm.
+                    ((Image)_slotButtons[index].targetGraphic).color = !unlocked ? LockedColor : occupied ? OccupiedColor : EmptyColor;
+                    var outline = _slotButtons[index].GetComponent<Outline>();
+                    if (outline != null) outline.enabled = unlocked && !occupied;
                     _removeButtons[index].gameObject.SetActive(occupied);
+                    _portraits[index].gameObject.SetActive(occupied);
+                    _slotInfoTexts[index].gameObject.SetActive(occupied);
                     _slotTexts[index].text = !unlocked ? StaffPanelRows.LockedHint(_service.Config, role)
                         : occupied ? $"{NameOf(workers[s].CharacterId)} · {workers[s].Stat}"
                         : UiText.Get("restaurant.slot_empty");
+                    if (!occupied) continue;
+
+                    var character = CharacterOf(workers[s].CharacterId);
+                    _slotInfoTexts[index].text = character == null ? "" : StaffPanelRows.SlotInfo(character, _stars.GetStars(character.Id));
+                    _portraits[index].color = character == null ? Color.grey : GachaViewText.RarityColor(character.Rarity);
                 }
             }
         }
@@ -248,11 +268,17 @@ namespace BunDauPeo.UI
             if (slot < workers.Count) _service.Staffing.Remove(workers[slot].CharacterId);
         }
 
-        private string NameOf(string characterId)
+        private CharacterDefinition CharacterOf(string characterId)
         {
             foreach (var character in _roster.GetOwned())
-                if (character.Id == characterId) return string.IsNullOrEmpty(character.DisplayName) ? character.Id : character.DisplayName;
-            return characterId;
+                if (character.Id == characterId) return character;
+            return null;
+        }
+
+        private string NameOf(string characterId)
+        {
+            var character = CharacterOf(characterId);
+            return character == null ? characterId : string.IsNullOrEmpty(character.DisplayName) ? character.Id : character.DisplayName;
         }
     }
 }

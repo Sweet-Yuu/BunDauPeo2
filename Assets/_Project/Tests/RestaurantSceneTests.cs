@@ -206,15 +206,15 @@ namespace BunDauPeo.Tests
             WithScene(ProjectSetup.RestaurantScenePath, scene =>
             {
                 var canvas = new Rect(0, 0, 1920, 1080);
-                foreach (var name in new[] { "CoinCard", "MaterialCard", "GemCard", "RightColumn" })
+                foreach (var name in new[] { "LobbyHud", "RestaurantBar_PH_180x460", "RestaurantBarToggle_PH_60x160" })
                 {
                     var rect = InReferenceCanvas(Named(scene, name));
                     Assert.IsTrue(canvas.Contains(rect.min) && canvas.Contains(rect.max - Vector2.one), $"{name} {rect} leaves the 1920x1080 canvas");
                 }
 
-                var column = Named(scene, "RightColumn");
+                var column = Named(scene, "RestaurantBar_PH_180x460");
                 var staff = Named(scene, "StaffButton");
-                Assert.AreSame(column, staff.parent, "StaffButton belongs to the right column");
+                Assert.AreSame(column, staff.parent, "StaffButton belongs to the restaurant bar");
                 var staffRect = InReferenceCanvas(staff);
                 Assert.GreaterOrEqual(Mathf.Min(staffRect.width, staffRect.height), 110f, "touch size");
                 Assert.IsTrue(InReferenceCanvas(column).Contains(staffRect.min) && InReferenceCanvas(column).Contains(staffRect.max - Vector2.one));
@@ -246,7 +246,8 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(12 * cellWidth, floor.rect.width, 1f);
                 Assert.AreEqual(8 * cellHeight, floor.rect.height, 1f);
                 Assert.AreEqual(-Mathf.Atan2(18f, 90f) * Mathf.Rad2Deg, floor.localEulerAngles.z > 180f ? floor.localEulerAngles.z - 360f : floor.localEulerAngles.z, 0.05f);
-                Assert.Less(room.xMin + 90f * 12, InReferenceCanvas(column).xMin, "floor must not run under the right column");
+                Assert.Less(room.xMin + 90f * 12, InReferenceCanvas(Named(scene, "RestaurantBarToggle_PH_60x160")).xMin, "floor must not run under the restaurant bar toggle");
+                Assert.Less(room.xMin + 90f * 12, InReferenceCanvas(column).xMin, "floor must not run under the open restaurant bar");
             });
 
         // Hình chữ nhật có cắt tứ giác lồi (tường, sàn đã xoay) không: trục tách là hai trục chữ nhật và hai pháp tuyến của tứ giác.
@@ -278,21 +279,21 @@ namespace BunDauPeo.Tests
             }
         }
 
-        // R1: ba thẻ tiền rộng 260; thanh thông tin và thông báo AFK ở hàng trên, bên phải thẻ tiền, không đè sàn, tường và cột phải.
+        // R1 (đợt B): thanh chất lượng một hàng 800×68 ngay dưới thanh tài nguyên, bên phải avatar; thông báo AFK ngay dưới nó; không đè thanh quán.
+        // N1: banner Gacha nằm ngoài sàn (ở 16:9), như ảnh mô phỏng.
         [Test]
-        public void RestaurantScene_InfoBarClearOfRoomAndColumn() =>
+        public void RestaurantScene_InfoBarAndBannerClearOfFloorAndColumn() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene =>
             {
-                foreach (var name in new[] { "CoinCard", "MaterialCard", "GemCard" })
-                    Assert.AreEqual(260f, InReferenceCanvas(Named(scene, name)).width, name);
-
                 var bar = InReferenceCanvas(Named(scene, "InfoBar"));
                 var message = InReferenceCanvas(Named(scene, "AfkMessage"));
-                var gem = InReferenceCanvas(Named(scene, "GemCard"));
-                var column = InReferenceCanvas(Named(scene, "RightColumn"));
-                Assert.LessOrEqual(1080f - bar.yMax, 30f, "InfoBar hugs the top edge");
-                Assert.GreaterOrEqual(bar.xMin, gem.xMax, "InfoBar is right of the money cards");
-                Assert.Less(bar.xMax, column.xMin, "InfoBar stops before the right column");
+                var avatar = InReferenceCanvas(Named(scene, "Avatar_PH_140x140"));
+                var resources = InReferenceCanvas(Named(scene, "ResourceBar_PH_1120x76"));
+                var column = InReferenceCanvas(Named(scene, "RestaurantBar_PH_180x460"));
+                Assert.AreEqual(new Vector2(800, 68), bar.size, "InfoBar is one row");
+                Assert.GreaterOrEqual(bar.xMin, avatar.xMax, "InfoBar is right of the avatar");
+                Assert.LessOrEqual(bar.yMax, resources.yMin, "InfoBar sits under the resource bar");
+                Assert.Less(bar.xMax, column.xMin, "InfoBar stops before the restaurant bar");
                 Assert.AreEqual(bar.xMin, message.xMin, 1f);
                 Assert.AreEqual(bar.width, message.width, 1f);
                 Assert.GreaterOrEqual(bar.yMin, message.yMax, "AfkMessage sits right under InfoBar");
@@ -300,19 +301,104 @@ namespace BunDauPeo.Tests
 
                 var roomNode = Named(scene, "Room");
                 var origin = InReferenceCanvas(roomNode).position;
-                var blocks = new[] { "Floor", "WallBackTop", "WallBack", "WallLeftTop", "WallLeft" };
-                foreach (var block in blocks)
-                {
-                    var target = Named(scene, block);
-                    var corners = new Vector3[4];
-                    target.GetWorldCorners(corners);
-                    var quad = corners.Select(c => origin + (Vector2)roomNode.InverseTransformPoint(c)).ToArray();
-                    Assert.IsFalse(QuadOverlapsRect(quad, bar), $"InfoBar overlaps {block}");
-                    Assert.IsFalse(QuadOverlapsRect(quad, message), $"AfkMessage overlaps {block}");
-                }
+                // Chỉ xét sàn, không xét tường: thanh chất lượng (180, 108, 800×68) phủ góc sau-trái nơi hai tường gặp nhau (khoảng 135×27 px, thanh trong suốt 0,78);
+                // user đã xem ảnh Lobby và duyệt (2026-11-11). Banner thì phải ở ngoài sàn.
+                var banner = InReferenceCanvas(Named(scene, "BannerGacha_PH_360x200"));
+                var target = Named(scene, "Floor");
+                var corners = new Vector3[4];
+                target.GetWorldCorners(corners);
+                var quad = corners.Select(c => origin + (Vector2)roomNode.InverseTransformPoint(c)).ToArray();
+                Assert.IsFalse(QuadOverlapsRect(quad, bar), "InfoBar overlaps Floor");
+                Assert.IsFalse(QuadOverlapsRect(quad, banner), "BannerGacha overlaps Floor");
+                // AfkMessage (spec UI hub B 5.4: (180, 186)) chỉ hiện 6 giây khi thu AFK lưu lỗi và vẽ đè lên phòng, nên không xét đè sàn/tường.
 
                 Assert.IsFalse(bar.Overlaps(column));
                 Assert.IsFalse(message.Overlaps(column));
+            });
+
+        // Spec UI hub B 5.6: đồ có chiều cao vẽ <tên>Shadow và <tên>Side trước mặt trên, Side dời xuống đúng chiều cao; cửa và lối đi phẳng.
+        [Test]
+        public void Blocks_HaveSideAndShadow_BelowTop() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                var heights = new System.Collections.Generic.List<(string Name, float Height)>
+                {
+                    ("Kitchen", 44f), ("Counter", 40f), ("WallBack", 90f), ("WallLeft", 90f),
+                };
+                for (var i = 0; i < 8; i++) heights.Add(($"Table{i}", 22f));
+                var soils = All<RectTransform>(scene).Where(r => r.name.StartsWith("Soil") && !r.name.EndsWith("Side") && !r.name.EndsWith("Shadow")).ToArray();
+                Assert.AreEqual(6, soils.Length, "2 rows of 3 beds");
+                foreach (var soil in soils) heights.Add((soil.name, 12f));
+
+                foreach (var (name, height) in heights)
+                {
+                    var top = Named(scene, name);
+                    var side = top.parent.Find(name + "Side") as RectTransform;
+                    var shadow = top.parent.Find(name + "Shadow") as RectTransform;
+                    Assert.IsNotNull(side, name + "Side");
+                    Assert.IsNotNull(shadow, name + "Shadow");
+                    Assert.Less(side.GetSiblingIndex(), top.GetSiblingIndex(), name + "Side draws under the top");
+                    Assert.Less(shadow.GetSiblingIndex(), top.GetSiblingIndex(), name + "Shadow draws under the top");
+                    foreach (var part in new[] { side, shadow })
+                    {
+                        Assert.AreEqual(top.sizeDelta, part.sizeDelta, part.name + " size");
+                        Assert.AreEqual(0f, Quaternion.Angle(top.localRotation, part.localRotation), 0.01f, part.name + " rotation");
+                        Assert.IsFalse(part.GetComponent<Image>().raycastTarget, part.name + " raycast");
+                    }
+
+                    Assert.AreEqual(height, top.anchoredPosition.y - side.anchoredPosition.y, 0.5f, name + "Side drop");
+                    Assert.AreEqual(top.anchoredPosition.x, side.anchoredPosition.x, 0.5f, name + "Side x");
+                    Assert.LessOrEqual(shadow.GetComponent<Image>().color.a, 0.25f, name + "Shadow alpha");
+                    Assert.Less(Luma(side.GetComponent<Image>().color), Luma(top.GetComponent<Image>().color), name + "Side is darker than the top");
+                }
+
+                foreach (var flat in new[] { "Door", "Path" })
+                {
+                    var rect = Named(scene, flat);
+                    Assert.IsNull(rect.parent.Find(flat + "Side"), flat + " has no side");
+                    Assert.IsNull(rect.parent.Find(flat + "Shadow"), flat + " has no shadow");
+                }
+            });
+
+        // Spec 5.6: mỗi bàn có một đĩa tắt, RestaurantView giữ mảng theo thứ tự bàn.
+        [Test]
+        public void Tables_HaveDishesInOrder() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                var dishes = new SerializedObject(All<RestaurantView>(scene).Single()).FindProperty("_dishes");
+                Assert.AreEqual(8, dishes.arraySize);
+                for (var i = 0; i < 8; i++)
+                {
+                    var dish = (GameObject)dishes.GetArrayElementAtIndex(i).objectReferenceValue;
+                    Assert.IsNotNull(dish, $"_dishes[{i}]");
+                    Assert.AreEqual("Dish_PH_40x24", dish.name);
+                    Assert.AreSame(Named(scene, $"Table{i}"), dish.transform.parent, $"_dishes[{i}] sits on Table{i}");
+                    Assert.IsFalse(dish.activeSelf, $"_dishes[{i}] starts hidden");
+                }
+            });
+
+        // Spec 5.6: người = bóng + thân + đầu, chân là pivot; chỉ khách có bóng trạng thái với hai biểu tượng.
+        [Test]
+        public void ActorTemplates_HaveShadowFigureBubble() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                foreach (var name in new[] { "CustomerTemplate", "WorkerTemplate" })
+                {
+                    var template = Named(scene, name);
+                    Assert.AreEqual(0f, template.pivot.y, name + " pivot is at the feet");
+                    foreach (var path in new[] { "Shadow", "Figure/Body", "Figure/Head" })
+                        Assert.IsNotNull(template.Find(path), $"{name}/{path}");
+                    Assert.AreEqual(0f, template.Find("Figure").GetComponent<RectTransform>().pivot.y, name + "/Figure sways around the feet");
+                }
+
+                var bubble = Named(scene, "CustomerTemplate").Find("StatusBubble_PH_64x44") as RectTransform;
+                Assert.IsNotNull(bubble);
+                Assert.AreEqual(new Vector2(64, 44), bubble.sizeDelta);
+                Assert.IsFalse(bubble.gameObject.activeSelf, "bubble starts hidden");
+                Assert.IsNotNull(bubble.Find("FoodDots"));
+                Assert.IsNotNull(bubble.Find("PayCoin"));
+                Assert.IsNull(Named(scene, "WorkerTemplate").Find("StatusBubble_PH_64x44"), "only customers wear a bubble");
+                Assert.IsNotNull(Named(scene, "WorkerTemplate").Find("NameText"), "the worker keeps a name label");
             });
 
         [Test]

@@ -113,32 +113,43 @@ namespace BunDauPeo.Tests
             return upgrade;
         }
 
+        // Thẻ nâng cấp: tên, cấp và giá ở ba Text riêng (spec UI hub B 5.7).
         [Test]
-        public void UpgradeButton_ShowsNameLevelAndCost()
+        public void UpgradeLevel_AndCost()
+        {
+            var upgrade = TablesUpgrade();
+
+            Assert.AreEqual("Cấp 0/2", RestaurantViewText.UpgradeLevel(upgrade, 0));
+            Assert.AreEqual("Cấp 2/2", RestaurantViewText.UpgradeLevel(upgrade, 2));
+            Assert.AreEqual("300 Coin + 5 Material", RestaurantViewText.UpgradeCost(upgrade, 0));
+            GameLanguage.Current = Language.En;
+            Assert.AreEqual("Level 1/2", RestaurantViewText.UpgradeLevel(upgrade, 1));
+            Assert.AreEqual("Max", RestaurantViewText.UpgradeCost(upgrade, 2));
+            Assert.AreEqual(UiText.Get("restaurant.upgrade_max"), RestaurantViewText.UpgradeCost(upgrade, 2));
+        }
+
+        [Test]
+        public void UpgradeCost_ShowsNextLevelPrice()
         {
             var upgrade = TablesUpgrade();
 
             // Giá là của cấp kế tiếp: cấp 0 thấy 300 + 5, cấp 1 thấy 600 + 10.
-            var fresh = RestaurantViewText.UpgradeButton(upgrade, 0);
-            StringAssert.Contains("Bàn", fresh);
-            StringAssert.Contains("0/2", fresh);
+            var fresh = RestaurantViewText.UpgradeCost(upgrade, 0);
             StringAssert.Contains("300 Coin", fresh);
             StringAssert.Contains("5 Material", fresh);
 
-            var next = RestaurantViewText.UpgradeButton(upgrade, 1);
-            StringAssert.Contains("1/2", next);
+            var next = RestaurantViewText.UpgradeCost(upgrade, 1);
             StringAssert.Contains("600 Coin", next);
             StringAssert.Contains("10 Material", next);
             StringAssert.DoesNotContain("300", next);
         }
 
         [Test]
-        public void UpgradeButton_AtMax_ShowsMax()
+        public void UpgradeCost_AtMax_ShowsMax()
         {
-            var text = RestaurantViewText.UpgradeButton(TablesUpgrade(), 2);
+            var text = RestaurantViewText.UpgradeCost(TablesUpgrade(), 2);
 
-            StringAssert.Contains("2/2", text);
-            StringAssert.Contains("Tối đa", text);
+            Assert.AreEqual("Tối đa", text);
             StringAssert.DoesNotContain("Coin", text);
             StringAssert.DoesNotContain("Material", text);
         }

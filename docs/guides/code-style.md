@@ -20,6 +20,7 @@
 - Field nào làm mẫu số, chỉ số mảng hay ngưỡng thì phải có trong `Validate()` và có test. Khi `IsRunning = false`, phần còn lại của constructor không được dùng config (L-016).
 - Trạng thái "bị chặn" mà nhiều view cùng bật/tắt thì theo chủ (`SetX(owner, bool)`, idempotent theo chủ), không dùng một bool hay bộ đếm tăng giảm (L-015).
 - Mô phỏng bước cố định: trong mỗi bước, hệ thống trừ giờ chạy trước hệ thống đổi trạng thái (L-008).
+- Đường ghi đè hoặc lưu cả save (Reset, đổi ngôn ngữ, panel DEV) gọi `HubNav.CloseOpenPages()` trước. Trang giữ ảnh chụp trạng thái để Hủy trả về (Chọn đội…) phải là `IHubPage`, và hàm trả ảnh chụp bỏ id không còn sở hữu. Thêm đường ghi save mới thì tự hỏi "trang nào đang mở giữ ảnh chụp?" (L-035).
 
 ## Chữ hiển thị (song ngữ, [D-012](../decisions/decisions.md))
 

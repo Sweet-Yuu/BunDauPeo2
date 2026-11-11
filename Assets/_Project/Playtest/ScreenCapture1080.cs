@@ -22,6 +22,8 @@ namespace BunDauPeo.Playtest
             fileName = string.IsNullOrEmpty(fileName)
                 ? $"shot-{DateTime.Now:yyyyMMdd-HHmmss}.png"
                 : Path.GetFileName(fileName);
+            // L-026: tên không có đuôi thì thêm .png để công cụ đọc ảnh mở được.
+            if (!fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) fileName += ".png";
 
             var overlays = new List<(Canvas canvas, Camera previous)>();
             GameObject cameraObject = null;

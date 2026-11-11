@@ -62,6 +62,93 @@ namespace BunDauPeo.Tests
         public void UpgradePage_FullScreen_BackTopLeft() =>
             WithLobby(scene => FullScreenPage(scene, "UpgradePanelRoot", "Box/CloseButton", typeof(UpgradeTestPanel)));
 
+        // Spec UI hub B 5.7: ba cột × ba ô 500×220, mỗi ô có chân dung, tên, dòng phụ và nút Gỡ nằm trong ô; đáy hàng cuối y 930 (trên vạch).
+        [Test]
+        public void StaffPage_GridOfNine_AboveBar() =>
+            WithLobby(scene =>
+            {
+                var centersX = new[] { 390f, 960f, 1530f };
+                var tops = new[] { 210f, 460f, 710f };
+                var panel = new SerializedObject(RestaurantSceneTests.All<StaffPanel>(scene).Single());
+                var infoTexts = panel.FindProperty("_slotInfoTexts");
+                var portraits = panel.FindProperty("_portraits");
+                var texts = panel.FindProperty("_slotTexts");
+                Assert.AreEqual(9, infoTexts.arraySize, "_slotInfoTexts");
+                Assert.AreEqual(9, portraits.arraySize, "_portraits");
+                for (var role = 0; role < 3; role++)
+                {
+                    for (var slot = 0; slot < 3; slot++)
+                    {
+                        var index = role * 3 + slot;
+                        var name = $"Slot{role}_{slot}";
+                        var cell = Named(scene, name);
+                        Assert.IsNotNull(cell.GetComponent<Button>(), name + " is a Button");
+                        AssertRect(centersX[role] - 250f, tops[slot], 500f, 220f, FromTop(scene, name), name);
+
+                        var portrait = (Image)portraits.GetArrayElementAtIndex(index).objectReferenceValue;
+                        Assert.IsNotNull(portrait, $"_portraits[{index}]");
+                        Assert.AreEqual("Portrait_PH_140x140", portrait.name);
+                        Assert.IsTrue(portrait.transform.IsChildOf(cell), $"{name} owns its portrait");
+                        Assert.AreEqual(new Vector2(140, 140), RestaurantSceneTests.InReferenceCanvas((RectTransform)portrait.transform).size);
+
+                        foreach (var (label, text) in new[] { ("_slotTexts", texts), ("_slotInfoTexts", infoTexts) })
+                        {
+                            var component = (Text)text.GetArrayElementAtIndex(index).objectReferenceValue;
+                            Assert.IsNotNull(component, $"{label}[{index}]");
+                            Assert.IsTrue(component.transform.IsChildOf(cell), $"{label}[{index}] belongs to {name}");
+                        }
+
+                        var remove = cell.Find("RemoveButton") as RectTransform;
+                        Assert.IsNotNull(remove, name + "/RemoveButton");
+                        var removeRect = RestaurantSceneTests.InReferenceCanvas(remove);
+                        Assert.AreEqual(new Vector2(120, 60), removeRect.size);
+                        var cellRect = RestaurantSceneTests.InReferenceCanvas(cell);
+                        Assert.IsTrue(cellRect.Contains(removeRect.min) && cellRect.Contains(removeRect.max - Vector2.one), $"{name}: RemoveButton {removeRect} leaves its slot {cellRect}");
+                        Assert.GreaterOrEqual(cellRect.yMin, HubNav.BarHeight, $"{name} reaches the bar strip");
+                    }
+                }
+            });
+
+        // Spec UI hub B 5.7: thẻ nâng cấp 540×360 lưới 3×2, thẻ mẫu không phải Button, nút Mua riêng.
+        [Test]
+        public void UpgradePage_CardsWithBuyButton() =>
+            WithLobby(scene =>
+            {
+                var panel = new SerializedObject(RestaurantSceneTests.All<UpgradeTestPanel>(scene).Single());
+                var template = (UpgradeCardView)panel.FindProperty("_cardTemplate").objectReferenceValue;
+                Assert.IsNotNull(template, "_cardTemplate");
+                Assert.AreEqual("UpgradeCard", template.name);
+                Assert.IsNull(template.GetComponent<Button>(), "the card itself is not a Button");
+                var card = new SerializedObject(template);
+                foreach (var field in new[] { "_nameText", "_levelText", "_costText" })
+                {
+                    var text = (Text)card.FindProperty(field).objectReferenceValue;
+                    Assert.IsNotNull(text, field);
+                    Assert.IsTrue(text.transform.IsChildOf(template.transform), field);
+                }
+
+                var buy = (Button)card.FindProperty("_buyButton").objectReferenceValue;
+                Assert.IsNotNull(buy, "_buyButton");
+                Assert.AreEqual("BuyButton_PH_210x80", buy.name);
+                Assert.IsTrue(buy.transform.IsChildOf(template.transform));
+                Assert.AreEqual(new Vector2(210, 80), RestaurantSceneTests.InReferenceCanvas((RectTransform)buy.transform).size);
+                Assert.AreEqual("restaurant.buy", buy.GetComponentInChildren<LocalizedText>(true).Key);
+
+                var slots = panel.FindProperty("_cardSlots");
+                Assert.AreEqual(6, slots.arraySize, "3 × 2 card slots");
+                for (var i = 0; i < 6; i++)
+                {
+                    var slot = (RectTransform)slots.GetArrayElementAtIndex(i).objectReferenceValue;
+                    Assert.IsNotNull(slot, $"_cardSlots[{i}]");
+                    var rect = FromTop(RestaurantSceneTests.InReferenceCanvas(slot));
+                    AssertRect(new[] { 120f, 690f, 1260f }[i % 3], new[] { 150f, 550f }[i / 3], 540f, 360f, rect, $"card slot {i}");
+                    Assert.GreaterOrEqual(1080f - rect.yMax, HubNav.BarHeight, $"card slot {i} reaches the bar strip");
+                }
+
+                var title = In<LocalizedText>(scene, "UpgradePanelRoot").Single(t => t.name == "TitleText");
+                Assert.AreEqual("restaurant.upgrade_title", title.Key);
+            });
+
         [Test]
         public void QualityPage_FullScreen_BackTopLeft() =>
             WithLobby(scene => FullScreenPage(scene, "QualityPopupRoot", "QualityPopupBox/CloseButton", typeof(QualityPopup)));
@@ -80,6 +167,7 @@ namespace BunDauPeo.Tests
                              ("SmallConfirmRoot", "SmallConfirmBox", StageSelectSceneBuilder.ConfirmSize),
                              ("StaffConfirmRoot", "StaffConfirmBox", StageSelectSceneBuilder.ConfirmSize),
                              ("RollAgainPopup", "Box", GachaSceneBuilder.RollAgainSize),
+                             ("HistoryPopup", "GachaHistoryBox_PH_1200x800", GachaSceneBuilder.HistoryBoxSize),
                          })
                 {
                     var root = Named(scene, rootName);

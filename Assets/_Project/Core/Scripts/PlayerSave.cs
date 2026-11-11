@@ -31,9 +31,11 @@ namespace BunDauPeo.Core
         // Id các màn đã thắng lần đầu; id lạ (màn đã bị xoá khỏi catalog) được giữ nguyên.
         public List<string> ClearedStages = new();
         public StaminaState Stamina = new();
-        // "vi" / "en"; "" = chưa chọn, theo ngôn ngữ máy.
+        // "vi" / "en"; "" = chưa chọn, tiếng Anh.
         public string Language = "";
         // Số lần đã nâng sao của từng nhân vật (không phải số sao); id lạ được giữ nguyên.
         public List<StarUpEntry> StarUps = new();
+        // Thanh quán ở Lobby đang mở; game mới và save cũ thiếu field này đều là đóng.
+        public bool RestaurantBarOpen = false;
     }
 }
