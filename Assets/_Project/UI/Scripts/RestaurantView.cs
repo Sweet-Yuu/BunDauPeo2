@@ -20,8 +20,10 @@ namespace BunDauPeo.UI
         [SerializeField] private RectTransform[] _cookSpots;
         [SerializeField] private RectTransform[] _serverSpots;
         [SerializeField] private RectTransform[] _cashierSpots;
-        [SerializeField] private Image _customerTemplate;
-        [SerializeField] private Image _workerTemplate;
+        [SerializeField] private RectTransform _customerTemplate;
+        [SerializeField] private RectTransform _workerTemplate;
+        // Một đĩa mỗi bàn, theo thứ tự _tables; bật khi có khách đang ăn ở bàn đó.
+        [SerializeField] private GameObject[] _dishes;
         // Bong bóng "!" của sự cố: nút bấm có hai chữ con (tên sự cố, gợi ý xếp người); đặt trên trạm của sự cố.
         [SerializeField] private Button _incidentButton;
         [SerializeField] private Text _incidentLabel;
@@ -32,7 +34,11 @@ namespace BunDauPeo.UI
         private sealed class Actor
         {
             public RectTransform Rect;
-            public Image Image;
+            public Image Body;
+            public RectTransform Figure;
+            // Bóng trạng thái chỉ có ở khách (null ở nhân viên).
+            public GameObject Bubble, FoodDots, PayCoin;
+            public CustomerBubbleKind Kind = CustomerBubbleKind.None;
             public Text Label;
             // Vị trí thế giới: điểm mốc nằm cùng Canvas nên không phải đổi hệ toạ độ.
             public Vector3 Origin;
@@ -84,6 +90,7 @@ namespace BunDauPeo.UI
             _incidentButton.onClick.RemoveListener(OnIncidentClicked);
             _incidentButton.gameObject.SetActive(false);
             _service = null;
+            foreach (var dish in _dishes) dish.SetActive(false);
             foreach (var actor in _all) Destroy(actor.Rect.gameObject);
             _all.Clear();
             _customers.Clear();
@@ -101,6 +108,7 @@ namespace BunDauPeo.UI
             RemoveUnseen();
             Move(Mathf.Min(Time.unscaledDeltaTime, RestaurantRunner.MaxDelta));
             SortByDepth();
+            ShowDishes(simulation);
             ShowIncident();
             ShowPendingAbsence();
             _settle = false;
@@ -140,9 +148,17 @@ namespace BunDauPeo.UI
         {
             var ok = _actors != null && _door != null && _customerTemplate != null && _workerTemplate != null
                      && _incidentButton != null && _incidentLabel != null && _incidentHint != null && _afkPopup != null
-                     && HasSpots(_tables) && HasSpots(_cookSpots) && HasSpots(_serverSpots) && HasSpots(_cashierSpots);
+                     && HasObjects(_dishes) && HasSpots(_tables) && HasSpots(_cookSpots) && HasSpots(_serverSpots) && HasSpots(_cashierSpots);
             if (!ok) Debug.LogError($"{nameof(RestaurantView)}: a serialized reference is not assigned.", this);
             return ok;
+        }
+
+        private static bool HasObjects(GameObject[] objects)
+        {
+            if (objects == null || objects.Length == 0) return false;
+            foreach (var item in objects)
+                if (item == null) return false;
+            return true;
         }
 
         private static bool HasSpots(RectTransform[] spots)
@@ -168,7 +184,8 @@ namespace BunDauPeo.UI
 
                 actor.Seen = true;
                 Retarget(actor, target);
-                actor.Image.color = StateColor(customer.State);
+                actor.Body.color = StateColor(customer.State);
+                ShowBubble(actor, CustomerBubble.For(customer.State));
             }
         }
 
@@ -182,7 +199,7 @@ namespace BunDauPeo.UI
                 if (!_workers.TryGetValue(worker.CharacterId, out var actor))
                 {
                     actor = Create(_workerTemplate);
-                    actor.Image.color = RoleColor(worker.Role);
+                    actor.Body.color = RoleColor(worker.Role);
                     actor.Label.text = NameOf(worker.CharacterId);
                     _workers.Add(worker.CharacterId, actor);
                     Place(actor, target, target);
@@ -233,13 +250,43 @@ namespace BunDauPeo.UI
         // Offset tính bằng pixel của Canvas gốc, nhân theo tỉ lệ thật của phòng.
         private Vector3 Offset(float x, float y) => new Vector3(x, y, 0f) * _actors.lossyScale.x;
 
-        private Actor Create(Image template)
+        private Actor Create(RectTransform template)
         {
             var go = Instantiate(template.gameObject, _actors, false);
             go.SetActive(true);
-            var actor = new Actor { Rect = (RectTransform)go.transform, Image = go.GetComponent<Image>(), Label = go.GetComponentInChildren<Text>() };
+            var rect = (RectTransform)go.transform;
+            var bubble = rect.Find("StatusBubble_PH_64x44");
+            var label = rect.Find("NameText");
+            var actor = new Actor
+            {
+                Rect = rect,
+                Figure = (RectTransform)rect.Find("Figure"),
+                Body = rect.Find("Figure/Body").GetComponent<Image>(),
+                Label = label != null ? label.GetComponent<Text>() : null,
+                Bubble = bubble != null ? bubble.gameObject : null,
+                FoodDots = bubble != null ? bubble.Find("FoodDots").gameObject : null,
+                PayCoin = bubble != null ? bubble.Find("PayCoin").gameObject : null,
+            };
             _all.Add(actor);
             return actor;
+        }
+
+        // Chỉ chạm vào object khi loại bóng đổi.
+        private static void ShowBubble(Actor actor, CustomerBubbleKind kind)
+        {
+            if (actor.Bubble == null || actor.Kind == kind) return;
+            actor.Kind = kind;
+            actor.Bubble.SetActive(kind != CustomerBubbleKind.None);
+            actor.FoodDots.SetActive(kind == CustomerBubbleKind.Food);
+            actor.PayCoin.SetActive(kind == CustomerBubbleKind.Pay);
+        }
+
+        // Một đĩa mỗi bàn có khách đang ăn; bàn nhiều hơn đĩa thì bỏ qua phần dư.
+        private void ShowDishes(RestaurantSimulation simulation)
+        {
+            var occupied = TableDishes.Occupied(simulation.Customers, _dishes.Length);
+            for (var i = 0; i < _dishes.Length; i++)
+                if (_dishes[i].activeSelf != occupied[i]) _dishes[i].SetActive(occupied[i]);
         }
 
         private void Place(Actor actor, Vector3 start, Vector3 target)
@@ -285,6 +332,11 @@ namespace BunDauPeo.UI
             {
                 actor.Elapsed += dt;
                 actor.Rect.position = Vector3.Lerp(actor.Origin, actor.Target, Mathf.Clamp01(actor.Elapsed / WalkSeconds));
+                // Đang đi thì Figure nhún và đung đưa; đứng yên (tới đích, hay đích trùng chỗ) thì về tư thế đứng. Bóng không đổi.
+                var walking = actor.Elapsed < WalkSeconds && (actor.Target - actor.Origin).sqrMagnitude > 1e-4f;
+                var pose = walking ? WalkPose.At(actor.Elapsed) : WalkPose.Idle;
+                actor.Figure.localPosition = new Vector3(0f, pose.Lift, 0f);
+                actor.Figure.localRotation = Quaternion.Euler(0f, 0f, pose.Angle);
             }
         }
 
@@ -314,9 +366,9 @@ namespace BunDauPeo.UI
 
         private static Color RoleColor(StaffRole role) => role switch
         {
-            StaffRole.Cook => new Color(0.90f, 0.45f, 0.40f),
-            StaffRole.Server => new Color(0.40f, 0.70f, 0.95f),
-            _ => new Color(0.95f, 0.80f, 0.30f),
+            StaffRole.Cook => new Color(0.95f, 0.60f, 0.20f),
+            StaffRole.Server => new Color(0.30f, 0.60f, 0.95f),
+            _ => new Color(0.65f, 0.40f, 0.85f),
         };
     }
 }

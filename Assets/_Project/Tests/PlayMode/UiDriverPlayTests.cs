@@ -23,6 +23,8 @@ namespace BunDauPeo.PlayModeTests
             _root.AddComponent<EventSystem>();
             var canvas = new GameObject("Canvas", typeof(Canvas), typeof(GraphicRaycaster));
             canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            // Cảnh của test trước (Restaurant) có thể còn sót với lớp bắt vuốt phủ cả màn: canvas của test phải vẽ và nhận raycast trên cùng.
+            canvas.GetComponent<Canvas>().sortingOrder = 1000;
             canvas.transform.SetParent(_root.transform, false);
         }
 

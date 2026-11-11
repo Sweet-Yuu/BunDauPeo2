@@ -317,6 +317,91 @@ namespace BunDauPeo.Tests
                 Assert.IsFalse(message.Overlaps(column));
             });
 
+        // Spec UI hub B 5.6: đồ có chiều cao vẽ <tên>Shadow và <tên>Side trước mặt trên, Side dời xuống đúng chiều cao; cửa và lối đi phẳng.
+        [Test]
+        public void Blocks_HaveSideAndShadow_BelowTop() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                var heights = new System.Collections.Generic.List<(string Name, float Height)>
+                {
+                    ("Kitchen", 44f), ("Counter", 40f), ("WallBack", 90f), ("WallLeft", 90f),
+                };
+                for (var i = 0; i < 8; i++) heights.Add(($"Table{i}", 22f));
+                var soils = All<RectTransform>(scene).Where(r => r.name.StartsWith("Soil") && !r.name.EndsWith("Side") && !r.name.EndsWith("Shadow")).ToArray();
+                Assert.AreEqual(6, soils.Length, "2 rows of 3 beds");
+                foreach (var soil in soils) heights.Add((soil.name, 12f));
+
+                foreach (var (name, height) in heights)
+                {
+                    var top = Named(scene, name);
+                    var side = top.parent.Find(name + "Side") as RectTransform;
+                    var shadow = top.parent.Find(name + "Shadow") as RectTransform;
+                    Assert.IsNotNull(side, name + "Side");
+                    Assert.IsNotNull(shadow, name + "Shadow");
+                    Assert.Less(side.GetSiblingIndex(), top.GetSiblingIndex(), name + "Side draws under the top");
+                    Assert.Less(shadow.GetSiblingIndex(), top.GetSiblingIndex(), name + "Shadow draws under the top");
+                    foreach (var part in new[] { side, shadow })
+                    {
+                        Assert.AreEqual(top.sizeDelta, part.sizeDelta, part.name + " size");
+                        Assert.AreEqual(0f, Quaternion.Angle(top.localRotation, part.localRotation), 0.01f, part.name + " rotation");
+                        Assert.IsFalse(part.GetComponent<Image>().raycastTarget, part.name + " raycast");
+                    }
+
+                    Assert.AreEqual(height, top.anchoredPosition.y - side.anchoredPosition.y, 0.5f, name + "Side drop");
+                    Assert.AreEqual(top.anchoredPosition.x, side.anchoredPosition.x, 0.5f, name + "Side x");
+                    Assert.LessOrEqual(shadow.GetComponent<Image>().color.a, 0.25f, name + "Shadow alpha");
+                    Assert.Less(Luma(side.GetComponent<Image>().color), Luma(top.GetComponent<Image>().color), name + "Side is darker than the top");
+                }
+
+                foreach (var flat in new[] { "Door", "Path" })
+                {
+                    var rect = Named(scene, flat);
+                    Assert.IsNull(rect.parent.Find(flat + "Side"), flat + " has no side");
+                    Assert.IsNull(rect.parent.Find(flat + "Shadow"), flat + " has no shadow");
+                }
+            });
+
+        // Spec 5.6: mỗi bàn có một đĩa tắt, RestaurantView giữ mảng theo thứ tự bàn.
+        [Test]
+        public void Tables_HaveDishesInOrder() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                var dishes = new SerializedObject(All<RestaurantView>(scene).Single()).FindProperty("_dishes");
+                Assert.AreEqual(8, dishes.arraySize);
+                for (var i = 0; i < 8; i++)
+                {
+                    var dish = (GameObject)dishes.GetArrayElementAtIndex(i).objectReferenceValue;
+                    Assert.IsNotNull(dish, $"_dishes[{i}]");
+                    Assert.AreEqual("Dish_PH_40x24", dish.name);
+                    Assert.AreSame(Named(scene, $"Table{i}"), dish.transform.parent, $"_dishes[{i}] sits on Table{i}");
+                    Assert.IsFalse(dish.activeSelf, $"_dishes[{i}] starts hidden");
+                }
+            });
+
+        // Spec 5.6: người = bóng + thân + đầu, chân là pivot; chỉ khách có bóng trạng thái với hai biểu tượng.
+        [Test]
+        public void ActorTemplates_HaveShadowFigureBubble() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                foreach (var name in new[] { "CustomerTemplate", "WorkerTemplate" })
+                {
+                    var template = Named(scene, name);
+                    Assert.AreEqual(0f, template.pivot.y, name + " pivot is at the feet");
+                    foreach (var path in new[] { "Shadow", "Figure/Body", "Figure/Head" })
+                        Assert.IsNotNull(template.Find(path), $"{name}/{path}");
+                    Assert.AreEqual(0f, template.Find("Figure").GetComponent<RectTransform>().pivot.y, name + "/Figure sways around the feet");
+                }
+
+                var bubble = Named(scene, "CustomerTemplate").Find("StatusBubble_PH_64x44") as RectTransform;
+                Assert.IsNotNull(bubble);
+                Assert.AreEqual(new Vector2(64, 44), bubble.sizeDelta);
+                Assert.IsFalse(bubble.gameObject.activeSelf, "bubble starts hidden");
+                Assert.IsNotNull(bubble.Find("FoodDots"));
+                Assert.IsNotNull(bubble.Find("PayCoin"));
+                Assert.IsNull(Named(scene, "WorkerTemplate").Find("StatusBubble_PH_64x44"), "only customers wear a bubble");
+                Assert.IsNotNull(Named(scene, "WorkerTemplate").Find("NameText"), "the worker keeps a name label");
+            });
+
         [Test]
         public void RestaurantScene_IsSecondInBuildSettings()
         {

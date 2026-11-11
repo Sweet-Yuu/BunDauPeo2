@@ -170,7 +170,7 @@ namespace BunDauPeo.Tests
 
                 var layers = new[]
                 {
-                    new[] { "Room", "LobbyHud" },
+                    new[] { "WorldScroll", "LobbyHud" },
                     new[] { "StaffPanelRoot", "UpgradePanelRoot", "QualityPopupRoot" },
                     new[] { CharactersPanel, StagesPanel, GachaPanel },
                     new[] { ResourceBar },
@@ -365,6 +365,50 @@ namespace BunDauPeo.Tests
                     new SerializedObject(RestaurantSceneTests.All<StaffPanel>(scene).Single()).FindProperty("_openButton").objectReferenceValue);
                 Assert.AreSame(Named(scene, "UpgradeButton").GetComponent<Button>(),
                     new SerializedObject(RestaurantSceneTests.All<UpgradeTestPanel>(scene).Single()).FindProperty("_openButton").objectReferenceValue);
+            });
+
+        // Spec 5.2 + Review Focus 3: khung kéo 2800×1400 kẹp mép, không zoom; rộng hơn màn 20:9 (2400 đơn vị) nên vẫn kéo ngang được.
+        [Test]
+        public void WorldScroll_ClampedNoZoom_WiderThan20by9() =>
+            WithLobby(scene =>
+            {
+                var canvas = RestaurantSceneTests.All<Canvas>(scene).Single(c => !c.overrideSorting).transform;
+                var root = Named(scene, "WorldScroll");
+                Assert.AreSame(canvas, root.parent);
+                Assert.AreEqual(0, root.GetSiblingIndex(), "WorldScroll is the first (bottom) layer");
+                Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(root), "WorldScroll fills the canvas");
+                var image = root.GetComponent<Image>();
+                Assert.IsTrue(image.raycastTarget, "the transparent image catches swipes");
+                Assert.AreEqual(0f, image.color.a, "WorldScroll is invisible");
+                Assert.IsFalse(root.GetComponent<CanvasRenderer>().cullTransparentMesh, "a culled transparent mesh gets no raycast, so no swipe");
+
+                var scroll = root.GetComponent<ScrollRect>();
+                Assert.IsTrue(scroll.horizontal && scroll.vertical);
+                Assert.AreEqual(ScrollRect.MovementType.Clamped, scroll.movementType);
+                Assert.IsTrue(scroll.inertia);
+                Assert.AreEqual(0f, scroll.scrollSensitivity, "no zoom/wheel");
+                Assert.AreSame(root, scroll.viewport);
+                var world = scroll.content;
+                Assert.AreEqual("World_PH_2800x1400", world.name);
+                Assert.AreSame(root, world.parent);
+                Assert.AreEqual(new Vector2(2800, 1400), world.sizeDelta);
+                Assert.GreaterOrEqual(world.sizeDelta.x, 2400 + 200, "pans sideways on 20:9");
+                Assert.GreaterOrEqual(world.sizeDelta.y, 1080 + 200, "pans up/down");
+                Assert.AreEqual(new Vector2(0.5f, 0.5f), world.pivot);
+                Assert.AreEqual(Vector2.zero, world.anchoredPosition, "the lobby opens centred");
+
+                foreach (var name in new[] { "Background", "Garden", "Room" })
+                    Assert.IsTrue(Named(scene, name).IsChildOf(world), name + " lives in the world");
+                var floats = RestaurantSceneTests.All<RectTransform>(scene).Where(r => r.name.StartsWith("FloatText")).ToArray();
+                Assert.AreEqual(8, floats.Length);
+                foreach (var f in floats) Assert.IsTrue(f.IsChildOf(world), f.name + " floats inside the world");
+                var origin = (RectTransform)new SerializedObject(RestaurantSceneTests.All<RestaurantHud>(scene).Single()).FindProperty("_floatOrigin").objectReferenceValue;
+                Assert.IsTrue(origin.IsChildOf(world), "_floatOrigin");
+
+                // Chỉ "!" của sự cố được nhận bấm trong thế giới; trang trí không chặn vuốt hay bấm.
+                foreach (var graphic in world.GetComponentsInChildren<Graphic>(true).Where(g => g.raycastTarget))
+                    Assert.IsTrue(graphic.GetComponentInParent<Button>(true)?.name == "IncidentBubble", $"{Path(graphic.transform)} raycasts");
+                Assert.AreEqual(8 + 10, Named(scene, "Garden").Cast<Transform>().Count(t => t.name.StartsWith("Plant")), "Garden: 8 old plants + 10 outside the screen");
             });
 
         private static string Path(Transform t) => string.Join("/", t.GetComponentsInParent<Transform>(true).Reverse().Select(x => x.name));
