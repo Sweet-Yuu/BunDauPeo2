@@ -16,8 +16,10 @@ namespace BunDauPeo.EditorTools
     // thẻ và nút là UISprite/Knob. Chữ là Text của uGUI (docs dự án thắng skill ui-ugui, xem GachaSceneBuilder).
     internal static class RestaurantSceneBuilder
     {
-        // Gốc của phòng (góc sau-trái của sàn) tính từ góc trái trên của Canvas 1920×1080; sàn chiếm khoảng 1184 × 736, lệch trái để chừa cột nút.
-        private static readonly Vector2 RoomOrigin = new(310, 220);
+        // Gốc của phòng (góc sau-trái của sàn) tính từ góc trái trên của Canvas 1920×1080; sàn chiếm khoảng 1184 × 736.
+        // Dời phải 155 px so với chỗ cũ (310) để banner Gacha không che "!" Thu ngân ở 16:10 (user chốt 2026-11-11); xa hơn thì tường chạm thanh quán mở (test Room_ClearOfOpenRestaurantBar).
+        private const float RoomShiftX = 155f;
+        private static readonly Vector2 RoomOrigin = new(310 + RoomShiftX, 220);
         private const float ReferenceWidth = 1920f;
         // Khung kéo (spec UI hub B 5.2): 2800 rộng hơn màn 20:9 (2400 đơn vị) để vẫn kéo ngang được; WorldInset là phần thừa mỗi bên so với canvas 1920×1080.
         private static readonly Vector2 WorldSize = new(2800, 1400);
@@ -341,9 +343,10 @@ namespace BunDauPeo.EditorTools
             var trees = new (float X, float Y, float Size, Color Color)[]
             {
                 (110, 360, 210, dark), (170, 520, 150, light),
-                (1500, 330, 240, dark), (1610, 500, 160, light),
-                (1510, 660, 120, new Color(0.55f, 0.65f, 0.95f)), (1630, 720, 120, new Color(0.75f, 0.60f, 0.90f)),
-                (1530, 850, 130, new Color(0.95f, 0.65f, 0.80f)), (1650, 920, 120, new Color(0.55f, 0.65f, 0.95f)),
+                // Cây và bụi hoa bên phải dời cùng phòng.
+                (1500 + RoomShiftX, 330, 240, dark), (1610 + RoomShiftX, 500, 160, light),
+                (1510 + RoomShiftX, 660, 120, new Color(0.55f, 0.65f, 0.95f)), (1630 + RoomShiftX, 720, 120, new Color(0.75f, 0.60f, 0.90f)),
+                (1530 + RoomShiftX, 850, 130, new Color(0.95f, 0.65f, 0.80f)), (1650 + RoomShiftX, 920, 120, new Color(0.55f, 0.65f, 0.95f)),
                 // Vùng World ngoài màn (kéo mới thấy): 5 bên trái, 5 bên phải.
                 (-300, 200, 200, dark), (-150, 450, 160, light), (-330, 700, 220, dark), (-120, 950, 150, light), (-250, 1150, 180, dark),
                 (2050, 260, 200, dark), (2250, 500, 170, light), (2100, 780, 210, dark), (2300, 1000, 160, light), (2000, 1150, 180, dark),
@@ -471,11 +474,11 @@ namespace BunDauPeo.EditorTools
             // Avatar: vòng tròn ngoài và vòng trong nhạt hơn, không chữ (Hồ sơ là đợt C).
             var avatar = NewButton("Avatar_PH_140x140", hud, knob, font, "", AvatarColor, TopLeft, new Vector2(20, -20), new Vector2(140, 140));
             ((Image)avatar.targetGraphic).type = Image.Type.Simple;
-            var face = NewRect("Face", (RectTransform)avatar.transform);
+            var face = NewRect("AvatarFace_PH_100x100", (RectTransform)avatar.transform);
             Place(face, Center, Center, Vector2.zero, new Vector2(100, 100));
             AddImage(face, knob, AvatarFace, raycast: false).type = Image.Type.Simple;
 
-            var banner = LabelButton("BannerGacha_PH_360x200", hud, sprite, font, "hub.banner_gacha", BannerColor, TopLeft, new Vector2(20, -200), new Vector2(360, 200));
+            var banner = LabelButton("BannerGacha_PH_360x200", hud, sprite, font, "hub.banner_gacha", BannerColor, TopLeft, new Vector2(20, -340), new Vector2(360, 200));
             var bannerText = banner.GetComponentInChildren<Text>();
             bannerText.fontSize = 44;
             bannerText.fontStyle = FontStyle.Bold;

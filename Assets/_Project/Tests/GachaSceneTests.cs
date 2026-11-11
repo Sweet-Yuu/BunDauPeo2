@@ -73,6 +73,20 @@ namespace BunDauPeo.Tests
                     Assert.IsNotNull(history.FindProperty(field).objectReferenceValue, "history " + field);
             });
 
+        // Hộp Lịch sử quay nền tối như các hộp Gacha khác (user chốt 2026-11-12) nhưng có viền sáng để thấy rõ trên nền mờ.
+        [Test]
+        public void GachaScene_HistoryBox_DarkWithLightBorder() =>
+            WithScene(ProjectSetup.RestaurantScenePath, scene =>
+            {
+                var box = All<RectTransform>(scene).Single(r => r.name == "GachaHistoryBox_PH_1200x800");
+                var fill = box.GetComponent<Image>().color;
+                var outline = box.GetComponent<Outline>();
+                Assert.IsNotNull(outline, "history box has a border");
+                Assert.GreaterOrEqual(outline.effectColor.a, 0.8f, "border is visible");
+                Assert.Greater(outline.effectColor.grayscale, fill.grayscale + 0.4f, "border is clearly lighter than the box");
+                Assert.GreaterOrEqual(Mathf.Abs(outline.effectDistance.x), 3f, "border is thick enough to see");
+            });
+
         [Test]
         public void GachaScene_CutscenePrefabsAreInstanced_WithTheirControllers() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene =>

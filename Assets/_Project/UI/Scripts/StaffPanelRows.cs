@@ -90,8 +90,8 @@ namespace BunDauPeo.UI
             return label;
         }
 
-        // Dòng phụ của ô có người: độ hiếm và sao, như thẻ Chọn đội.
-        public static string SlotInfo(CharacterDefinition character, int stars) => $"{character.Rarity} {new string('★', stars)}";
+        // Dòng phụ của ô có người: "<độ hiếm> · <sao>★" (spec UI hub B 5.7), ví dụ "SR · 3★".
+        public static string SlotInfo(CharacterDefinition character, int stars) => $"{character.Rarity} · {stars}★";
 
         // Ô chưa mở: gợi ý nâng cấp mở ô đó, lấy tên từ catalog nên đổi tên nâng cấp thì chữ đổi theo.
         public static string LockedHint(RestaurantConfig config, StaffRole role)

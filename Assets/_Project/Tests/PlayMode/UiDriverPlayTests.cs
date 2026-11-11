@@ -3,6 +3,7 @@ using BunDauPeo.Playtest;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -15,16 +16,25 @@ namespace BunDauPeo.PlayModeTests
         private GameObject _root;
         private int _clicks;
 
-        [SetUp]
-        public void SetUp()
+        [UnitySetUp]
+        public IEnumerator SetUp()
         {
+            // Test trước (SmokeLoopTests) để lại scene dự án (Restaurant: lớp WorldScroll phủ cả màn và một EventSystem thứ hai): dỡ chúng, không vá bằng thứ tự vẽ.
+            // Unity không cho dỡ scene cuối cùng nên tạo scene trống làm scene chính trước.
+            var empty = SceneManager.GetSceneByName("UiDriverTestScene");
+            if (!empty.IsValid()) empty = SceneManager.CreateScene("UiDriverTestScene");
+            SceneManager.SetActiveScene(empty);
+            for (var i = SceneManager.sceneCount - 1; i >= 0; i--)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene.path.StartsWith("Assets/_Project/")) yield return SceneManager.UnloadSceneAsync(scene);
+            }
+
             _clicks = 0;
             _root = new GameObject("UiDriverTestRoot");
             _root.AddComponent<EventSystem>();
             var canvas = new GameObject("Canvas", typeof(Canvas), typeof(GraphicRaycaster));
             canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-            // Cảnh của test trước (Restaurant) có thể còn sót với lớp bắt vuốt phủ cả màn: canvas của test phải vẽ và nhận raycast trên cùng.
-            canvas.GetComponent<Canvas>().sortingOrder = 1000;
             canvas.transform.SetParent(_root.transform, false);
         }
 

@@ -76,6 +76,20 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(RenderMode.ScreenSpaceOverlay, canvas.renderMode);
         }
 
+        // L-026: tên không có đuôi thì tự thêm .png, có sẵn đuôi thì giữ nguyên (không thành .png.png).
+        [UnityTest]
+        public IEnumerator Capture_NameWithoutExtension_GetsPng_NameWithPngStaysSame()
+        {
+            yield return null;
+
+            var bare = ScreenCapture1080.Capture("shot-bare", _dir);
+            var named = ScreenCapture1080.Capture("shot-named.png", _dir);
+
+            Assert.AreEqual("shot-bare.png", Path.GetFileName(bare), bare);
+            Assert.IsTrue(File.Exists(bare), bare);
+            Assert.AreEqual("shot-named.png", Path.GetFileName(named), named);
+        }
+
         [UnityTest]
         public IEnumerator Capture_FailsAfterSwitchingCanvas_StillRestoresOverlay()
         {

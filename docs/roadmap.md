@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- UI hub đợt B (bố cục Lobby, quán 2.5D, mặc định tiếng Anh): user đã duyệt spec, ảnh mô phỏng và kế hoạch (2026-11-11). 🔨 B1 (Task 1–3) đã commit; 🔨 B2 (Task 4–5: kéo quán `WorldScroll`, quán 2.5D) đã commit; 🔨 B3 (Task 6–7: trang Nhân viên, Nâng cấp, hộp Lịch sử quay, ảnh `hubb-*`, docs) xong code, nhánh `feature/ui-hub-b`, 886 EditMode + 29 PlayMode xanh, chờ 📋 commit, rồi **dừng cho user playtest** (ảnh ở `D:/bdp_BunDauPeo/shots/`), sau đó 🔍 review ([spec](superpowers/specs/2026-11-11-ui-hub-b-design.md), [kế hoạch](superpowers/plans/2026-11-11-ui-hub-b.md)).
+- UI hub đợt B (bố cục Lobby, quán 2.5D, mặc định tiếng Anh): code xong ở nhánh `feature/ui-hub-b` (B1 `b5b55fc`, B2 `535462a`, B3 `2833421`), user đã playtest và duyệt (2026-11-11). 🔍 review cuối nhánh không có lỗi chặn; 🔨 đã sửa 2 mục nên sửa và 10 góp ý (dời phòng 155 px sang phải, hạ banner Gacha xuống (20, 340), test chạm qua raycast thật, hộp Lịch sử quay viền sáng), 889 EditMode + 30 PlayMode xanh, chờ 📋 commit, 🎯 kiểm, rồi mở PR vào `main` khi user đồng ý (ảnh `hubb-*` ở `D:/bdp_BunDauPeo/shots/`; [spec](superpowers/specs/2026-11-11-ui-hub-b-design.md), [kế hoạch](superpowers/plans/2026-11-11-ui-hub-b.md)).
 
 ## Tiếp theo
 
@@ -13,7 +13,7 @@ Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử 
 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
-- [ ] UI hub đợt B (bố cục Lobby theo [luồng màn](design/screen-flow.md#bố-cục-lobby-user-duyệt-ảnh-mô-phỏng-bản-2-2026-11-09)): avatar, thanh tài nguyên chung (mỗi popup chỉ hiện tiền nó dùng), thanh chất lượng, banner trái, hàng nút tròn (Shop khoá), thanh quán thu gọn, kéo camera. Cần spec riêng.
+- [ ] UI hub đợt B: code đã xong ở nhánh `feature/ui-hub-b` (xem "Đang làm"); chuyển sang "Đã xong" khi PR vào `main` được merge.
 - [ ] UI hub đợt C: màn Tiêu đề, Chọn chế độ trước bản đồ, nút Thông báo, Hồ sơ ([luồng màn](design/screen-flow.md)). Cần spec riêng.
 - [ ] Online (user chốt 2026-11-09: xong trong bản 31/12, làm ngay sau UI hub): server, đăng nhập, lưu save trên server, rồi các tính năng cần mạng (Hộp quà, Thông báo tin, Nhiệm vụ, Hội, Hồ sơ online; danh sách ở [ideas](design/ideas.md)). `TODO(user)` trong spec: chọn dịch vụ server, phạm vi cho 31/12, cách ghép với save cục bộ và Reset Save Data ([D-005](decisions/decisions.md)). Rủi ro: việc lớn nhất còn lại, dễ làm trễ hạn 31/12.
 - [ ] Thời tiết (master plan): ngẫu nhiên, chỉ giảm lượng khách, mỗi đợt tối đa 30 phút; xác suất tăng sau hơn 90 phút chơi liên tục. Nhỏ, ghép vào mô phỏng quán hiện có.

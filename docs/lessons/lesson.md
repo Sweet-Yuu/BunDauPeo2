@@ -26,15 +26,10 @@
 
 ## Đang hiệu lực
 
-### L-035 — Ảnh chụp để Hủy trả về còn sống qua Reset, Hủy ghi người đã mất vào save mới (2026-11-11)  #script #process
-- Triệu chứng: review cuối nhánh UI hub A thấy Chọn đội mở dở rồi Reset (DEV, hoặc Menu khi lưu cuối lỗi) mà không nạp lại scene: `Hủy` chép ảnh chụp đội/nhân viên cũ vào save mới, người không còn sở hữu vẫn ra trận và làm quán (`Roster.Resolve` không lọc sở hữu). Vi phạm D-005.
-- Nguyên nhân gốc: mọi đường ghi đè hay lưu save (Reset, đổi ngôn ngữ) phải đóng trang đang giữ ảnh chụp trước, nhưng chỉ đường Menu → Ngôn ngữ làm; ba đường còn lại quên.
-- Luật từ nay: trang giữ ảnh chụp trạng thái (Chọn đội…) thì mọi đường ghi đè hoặc lưu cả save gọi `HubNav.CloseOpenPages()` trước (kể cả panel DEV), và hàm trả ảnh chụp bỏ id không còn sở hữu. Thêm đường ghi save mới thì tự hỏi "trang nào đang mở giữ ảnh chụp?".
-
-### L-026 — `Capture1080("tên")` không tự thêm đuôi `.png` (2026-11-06)  #ui #process
-- Triệu chứng: lúc rà layout, `Capture1080("lm-restaurant")` ghi ra file `lm-restaurant` không đuôi; công cụ đọc ảnh không mở được, phải đổi tên tay.
-- Nguyên nhân gốc: `ScreenCapture1080.Capture` chỉ dùng `Path.GetFileName(fileName)`, tên mặc định mới có `.png`.
-- Luật từ nay: truyền tên có đuôi (`Capture1080("x.png")`). Sửa công cụ để tự thêm `.png` khi thiếu là việc nhỏ, chờ 🎯 xếp.
+### L-036 — Test chạm gửi sự kiện thẳng lên nút không bắt được nút bị che (2026-11-11)  #ui #process
+- Triệu chứng: review cuối nhánh UI hub B thấy banner Gacha che "!" Thu ngân ở 16:10 và 4:3 mà mọi test xanh. `Swipe` của test kéo quán tự đặt `eligibleForClick = false`, ca bấm "!" dùng `ClickDirect` (`ExecuteEvents` thẳng lên nút).
+- Nguyên nhân gốc: giả lập chạm bỏ qua raycast và chuỗi pointerDown → kéo → pointerUp của input module, nên "nút bấm được" và "kéo không bấm nhầm" luôn đúng dù code làm gì.
+- Luật từ nay: test PlayMode mà điều cần kiểm là chạm hay kéo thì đi qua raycast thật (`UiDriver.Click`, `Swipe` của `SmokeLoopTests`), không `ExecuteEvents` thẳng lên nút. Nút trong `World` có thể bị HUD neo góc che tuỳ tỉ lệ màn: kèm test EditMode xét 16:9, 16:10, 4:3 (`IncidentBubbles_ClearOfHudButtons_AtEveryAspect`).
 
 ### L-022 — Lệnh Bash dài có heredoc Python lẫn tiếng Việt báo `unexpected EOF` và không chạy gì (2026-11-03)  #process
 - Triệu chứng: ba lần `python - <<'EOF'` sửa nhiều file một lượt thoát mã 2 ("unexpected EOF while looking for matching `''`"), không file nào đổi; chỉ thấy khi kiểm `git status`.
@@ -55,6 +50,8 @@
 
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
 
+- L-035 (2026-11-11) Ảnh chụp để Hủy trả về còn sống qua Reset, Hủy ghi người đã mất vào save mới  #script #process → [code-style, Service, tiền và save](../guides/code-style.md#service-tiền-và-save)
+- L-026 (2026-11-06) `Capture1080("tên")` không tự thêm đuôi `.png` (lặp ở UI hub B)  #ui #process → đã sửa công cụ: `ScreenCapture1080` tự thêm `.png`, có test; không còn luật
 - L-029, L-034 (2026-11-07, 2026-11-09) Test EditMode với MonoBehaviour: `OnEnable` không chạy ngoài Play, MonoBehaviour giả trong assembly Tests không gắn được  #script #process → [code-style, Test](../guides/code-style.md#test)
 - L-033 (2026-11-09) Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn  #ui #process → [unity-workflow, UI và hình tạm](../guides/unity-workflow.md#ui-và-hình-tạm)
 - L-032 (2026-11-09) Test giữ biến asset qua `ProjectSetup.Run()` (dựng scene bằng `NewScene(Single)` dỡ asset): `finally` ném lỗi và để id `renamed_by_test` trên đĩa, 9 test đỏ theo (lặp L-002, lần này ở test)  #unity-files #script #process → [code-style, Test](../guides/code-style.md#test)

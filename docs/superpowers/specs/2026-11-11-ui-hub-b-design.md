@@ -83,7 +83,7 @@ Thứ tự anh em từ dưới lên (đợt A có 6 lớp; đợt B tách lớp 
 ### 5.2 Kéo quán (`WorldScroll`)
 
 - `WorldScroll`: `RectTransform` kéo kín canvas, `Image` trong suốt có raycast (để nhận vuốt), `ScrollRect`: `horizontal = vertical = true`, `movementType = Clamped`, `inertia = true`, `scrollSensitivity = 0` (không cuộn chuột), `viewport` = chính nó, `content` = `World_PH_2800x1400`.
-- `World_PH_2800x1400` neo giữa, pivot giữa, cỡ 2800×1400. `Background` kéo kín World; `Garden`, `Room`, `FloatText*` đặt lại sao cho **lúc mở Lobby, phòng nằm đúng chỗ như hiện nay trên màn 16:9** (World ở giữa, `normalizedPosition = (0.5, 0.5)`). Vùng World ngoài màn có thêm vài cây và bụi (mục 5.6), tắt raycast.
+- `World_PH_2800x1400` neo giữa, pivot giữa, cỡ 2800×1400. `Background` kéo kín World; `Garden`, `Room`, `FloatText*` đặt lại sao cho **lúc mở Lobby, phòng nằm cách chỗ cũ 155 px sang phải trên màn 16:9** (World ở giữa, `normalizedPosition = (0.5, 0.5)`; user chốt 2026-11-11 sau review cuối đợt B: banner Gacha `(20, 340)` không che "!" Thu ngân ở 16:10 và 4:3, mép phải phòng còn cách thanh quán mở ở 16:10; cây và bụi hoa bên phải dời cùng). Vùng World ngoài màn có thêm vài cây và bụi (mục 5.6), tắt raycast.
 - Cỡ 2800 (ảnh mô phỏng ghi "khoảng 2400"): canvas khớp theo chiều cao nên màn 20:9 rộng 2400 đơn vị; World 2400 thì máy 20:9 không kéo ngang được. 2800 cho 440 đơn vị mỗi bên ở 16:9 và 200 ở 20:9. Cao 1400 cho 160 trên dưới, đủ kéo hàng luống ra khỏi thanh dưới.
 - `IncidentBubble`, người, đĩa nằm trong `Room` nên đi theo khi kéo. `RestaurantHud._floatOrigin` (quầy) cũng trong `Room`; `FloatText*` chuyển vào `World` để bay đúng chỗ khi đã kéo.
 - Bấm "!" khi không kéo: click ăn như cũ (uGUI chỉ huỷ click khi ngón tay đi quá `EventSystem.pixelDragThreshold`). Builder để ngưỡng mặc định; chạm thử trên máy thật ở lần dừng playtest (mục 9).
@@ -142,7 +142,7 @@ public static class ResourceBarRule
 | `InfoBar` (giữ tên; đổi cỡ thành 800×68, một hàng) | `(180, 108)` | vẫn là `Button` mở `QualityPopup`. Trái: 5 sao 36 px; giữa: `IncomeText` ("≈ 1,6 Coin/giây", hay lý do khi bằng 0 kèm `WarningIcon`, như hiện nay); phải: `CounterText` ("Phục vụ 12 · Bỏ về 2 · Chất lượng 37/100", co chữ) |
 | `AfkMessage` (giữ tên) | `(180, 186)`, rộng 800 | như cũ |
 | Chỗ nút Thông báo | `(1790, 20)`, 110×100 | **không dựng gì** ở đợt B; test giữ vùng này trống nút |
-| `BannerGacha_PH_360x200` (`Button`) | `(20, 200)` | chữ `hub.banner_gacha`; bấm → `HubNav.Select(HubTab.Gacha)` |
+| `BannerGacha_PH_360x200` (`Button`) | `(20, 340)` | chữ `hub.banner_gacha`; bấm → `HubNav.Select(HubTab.Gacha)` |
 | `RestaurantBarToggle_PH_60x160`, `RestaurantBar_PH_180x460` | mục 5.5 | |
 | `HubRoundBtnShop_PH_110x110` (`Button`, `Knob` xám, chữ `hub.shop`) + `ShopLock_PH_40x48` (ổ khoá như `Lock_PH_40x48`) | neo dưới-phải, cách mép phải 20, đáy cách mép dưới 140 | `HubNav.ShowComingSoon()` |
 
@@ -331,7 +331,7 @@ Vẽ và duyệt trong kênh 📐 UI hub đợt B ngày 2026-11-11 (ảnh nằm 
 | Bản đồ (và panel khác) | thanh tiền neo trên-phải, chỉ ô của màn (Bản đồ: Thể lực kèm "+1 sau") |
 | Nâng cấp | [Quay lại] trên-trái, tiêu đề giữa, thanh Material trên-phải; lưới 3 × 2 thẻ: tên, cấp, giá, [Mua] dưới-phải thẻ |
 | Nhân viên | [Quay lại], tiêu đề, 3 cột Bếp/Phục vụ/Thu ngân, mỗi cột 3 ô to: ô có người (hình tròn, tên, "SR · 3★", [Bỏ]), ô trống viền sáng, ô khoá xám |
-| Lịch sử quay | nền mờ che cả thanh, hộp trắng giữa màn: tiêu đề, danh sách cuộn 50 lượt, [Đóng] |
+| Lịch sử quay | nền mờ che cả thanh, hộp tối viền sáng giữa màn (như các hộp Gacha khác; user chốt 2026-11-12, thay "hộp trắng"): tiêu đề, danh sách cuộn 50 lượt, [Đóng] |
 
 ## 11. Khác với luồng màn (báo 🎨)
 

@@ -198,6 +198,56 @@ namespace BunDauPeo.Tests
                 }
             });
 
+        // Tỉ lệ màn thật. Canvas khớp chiều cao nên rộng = 1080 × tỉ lệ; World ở giữa nên lệch (1920 − rộng) / 2 so với màn, HUD neo trái đứng yên, HUD neo phải lệch cả (1920 − rộng).
+        private static readonly (string Name, float Aspect)[] Aspects = { ("16:9", 16f / 9f), ("18:9", 2f), ("20:9", 20f / 9f), ("16:10", 1.6f), ("4:3", 4f / 3f) };
+
+        // N1 (review cuối đợt B): "!" của mỗi vai (điểm đầu + 120 px lên, nút 90) không nằm dưới nút nào của HUD Lobby hay thanh tài nguyên, kể cả nút đang tắt (L-025).
+        [Test]
+        public void IncidentBubbles_ClearOfHudButtons_AtEveryAspect() =>
+            WithLobby(scene =>
+            {
+                var view = new SerializedObject(RestaurantSceneTests.All<RestaurantView>(scene).Single());
+                var buttons = Named(scene, "LobbyHud").GetComponentsInChildren<Button>(true).Concat(Named(scene, ResourceBar).GetComponentsInChildren<Button>(true)).ToArray();
+                foreach (var (aspectName, aspect) in Aspects)
+                {
+                    var shift = 1920f - 1080f * aspect;
+                    foreach (var field in new[] { "_cookSpots", "_serverSpots", "_cashierSpots" })
+                    {
+                        var spot = (RectTransform)view.FindProperty(field).GetArrayElementAtIndex(0).objectReferenceValue;
+                        var centre = RestaurantSceneTests.InReferenceCanvas(spot).center + new Vector2(0, 120);
+                        var bubble = new Rect(centre.x - shift / 2f - 45f, centre.y - 45f, 90f, 90f);
+                        foreach (var button in buttons)
+                        {
+                            var rect = RestaurantSceneTests.InReferenceCanvas((RectTransform)button.transform);
+                            // Nút nằm nửa phải của canvas tham chiếu thì neo phải.
+                            if (rect.center.x > 960f) rect.x -= shift;
+                            Assert.IsFalse(bubble.Overlaps(rect), $"{aspectName}: {field} '!' {bubble} is under {button.name} {rect}");
+                        }
+                    }
+                }
+            });
+
+        // Mép phải phòng (sàn và tường sau) không chạm thanh quán đang mở. 4:3 bỏ qua: phòng lệch phải để nhường chỗ "!" nên mở thanh thì chạm tường, người chơi kéo quán được (user chốt 2026-11-11).
+        [Test]
+        public void Room_ClearOfOpenRestaurantBar_AtWideAspects() =>
+            WithLobby(scene =>
+            {
+                var roomNode = Named(scene, "Room");
+                var origin = RestaurantSceneTests.InReferenceCanvas(roomNode).position;
+                var right = new[] { "Floor", "WallBack" }.Max(name =>
+                {
+                    var corners = new Vector3[4];
+                    Named(scene, name).GetWorldCorners(corners);
+                    return corners.Max(c => origin.x + roomNode.InverseTransformPoint(c).x);
+                });
+                var column = RestaurantSceneTests.InReferenceCanvas(Named(scene, "RestaurantBar_PH_180x460"));
+                foreach (var (aspectName, aspect) in Aspects.Where(a => a.Aspect >= 1.6f))
+                {
+                    var shift = 1920f - 1080f * aspect;
+                    Assert.Less(right - shift / 2f, column.xMin - shift, $"{aspectName}: room edge {right - shift / 2f} runs under the open restaurant bar {column.xMin - shift}");
+                }
+            });
+
         // Rect theo góc trên-trái (y đi xuống) như spec 5.4; InReferenceCanvas trả gốc dưới-trái.
         internal static Rect FromTop(Scene scene, string name) => FromTop(RestaurantSceneTests.InReferenceCanvas(Named(scene, name)));
 
@@ -224,7 +274,7 @@ namespace BunDauPeo.Tests
 
                 foreach (var (name, x, y, w, h) in new[]
                          {
-                             ("Avatar_PH_140x140", 20f, 20f, 140f, 140f), ("InfoBar", 180f, 108f, 800f, 68f), ("BannerGacha_PH_360x200", 20f, 200f, 360f, 200f),
+                             ("Avatar_PH_140x140", 20f, 20f, 140f, 140f), ("InfoBar", 180f, 108f, 800f, 68f), ("BannerGacha_PH_360x200", 20f, 340f, 360f, 200f),
                          })
                 {
                     Assert.IsTrue(Named(scene, name).IsChildOf(hud), name + " belongs to LobbyHud");
@@ -237,6 +287,9 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(180f, message.x, 0.01f);
                 Assert.AreEqual(186f, message.y, 0.01f);
                 Assert.AreEqual(800f, message.width, 0.01f);
+
+                // Hình mới có tên theo luật _PH_ (review cuối đợt B): mặt avatar 100×100.
+                Assert.IsNotNull(Named(scene, "Avatar_PH_140x140").Find("AvatarFace_PH_100x100"), "avatar face is named AvatarFace_PH_100x100");
 
                 var shop = RestaurantSceneTests.InReferenceCanvas(Named(scene, "HubRoundBtnShop_PH_110x110"));
                 Assert.IsTrue(Named(scene, "HubRoundBtnShop_PH_110x110").IsChildOf(hud));

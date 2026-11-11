@@ -185,6 +185,10 @@ namespace BunDauPeo.EditorTools
             var historyBox = NewRect("GachaHistoryBox_PH_1200x800", historyRoot);
             Place(historyBox, Center, Center, Vector2.zero, HistoryBoxSize);
             AddImage(historyBox, sprite, Panel, raycast: false);
+            // Viền sáng để hộp tối thấy rõ trên nền mờ (user chốt 2026-11-12).
+            var historyBorder = historyBox.gameObject.AddComponent<Outline>();
+            historyBorder.effectColor = new Color(0.85f, 0.88f, 1f, 0.95f);
+            historyBorder.effectDistance = new Vector2(4f, -4f);
             var historyTitle = NewLabel("TitleText", historyBox, font, "gacha.history_title", 48, TextAnchor.MiddleCenter, Color.white);
             Place(historyTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(1000, 70));
             var scrollRect = NewRect("ScrollView", historyBox);

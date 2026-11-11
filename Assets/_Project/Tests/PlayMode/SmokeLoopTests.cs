@@ -694,11 +694,12 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsFalse(new SaveService(_savePath).Load().RestaurantBarOpen, Where("file save sau Reset phải false"));
         }
 
-        // Mô phỏng module nhập: nhấn → kéo → thả. Đối tượng nhận kéo tìm theo cây cha như uGUI; như PointerInputModule, khi bắt đầu kéo thì cú nhấn hết đủ điều kiện thành click.
-        private static IEnumerator Swipe(GameObject pressed, Vector2 from, Vector2 delta)
+        // Mô phỏng module nhập như PointerInputModule (L-036): raycast thật tại điểm nhấn, pointerDown lên đối tượng trúng, khi kéo mà đối tượng nhấn
+        // không phải đối tượng kéo thì pointerUp và huỷ click, rồi thả. `under` là thứ người chơi định chạm: raycast không trúng nó nghĩa là nó bị che.
+        private static IEnumerator Swipe(Vector2 from, Vector2 delta, Transform under)
         {
             var es = EventSystem.current;
-            var e = new PointerEventData(es) { button = PointerEventData.InputButton.Left, position = from, pressPosition = from, eligibleForClick = true, pointerPress = pressed };
+            var e = new PointerEventData(es) { button = PointerEventData.InputButton.Left, position = from, pressPosition = from };
             var hits = new List<RaycastResult>();
             // Canvas dựng mesh ở khung sau khi scene nạp: đợi tối đa 60 khung cho tới khi raycast trúng.
             for (var wait = 0; wait < 60; wait++)
@@ -709,27 +710,39 @@ namespace BunDauPeo.PlayModeTests
             }
 
             Assert.IsNotEmpty(hits, $"swipe starts on nothing at {from} (screen {Screen.width}x{Screen.height})");
-            e.pointerCurrentRaycast = hits[0];
-            e.pointerPressRaycast = hits[0];
-            var drag = ExecuteEvents.GetEventHandler<IDragHandler>(pressed);
-            Assert.IsNotNull(drag, $"{pressed.name} has no drag handler up its parents");
-            e.pointerDrag = drag;
-            ExecuteEvents.Execute(drag, e, ExecuteEvents.initializePotentialDrag);
-            ExecuteEvents.Execute(drag, e, ExecuteEvents.beginDragHandler);
+            var over = hits[0].gameObject;
+            Assert.IsTrue(over.transform.IsChildOf(under), $"swipe at {from} (screen {Screen.width}x{Screen.height}) lands on {over.name}, not {under.name}: covered");
+            e.pointerCurrentRaycast = e.pointerPressRaycast = hits[0];
+            e.rawPointerPress = over;
+            e.pointerPress = ExecuteEvents.ExecuteHierarchy(over, e, ExecuteEvents.pointerDownHandler) ?? ExecuteEvents.GetEventHandler<IPointerClickHandler>(over);
+            e.eligibleForClick = true;
+            e.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(over);
+            Assert.IsNotNull(e.pointerDrag, $"{over.name} has no drag handler up its parents");
+            ExecuteEvents.Execute(e.pointerDrag, e, ExecuteEvents.initializePotentialDrag);
+            ExecuteEvents.Execute(e.pointerDrag, e, ExecuteEvents.beginDragHandler);
             e.dragging = true;
-            e.eligibleForClick = false;
             const int steps = 10;
             for (var i = 1; i <= steps; i++)
             {
                 var next = from + delta * (i / (float)steps);
                 e.delta = next - e.position;
                 e.position = next;
-                ExecuteEvents.Execute(drag, e, ExecuteEvents.dragHandler);
+                if (e.pointerPress != e.pointerDrag)
+                {
+                    if (e.pointerPress != null) ExecuteEvents.Execute(e.pointerPress, e, ExecuteEvents.pointerUpHandler);
+                    e.eligibleForClick = false;
+                    e.pointerPress = null;
+                    e.rawPointerPress = null;
+                }
+
+                ExecuteEvents.Execute(e.pointerDrag, e, ExecuteEvents.dragHandler);
                 yield return null;
             }
 
-            ExecuteEvents.Execute(drag, e, ExecuteEvents.endDragHandler);
-            if (e.eligibleForClick) ExecuteEvents.Execute(pressed, e, ExecuteEvents.pointerClickHandler);
+            if (e.pointerPress != null) ExecuteEvents.Execute(e.pointerPress, e, ExecuteEvents.pointerUpHandler);
+            if (e.eligibleForClick && e.pointerPress != null && e.pointerPress == ExecuteEvents.GetEventHandler<IPointerClickHandler>(over))
+                ExecuteEvents.Execute(e.pointerPress, e, ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.Execute(e.pointerDrag, e, ExecuteEvents.endDragHandler);
         }
 
         // Spec UI hub B 5.2, Review Focus 1: vuốt dời quán và kẹp ở mép; kéo bắt đầu ngay trên "!" vẫn dời quán mà không xử lý sự cố; bấm không kéo thì xử lý.
@@ -744,16 +757,16 @@ namespace BunDauPeo.PlayModeTests
             var world = scroll.content;
             Assert.AreEqual(0f, world.anchoredPosition.x, 0.5f, Where("mở Lobby phải ở giữa"));
             var centre = RectTransformUtility.WorldToScreenPoint(null, scroll.transform.position);
-            yield return Swipe(scroll.gameObject, centre, new Vector2(-300f, 0f));
+            yield return Swipe(centre, new Vector2(-300f, 0f), scroll.transform);
             yield return null;
             Assert.Less(world.anchoredPosition.x, -1f, Where("vuốt sang trái mà quán không dời"));
 
             _step = "D2 kéo 5000 px: dừng ở mép";
-            yield return Swipe(scroll.gameObject, centre, new Vector2(-5000f, 0f));
+            yield return Swipe(centre, new Vector2(-5000f, 0f), scroll.transform);
             yield return null;
             yield return null;
             Assert.AreEqual(1f, scroll.horizontalNormalizedPosition, 0.01f, Where("kéo quá mép phải dừng ở mép"));
-            yield return Swipe(scroll.gameObject, centre, new Vector2(5000f, 5000f));
+            yield return Swipe(centre, new Vector2(5000f, 5000f), scroll.transform);
             yield return null;
             yield return null;
             Assert.AreEqual(0f, scroll.horizontalNormalizedPosition, 0.01f, Where("kéo quá mép trái"));
@@ -774,14 +787,19 @@ namespace BunDauPeo.PlayModeTests
             max.SetValue(config, 2f);
             try
             {
-                restaurant.Incidents.Reset();
-                var deadline = Time.realtimeSinceStartup + 20f;
-                while (restaurant.Incidents.Active == null)
+                // Vai Thu ngân: "!" của nó đứng gần HUD trái nhất, chỗ banner từng che (N1). Sinh lại tới khi trúng vai này (1/3 mỗi lần).
+                for (var attempt = 0; attempt < 30 && !(restaurant.Incidents.Active.HasValue && restaurant.Incidents.Active.Value.Role == StaffRole.Cashier); attempt++)
                 {
-                    if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where("20s mà không có sự cố nào sinh"));
-                    yield return null;
+                    restaurant.Incidents.Reset();
+                    var deadline = Time.realtimeSinceStartup + 20f;
+                    while (restaurant.Incidents.Active == null)
+                    {
+                        if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where("20s mà không có sự cố nào sinh"));
+                        yield return null;
+                    }
                 }
 
+                Assert.IsTrue(restaurant.Incidents.Active.HasValue && restaurant.Incidents.Active.Value.Role == StaffRole.Cashier, Where("30 lần sinh mà không có sự cố Thu ngân"));
                 var role = restaurant.Incidents.Active.Value.Role;
                 if (!restaurant.Incidents.Active.Value.CanResolve)
                 {
@@ -797,7 +815,7 @@ namespace BunDauPeo.PlayModeTests
                 _step = "D4 kéo bắt đầu trên '!': quán dời, sự cố còn";
                 var onBubble = RectTransformUtility.WorldToScreenPoint(null, bubble.transform.position);
                 var before = world.anchoredPosition.x;
-                yield return Swipe(bubble, onBubble, new Vector2(-300f, 0f));
+                yield return Swipe(onBubble, new Vector2(-300f, 0f), bubble.transform);
                 yield return null;
                 Assert.Less(world.anchoredPosition.x, before - 1f, Where("kéo từ '!' mà quán không dời"));
                 Assert.IsTrue(restaurant.Incidents.Active.HasValue, Where("kéo từ '!' đã xử lý sự cố (đáng lẽ chỉ dời quán)"));
@@ -807,9 +825,8 @@ namespace BunDauPeo.PlayModeTests
                 world.anchoredPosition = Vector2.zero;
                 yield return null;
                 yield return null;
-                // Màn test là 640×480: HUD Lobby có thể phủ "!" nên UiDriver báo Blocked; bấm thẳng bằng sự kiện click như ca nút +.
-                ClickDirect(bubble.GetComponent<Button>());
-                yield return null;
+                // Qua raycast tại tâm nút (màn test 640×480): HUD phủ "!" thì UiDriver báo Blocked và test đỏ (L-036).
+                yield return ClickWhenReady("IncidentBubble");
                 Assert.IsFalse(restaurant.Incidents.Active.HasValue, Where("bấm '!' mà sự cố không được xử lý"));
             }
             finally
@@ -940,7 +957,7 @@ namespace BunDauPeo.PlayModeTests
 
             var scroll = FindAny("WorldScroll").GetComponent<ScrollRect>();
             var centre = RectTransformUtility.WorldToScreenPoint(null, scroll.transform.position);
-            yield return Swipe(scroll.gameObject, centre, new Vector2(-Screen.width * 0.3f, -Screen.height * 0.2f));
+            yield return Swipe(centre, new Vector2(-Screen.width * 0.3f, -Screen.height * 0.2f), scroll.transform);
             scroll.StopMovement();
             yield return Shot("lobby-dragged", suffix);
             scroll.content.anchoredPosition = Vector2.zero;

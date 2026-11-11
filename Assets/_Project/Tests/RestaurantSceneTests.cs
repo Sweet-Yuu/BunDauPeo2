@@ -280,8 +280,9 @@ namespace BunDauPeo.Tests
         }
 
         // R1 (đợt B): thanh chất lượng một hàng 800×68 ngay dưới thanh tài nguyên, bên phải avatar; thông báo AFK ngay dưới nó; không đè thanh quán.
+        // N1: banner Gacha nằm ngoài sàn (ở 16:9), như ảnh mô phỏng.
         [Test]
-        public void RestaurantScene_InfoBarClearOfRoomAndColumn() =>
+        public void RestaurantScene_InfoBarAndBannerClearOfFloorAndColumn() =>
             WithScene(ProjectSetup.RestaurantScenePath, scene =>
             {
                 var bar = InReferenceCanvas(Named(scene, "InfoBar"));
@@ -300,18 +301,16 @@ namespace BunDauPeo.Tests
 
                 var roomNode = Named(scene, "Room");
                 var origin = InReferenceCanvas(roomNode).position;
-                // Chỉ xét sàn: thanh chất lượng (180, 108, 800×68) và phòng "cùng chỗ cũ" cùng nằm theo ảnh đã duyệt nên thanh phủ góc sau-trái nơi hai tường gặp nhau
-                // (khoảng 135×27 px, thanh trong suốt 0,78). Chờ user xem ảnh Lobby ở lần dừng playtest.
-                var blocks = new[] { "Floor" };
-                foreach (var block in blocks)
-                {
-                    var target = Named(scene, block);
-                    var corners = new Vector3[4];
-                    target.GetWorldCorners(corners);
-                    var quad = corners.Select(c => origin + (Vector2)roomNode.InverseTransformPoint(c)).ToArray();
-                    Assert.IsFalse(QuadOverlapsRect(quad, bar), $"InfoBar overlaps {block}");
-                    // AfkMessage (spec UI hub B 5.4: (180, 186)) chỉ hiện 6 giây khi thu AFK lưu lỗi và vẽ đè lên phòng, nên không xét đè sàn/tường.
-                }
+                // Chỉ xét sàn, không xét tường: thanh chất lượng (180, 108, 800×68) phủ góc sau-trái nơi hai tường gặp nhau (khoảng 135×27 px, thanh trong suốt 0,78);
+                // user đã xem ảnh Lobby và duyệt (2026-11-11). Banner thì phải ở ngoài sàn.
+                var banner = InReferenceCanvas(Named(scene, "BannerGacha_PH_360x200"));
+                var target = Named(scene, "Floor");
+                var corners = new Vector3[4];
+                target.GetWorldCorners(corners);
+                var quad = corners.Select(c => origin + (Vector2)roomNode.InverseTransformPoint(c)).ToArray();
+                Assert.IsFalse(QuadOverlapsRect(quad, bar), "InfoBar overlaps Floor");
+                Assert.IsFalse(QuadOverlapsRect(quad, banner), "BannerGacha overlaps Floor");
+                // AfkMessage (spec UI hub B 5.4: (180, 186)) chỉ hiện 6 giây khi thu AFK lưu lỗi và vẽ đè lên phòng, nên không xét đè sàn/tường.
 
                 Assert.IsFalse(bar.Overlaps(column));
                 Assert.IsFalse(message.Overlaps(column));
