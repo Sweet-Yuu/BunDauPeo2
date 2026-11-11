@@ -7,8 +7,8 @@ using UnityEngine.UI;
 
 namespace BunDauPeo.UI
 {
-    // Bản thử: một cột nút, mỗi nâng cấp một nút. UI nâng cấp thật thay view này mà không đụng UpgradeService.
-    // Nút "mờ" vẫn bấm được để hiện lý do trong dòng thông báo.
+    // Lưới thẻ nâng cấp (spec UI hub B 5.7): mỗi nâng cấp một thẻ dựng từ thẻ mẫu vào chỗ _cardSlots, nút Mua riêng trên thẻ.
+    // Nút Mua "mờ" vẫn bấm được để hiện lý do trong dòng thông báo.
     public class UpgradeTestPanel : MonoBehaviour, IHubPage, IResourcePage
     {
         private const float DimAlpha = 0.45f;
@@ -17,13 +17,14 @@ namespace BunDauPeo.UI
         [SerializeField] private Button _closeButton;
         [SerializeField] private GameObject _root;
         [SerializeField] private Text _messageText;
-        [SerializeField] private RectTransform _content;
-        [SerializeField] private Button _rowTemplate;
+        // shortcut: lưới 3×2 cố định cho 6 nâng cấp, thêm cái thứ 7 thì làm cuộn.
+        [SerializeField] private RectTransform[] _cardSlots;
+        [SerializeField] private UpgradeCardView _cardTemplate;
 
         private sealed class Row
         {
             public UpgradeDefinition Definition;
-            public Text Label;
+            public UpgradeCardView Card;
             public CanvasGroup Group;
         }
 
@@ -72,7 +73,7 @@ namespace BunDauPeo.UI
         private bool HasAllReferences()
         {
             var ok = _openButton != null && _closeButton != null && _root != null && _messageText != null
-                     && _content != null && _rowTemplate != null;
+                     && _cardTemplate != null && _cardSlots != null && _cardSlots.Length > 0 && System.Array.TrueForAll(_cardSlots, s => s != null);
             if (!ok) Debug.LogError($"{nameof(UpgradeTestPanel)}: a serialized reference is not assigned.", this);
             return ok;
         }
@@ -93,15 +94,26 @@ namespace BunDauPeo.UI
             foreach (var upgrade in _service.Config.Upgrades.Items)
             {
                 if (upgrade == null) continue;
-                var button = Instantiate(_rowTemplate, _content, false);
-                button.gameObject.SetActive(true);
+                if (_rows.Count >= _cardSlots.Length)
+                {
+                    Debug.LogWarning($"{nameof(UpgradeTestPanel)}: more upgrades than card slots, '{upgrade.Id}' is not shown.", this);
+                    break;
+                }
+
+                var card = Instantiate(_cardTemplate, _cardSlots[_rows.Count], false);
+                var cardRect = (RectTransform)card.transform;
+                cardRect.anchorMin = Vector2.zero;
+                cardRect.anchorMax = Vector2.one;
+                cardRect.offsetMin = cardRect.offsetMax = Vector2.zero;
+                card.gameObject.SetActive(true);
                 var captured = upgrade;
-                button.onClick.AddListener(() => Buy(captured));
+                card.BuyButton.onClick.AddListener(() => Buy(captured));
+                card.NameText.text = upgrade.DisplayName;
                 _rows.Add(new Row
                 {
                     Definition = upgrade,
-                    Label = button.GetComponentInChildren<Text>(),
-                    Group = button.gameObject.AddComponent<CanvasGroup>(),
+                    Card = card,
+                    Group = card.BuyButton.gameObject.AddComponent<CanvasGroup>(),
                 });
             }
 
@@ -118,11 +130,14 @@ namespace BunDauPeo.UI
         private void ClearRows()
         {
             _rows.Clear();
-            for (var i = _content.childCount - 1; i >= 0; i--)
+            foreach (var slot in _cardSlots)
             {
-                var old = _content.GetChild(i);
-                old.SetParent(null, false);
-                Destroy(old.gameObject);
+                for (var i = slot.childCount - 1; i >= 0; i--)
+                {
+                    var old = slot.GetChild(i);
+                    old.SetParent(null, false);
+                    Destroy(old.gameObject);
+                }
             }
         }
 
@@ -140,7 +155,8 @@ namespace BunDauPeo.UI
             foreach (var row in _rows)
             {
                 var level = _service.Upgrades.GetLevel(row.Definition.Id);
-                row.Label.text = RestaurantViewText.UpgradeButton(row.Definition, level);
+                row.Card.LevelText.text = RestaurantViewText.UpgradeLevel(row.Definition, level);
+                row.Card.CostText.text = RestaurantViewText.UpgradeCost(row.Definition, level);
                 var cost = RestaurantViewText.NextCost(row.Definition, level);
                 row.Group.alpha = cost == null || !_wallet.CanAfford(cost) ? DimAlpha : 1f;
             }

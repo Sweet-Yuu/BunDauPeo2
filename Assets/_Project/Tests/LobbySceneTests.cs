@@ -199,13 +199,11 @@ namespace BunDauPeo.Tests
             });
 
         // Rect theo góc trên-trái (y đi xuống) như spec 5.4; InReferenceCanvas trả gốc dưới-trái.
-        private static Rect FromTop(Scene scene, string name)
-        {
-            var r = RestaurantSceneTests.InReferenceCanvas(Named(scene, name));
-            return new Rect(r.xMin, 1080f - r.yMax, r.width, r.height);
-        }
+        internal static Rect FromTop(Scene scene, string name) => FromTop(RestaurantSceneTests.InReferenceCanvas(Named(scene, name)));
 
-        private static void AssertRect(float x, float y, float w, float h, Rect actual, string name)
+        internal static Rect FromTop(Rect r) => new(r.xMin, 1080f - r.yMax, r.width, r.height);
+
+        internal static void AssertRect(float x, float y, float w, float h, Rect actual, string name)
         {
             Assert.AreEqual(x, actual.x, 0.01f, name + " x");
             Assert.AreEqual(y, actual.y, 0.01f, name + " y (from top)");

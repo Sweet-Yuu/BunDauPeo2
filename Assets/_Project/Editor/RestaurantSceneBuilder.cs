@@ -571,32 +571,53 @@ namespace BunDauPeo.EditorTools
             var title = NewLabel("TitleText", box, font, "restaurant.staff", 52, TextAnchor.MiddleCenter, TextColor);
             Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(800, 70));
             var close = BackButton(box, font, sprite);
-            var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
-            Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 25), new Vector2(1300, 50));
+            // Dải 930–960 (từ trên) giữa hàng ô cuối và vạch 120 px: chỉ đủ một dòng nhỏ.
+            var message = NewText("MessageText", box, font, "", 26, TextAnchor.MiddleCenter, Warning);
+            Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 0), new Vector2(1300, 30));
 
+            // Spec UI hub B 5.7: ba cột × ba ô 500×220, tâm cột x 390 / 960 / 1530, hàng từ y 210 / 460 / 710 (tính từ trên).
             var columnTitles = new Text[3];
             var slotButtons = new Button[3 * slotsPerRole];
             var slotTexts = new Text[3 * slotsPerRole];
+            var slotInfoTexts = new Text[3 * slotsPerRole];
+            var portraits = new Image[3 * slotsPerRole];
             var removeButtons = new Button[3 * slotsPerRole];
             for (var role = 0; role < 3; role++)
             {
-                var x = (role - 1) * 480f;
+                var x = (role - 1) * 570f;
                 columnTitles[role] = NewText($"ColumnTitle{role}", box, font, "", 44, TextAnchor.MiddleCenter, Gold);
-                Place(columnTitles[role].rectTransform, TopCenter, TopCenter, new Vector2(x, -120), new Vector2(440, 60));
+                Place(columnTitles[role].rectTransform, TopCenter, TopCenter, new Vector2(x, -130), new Vector2(500, 60));
                 for (var slot = 0; slot < slotsPerRole; slot++)
                 {
                     var index = role * slotsPerRole + slot;
-                    var button = NewButton($"Slot{role}_{slot}", box, sprite, font, "", ButtonColor, TopCenter, new Vector2(x, -190 - slot * 140), new Vector2(440, 110));
-                    var label = (RectTransform)button.transform.GetChild(0);
-                    // Chừa chỗ cho nút Gỡ bên phải.
-                    label.offsetMin = new Vector2(14, 0);
-                    label.offsetMax = new Vector2(-130, 0);
-                    slotTexts[index] = label.GetComponent<Text>();
+                    var button = NewButton($"Slot{role}_{slot}", box, sprite, font, "", ButtonColor, TopCenter, new Vector2(x, -210 - slot * 250), new Vector2(500, 220));
+                    // Viền sáng chỉ bật ở ô trống (StaffPanel.Redraw).
+                    var outline = button.gameObject.AddComponent<Outline>();
+                    outline.effectColor = new Color(0.85f, 0.93f, 1f);
+                    outline.effectDistance = new Vector2(4, -4);
+                    outline.enabled = false;
+
+                    var portrait = NewRect("Portrait_PH_140x140", button.transform);
+                    Place(portrait, TopLeft, TopLeft, new Vector2(20, -40), new Vector2(140, 140));
+                    portraits[index] = AddImage(portrait, knob, AvatarColor, raycast: false);
+                    portraits[index].type = Image.Type.Simple;
+
+                    slotTexts[index] = button.GetComponentInChildren<Text>();
+                    var label = slotTexts[index].rectTransform;
+                    Place(label, TopLeft, TopLeft, new Vector2(180, -20), new Vector2(300, 110));
                     slotTexts[index].alignment = TextAnchor.MiddleLeft;
-                    slotTexts[index].fontSize = 30;
+                    slotTexts[index].fontSize = 40;
+                    // Tên dài và chữ gợi ý ô khoá co lại cho vừa ô.
+                    slotTexts[index].resizeTextForBestFit = true;
+                    slotTexts[index].resizeTextMinSize = 20;
+                    slotTexts[index].resizeTextMaxSize = 40;
+                    slotInfoTexts[index] = NewText("InfoText", button.transform as RectTransform, font, "", 28, TextAnchor.MiddleLeft, Gold);
+                    Place(slotInfoTexts[index].rectTransform, TopLeft, TopLeft, new Vector2(180, -130), new Vector2(180, 50));
                     slotButtons[index] = button;
                     removeButtons[index] = LabelButton("RemoveButton", button.transform as RectTransform, sprite, font, "restaurant.remove", GreyButton,
-                        new Vector2(1, 0.5f), new Vector2(-10, 0), new Vector2(110, 70));
+                        new Vector2(1, 0), new Vector2(-15, 15), new Vector2(120, 60));
+                    // Bản Anh "Remove" tràn nút 120 px ở cỡ chữ mặc định.
+                    removeButtons[index].GetComponentInChildren<Text>().fontSize = 26;
                 }
             }
 
@@ -669,6 +690,8 @@ namespace BunDauPeo.EditorTools
             SetRefs(so.FindProperty("_columnTitles"), columnTitles);
             SetRefs(so.FindProperty("_slotButtons"), slotButtons);
             SetRefs(so.FindProperty("_slotTexts"), slotTexts);
+            SetRefs(so.FindProperty("_slotInfoTexts"), slotInfoTexts);
+            SetRefs(so.FindProperty("_portraits"), portraits);
             SetRefs(so.FindProperty("_removeButtons"), removeButtons);
             so.FindProperty("_listRoot").objectReferenceValue = listRoot.gameObject;
             so.FindProperty("_listTitle").objectReferenceValue = listTitle;
@@ -683,7 +706,7 @@ namespace BunDauPeo.EditorTools
             return panel;
         }
 
-        // Trang Nâng cấp (bản thử, spec 5.3): mỗi nâng cấp một hàng nút do UpgradeTestPanel dựng từ hàng mẫu.
+        // Trang Nâng cấp (spec UI hub B 5.7): mỗi nâng cấp một thẻ do UpgradeTestPanel dựng từ thẻ mẫu vào lưới 3×2.
         private static UpgradeTestPanel BuildUpgradePanel(RectTransform canvas, RectTransform column, Font font, Sprite sprite, Sprite knob)
         {
             // Ô thứ hai của thanh quán, cùng cỡ với nút Nhân viên.
@@ -695,30 +718,38 @@ namespace BunDauPeo.EditorTools
             var title = NewLabel("TitleText", box, font, "restaurant.upgrade_title", 52, TextAnchor.MiddleCenter, TextColor);
             Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(700, 70));
             var close = BackButton(box, font, sprite);
-            var message = NewText("MessageText", box, font, "", 32, TextAnchor.MiddleCenter, Warning);
-            Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 25), new Vector2(1400, 50));
+            // Cạnh dưới lưới là y 910 (từ trên), còn 50 px tới vạch cho dòng báo.
+            var message = NewText("MessageText", box, font, "", 30, TextAnchor.MiddleCenter, Warning);
+            Place(message.rectTransform, BottomCenter, BottomCenter, new Vector2(0, 5), new Vector2(1400, 40));
 
-            // shortcut: cột không cuộn, vừa sáu nâng cấp mẫu; thêm ScrollRect như danh sách của StaffPanel nếu catalog dài hơn.
-            var content = NewRect("Content", box);
-            Place(content, TopCenter, TopCenter, new Vector2(0, -120), new Vector2(1400, 660));
-            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 10;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
+            // Spec UI hub B 5.7: lưới 3 cột × 2 hàng thẻ 540×360 (cột trái x 120 / 690 / 1260, hàng y 150 / 550 từ trên).
+            // shortcut: lưới 3×2 cố định cho 6 nâng cấp, thêm cái thứ 7 thì làm cuộn.
+            var cardSlots = new RectTransform[6];
+            for (var i = 0; i < cardSlots.Length; i++)
+            {
+                cardSlots[i] = NewRect($"CardSlot{i}", box);
+                Place(cardSlots[i], TopLeft, TopLeft, new Vector2(120 + i % 3 * 570, -(150 + i / 3 * 400)), new Vector2(540, 360));
+            }
 
-            var rowTemplate = NewButton("RowTemplate", box, sprite, font, "", ButtonColor, Center, Vector2.zero, new Vector2(1400, 100));
-            var rowLabel = (RectTransform)rowTemplate.transform.GetChild(0);
-            rowLabel.offsetMin = new Vector2(20, 0);
-            rowLabel.offsetMax = new Vector2(-20, 0);
-            var rowText = rowLabel.GetComponent<Text>();
-            rowText.alignment = TextAnchor.MiddleLeft;
-            rowText.fontSize = 30;
-            var rowSize = rowTemplate.gameObject.AddComponent<LayoutElement>();
-            rowSize.minHeight = 100;
-            rowSize.preferredHeight = 100;
-            rowTemplate.gameObject.SetActive(false);
+            // Thẻ mẫu nằm ngoài lưới và tắt; UpgradeTestPanel nhân bản vào từng chỗ. Thẻ không phải Button, chỉ nút Mua bấm được.
+            var template = NewRect("UpgradeCard", box);
+            Place(template, Center, Center, Vector2.zero, new Vector2(540, 360));
+            AddImage(template, sprite, new Color(0.22f, 0.36f, 0.62f), raycast: false);
+            var nameText = NewText("NameText", template, font, "", 42, TextAnchor.MiddleLeft, Color.white);
+            Place(nameText.rectTransform, TopLeft, TopLeft, new Vector2(20, -20), new Vector2(500, 60));
+            var levelText = NewText("LevelText", template, font, "", 32, TextAnchor.MiddleLeft, Gold);
+            Place(levelText.rectTransform, TopLeft, TopLeft, new Vector2(20, -90), new Vector2(500, 44));
+            var costText = NewText("CostText", template, font, "", 30, TextAnchor.UpperLeft, Color.white);
+            Place(costText.rectTransform, TopLeft, TopLeft, new Vector2(20, -145), new Vector2(500, 100));
+            var buy = LabelButton("BuyButton_PH_210x80", template, sprite, font, "restaurant.buy", AfkGreen, new Vector2(1, 0), new Vector2(-20, 20), new Vector2(210, 80));
+            var templateView = template.gameObject.AddComponent<UpgradeCardView>();
+            var cardSo = new SerializedObject(templateView);
+            cardSo.FindProperty("_nameText").objectReferenceValue = nameText;
+            cardSo.FindProperty("_levelText").objectReferenceValue = levelText;
+            cardSo.FindProperty("_costText").objectReferenceValue = costText;
+            cardSo.FindProperty("_buyButton").objectReferenceValue = buy;
+            cardSo.ApplyModifiedPropertiesWithoutUndo();
+            template.gameObject.SetActive(false);
 
             root.gameObject.SetActive(false);
 
@@ -729,8 +760,8 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_closeButton").objectReferenceValue = close;
             so.FindProperty("_root").objectReferenceValue = root.gameObject;
             so.FindProperty("_messageText").objectReferenceValue = message;
-            so.FindProperty("_content").objectReferenceValue = content;
-            so.FindProperty("_rowTemplate").objectReferenceValue = rowTemplate;
+            SetRefs(so.FindProperty("_cardSlots"), cardSlots);
+            so.FindProperty("_cardTemplate").objectReferenceValue = templateView;
             so.ApplyModifiedPropertiesWithoutUndo();
             return panel;
         }

@@ -172,6 +172,15 @@ namespace BunDauPeo.Tests
             Assert.AreEqual("Cashier", StaffPanelRows.RoleName(StaffRole.Cashier));
         }
 
+        // Dòng phụ của ô nhân viên: độ hiếm và sao, như thẻ Chọn đội.
+        [Test]
+        public void SlotInfo_RarityAndStars()
+        {
+            Assert.AreEqual("SR ★★★", StaffPanelRows.SlotInfo(TestData.Character("a", Rarity.SR), 3));
+            Assert.AreEqual("R ★", StaffPanelRows.SlotInfo(TestData.Character("b", Rarity.R), 1));
+            Assert.AreEqual("SSR ", StaffPanelRows.SlotInfo(TestData.Character("c", Rarity.SSR), 0));
+        }
+
         [Test]
         public void LockedHint_NamesTheUpgradeThatOpensTheSlot()
         {

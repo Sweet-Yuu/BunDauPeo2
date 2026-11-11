@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- UI hub đợt B (bố cục Lobby, quán 2.5D, mặc định tiếng Anh): user đã duyệt spec, ảnh mô phỏng và kế hoạch (2026-11-11). 🔨 B1 (Task 1–3) đã commit; 🔨 B2 (Task 4–5: kéo quán `WorldScroll`, quán 2.5D) xong, nhánh `feature/ui-hub-b`, 882 EditMode + 29 PlayMode xanh, chờ 📋 commit; tiếp theo 🔨 B3 (Task 6–7) ([spec](superpowers/specs/2026-11-11-ui-hub-b-design.md), [kế hoạch](superpowers/plans/2026-11-11-ui-hub-b.md)).
+- UI hub đợt B (bố cục Lobby, quán 2.5D, mặc định tiếng Anh): user đã duyệt spec, ảnh mô phỏng và kế hoạch (2026-11-11). 🔨 B1 (Task 1–3) đã commit; 🔨 B2 (Task 4–5: kéo quán `WorldScroll`, quán 2.5D) đã commit; 🔨 B3 (Task 6–7: trang Nhân viên, Nâng cấp, hộp Lịch sử quay, ảnh `hubb-*`, docs) xong code, nhánh `feature/ui-hub-b`, 886 EditMode + 29 PlayMode xanh, chờ 📋 commit, rồi **dừng cho user playtest** (ảnh ở `D:/bdp_BunDauPeo/shots/`), sau đó 🔍 review ([spec](superpowers/specs/2026-11-11-ui-hub-b-design.md), [kế hoạch](superpowers/plans/2026-11-11-ui-hub-b.md)).
 
 ## Tiếp theo
 

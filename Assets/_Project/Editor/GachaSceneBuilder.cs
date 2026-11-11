@@ -29,6 +29,7 @@ namespace BunDauPeo.EditorTools
 
         // Hộp quay tiếp giữ cỡ cũ; test đọc lại hằng này.
         internal static readonly Vector2 RollAgainSize = new(900, 540);
+        internal static readonly Vector2 HistoryBoxSize = new(1200, 800);
 
         private static readonly Vector2 TopLeft = new(0, 1);
         private static readonly Vector2 TopRight = new(1, 1);
@@ -176,15 +177,18 @@ namespace BunDauPeo.EditorTools
             againSo.ApplyModifiedPropertiesWithoutUndo();
             againRoot.gameObject.SetActive(false);
 
-            // Trang lịch sử kín màn (spec 5.5): danh sách nằm trong ScrollRect để 50 mục vẫn cuộn được.
+            // Hộp lịch sử (spec UI hub B 5.7): nền mờ kín màn vẽ trên thanh, hộp giữa màn; danh sách nằm trong ScrollRect để 50 mục vẫn cuộn được.
             var historyRoot = NewRect("HistoryPopup", panel);
             Stretch(historyRoot);
-            AddImage(historyRoot, sprite, Background, raycast: true);
-            var historyBox = PageBox(historyRoot, "Box");
+            AddImage(historyRoot, sprite, new Color(0f, 0f, 0f, 0.55f), raycast: true);
+            NavBarBuilder.OverBar(historyRoot);
+            var historyBox = NewRect("GachaHistoryBox_PH_1200x800", historyRoot);
+            Place(historyBox, Center, Center, Vector2.zero, HistoryBoxSize);
+            AddImage(historyBox, sprite, Panel, raycast: false);
             var historyTitle = NewLabel("TitleText", historyBox, font, "gacha.history_title", 48, TextAnchor.MiddleCenter, Color.white);
             Place(historyTitle.rectTransform, TopCenter, TopCenter, new Vector2(0, -25), new Vector2(1000, 70));
             var scrollRect = NewRect("ScrollView", historyBox);
-            Place(scrollRect, Center, Center, new Vector2(0, -60), new Vector2(1400, 740));
+            Place(scrollRect, Center, Center, new Vector2(0, -10), new Vector2(1100, 520));
             var viewport = NewRect("Viewport", scrollRect);
             Stretch(viewport);
             viewport.gameObject.AddComponent<RectMask2D>();
@@ -203,7 +207,7 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
-            var close = BackButton("CloseButton", historyBox, sprite, font);
+            var close = BattleSceneBuilder.LabelButton("CloseButton", historyBox, sprite, font, "common.close", GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(300, 100));
             var historyPopup = historyRoot.gameObject.AddComponent<GachaHistoryPopup>();
             var historySo = new SerializedObject(historyPopup);
             historySo.FindProperty("_root").objectReferenceValue = historyRoot.gameObject;

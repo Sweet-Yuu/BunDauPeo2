@@ -919,13 +919,14 @@ namespace BunDauPeo.PlayModeTests
             }
         }
 
-        // Ảnh cho lần dừng playtest: mọi panel và trang con ở tiếng Việt rồi tiếng Anh, ra D:/bdp_BunDauPeo/shots/hub-<màn>[-en].png.
+        // Ảnh cho lần dừng playtest đợt B: mọi panel và trang con ở tiếng Việt rồi tiếng Anh, ra D:/bdp_BunDauPeo/shots/hubb-<màn>[-en].png
+        // (tên hubb- để không ghi đè ảnh hub- của đợt A).
         // Đi cả đường đóng trang bằng ô khác (Chọn đội, Lịch sử quay), nên cũng là smoke test của IHubPage.
         private IEnumerator Shot(string screen, string suffix)
         {
             yield return null;
             yield return null;
-            var path = ScreenCapture1080.Capture($"hub-{screen}{suffix}.png");
+            var path = ScreenCapture1080.Capture($"hubb-{screen}{suffix}.png");
             Assert.IsFalse(path.StartsWith("ERROR", StringComparison.Ordinal), Where(path));
         }
 
@@ -933,7 +934,19 @@ namespace BunDauPeo.PlayModeTests
         {
             var combat = ServiceLocator.Get<CombatService>();
             _step = "S Lobby" + suffix;
+            // Cờ thanh quán nằm trong save nên lượt tiếng Anh thừa hưởng lượt tiếng Việt: đóng trước để ảnh Lobby thanh đóng đúng.
+            if (FindAny("RestaurantBar_PH_180x460").activeSelf) yield return ClickWhenReady("RestaurantBarToggle_PH_60x160");
             yield return Shot("lobby", suffix);
+
+            var scroll = FindAny("WorldScroll").GetComponent<ScrollRect>();
+            var centre = RectTransformUtility.WorldToScreenPoint(null, scroll.transform.position);
+            yield return Swipe(scroll.gameObject, centre, new Vector2(-Screen.width * 0.3f, -Screen.height * 0.2f));
+            scroll.StopMovement();
+            yield return Shot("lobby-dragged", suffix);
+            scroll.content.anchoredPosition = Vector2.zero;
+
+            yield return OpenRestaurantBar();
+            yield return Shot("lobby-bar", suffix);
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return Shot("characters", suffix);
             yield return ClickWhenReady("NavTabStages_PH_320x120");
@@ -958,6 +971,8 @@ namespace BunDauPeo.PlayModeTests
             yield return Shot("gacha", suffix);
             yield return ClickWhenReady("HistoryButton");
             yield return Shot("gacha-history", suffix);
+            // Lịch sử quay là hộp vẽ trên thanh: đóng bằng nút Đóng của hộp rồi mới bấm được thanh.
+            yield return ClickWhenReady("CloseButton");
 
             _step = "S Quán" + suffix;
             yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
@@ -978,13 +993,33 @@ namespace BunDauPeo.PlayModeTests
             yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
         }
 
-        [UnityTest, Timeout(240000)]
+        // Game mới chưa có nhân viên nên Lobby trống người: thêm người từ catalog, xếp đủ ba vai, rồi chờ (tối đa 45 giây) tới khi có khách đang ăn
+        // để ảnh thấy người đi, đĩa món và bóng trạng thái. Chạy trên save tạm của fixture, không đụng save thật.
+        private IEnumerator SeedRestaurantForShots(GameBootstrap bootstrap)
+        {
+            var catalog = (CharacterCatalog)typeof(GameBootstrap).GetField("_catalog", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(bootstrap);
+            var roster = bootstrap.Session.Roster;
+            foreach (var character in catalog.Items)
+                if (roster.GetOwned().Count < 6) roster.Add(character.Id);
+
+            var restaurant = ServiceLocator.Get<RestaurantService>();
+            var roles = new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier };
+            var owned = roster.GetOwned();
+            for (var i = 0; i < owned.Count; i++) restaurant.Staffing.TryAssign(owned[i].Id, roles[i % roles.Length]);
+
+            var deadline = Time.realtimeSinceStartup + 45f;
+            while (Time.realtimeSinceStartup < deadline && !restaurant.Simulation.Customers.Any(c => c.State == CustomerState.Eating)) yield return null;
+        }
+
+        [UnityTest, Timeout(360000)]
         public IEnumerator Hub_Screenshots_VietnameseAndEnglish()
         {
             _step = "S0 Boot (Việt)";
             SceneManager.LoadScene("Boot");
             yield return WaitForScene("Restaurant");
-            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
+            var session = bootstrap.Session;
+            yield return SeedRestaurantForShots(bootstrap);
             Assert.IsTrue(session.SetLanguage(Language.Vi), Where("SetLanguage(Vi)"));
             var oldHub = Object.FindFirstObjectByType<HubNav>();
             SceneManager.LoadScene("Restaurant");

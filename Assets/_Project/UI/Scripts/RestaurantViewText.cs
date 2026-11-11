@@ -39,16 +39,18 @@ namespace BunDauPeo.UI
         public static CurrencyAmount[] NextCost(UpgradeDefinition def, int level) =>
             level >= def.MaxLevel ? null : def.Levels[Math.Max(0, level)].Cost;
 
+        public static string UpgradeLevel(UpgradeDefinition def, int level) => UiText.Format("restaurant.level", level, def.MaxLevel);
+
         // Giá là của cấp kế tiếp, không phải cấp đang có.
-        public static string UpgradeButton(UpgradeDefinition def, int level)
+        public static string UpgradeCost(UpgradeDefinition def, int level)
         {
             var cost = NextCost(def, level);
-            if (cost == null) return $"{def.DisplayName}  {level}/{def.MaxLevel}\n{UiText.Get("restaurant.upgrade_max")}";
+            if (cost == null) return UiText.Get("restaurant.upgrade_max");
 
             var lines = new List<string>();
             foreach (var line in cost)
                 if (line.Amount > 0) lines.Add($"{line.Amount} {line.Type}");
-            return $"{def.DisplayName}  {level}/{def.MaxLevel}\n{string.Join(" + ", lines)}";
+            return string.Join(" + ", lines);
         }
 
         // Dùng chung cho mọi thao tác đã đổi dữ liệu trong bộ nhớ mà persist thất bại (mua nâng cấp, thu AFK).
