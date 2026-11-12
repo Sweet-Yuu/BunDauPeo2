@@ -244,24 +244,34 @@ namespace BunDauPeo.EditorTools
 
             // Lớp vẽ của Lobby (spec UI hub 5.1), từ dưới lên: quán, HUD Lobby, trang của quán (ở trên), ba panel của thanh, thanh tài nguyên, Menu, thanh dưới, rồi hộp phần thưởng.
             var charactersPanel = CharactersSceneBuilder.BuildPanel(canvas, sprite, font);
-            var stagesPanel = StageSelectSceneBuilder.BuildPanel(canvas, sprite, knob, font);
+            var stagesPanel = StageSelectSceneBuilder.BuildModePanel(canvas, sprite, font);
+            var stageMapPanel = StageSelectSceneBuilder.BuildPanel(canvas, sprite, knob, font);
             var gachaPanel = GachaSceneBuilder.BuildPanel(canvas, sprite, font);
             var resourceBar = NavBarBuilder.BuildResourceBar(canvas, font, sprite, knob);
             var menuPanel = NavBarBuilder.BuildMenu(canvas, font, sprite, out var menuView);
+            var notifyView = NavBarBuilder.BuildNotifyButton(canvas, font, sprite, knob);
             var hub = NavBarBuilder.Build(canvas, font, sprite);
+            var notifyPopup = NavBarBuilder.BuildNotifyPopup(canvas, font, sprite);
             NavBarBuilder.WireLobby(hub, resourceBar, lobbyHud.gameObject, new[] { avatar, shop }, banner);
             // Trang kín màn: bấm ô khác thì HubNav đóng từng trang đang mở qua IHubPage.Close() (Chọn đội trả đội như lúc mở).
             NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[]
             {
-                staffPanel, upgradePanel, qualityPopup,
-                stagesPanel.GetComponentInChildren<StageInfoPopup>(true), stagesPanel.GetComponentInChildren<StoryPlaceholderPopup>(true),
-                stagesPanel.GetComponentInChildren<TeamSelectPopup>(true), gachaPanel.GetComponentInChildren<GachaHistoryPopup>(true),
+                staffPanel, upgradePanel, qualityPopup, notifyPopup, stageMapPanel.GetComponentInChildren<StageMapView>(true),
+                stageMapPanel.GetComponentInChildren<StageInfoPopup>(true), stageMapPanel.GetComponentInChildren<StoryPlaceholderPopup>(true),
+                stageMapPanel.GetComponentInChildren<TeamSelectPopup>(true), gachaPanel.GetComponentInChildren<GachaHistoryPopup>(true),
             });
+            var stageMap = stageMapPanel.GetComponentInChildren<StageMapView>(true);
+            StageSelectSceneBuilder.WireModePanel(stagesPanel, hub, stageMap);
+            var hubSo = new SerializedObject(hub);
+            hubSo.FindProperty("_stageMap").objectReferenceValue = stageMap;
+            hubSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Hộp Thu AFK dựng sau thanh và có Canvas con (OverBar) nên vẽ đè lên thanh.
             var afkPopup = BuildAfkPopup(canvas, font, sprite);
             viewSo.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
+            NavBarBuilder.WireNotify(notifyView, hub, notifyPopup, scroll, (RectTransform)bubble.transform, staffPanel, afkPopup,
+                charactersPanel.GetComponentInChildren<CharactersView>(true));
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);

@@ -92,6 +92,7 @@ namespace BunDauPeo.PlayModeTests
             // Bản đồ là panel của Lobby: bấm ô Màn chơi của thanh dưới.
             _step = "2 vào bản đồ";
             yield return ClickWhenReady("NavTabStages_PH_320x120");
+            yield return ClickWhenReady("ModeMain_PH_820x560");
 
             _step = "3 chọn màn 1 và đội";
             for (var i = 0; i < battleIndex; i++)
@@ -288,6 +289,7 @@ namespace BunDauPeo.PlayModeTests
         private IEnumerator OpenTeamSelectOfFirstBattle(CombatService combat)
         {
             yield return ClickWhenReady("NavTabStages_PH_320x120");
+            yield return ClickWhenReady("ModeMain_PH_820x560");
             var stages = combat.Config.Stages.Items;
             var battleIndex = stages.Select((st, i) => (st, i)).First(x => x.st.Kind == StageKind.Battle).i;
             for (var i = 0; i < battleIndex; i++)
@@ -345,7 +347,7 @@ namespace BunDauPeo.PlayModeTests
             var hub = Object.FindFirstObjectByType<HubNav>();
             Assert.AreEqual(HubTab.Restaurant, hub.State.Current, Where("sau Xoá hết phải về Lobby"));
             Assert.IsFalse(hub.State.MenuOpen, Where("sau Xoá hết Menu không được mở"));
-            foreach (var panel in new[] { "CharactersPanel_PH_1920x1080", "StageMapPanel_PH_1920x1080", "GachaPanel_PH_1920x1080", "MenuPanel_PH_1920x1080" })
+            foreach (var panel in new[] { "CharactersPanel_PH_1920x1080", "ModeSelectPanel_PH_1920x1080", "StageMapPanel_PH_1920x1080", "GachaPanel_PH_1920x1080", "MenuPanel_PH_1920x1080" })
                 Assert.IsNull(GameObject.Find(panel), Where($"{panel} còn bật sau Xoá hết"));
             Assert.IsFalse(HubPending.TryTake(out _, out _), Where("Xoá hết không được để lại ô chờ"));
             var loaded = new SaveService(_savePath).Load();
@@ -429,9 +431,225 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsNotNull(GameObject.Find("StageMapPanel_PH_1920x1080"), Where("bản đồ phải bật sẵn"));
         }
 
+        // Đợt C, Chọn chế độ (spec 5.2): ô Màn chơi → Chọn chế độ; ô khoá ra "Sắp có"; Chương chính → Bản đồ → Quay lại; về từ trận mở sẵn Bản đồ.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_ModeSelect_MapBackAndBattleReturn()
+        {
+            const string modePanel = "ModeSelectPanel_PH_1920x1080", mapPanel = "StageMapPanel_PH_1920x1080";
+            _step = "M1 Boot, ô Màn chơi → Chọn chế độ";
+            yield return BootToLobby();
+            yield return ClickWhenReady("NavTabStages_PH_320x120");
+            Assert.IsTrue(FindAny(modePanel).activeSelf, Where("ô Màn chơi phải mở Chọn chế độ"));
+            Assert.IsFalse(FindAny(mapPanel).activeSelf, Where("ô Màn chơi không được mở thẳng Bản đồ"));
+
+            _step = "M2 bốn ô khoá → Sắp có";
+            foreach (var name in new[] { "ModeLockedHard_PH_440x260", "ModeLockedEvent_PH_440x260", "ModeLockedChallenge_PH_440x260", "ModeLockedArena_PH_440x260" })
+            {
+                FindAny("ComingSoonToast").SetActive(false);
+                yield return ClickWhenReady(name);
+                Assert.IsTrue(FindAny("ComingSoonToast").activeSelf, Where($"{name} phải hiện dòng Sắp có"));
+                Assert.IsFalse(FindAny(mapPanel).activeSelf, Where($"{name} không được mở Bản đồ"));
+            }
+
+            _step = "M3 Chương chính → Bản đồ, chỉ Thể lực";
+            yield return ClickWhenReady("ModeMain_PH_820x560");
+            Assert.IsTrue(FindAny(mapPanel).activeSelf, Where("Chương chính phải mở Bản đồ"));
+            yield return null;
+            Assert.AreEqual("Stamina", ShownSlots(), Where("Bản đồ chỉ hiện Thể lực"));
+
+            _step = "M4 Quay lại → Chọn chế độ";
+            yield return ClickWhenReady("BackButton");
+            Assert.IsFalse(FindAny(mapPanel).activeSelf, Where("Quay lại phải đóng Bản đồ"));
+            Assert.IsTrue(FindAny(modePanel).activeSelf, Where("Quay lại phải về Chọn chế độ"));
+
+            _step = "M5 Bản đồ → ô Quán → ô Màn chơi: luôn về Chọn chế độ";
+            yield return ClickWhenReady("ModeMain_PH_820x560");
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+            Assert.IsFalse(FindAny(mapPanel).activeSelf, Where("ô Quán phải đóng Bản đồ"));
+            yield return ClickWhenReady("NavTabStages_PH_320x120");
+            Assert.IsTrue(FindAny(modePanel).activeSelf);
+            Assert.IsFalse(FindAny(mapPanel).activeSelf, Where("ô Màn chơi từ Quán phải về Chọn chế độ, không phải Bản đồ"));
+            yield return ClickWhenReady("ModeMain_PH_820x560");
+            yield return ClickWhenReady("NavTabStages_PH_320x120");
+            Assert.IsFalse(FindAny(mapPanel).activeSelf, Where("bấm ô Màn chơi khi đang ở Bản đồ phải về Chọn chế độ"));
+
+            _step = "M6 về từ trận mở sẵn Bản đồ";
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            HubNav.OpenOnNextLoad(HubTab.Stages, false, stageMap: true);
+            SceneManager.LoadScene("Restaurant");
+            yield return WaitForNewHub(oldHub);
+            yield return null;
+            Assert.AreEqual(HubTab.Stages, Object.FindFirstObjectByType<HubNav>().State.Current, Where("ô chờ phải mở ô Màn chơi"));
+            Assert.IsTrue(FindAny(mapPanel).activeSelf, Where("ô chờ có stageMap phải mở Bản đồ"));
+            Assert.IsTrue(FindAny(modePanel).activeSelf, Where("Chọn chế độ còn bật dưới Bản đồ"));
+            yield return ClickWhenReady("BackButton");
+            Assert.IsFalse(FindAny(mapPanel).activeSelf, Where("Quay lại sau khi về từ trận"));
+        }
+
+        // Đợt C, nút Thông báo (spec 5.3): chấm theo việc, hộp 5 dòng đúng thứ tự, mỗi dòng tới đúng chỗ, qua raycast thật (L-036).
+        [UnityTest, Timeout(300000)]
+        public IEnumerator Hub_Notify_DotAndRowsGoToRightPlace()
+        {
+            const string notify = "NotifyBtn_PH_110x100", dot = "NotifyDot_PH_28x28", row = "NotifyRow_PH_600x100", popup = "NotifyPopup";
+            _step = "N1 Boot, game mới đủ người: không có việc";
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var restaurant = ServiceLocator.Get<RestaurantService>();
+            var combat = ServiceLocator.Get<CombatService>();
+            var stars = ServiceLocator.Get<StarService>();
+            var roster = session.Roster;
+            var hub = Object.FindFirstObjectByType<HubNav>();
+            foreach (var role in new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier })
+                if (restaurant.Profile.Workers(role).Count == 0)
+                {
+                    // Người đã có vai thì TryAssign chuyển vai (vai cũ lại thiếu): chỉ xếp người chưa có vai nào.
+                    var free = roster.GetOwned().Where(c => new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier }.All(r => restaurant.Profile.Workers(r).All(w => w.CharacterId != c.Id)));
+                    Assert.IsTrue(free.Any(c => restaurant.Staffing.TryAssign(c.Id, role) == StaffAssignResult.Success), Where($"không xếp được ai vào vai {role}"));
+                }
+            // Game mới có thể lực đầy nên dòng "Thể lực đầy" hiện sẵn (đúng luật spec); tiêu hao 1 để bắt đầu từ trạng thái không có việc.
+            Assert.AreEqual(StaminaSpendStatus.Spent, combat.Stamina.TrySpend(1, () => true), Where("tiêu hao 1 thể lực"));
+            session.Save.Afk.PendingTheoretical = 0;
+            yield return new WaitForSecondsRealtime(0.7f);
+            Assert.IsFalse(FindAny(dot).activeSelf, Where($"không có việc mà chấm vẫn bật (sự cố {restaurant.Incidents.Active.HasValue}, thiếu {restaurant.Estimate.MissingRole}, AFK {restaurant.Afk.PreviewCollect()}, " +
+                                                          $"thể lực {combat.Stamina.Current}/{combat.Stamina.Max}, đủ mảnh {CharacterListRows.Build(roster, stars).Count(r => r.NextCost > 0 && r.Fragments >= r.NextCost)})"));
+
+            yield return ClickWhenReady(notify);
+            Assert.IsTrue(FindAny(popup).activeSelf, Where("bấm nút mà hộp không mở"));
+            Assert.IsTrue(FindAny("NotifyEmpty").activeSelf, Where("không có việc phải ghi dòng trống"));
+            Assert.IsTrue(FindAny("LobbyHud").activeSelf, Where("hộp nổi không được đổi bố cục Lobby"));
+            yield return ClickWhenReady("NotifyDim");
+            Assert.IsFalse(FindAny(popup).activeSelf, Where("bấm nền mờ phải đóng hộp"));
+
+            _step = "N2 ép đủ 5 việc";
+            var config = restaurant.Config;
+            var min = typeof(RestaurantConfig).GetField("_incidentSpawnMin", BindingFlags.NonPublic | BindingFlags.Instance);
+            var max = typeof(RestaurantConfig).GetField("_incidentSpawnMax", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(min, Where("RestaurantConfig đổi tên _incidentSpawnMin"));
+            Assert.IsNotNull(max, Where("RestaurantConfig đổi tên _incidentSpawnMax"));
+            var oldMin = min.GetValue(config);
+            var oldMax = max.GetValue(config);
+            min.SetValue(config, 1f);
+            max.SetValue(config, 2f);
+            try
+            {
+                restaurant.Incidents.Reset();
+                var deadline = Time.realtimeSinceStartup + 20f;
+                while (restaurant.Incidents.Active == null)
+                {
+                    if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where("20s mà không có sự cố nào sinh"));
+                    yield return null;
+                }
+            }
+            finally
+            {
+                min.SetValue(config, oldMin);
+                max.SetValue(config, oldMax);
+            }
+
+            foreach (var worker in restaurant.Profile.Workers(StaffRole.Cashier).ToList()) restaurant.Staffing.Remove(worker.CharacterId);
+            session.Save.Afk.PendingTheoretical = 1000;
+            session.Save.Afk.AccumulatedSeconds = 3600;
+            combat.Stamina.Refill();
+            var ready = CharacterListRows.Build(roster, stars).First(r => r.NextCost > 0);
+            roster.AddFragments(ready.Character.Id, Math.Max(0L, ready.NextCost - ready.Fragments));
+            var starUpId = CharacterListRows.Build(roster, stars).First(r => r.NextCost > 0 && r.Fragments >= r.NextCost).Character.Id;
+            yield return new WaitForSecondsRealtime(0.7f);
+            Assert.IsTrue(FindAny(dot).activeSelf, Where("có đủ việc mà chấm không bật"));
+
+            _step = "N3 hộp có 5 dòng đúng thứ tự";
+            yield return ClickWhenReady(notify);
+            var rows = UiDriver.FindButtons(row).OrderBy(b => b.transform.GetSiblingIndex()).ToList();
+            Assert.AreEqual(5, rows.Count, Where("hộp phải có đủ 5 dòng"));
+            Assert.IsFalse(FindAny("NotifyEmpty").activeSelf, Where("có việc mà dòng trống vẫn bật"));
+            var texts = rows.Select(b => b.GetComponentInChildren<Text>().text).ToList();
+            Assert.AreEqual(UiText.Get("notify.incident"), texts[0], Where("dòng 1"));
+            Assert.AreEqual(UiText.Format("notify.staff_missing", StaffPanelRows.RoleName(StaffRole.Cashier)), texts[1], Where("dòng 2"));
+            StringAssert.Contains(restaurant.Afk.PreviewCollect().ToString(), texts[2], Where("dòng AFK phải ghi số Coin"));
+            Assert.AreEqual(UiText.Get("notify.stamina_full"), texts[3], Where("dòng 4"));
+            StringAssert.Contains(UiText.Format("notify.star_up", CharacterListRows.Build(roster, stars).Count(r => r.NextCost > 0 && r.Fragments >= r.NextCost)), texts[4], Where("dòng 5"));
+            yield return ClickWhenReady("NotifyDim");
+
+            // Mỗi lần đứng ở ô Gacha rồi mới bấm: đích phải tự kéo về ô của nó.
+            for (var i = 0; i < 5; i++)
+            {
+                _step = $"N4.{i} bấm dòng {i + 1}";
+                yield return ClickWhenReady("NavTabGacha_PH_320x120");
+                yield return ClickWhenReady(notify);
+                var current = UiDriver.FindButtons(row).OrderBy(b => b.transform.GetSiblingIndex()).ToList();
+                Assert.AreEqual(5, current.Count, Where($"mở lại hộp lần {i + 1}"));
+                var result = UiDriver.Click(current[i]);
+                Assert.AreEqual(ClickStatus.Clicked, result.Status, Where(result.ToString()));
+                yield return null;
+                yield return null;
+                Assert.IsFalse(FindAny(popup).activeSelf, Where($"dòng {i + 1} phải đóng hộp"));
+                switch (i)
+                {
+                    case 0:
+                        Assert.AreEqual(HubTab.Restaurant, hub.State.Current, Where("Sự cố phải về ô Quán"));
+                        var onScreen = RectTransformUtility.WorldToScreenPoint(null, FindAny("IncidentBubble").transform.position);
+                        Assert.IsTrue(new Rect(0, 0, Screen.width, Screen.height).Contains(onScreen), Where($"'!' ở {onScreen} ngoài khung màn {Screen.width}x{Screen.height}"));
+                        break;
+                    case 1:
+                        Assert.AreEqual(HubTab.Restaurant, hub.State.Current);
+                        Assert.IsTrue(FindAny("StaffPanelRoot").activeSelf, Where("Thiếu người phải mở trang Nhân viên"));
+                        break;
+                    case 2:
+                        Assert.AreEqual(HubTab.Restaurant, hub.State.Current);
+                        Assert.IsTrue(FindAny("AfkPopupRoot").activeSelf, Where("Coin AFK phải mở popup thu AFK"));
+                        yield return ClickWhenReady("LaterButton");
+                        break;
+                    case 3:
+                        Assert.AreEqual(HubTab.Stages, hub.State.Current, Where("Thể lực đầy phải tới ô Màn chơi"));
+                        Assert.IsTrue(FindAny("ModeSelectPanel_PH_1920x1080").activeSelf, Where("Thể lực đầy phải mở Chọn chế độ"));
+                        Assert.IsFalse(FindAny("StageMapPanel_PH_1920x1080").activeSelf, Where("Thể lực đầy không được mở thẳng Bản đồ"));
+                        break;
+                    case 4:
+                        Assert.AreEqual(HubTab.Characters, hub.State.Current, Where("Đủ mảnh phải tới ô Nhân vật"));
+                        var selected = typeof(CharactersView).GetField("_selectedId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Object.FindFirstObjectByType<CharactersView>());
+                        Assert.AreEqual(starUpId, selected, Where("Nhân vật phải chọn sẵn người đủ mảnh đầu tiên"));
+                        break;
+                }
+            }
+
+            _step = "N5 Menu mở: nút vẫn bấm được, bấm dòng thì Menu đóng";
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            Assert.IsTrue(FindAny("MenuPanel_PH_1920x1080").activeSelf);
+            yield return ClickWhenReady(notify);
+            Assert.IsTrue(FindAny(popup).activeSelf, Where("hộp phải mở được trên Menu"));
+            var menuRows = UiDriver.FindButtons(row).OrderBy(b => b.transform.GetSiblingIndex()).ToList();
+            var menuResult = UiDriver.Click(menuRows[3]);
+            Assert.AreEqual(ClickStatus.Clicked, menuResult.Status, Where(menuResult.ToString()));
+            yield return null;
+            Assert.IsFalse(FindAny("MenuPanel_PH_1920x1080").activeSelf, Where("bấm dòng phải đóng Menu"));
+            Assert.AreEqual(HubTab.Stages, hub.State.Current);
+
+            _step = "N6 việc hết ngay trước khi bấm dòng (Review Focus 2)";
+            yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+            yield return ClickWhenReady(notify);
+            var stale = UiDriver.FindButtons(row).OrderBy(b => b.transform.GetSiblingIndex()).ToList();
+            Assert.IsTrue(restaurant.Incidents.Active.HasValue, Where("sự cố phải còn để thử huỷ"));
+            restaurant.Incidents.Cancel();
+            var staleResult = UiDriver.Click(stale[0]);
+            Assert.AreEqual(ClickStatus.Clicked, staleResult.Status, Where(staleResult.ToString()));
+            yield return null;
+            Assert.AreEqual(HubTab.Restaurant, hub.State.Current, Where("sự cố đã huỷ vẫn phải về ô Quán"));
+            Assert.IsFalse(FindAny(popup).activeSelf, Where("hộp phải đóng"));
+
+            _step = "N7 Gacha quay: nút ẩn cùng thanh";
+            session.Wallet.Add(CurrencyType.Gem, 5000);
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+            Assert.IsTrue(FindAny(notify).activeInHierarchy, Where("trang roll phải có nút Thông báo"));
+            yield return ClickWhenReady("TenButton");
+            yield return null;
+            Assert.IsFalse(FindAny(notify).activeInHierarchy, Where("đang lộ nhân vật mà nút Thông báo còn hiện"));
+            typeof(GachaView).GetMethod("Dismiss", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Object.FindFirstObjectByType<GachaView>(), null);
+            yield return null;
+            Assert.IsTrue(FindAny(notify).activeInHierarchy, Where("về trang roll mà nút vẫn ẩn"));
+        }
+
         // --- Vòng ô của hub, thanh Gacha, Reset lỗi trong Menu, ảnh chụp cho playtest (spec UI hub 7).
 
-        private static readonly string[] HubPanels = { "CharactersPanel_PH_1920x1080", "StageMapPanel_PH_1920x1080", "GachaPanel_PH_1920x1080" };
+        private static readonly string[] HubPanels = { "CharactersPanel_PH_1920x1080", "ModeSelectPanel_PH_1920x1080", "GachaPanel_PH_1920x1080" };
 
         // GameObject.Find bỏ qua object đang tắt, mà ở đây cần đọc cả trạng thái tắt.
         private static GameObject FindAny(string name) =>
@@ -562,7 +780,10 @@ namespace BunDauPeo.PlayModeTests
             _step = "B3 Màn chơi → Thể lực, Popup màn và Chọn đội vẫn Thể lực";
             yield return ClickWhenReady("NavTabStages_PH_320x120");
             yield return null;
-            Assert.AreEqual("Stamina", ShownSlots(), Where("Màn chơi chỉ hiện Thể lực"));
+            Assert.AreEqual("Stamina", ShownSlots(), Where("Chọn chế độ chỉ hiện Thể lực"));
+            yield return ClickWhenReady("ModeMain_PH_820x560");
+            yield return null;
+            Assert.AreEqual("Stamina", ShownSlots(), Where("Bản đồ chỉ hiện Thể lực"));
             var stages = ServiceLocator.Get<CombatService>().Config.Stages.Items;
             var battleIndex = stages.Select((st, i) => (st, i)).First(x => x.st.Kind == StageKind.Battle).i;
             for (var i = 0; i < battleIndex; i++)
@@ -953,6 +1174,8 @@ namespace BunDauPeo.PlayModeTests
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return Shot("characters", suffix);
             yield return ClickWhenReady("NavTabStages_PH_320x120");
+            yield return Shot("modes", suffix);
+            yield return ClickWhenReady("ModeMain_PH_820x560");
             yield return Shot("stages", suffix);
 
             var stages = combat.Config.Stages.Items;

@@ -34,6 +34,10 @@ namespace BunDauPeo.UI
         // Avatar và Shop: bấm ra dòng "Sắp có". Banner Gacha: bấm mở ô Gacha.
         [SerializeField] private Button[] _comingSoonButtons;
         [SerializeField] private Button _bannerButton;
+        // Bản đồ (trang con của Chọn chế độ), tuỳ chọn: ô chờ có stageMap thì Awake mở nó.
+        [SerializeField] private StageMapView _stageMap;
+        // Nút Thông báo, tuỳ chọn: ẩn cùng thanh dưới (Gacha lúc cutscene, lộ, tổng).
+        [SerializeField] private GameObject _notifyButton;
 
         private readonly HashSet<object> _barHiders = new();
         private readonly List<IHubPage> _openPages = new();
@@ -76,8 +80,14 @@ namespace BunDauPeo.UI
         {
             if (!HasAllReferences()) return;
 
-            if (HubPending.TryTake(out var tab, out var menu)) State = HubNavState.FromPending(tab, menu);
+            if (HubPending.TryTake(out var tab, out var menu, out var stageMap)) State = HubNavState.FromPending(tab, menu);
             ApplyPanels();
+            // FromPending có thể đổi tab về Quán (tab hỏng): cờ chỉ có nghĩa khi đang ở Màn chơi.
+            if (stageMap && State.Current == HubTab.Stages && _stageMap != null)
+            {
+                _stageMap.Open();
+                ApplyLobbyHud();
+            }
         }
 
         private void OnEnable()
@@ -189,6 +199,7 @@ namespace BunDauPeo.UI
             else _barHiders.Remove(owner);
             // Rời scene thì _bar có thể đã bị huỷ trước OnDisable của người gọi.
             if (_bar != null) _bar.SetActive(_barHiders.Count == 0);
+            if (_notifyButton != null) _notifyButton.SetActive(_barHiders.Count == 0);
         }
 
         // Bấm ô khác: trang kín màn đang mở đóng qua đúng đường nút Quay lại của nó (trả SetSpawnBlocked...).

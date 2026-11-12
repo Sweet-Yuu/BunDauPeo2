@@ -37,7 +37,7 @@ namespace BunDauPeo.Tests
         public void OldCurrencyCards_Gone_PanelStillWired() =>
             WithStageSelect(scene =>
             {
-                var stages = LobbySceneTests.In<Transform>(scene, LobbySceneTests.StagesPanel).Select(t => t.name).ToArray();
+                var stages = LobbySceneTests.In<Transform>(scene, LobbySceneTests.StageMapPanel).Select(t => t.name).ToArray();
                 foreach (var gone in new[] { "StaminaCard", "MaterialCard", "GemCard" })
                     CollectionAssert.DoesNotContain(stages, gone, "stage map panel still has " + gone);
                 var gacha = LobbySceneTests.In<Transform>(scene, LobbySceneTests.GachaPanel).Select(t => t.name).ToArray();
@@ -135,6 +135,96 @@ namespace BunDauPeo.Tests
                 Assert.IsTrue(root.GetComponent<Image>().raycastTarget, "must block clicks behind it");
                 Assert.IsTrue(popup.gameObject.activeSelf);
                 Assert.AreSame(popup, new SerializedObject(RestaurantSceneTests.All<StageMapView>(scene).Single()).FindProperty("_team").objectReferenceValue);
+            });
+
+        // Đợt C, Chọn chế độ (spec 5.2): toạ độ trong spec tính từ góc trên-trái, InReferenceCanvas tính từ góc dưới-trái.
+        private static Rect FromTop(RectTransform rect)
+        {
+            var r = RestaurantSceneTests.InReferenceCanvas(rect);
+            return new Rect(r.xMin, 1080f - r.yMax, r.width, r.height);
+        }
+
+        [Test]
+        public void ModeSelect_PanelTilesPlacedAndWired() =>
+            WithStageSelect(scene =>
+            {
+                var hub = new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single());
+                var panel = (GameObject)hub.FindProperty("_stagesPanel").objectReferenceValue;
+                Assert.AreEqual(LobbySceneTests.StagesPanel, panel.name, "HubNav._stagesPanel is the mode screen");
+                Assert.AreEqual("ModeSelectPanel_PH_1920x1080", panel.name);
+
+                RectTransform Tile(string name) => LobbySceneTests.In<RectTransform>(scene, panel.name).Single(t => t.name == name);
+
+                var content = Tile("ModeContent");
+                Assert.IsNotNull(content.GetComponent<FitWidthScale>(), "the tiles shrink to fit a narrow screen");
+                Assert.AreEqual(new Rect(0, 0, 1920, 1080), FromTop(content), "ModeContent is the 1920x1080 frame");
+                Assert.AreEqual(0.75f, FitWidthScale.ScaleFor(1440f), 1e-4f, "4:3");
+                Assert.AreEqual(1f, FitWidthScale.ScaleFor(1920f), "16:9");
+                Assert.AreEqual(1f, FitWidthScale.ScaleFor(2400f), "wider than 16:9 keeps the size");
+
+                var main = FromTop(Tile("ModeMain_PH_820x560"));
+                Assert.AreEqual(new Rect(100, 200, 820, 560), main, "ModeMain");
+                Assert.IsNotNull(Tile("ModeMain_PH_820x560").GetComponent<Button>());
+                Assert.AreEqual("stages.mode_main", Tile("ModeMainName").GetComponent<LocalizedText>().Key);
+                Assert.IsNull(Tile("ModeMainSub").GetComponent<LocalizedText>(), "the sub line is written by the view");
+
+                var locked = new[]
+                {
+                    ("ModeLockedHard_PH_440x260", new Vector2(1000, 200), "stages.mode_hard"),
+                    ("ModeLockedEvent_PH_440x260", new Vector2(1460, 200), "stages.mode_event"),
+                    ("ModeLockedChallenge_PH_440x260", new Vector2(1000, 500), "stages.mode_challenge"),
+                    ("ModeLockedArena_PH_440x260", new Vector2(1460, 500), "stages.mode_arena"),
+                };
+                var view = RestaurantSceneTests.All<ModeSelectView>(scene).Single();
+                RestaurantSceneTests.AssertAllReferencesAssigned(view);
+                var buttons = ReadArray<Button>(new SerializedObject(view).FindProperty("_lockedButtons"));
+                Assert.AreEqual(4, buttons.Length);
+                for (var i = 0; i < locked.Length; i++)
+                {
+                    var (name, position, key) = locked[i];
+                    var tile = Tile(name);
+                    Assert.AreEqual(new Rect(position, new Vector2(440, 260)), FromTop(tile), name);
+                    Assert.AreSame(tile.GetComponent<Button>(), buttons[i], $"_lockedButtons[{i}] is {name}");
+                    Assert.IsNotNull(tile.Find("Lock_PH_40x48"), name + " lock");
+                    var keys = tile.GetComponentsInChildren<LocalizedText>(true).Select(l => l.Key).ToArray();
+                    CollectionAssert.Contains(keys, key, name);
+                    CollectionAssert.Contains(keys, "hub.coming_soon", name);
+                }
+
+                Assert.AreEqual("hub.tab_stages", Tile("ModeTitle").GetComponent<LocalizedText>().Key);
+                foreach (var button in LobbySceneTests.In<Button>(scene, panel.name))
+                    Assert.GreaterOrEqual(RestaurantSceneTests.InReferenceCanvas((RectTransform)button.transform).yMin, HubNav.BarHeight, $"{button.name} reaches the bar strip");
+
+                var so = new SerializedObject(view);
+                Assert.AreSame(RestaurantSceneTests.All<HubNav>(scene).Single(), so.FindProperty("_hub").objectReferenceValue);
+                Assert.AreSame(RestaurantSceneTests.All<StageMapView>(scene).Single(), so.FindProperty("_map").objectReferenceValue);
+                Assert.AreSame(Tile("ModeMain_PH_820x560").GetComponent<Button>(), so.FindProperty("_mainButton").objectReferenceValue);
+            });
+
+        [Test]
+        public void StageMap_IsPage_WithBack() =>
+            WithStageSelect(scene =>
+            {
+                var map = LobbySceneTests.Named(scene, LobbySceneTests.StageMapPanel);
+                Assert.IsFalse(map.gameObject.activeSelf, "the map starts closed");
+                Assert.Greater(map.GetSiblingIndex(), LobbySceneTests.Named(scene, LobbySceneTests.StagesPanel).GetSiblingIndex(), "the map draws over the mode screen");
+
+                var back = LobbySceneTests.In<Button>(scene, LobbySceneTests.StageMapPanel).Single(b => b.name == "BackButton");
+                var backRect = (RectTransform)back.transform;
+                Assert.AreEqual(new Vector2(0, 1), backRect.anchorMin, "Back sits top-left");
+                Assert.GreaterOrEqual(RestaurantSceneTests.InReferenceCanvas(backRect).yMin, HubNav.BarHeight);
+                var chapter = LobbySceneTests.In<Text>(scene, LobbySceneTests.StageMapPanel).Single(t => t.name == "ChapterText");
+                Assert.IsFalse(RestaurantSceneTests.InReferenceCanvas(backRect).Overlaps(RestaurantSceneTests.InReferenceCanvas(chapter.rectTransform)), "Back overlaps the chapter title");
+
+                var view = RestaurantSceneTests.All<StageMapView>(scene).Single();
+                Assert.IsTrue(view is IHubPage);
+                Assert.IsTrue(view is IResourcePage);
+                Assert.AreEqual(ResourceSlots.Stamina, ((IResourcePage)view).Slots);
+                var nav = new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single());
+                Assert.AreSame(view, nav.FindProperty("_stageMap").objectReferenceValue);
+                var pages = ReadArray<Object>(nav.FindProperty("_pages"));
+                CollectionAssert.Contains(pages, view);
+                Assert.AreSame(back, new SerializedObject(view).FindProperty("_backButton").objectReferenceValue);
             });
 
         private static Rect RectOf(Component part) => RestaurantSceneTests.InReferenceCanvas((RectTransform)part.transform);

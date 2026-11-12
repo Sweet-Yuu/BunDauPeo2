@@ -10,12 +10,15 @@ namespace BunDauPeo.UI
 {
     // Bản đồ màn (spec Combat 5.2): nút dựng lúc chạy từ một nút mẫu cho từng màn trong catalog, nối bằng đoạn Image xoay.
     // Chỉ vẽ và mở popup; luật mở màn, thể lực, thưởng nằm ở StageProgressService và CombatService.
-    public class StageMapView : MonoBehaviour
+    public class StageMapView : MonoBehaviour, IHubPage, IResourcePage
     {
         private const float HintSeconds = 2f, NodeSize = 120f, LinkThickness = 14f;
         private static readonly Color LinkIdle = new(0.35f, 0.36f, 0.42f);
         private static readonly Color LinkDone = new(0.30f, 0.70f, 0.40f);
 
+        // Panel Bản đồ (cha của view): Open/Close bật tắt nó; trang con của Chọn chế độ (spec UI hub C 5.2).
+        [SerializeField] private GameObject _root;
+        [SerializeField] private Button _backButton;
         [SerializeField] private RectTransform _nodesRoot;
         [SerializeField] private StageNodeView _nodeTemplate;
         [SerializeField] private Image _linkTemplate;
@@ -37,6 +40,21 @@ namespace BunDauPeo.UI
         private bool _dirty = true;
         private float _hintLeft;
         private CanvasGroup _markerGroup;
+
+        public bool IsOpen => _root != null && _root.activeSelf;
+
+        public ResourceSlots Slots => ResourceSlots.Stamina;
+
+        public void Open()
+        {
+            if (_root != null) _root.SetActive(true);
+        }
+
+        // Nút Quay lại: về Chọn chế độ (panel cha vẫn bật bên dưới).
+        public void Close()
+        {
+            if (_root != null) _root.SetActive(false);
+        }
 
         // Gốc trái trên, đơn vị 1920×1080: zíc-zắc giữa y 400 và 720, cách nhau 240 theo x. shortcut: đủ cho một chương 7 nút;
         // nhiều chương thì cuộn hoặc chia trang.
@@ -75,6 +93,7 @@ namespace BunDauPeo.UI
             }
 
             _info.Challenge += OnChallenge;
+            _backButton.onClick.AddListener(Close);
             if (_service != null) _service.Progress.Changed += MarkDirty;
             if (_wallet != null) _wallet.Changed += MarkDirty;
             _markerGroup = _nextMarker.GetComponent<CanvasGroup>();
@@ -86,13 +105,14 @@ namespace BunDauPeo.UI
         {
             _ready = false;
             if (_info != null) _info.Challenge -= OnChallenge;
+            if (_backButton != null) _backButton.onClick.RemoveListener(Close);
             if (_service != null) _service.Progress.Changed -= MarkDirty;
             if (_wallet != null) _wallet.Changed -= MarkDirty;
         }
 
         private bool HasAllReferences()
         {
-            var ok = _nodesRoot != null
+            var ok = _root != null && _backButton != null && _nodesRoot != null
                      && _nodeTemplate != null && _linkTemplate != null && _nextMarker != null && _hintText != null && _invalidText != null
                      && _info != null && _story != null && _team != null;
             if (!ok) Debug.LogError($"{nameof(StageMapView)}: references are not assigned.", this);

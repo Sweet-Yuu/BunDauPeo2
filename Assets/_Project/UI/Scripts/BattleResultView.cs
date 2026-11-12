@@ -130,7 +130,7 @@ namespace BunDauPeo.UI
         private void ToMap()
         {
             _service?.EndBattle();
-            HubNav.OpenOnNextLoad(HubTab.Stages, menu: false);
+            HubNav.OpenOnNextLoad(HubTab.Stages, menu: false, stageMap: true);
             SceneManager.LoadScene(BattleView.RestaurantScene);
         }
 

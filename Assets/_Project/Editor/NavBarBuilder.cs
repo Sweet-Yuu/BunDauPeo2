@@ -177,6 +177,118 @@ namespace BunDauPeo.EditorTools
             resourcesSo.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        private static readonly Color NotifyColor = new(1f, 0.78f, 0.50f);
+        private static readonly Color NotifyDotColor = new(0.92f, 0.20f, 0.20f);
+        private static readonly Color NotifyBoxColor = new(0.14f, 0.16f, 0.22f);
+        private static readonly Color NotifyRowColor = new(0.24f, 0.28f, 0.38f);
+        private static readonly Vector2 TopRight = Vector2.one;
+
+        // Nút Thông báo (spec UI hub C 5.3): trên-phải (1790, 20), dựng sau Menu và trước thanh dưới để Menu cũng thấy nút. Chấm đỏ lúc đầu tắt.
+        public static NotifyView BuildNotifyButton(RectTransform canvas, Font font, Sprite sprite, Sprite knob)
+        {
+            var rect = NewRect("NotifyBtn_PH_110x100", canvas);
+            Place(rect, TopRight, TopRight, new Vector2(-20, -20), new Vector2(110, 100));
+            var image = AddImage(rect, sprite, NotifyColor, raycast: true);
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            var label = NewLabel("Label", rect, font, "hub.notify", 36, TextAnchor.MiddleCenter, Dark);
+            Stretch(label.rectTransform);
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 20;
+            label.resizeTextMaxSize = 36;
+
+            var dot = NewRect("NotifyDot_PH_28x28", rect);
+            Place(dot, TopRight, Center, new Vector2(-8, -8), new Vector2(28, 28));
+            AddImage(dot, knob, NotifyDotColor, raycast: false).type = Image.Type.Simple;
+            dot.gameObject.SetActive(false);
+
+            var view = rect.gameObject.AddComponent<NotifyView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_button").objectReferenceValue = button;
+            so.FindProperty("_dot").objectReferenceValue = dot.gameObject;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return view;
+        }
+
+        // Hộp thả xuống (spec 5.3): nền mờ bấm đóng, hộp 640×660 dưới nút, 5 dòng 600×100. Vẽ trên thanh qua OverBar; lúc đầu tắt.
+        public static NotifyPopup BuildNotifyPopup(RectTransform canvas, Font font, Sprite sprite)
+        {
+            var root = NewRect("NotifyPopup", canvas);
+            Stretch(root);
+            OverBar(root);
+
+            var dimRect = NewRect("NotifyDim", root);
+            Stretch(dimRect);
+            var dimImage = AddImage(dimRect, null, new Color(0f, 0f, 0f, 0.45f), raycast: true);
+            var dim = dimRect.gameObject.AddComponent<Button>();
+            dim.targetGraphic = dimImage;
+            dim.transition = Selectable.Transition.None;
+
+            var box = NewRect("NotifyBox_PH_640x660", root);
+            Place(box, TopRight, TopRight, new Vector2(-20, -180), new Vector2(640, 660));
+            AddImage(box, sprite, NotifyBoxColor, raycast: true);
+            var outline = box.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.75f, 0.78f, 0.88f, 0.9f);
+            outline.effectDistance = new Vector2(3, -3);
+            var title = NewLabel("NotifyTitle", box, font, "notify.title", 42, TextAnchor.MiddleCenter, Gold);
+            title.fontStyle = FontStyle.Bold;
+            Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -15), new Vector2(600, 60));
+
+            var rows = new Button[5];
+            var texts = new Text[5];
+            for (var i = 0; i < rows.Length; i++)
+            {
+                var row = NewRect("NotifyRow_PH_600x100", box);
+                Place(row, TopLeft, TopLeft, new Vector2(20, -(90 + 110 * i)), new Vector2(600, 100));
+                var image = AddImage(row, sprite, NotifyRowColor, raycast: true);
+                rows[i] = row.gameObject.AddComponent<Button>();
+                rows[i].targetGraphic = image;
+                texts[i] = NewText("Label", row, font, "", 34, TextAnchor.MiddleLeft, Color.white);
+                Stretch(texts[i].rectTransform);
+                texts[i].rectTransform.offsetMin = new Vector2(20, 0);
+                texts[i].rectTransform.offsetMax = new Vector2(-70, 0);
+                texts[i].resizeTextForBestFit = true;
+                texts[i].resizeTextMinSize = 20;
+                texts[i].resizeTextMaxSize = 34;
+                // Ký hiệu › viết cứng như < > của thanh quán (spec 5.6).
+                var chevron = NewText("Chevron", row, font, "›", 56, TextAnchor.MiddleCenter, Gold);
+                Place(chevron.rectTransform, new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-10, 0), new Vector2(50, 90));
+            }
+
+            var empty = NewLabel("NotifyEmpty", box, font, "notify.empty", 34, TextAnchor.MiddleCenter, new Color(0.80f, 0.82f, 0.88f));
+            Place(empty.rectTransform, TopLeft, TopLeft, new Vector2(20, -90), new Vector2(600, 100));
+
+            var popup = root.gameObject.AddComponent<NotifyPopup>();
+            var so = new SerializedObject(popup);
+            so.FindProperty("_dim").objectReferenceValue = dim;
+            SetRefs(so.FindProperty("_rows"), rows);
+            SetRefs(so.FindProperty("_rowTexts"), texts);
+            so.FindProperty("_emptyText").objectReferenceValue = empty.gameObject;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            root.gameObject.SetActive(false);
+            return popup;
+        }
+
+        // Nối nút Thông báo với HubNav, hộp và các đích (dựng sau cả thanh lẫn hộp AFK).
+        public static void WireNotify(NotifyView view, HubNav hub, NotifyPopup popup, ScrollRect worldScroll, RectTransform incidentBubble,
+            StaffPanel staffPanel, AfkPopup afkPopup, CharactersView characters)
+        {
+            var so = new SerializedObject(view);
+            so.FindProperty("_hub").objectReferenceValue = hub;
+            so.FindProperty("_popup").objectReferenceValue = popup;
+            so.FindProperty("_worldScroll").objectReferenceValue = worldScroll;
+            so.FindProperty("_incidentBubble").objectReferenceValue = incidentBubble;
+            so.FindProperty("_staffPanel").objectReferenceValue = staffPanel;
+            so.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
+            so.FindProperty("_characters").objectReferenceValue = characters;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var hubSo = new SerializedObject(hub);
+            hubSo.FindProperty("_notifyButton").objectReferenceValue = view.gameObject;
+            hubSo.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         // Hộp con vẽ trên thanh (spec 5.1 bước 6): Canvas con overrideSorting cao hơn canvas chính, kèm GraphicRaycaster.
         // Hộp nằm dưới view của nó nên tắt theo panel cha; Task 5, 6 gọi cho các hộp xác nhận và phần thưởng.
         public static void OverBar(RectTransform box)

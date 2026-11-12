@@ -168,11 +168,13 @@ namespace BunDauPeo.Tests
                              ("StaffConfirmRoot", "StaffConfirmBox", StageSelectSceneBuilder.ConfirmSize),
                              ("RollAgainPopup", "Box", GachaSceneBuilder.RollAgainSize),
                              ("HistoryPopup", "GachaHistoryBox_PH_1200x800", GachaSceneBuilder.HistoryBoxSize),
+                             ("NotifyPopup", "NotifyBox_PH_640x660", new Vector2(640, 660)),
                          })
                 {
                     var root = Named(scene, rootName);
                     Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(root), $"{rootName} dim covers the screen");
-                    var dim = root.GetComponent<Image>();
+                    // Hộp Thông báo để nền mờ ở con NotifyDim (là nút đóng hộp); các hộp khác để ngay trên root.
+                    var dim = root.GetComponent<Image>() ?? root.Find("NotifyDim").GetComponent<Image>();
                     Assert.IsTrue(dim.raycastTarget, $"{rootName} dim must block the bar");
                     Assert.Less(dim.color.a, 0.99f, $"{rootName} is a dim, not an opaque page");
 

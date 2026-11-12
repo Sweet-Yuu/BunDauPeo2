@@ -11,6 +11,8 @@ namespace BunDauPeo.UI
     public class ResourceBarView : MonoBehaviour
     {
         private const float SlotWidth = 280f, BarHeight = 76f, Margin = 20f, LobbyLeft = 180f;
+        // Ngoài Lobby thanh dời trái nhường nút Thông báo: 20 lề + 110 nút + 10 cách (spec UI hub C 5.3).
+        public const float RightMargin = 140f;
 
         [SerializeField] private HubNav _hub;
         [SerializeField] private RectTransform _bar;
@@ -115,7 +117,7 @@ namespace BunDauPeo.UI
             _bar.anchorMin = anchor;
             _bar.anchorMax = anchor;
             _bar.pivot = anchor;
-            _bar.anchoredPosition = lobby ? new Vector2(LobbyLeft, -Margin) : new Vector2(-Margin, -Margin);
+            _bar.anchoredPosition = lobby ? new Vector2(LobbyLeft, -Margin) : new Vector2(-RightMargin, -Margin);
             _bar.sizeDelta = new Vector2(count * SlotWidth, BarHeight);
         }
 

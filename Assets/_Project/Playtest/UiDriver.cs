@@ -39,7 +39,13 @@ namespace BunDauPeo.Playtest
             if (usable.Count == 0) return new ClickResult(ClickStatus.NotInteractable, $"nút '{name}' đang bị tắt (interactable = false): {PathOf(matches[0].transform)}");
             if (usable.Count > 1) return new ClickResult(ClickStatus.Ambiguous, $"{usable.Count} nút khớp '{name}': {string.Join(" | ", usable.Select(b => PathOf(b.transform)))}");
 
-            var button = usable[0];
+            return Click(usable[0], name);
+        }
+
+        // Bấm đúng nút này (khi nhiều nút trùng tên, ví dụ 5 dòng của hộp Thông báo): cùng đường raycast thật của Click(name).
+        public static ClickResult Click(Button button, string name = null)
+        {
+            name ??= button.name;
             var es = EventSystem.current;
             if (es == null) return new ClickResult(ClickStatus.Blocked, "không có EventSystem đang chạy");
 
