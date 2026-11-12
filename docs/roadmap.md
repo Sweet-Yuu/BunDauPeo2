@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- UI hub đợt C (Tiêu đề, Chọn chế độ, Thông báo, Hồ sơ): user duyệt [spec](superpowers/specs/2026-11-12-ui-hub-c-design.md) và ảnh mô phỏng 2026-11-12; [kế hoạch](superpowers/plans/2026-11-12-ui-hub-c.md) user duyệt 2026-11-12 (nhánh `docs/ui-hub-c-spec`). 🔨 C1 (Task 1–3) xong 2026-11-12 trên nhánh `feature/ui-hub-c` (chờ 📋 commit): kiểu thuần và chữ, `PlayerProfile` + save, scene Tiêu đề; 905 EditMode + 31 PlayMode xanh. 🔨 C2 (Task 4–5) xong 2026-11-12 trên nhánh `feature/ui-hub-c` (chờ 📋 commit): Chọn chế độ + Bản đồ có Quay lại, nút Thông báo + hộp 5 dòng; 909 EditMode + 33 PlayMode xanh. Tiếp theo: 🔨 C3 (Task 6–7).
+- UI hub đợt C (Tiêu đề, Chọn chế độ, Thông báo, Hồ sơ): user duyệt [spec](superpowers/specs/2026-11-12-ui-hub-c-design.md) và ảnh mô phỏng 2026-11-12; [kế hoạch](superpowers/plans/2026-11-12-ui-hub-c.md) user duyệt 2026-11-12 (nhánh `docs/ui-hub-c-spec`). 🔨 C1 (Task 1–3) xong 2026-11-12 trên nhánh `feature/ui-hub-c` (chờ 📋 commit): kiểu thuần và chữ, `PlayerProfile` + save, scene Tiêu đề; 905 EditMode + 31 PlayMode xanh. 🔨 C2 (Task 4–5) xong 2026-11-12 trên nhánh `feature/ui-hub-c` (chờ 📋 commit): Chọn chế độ + Bản đồ có Quay lại, nút Thông báo + hộp 5 dòng; 909 EditMode + 33 PlayMode xanh. 🔨 C3 (Task 6–7) xong 2026-11-12 trên nhánh `feature/ui-hub-c` (chờ 📋 commit): hộp Hồ sơ (tên tối đa 12 ký tự, avatar chọn trong nhân vật đã có), ảnh `hubc-*` (Việt và `-en`); 909 EditMode + 34 PlayMode xanh. Tiếp theo: user playtest (spec mục 7), rồi 🔍 review (mức high; xhigh cho save và Reset của Hồ sơ) và PR.
 
 ## Tiếp theo
 

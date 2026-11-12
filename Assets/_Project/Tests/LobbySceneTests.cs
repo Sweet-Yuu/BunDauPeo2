@@ -87,9 +87,9 @@ namespace BunDauPeo.Tests
                 Assert.IsNotNull(nav.FindProperty("_bar").objectReferenceValue, "_bar");
                 Assert.AreSame(Named(scene, "LobbyHud").gameObject, nav.FindProperty("_lobbyHud").objectReferenceValue, "_lobbyHud");
                 var soon = nav.FindProperty("_comingSoonButtons");
-                Assert.AreEqual(2, soon.arraySize, "_comingSoonButtons: avatar and shop");
-                Assert.AreSame(Named(scene, "Avatar_PH_140x140").GetComponent<Button>(), soon.GetArrayElementAtIndex(0).objectReferenceValue);
-                Assert.AreSame(Named(scene, "HubRoundBtnShop_PH_110x110").GetComponent<Button>(), soon.GetArrayElementAtIndex(1).objectReferenceValue);
+                Assert.AreEqual(1, soon.arraySize, "_comingSoonButtons: only the shop (the avatar opens the profile)");
+                Assert.AreSame(Named(scene, "HubRoundBtnShop_PH_110x110").GetComponent<Button>(), soon.GetArrayElementAtIndex(0).objectReferenceValue);
+                Assert.AreSame(Named(scene, "Avatar_PH_140x140").GetComponent<Button>(), nav.FindProperty("_profileButton").objectReferenceValue, "_profileButton");
                 Assert.AreSame(Named(scene, "BannerGacha_PH_360x200").GetComponent<Button>(), nav.FindProperty("_bannerButton").objectReferenceValue, "_bannerButton");
                 Assert.IsNotNull(nav.FindProperty("_comingSoonToast").objectReferenceValue, "_comingSoonToast");
                 var buttons = nav.FindProperty("_tabButtons");
@@ -414,9 +414,10 @@ namespace BunDauPeo.Tests
 
         // Hộp thả xuống (spec 5.3): dim bấm được kín màn, hộp 640×660 dưới nút, 5 dòng 600×100.
         [Test]
-        public void NotifyPopup_IsOverlayBoxOverBar() =>
+        public void OverlayBoxes_NotifyAndProfile() =>
             WithLobby(scene =>
             {
+                AssertProfileBox(scene);
                 var root = Named(scene, "NotifyPopup");
                 Assert.IsFalse(root.gameObject.activeSelf, "the box starts closed");
                 Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(root));
@@ -458,6 +459,79 @@ namespace BunDauPeo.Tests
                 var pages = new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single()).FindProperty("_pages");
                 Assert.IsTrue(Enumerable.Range(0, pages.arraySize).Any(i => ReferenceEquals(pages.GetArrayElementAtIndex(i).objectReferenceValue, popup)), "NotifyPopup is in HubNav._pages");
             });
+
+        // Hộp Hồ sơ (spec 5.4): kín màn qua OverBar, nền không là Button (bấm nền không đóng), hộp 1200×800 giữa màn, ô tên 12 ký tự, lưới cuộn, ô mẫu tắt.
+        private static void AssertProfileBox(Scene scene)
+        {
+            var root = Named(scene, "ProfilePopup");
+            Assert.IsFalse(root.gameObject.activeSelf, "the profile box starts closed");
+            Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(root));
+            var canvas = root.GetComponent<Canvas>();
+            Assert.IsNotNull(canvas);
+            Assert.IsTrue(canvas.overrideSorting);
+            Assert.Greater(canvas.sortingOrder, Named(scene, Bar).GetComponentInParent<Canvas>().sortingOrder, "drawn over the bar");
+            Assert.IsNotNull(root.GetComponent<GraphicRaycaster>());
+            var dim = root.GetComponent<Image>();
+            Assert.IsNotNull(dim, "the root draws the dim");
+            Assert.IsTrue(dim.raycastTarget, "the dim blocks clicks behind it");
+            Assert.AreEqual(0.5f, dim.color.a, 0.01f);
+            Assert.AreEqual(0f, dim.color.r + dim.color.g + dim.color.b, "black dim");
+            Assert.IsNull(root.GetComponent<Button>(), "tapping the dim must not close the box (typed text would be lost)");
+
+            AssertRect(360, 140, 1200, 800, FromTop(scene, "ProfileBox_PH_1200x800"), "ProfileBox");
+            Assert.IsTrue(Named(scene, "ProfileBox_PH_1200x800").IsChildOf(root));
+            Assert.AreEqual("profile.title", Named(scene, "ProfileTitle").GetComponent<LocalizedText>().Key);
+            AssertRect(440, 280, 240, 240, FromTop(scene, "ProfileAvatar_PH_240x240"), "ProfileAvatar");
+            var avatar = Named(scene, "ProfileAvatar_PH_240x240");
+            Assert.IsNotNull(avatar.GetComponent<AvatarView>());
+            RestaurantSceneTests.AssertAllReferencesAssigned(avatar.GetComponent<AvatarView>(), "_followProfile");
+            Assert.IsNotNull(avatar.Find("AvatarInitial"));
+
+            var input = Named(scene, "NameInput_PH_400x90").GetComponent<InputField>();
+            Assert.IsNotNull(input);
+            AssertRect(400, 590, 400, 90, FromTop(scene, "NameInput_PH_400x90"), "NameInput");
+            Assert.AreEqual(12, input.characterLimit);
+            Assert.AreEqual(InputField.LineType.SingleLine, input.lineType);
+            Assert.AreEqual(InputField.ContentType.Standard, input.contentType);
+            Assert.IsTrue(input.placeholder is Text, "the placeholder is a Text the popup fills with the default name");
+            Assert.IsNull(input.placeholder.GetComponent<LocalizedText>(), "InputField.placeholder is written at runtime, so no LocalizedText");
+            Assert.AreEqual("profile.name_hint", Named(scene, "NameHint").GetComponent<LocalizedText>().Key);
+            Assert.IsNotNull(Named(scene, "ProfileStatus").GetComponent<Text>());
+            Assert.AreEqual("", Named(scene, "ProfileStatus").GetComponent<Text>().text, "no error line at first");
+            Assert.AreEqual("profile.change_avatar", Named(scene, "AvatarLabel").GetComponent<LocalizedText>().Key);
+
+            var grid = Named(scene, "AvatarGrid");
+            var scroll = grid.GetComponent<ScrollRect>();
+            Assert.IsNotNull(scroll);
+            Assert.IsTrue(scroll.vertical && !scroll.horizontal, "the grid scrolls vertically only");
+            Assert.AreEqual(ScrollRect.MovementType.Clamped, scroll.movementType);
+            Assert.IsNotNull(grid.GetComponentInChildren<RectMask2D>(true), "cells are clipped to the grid");
+            var template = grid.GetComponentsInChildren<Button>(true).Single(b => b.name == "AvatarCell_PH_120x120");
+            Assert.IsFalse(template.gameObject.activeSelf, "the cell template is off");
+            Assert.AreEqual(new Vector2(120, 120), ((RectTransform)template.transform).sizeDelta);
+            Assert.IsNotNull(template.transform.Find("AvatarSelected_PH_136x136"), "gold ring under the circle");
+            Assert.IsNotNull(template.GetComponent<AvatarView>());
+            Assert.IsNotNull(template.transform.Find("AvatarInitial"), "a cell shows the character's initial");
+
+            var close = Named(scene, "ProfilePopup").GetComponentsInChildren<Button>(true).Single(b => b.name == "CloseButton");
+            Assert.AreEqual(new Vector2(300, 100), ((RectTransform)close.transform).sizeDelta);
+            AssertRect(810, 810, 300, 100, FromTop(RestaurantSceneTests.InReferenceCanvas((RectTransform)close.transform)), "CloseButton");
+
+            var popup = RestaurantSceneTests.All<ProfilePopup>(scene).Single();
+            Assert.AreSame(root.gameObject, popup.gameObject, "ProfilePopup sits on its root");
+            RestaurantSceneTests.AssertAllReferencesAssigned(popup);
+            Assert.IsTrue((object)popup is IHubOverlay);
+            var nav = new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single());
+            var pages = nav.FindProperty("_pages");
+            Assert.IsTrue(Enumerable.Range(0, pages.arraySize).Any(i => ReferenceEquals(pages.GetArrayElementAtIndex(i).objectReferenceValue, popup)), "ProfilePopup is in HubNav._pages");
+
+            var lobbyAvatar = Named(scene, "Avatar_PH_140x140");
+            Assert.IsNotNull(lobbyAvatar.GetComponent<AvatarView>(), "the Lobby avatar shows the chosen character");
+            RestaurantSceneTests.AssertAllReferencesAssigned(lobbyAvatar.GetComponent<AvatarView>(), "_followProfile");
+            Assert.IsTrue(new SerializedObject(lobbyAvatar.GetComponent<AvatarView>()).FindProperty("_followProfile").boolValue, "the Lobby avatar follows PlayerProfile.Changed");
+            Assert.IsFalse(new SerializedObject(avatar.GetComponent<AvatarView>()).FindProperty("_followProfile").boolValue, "the popup draws its own avatar");
+            Assert.IsNotNull(lobbyAvatar.GetComponentsInChildren<Transform>(true).SingleOrDefault(t => t.name == "AvatarInitial"));
+        }
 
         // Spec 5.3: một ResourceBar 1120×76 với 4 ô 280 theo thứ tự Thể lực, Coin, Material, Gem; Material không có nút +.
         [Test]

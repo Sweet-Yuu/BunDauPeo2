@@ -521,30 +521,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsFalse(FindAny(popup).activeSelf, Where("bấm nền mờ phải đóng hộp"));
 
             _step = "N2 ép đủ 5 việc";
-            var config = restaurant.Config;
-            var min = typeof(RestaurantConfig).GetField("_incidentSpawnMin", BindingFlags.NonPublic | BindingFlags.Instance);
-            var max = typeof(RestaurantConfig).GetField("_incidentSpawnMax", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(min, Where("RestaurantConfig đổi tên _incidentSpawnMin"));
-            Assert.IsNotNull(max, Where("RestaurantConfig đổi tên _incidentSpawnMax"));
-            var oldMin = min.GetValue(config);
-            var oldMax = max.GetValue(config);
-            min.SetValue(config, 1f);
-            max.SetValue(config, 2f);
-            try
-            {
-                restaurant.Incidents.Reset();
-                var deadline = Time.realtimeSinceStartup + 20f;
-                while (restaurant.Incidents.Active == null)
-                {
-                    if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where("20s mà không có sự cố nào sinh"));
-                    yield return null;
-                }
-            }
-            finally
-            {
-                min.SetValue(config, oldMin);
-                max.SetValue(config, oldMax);
-            }
+            yield return ForceIncident(restaurant);
 
             foreach (var worker in restaurant.Profile.Workers(StaffRole.Cashier).ToList()) restaurant.Staffing.Remove(worker.CharacterId);
             session.Save.Afk.PendingTheoretical = 1000;
@@ -645,6 +622,94 @@ namespace BunDauPeo.PlayModeTests
             typeof(GachaView).GetMethod("Dismiss", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Object.FindFirstObjectByType<GachaView>(), null);
             yield return null;
             Assert.IsTrue(FindAny(notify).activeInHierarchy, Where("về trang roll mà nút vẫn ẩn"));
+        }
+
+        // Đợt C, Hồ sơ (spec 5.4): tên và avatar giữ qua nạp lại save. Reset (đường DEV) lúc hộp mở và ô tên đang gõ dở: hộp đóng, chữ dở không vào save mới
+        // (Review Focus 1, L-035). Mở hộp, bấm ô, bấm Đóng qua raycast thật (L-036); bàn phím không giả được nên kết thúc gõ bằng onEndEdit.
+        [UnityTest, Timeout(300000)]
+        public IEnumerator Hub_Profile_NameAvatarPersistAndReset()
+        {
+            const string avatarButton = "Avatar_PH_140x140", popup = "ProfilePopup", nameInput = "NameInput_PH_400x90", cell = "AvatarCell_PH_120x120", ring = "AvatarSelected_PH_136x136";
+            var gray = new Color(0.55f, 0.57f, 0.62f);
+            _step = "P1 Boot, game mới chưa có tên";
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var profile = ServiceLocator.Get<PlayerProfile>();
+            var owned = session.Roster.GetOwned();
+            Assert.GreaterOrEqual(owned.Count, 2, Where("game mới cần ít nhất 2 nhân vật để chọn ô thứ hai"));
+            Assert.AreEqual("", profile.Name, Where("game mới chưa có tên"));
+            Assert.AreEqual("", profile.AvatarId, Where("game mới chưa có avatar"));
+            AssertAvatarShows(null, gray, Where("avatar Lobby của game mới"));
+
+            _step = "P2 bấm avatar → hộp mở, quán không đổi bố cục";
+            yield return ClickWhenReady(avatarButton);
+            Assert.IsTrue(FindAny(popup).activeSelf, Where("bấm avatar mà hộp Hồ sơ không mở"));
+            Assert.IsTrue(FindAny("LobbyHud").activeSelf, Where("hộp nổi không được đổi bố cục Lobby"));
+            var input = FindAny(nameInput).GetComponent<InputField>();
+            Assert.AreEqual(UiText.Get("profile.default_name"), input.placeholder.GetComponent<Text>().text, Where("ô trống phải hiện tên mặc định"));
+            Assert.AreEqual("", input.text, Where("chưa đặt tên thì ô trống"));
+
+            _step = "P3 đặt tên (trim, cắt 12 ký tự), chọn avatar ô thứ hai";
+            input.text = " An  ";
+            input.onEndEdit.Invoke(input.text);
+            Assert.AreEqual("An", profile.Name, Where("tên phải được trim"));
+            Assert.AreEqual("An", input.text, Where("ô phải hiện giá trị đã chuẩn hoá"));
+            input.onEndEdit.Invoke("   0123456789ABCDEF   ");
+            Assert.AreEqual("0123456789AB", profile.Name, Where("tên dài phải bị cắt còn 12 ký tự trước khi lưu"));
+            input.onEndEdit.Invoke(" An  ");
+            // FindButtons không đảm bảo thứ tự; ô được thêm theo thứ tự sở hữu nên xếp theo vị trí trong lưới.
+            var cells = UiDriver.FindButtons(cell).OrderBy(b => b.transform.GetSiblingIndex()).ToList();
+            Assert.AreEqual(owned.Count, cells.Count, Where("mỗi nhân vật đã sở hữu một ô"));
+            var click = UiDriver.Click(cells[1], cell);
+            Assert.AreEqual(ClickStatus.Clicked, click.Status, Where(click.ToString()));
+            yield return null;
+            Assert.AreEqual(owned[1].Id, profile.AvatarId, Where("bấm ô thứ hai phải chọn nhân vật thứ hai"));
+            for (var i = 0; i < cells.Count; i++)
+                Assert.AreEqual(i == 1, cells[i].transform.Find(ring).gameObject.activeSelf, Where($"viền vàng của ô {i}"));
+            AssertAvatarShows(owned[1], default, Where("avatar Lobby sau khi chọn"));
+
+            _step = "P4 Đóng, nạp lại save";
+            yield return ClickWhenReady("CloseButton");
+            Assert.IsFalse(FindAny(popup).activeSelf, Where("Đóng phải tắt hộp"));
+            var saved = new SaveService(_savePath).Load();
+            Assert.AreEqual("An", saved.PlayerName, Where("tên trong file save"));
+            Assert.AreEqual(owned[1].Id, saved.AvatarCharacterId, Where("avatar trong file save"));
+
+            _step = "P5 mở lại, gõ dở 'Zed', Reset đường DEV";
+            yield return ClickWhenReady(avatarButton);
+            input = FindAny(nameInput).GetComponent<InputField>();
+            Assert.AreEqual("An", input.text, Where("mở lại phải hiện tên đã lưu"));
+            input.ActivateInputField();
+            yield return null;
+            yield return null;
+            Assert.IsTrue(input.isFocused, Where("ô tên phải đang focus, nếu không ca này không thử gì"));
+            input.text = "Zed";
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            Assert.IsTrue(DevOverlay.ResetAll(), Where("Reset"));
+            Assert.IsFalse(FindAny(popup).activeSelf, Where("Reset phải đóng hộp Hồ sơ trước khi chạy"));
+            Assert.AreEqual("", profile.Name, Where("tên sau Reset phải về mặc định"));
+            Assert.AreEqual("", profile.AvatarId, Where("avatar sau Reset phải về trống"));
+            SceneManager.LoadScene(BattleView.RestaurantScene);
+            yield return WaitForNewHub(oldHub);
+            yield return null;
+            yield return null;
+            Assert.AreEqual("", profile.Name, Where("chữ gõ dở không được ghi vào save mới"));
+            AssertAvatarShows(null, gray, Where("avatar Lobby sau Reset"));
+            var after = new SaveService(_savePath).Load();
+            Assert.AreEqual("", after.PlayerName, Where("tên trong file save sau Reset"));
+            Assert.AreEqual("", after.AvatarCharacterId, Where("avatar trong file save sau Reset"));
+        }
+
+        // Avatar Lobby: chưa chọn → màu xám, không chữ; đã chọn → màu theo độ hiếm, chữ cái đầu.
+        private static void AssertAvatarShows(CharacterDefinition character, Color grayWhenNone, string message)
+        {
+            var face = FindAny("AvatarFace_PH_100x100").GetComponent<Image>().color;
+            var initial = FindAny("Avatar_PH_140x140").transform.Find("AvatarFace_PH_100x100/AvatarInitial").GetComponent<Text>().text;
+            var expected = character == null ? grayWhenNone : GachaViewText.RarityColor(character.Rarity);
+            Assert.AreEqual(expected.r, face.r, 0.01f, message + " (màu đỏ)");
+            Assert.AreEqual(expected.g, face.g, 0.01f, message + " (màu lục)");
+            Assert.AreEqual(expected.b, face.b, 0.01f, message + " (màu lam)");
+            Assert.AreEqual(AvatarRule.Initial(character), initial, message + " (chữ cái đầu)");
         }
 
         // --- Vòng ô của hub, thanh Gacha, Reset lỗi trong Menu, ảnh chụp cho playtest (spec UI hub 7).
@@ -837,9 +902,9 @@ namespace BunDauPeo.PlayModeTests
             yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
             yield return null;
 
-            _step = "B7 avatar, Shop, nút + → Sắp có";
+            _step = "B7 Shop, nút + → Sắp có (avatar mở Hồ sơ)";
             var toast = FindAny("ComingSoonToast");
-            foreach (var name in new[] { "Avatar_PH_140x140", "HubRoundBtnShop_PH_110x110" })
+            foreach (var name in new[] { "HubRoundBtnShop_PH_110x110" })
             {
                 toast.SetActive(false);
                 yield return ClickWhenReady(name);
@@ -1146,11 +1211,12 @@ namespace BunDauPeo.PlayModeTests
         // Ảnh cho lần dừng playtest đợt B: mọi panel và trang con ở tiếng Việt rồi tiếng Anh, ra D:/bdp_BunDauPeo/shots/hubb-<màn>[-en].png
         // (tên hubb- để không ghi đè ảnh hub- của đợt A).
         // Đi cả đường đóng trang bằng ô khác (Chọn đội, Lịch sử quay), nên cũng là smoke test của IHubPage.
-        private IEnumerator Shot(string screen, string suffix)
+        // Ảnh đợt C (hubc-) cùng thư mục: prefix "hubc".
+        private IEnumerator Shot(string screen, string suffix, string prefix = "hubb")
         {
             yield return null;
             yield return null;
-            var path = ScreenCapture1080.Capture($"hubb-{screen}{suffix}.png");
+            var path = ScreenCapture1080.Capture($"{prefix}-{screen}{suffix}.png");
             Assert.IsFalse(path.StartsWith("ERROR", StringComparison.Ordinal), Where(path));
         }
 
@@ -1175,8 +1241,10 @@ namespace BunDauPeo.PlayModeTests
             yield return Shot("characters", suffix);
             yield return ClickWhenReady("NavTabStages_PH_320x120");
             yield return Shot("modes", suffix);
+            yield return Shot("mode-select", suffix, "hubc");
             yield return ClickWhenReady("ModeMain_PH_820x560");
             yield return Shot("stages", suffix);
+            yield return Shot("stage-map-back", suffix, "hubc");
 
             var stages = combat.Config.Stages.Items;
             var battleIndex = stages.Select((st, i) => (st, i)).First(x => x.st.Kind == StageKind.Battle).i;
@@ -1217,6 +1285,97 @@ namespace BunDauPeo.PlayModeTests
             yield return Shot("reset", suffix);
             yield return ClickWhenReady("ResetNoBtn_PH_340x110");
             yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
+
+            yield return ShootProfile(suffix);
+            yield return ShootNotify(suffix);
+        }
+
+        // Ảnh đợt C: Hồ sơ có tên và avatar, rồi Lobby với avatar đã đổi. Chạy trên save tạm.
+        private IEnumerator ShootProfile(string suffix)
+        {
+            _step = "S Hồ sơ" + suffix;
+            var profile = ServiceLocator.Get<PlayerProfile>();
+            var owned = Object.FindFirstObjectByType<GameBootstrap>().Session.Roster.GetOwned();
+            Assert.GreaterOrEqual(owned.Count, 3, Where("save thử cần ít nhất 3 nhân vật"));
+            Assert.IsTrue(profile.SetName("Bé Peo"), Where("đặt tên"));
+            Assert.IsTrue(profile.SetAvatar(owned[2].Id), Where("đặt avatar"));
+            yield return ClickWhenReady("Avatar_PH_140x140");
+            yield return Shot("profile", suffix, "hubc");
+            yield return ClickWhenReady("CloseButton");
+            yield return Shot("lobby-avatar", suffix, "hubc");
+        }
+
+        // Ảnh đợt C: hộp Thông báo trống rồi đủ 5 dòng. Đưa quán về "không có việc" trước (lượt tiếng Anh thừa hưởng lượt tiếng Việt).
+        private IEnumerator ShootNotify(string suffix)
+        {
+            const string notify = "NotifyBtn_PH_110x100";
+            _step = "S Thông báo trống" + suffix;
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var restaurant = ServiceLocator.Get<RestaurantService>();
+            var combat = ServiceLocator.Get<CombatService>();
+            var stars = ServiceLocator.Get<StarService>();
+            var roster = session.Roster;
+            var roles = new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier };
+            foreach (var role in roles)
+                if (restaurant.Profile.Workers(role).Count == 0)
+                {
+                    var free = roster.GetOwned().First(c => roles.All(r => restaurant.Profile.Workers(r).All(w => w.CharacterId != c.Id)));
+                    Assert.AreEqual(StaffAssignResult.Success, restaurant.Staffing.TryAssign(free.Id, role), Where($"không xếp lại được vai {role}"));
+                }
+
+            if (restaurant.Incidents.Active.HasValue) restaurant.Incidents.Cancel();
+            session.Save.Afk.PendingTheoretical = 0;
+            session.Save.Afk.AccumulatedSeconds = 0;
+            if (combat.Stamina.Current >= combat.Stamina.Max) combat.Stamina.TrySpend(1, () => true);
+            foreach (var row in CharacterListRows.Build(roster, stars).Where(r => r.NextCost > 0 && r.Fragments >= r.NextCost))
+                roster.SpendFragments(row.Character.Id, row.Fragments);
+            yield return new WaitForSecondsRealtime(0.7f);
+            yield return ClickWhenReady(notify);
+            yield return Shot("notify-empty", suffix, "hubc");
+            yield return ClickWhenReady("NotifyDim");
+
+            _step = "S Thông báo đủ 5 dòng" + suffix;
+            yield return ForceIncident(restaurant);
+            foreach (var worker in restaurant.Profile.Workers(StaffRole.Cashier).ToList()) restaurant.Staffing.Remove(worker.CharacterId);
+            session.Save.Afk.PendingTheoretical = 1000;
+            session.Save.Afk.AccumulatedSeconds = 3600;
+            combat.Stamina.Refill();
+            var ready = CharacterListRows.Build(roster, stars).First(r => r.NextCost > 0);
+            roster.AddFragments(ready.Character.Id, Math.Max(0L, ready.NextCost - ready.Fragments));
+            yield return new WaitForSecondsRealtime(0.7f);
+            yield return ClickWhenReady(notify);
+            Assert.AreEqual(5, UiDriver.FindButtons("NotifyRow_PH_600x100").Count, Where("hộp phải đủ 5 dòng"));
+            yield return Shot("notify-full", suffix, "hubc");
+            yield return ClickWhenReady("NotifyDim");
+        }
+
+        // Ép sự cố sinh trong 1–2 giây (đặt lại khoảng sinh rồi trả về), chờ tới khi có sự cố.
+        private IEnumerator ForceIncident(RestaurantService restaurant)
+        {
+            var config = restaurant.Config;
+            var min = typeof(RestaurantConfig).GetField("_incidentSpawnMin", BindingFlags.NonPublic | BindingFlags.Instance);
+            var max = typeof(RestaurantConfig).GetField("_incidentSpawnMax", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(min, Where("RestaurantConfig đổi tên _incidentSpawnMin"));
+            Assert.IsNotNull(max, Where("RestaurantConfig đổi tên _incidentSpawnMax"));
+            var oldMin = min.GetValue(config);
+            var oldMax = max.GetValue(config);
+            min.SetValue(config, 1f);
+            max.SetValue(config, 2f);
+            try
+            {
+                restaurant.Incidents.Reset();
+                var deadline = Time.realtimeSinceStartup + 20f;
+                while (restaurant.Incidents.Active == null)
+                {
+                    if (Time.realtimeSinceStartup > deadline) Assert.Fail(Where("20s mà không có sự cố nào sinh"));
+                    yield return null;
+                }
+            }
+            finally
+            {
+                min.SetValue(config, oldMin);
+                max.SetValue(config, oldMax);
+            }
         }
 
         // Game mới chưa có nhân viên nên Lobby trống người: thêm người từ catalog, xếp đủ ba vai, rồi chờ (tối đa 45 giây) tới khi có khách đang ăn
@@ -1240,10 +1399,23 @@ namespace BunDauPeo.PlayModeTests
         [UnityTest, Timeout(360000)]
         public IEnumerator Hub_Screenshots_VietnameseAndEnglish()
         {
-            _step = "S0 Boot (Việt)";
-            yield return BootToLobby();
+            _step = "S0 Boot → Tiêu đề (Việt, English)";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene(TitleView.TitleScene);
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
             var session = bootstrap.Session;
+            foreach (var (language, titleSuffix) in new[] { (Language.Vi, ""), (Language.En, "-en") })
+            {
+                Assert.IsTrue(session.SetLanguage(language), Where($"SetLanguage({language})"));
+                var oldTitle = Object.FindFirstObjectByType<TitleView>();
+                SceneManager.LoadScene(TitleView.TitleScene);
+                while (Object.FindFirstObjectByType<TitleView>() == oldTitle) yield return null;
+                yield return Shot("title", titleSuffix, "hubc");
+            }
+
+            _step = "S0 vào Lobby (Việt)";
+            yield return ClickWhenReady("TapArea");
+            yield return WaitForScene("Restaurant");
             yield return SeedRestaurantForShots(bootstrap);
             Assert.IsTrue(session.SetLanguage(Language.Vi), Where("SetLanguage(Vi)"));
             var oldHub = Object.FindFirstObjectByType<HubNav>();

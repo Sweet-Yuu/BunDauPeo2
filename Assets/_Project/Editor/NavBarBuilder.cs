@@ -164,12 +164,13 @@ namespace BunDauPeo.EditorTools
         }
 
         // Nối phần HUD Lobby vào HubNav và ResourceBarView vào HubNav (HubNav dựng sau cả hai).
-        public static void WireLobby(HubNav hub, ResourceBarView resources, GameObject lobbyHud, Button[] comingSoon, Button banner)
+        public static void WireLobby(HubNav hub, ResourceBarView resources, GameObject lobbyHud, Button[] comingSoon, Button banner, Button profile)
         {
             var so = new SerializedObject(hub);
             so.FindProperty("_lobbyHud").objectReferenceValue = lobbyHud;
             SetRefs(so.FindProperty("_comingSoonButtons"), comingSoon);
             so.FindProperty("_bannerButton").objectReferenceValue = banner;
+            so.FindProperty("_profileButton").objectReferenceValue = profile;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             var resourcesSo = new SerializedObject(resources);
@@ -287,6 +288,141 @@ namespace BunDauPeo.EditorTools
             var hubSo = new SerializedObject(hub);
             hubSo.FindProperty("_notifyButton").objectReferenceValue = view.gameObject;
             hubSo.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static readonly Color InputColor = new(0.92f, 0.93f, 0.96f);
+        private static readonly Color InputPlaceholder = new(0.50f, 0.52f, 0.60f);
+        private static readonly Color HintColor = new(0.80f, 0.82f, 0.88f);
+        private const float CellRing = 136f;
+
+        // AvatarView lên host: chữ cái đầu là con của initialParent (trắng, viền tối để đọc được trên mọi màu độ hiếm).
+        internal static AvatarView AddAvatarView(GameObject host, Image circle, RectTransform initialParent, Font font, int fontSize, bool followProfile)
+        {
+            var initial = NewText("AvatarInitial", initialParent, font, "", fontSize, TextAnchor.MiddleCenter, Color.white);
+            Stretch(initial.rectTransform);
+            initial.fontStyle = FontStyle.Bold;
+            var outline = initial.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.7f);
+            outline.effectDistance = new Vector2(2, -2);
+
+            circle.color = AvatarView.NoneColor;
+            var view = host.AddComponent<AvatarView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_circle").objectReferenceValue = circle;
+            so.FindProperty("_initial").objectReferenceValue = initial;
+            so.FindProperty("_followProfile").boolValue = followProfile;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return view;
+        }
+
+        // Hộp Hồ sơ giữa màn (spec UI hub C 5.4): nền đen alpha 0,5 chặn bấm nhưng KHÔNG đóng hộp (khỏi mất chữ đang gõ), hộp 1200×800, tên 12 ký tự,
+        // lưới avatar cuộn dọc 5 cột. Vẽ trên thanh qua OverBar; lúc đầu tắt.
+        public static ProfilePopup BuildProfilePopup(RectTransform canvas, Font font, Sprite sprite, Sprite knob)
+        {
+            var root = NewRect("ProfilePopup", canvas);
+            Stretch(root);
+            AddImage(root, null, new Color(0f, 0f, 0f, 0.5f), raycast: true);
+            OverBar(root);
+
+            var box = NewRect("ProfileBox_PH_1200x800", root);
+            Place(box, Center, Center, Vector2.zero, new Vector2(1200, 800));
+            AddImage(box, sprite, NotifyBoxColor, raycast: true);
+            var outline = box.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.75f, 0.78f, 0.88f, 0.9f);
+            outline.effectDistance = new Vector2(3, -3);
+
+            var title = NewLabel("ProfileTitle", box, font, "profile.title", 48, TextAnchor.MiddleCenter, Gold);
+            title.fontStyle = FontStyle.Bold;
+            Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -30), new Vector2(800, 80));
+
+            var bigRect = NewRect("ProfileAvatar_PH_240x240", box);
+            Place(bigRect, TopLeft, TopLeft, new Vector2(80, -140), new Vector2(240, 240));
+            var bigImage = AddImage(bigRect, knob, AvatarView.NoneColor, raycast: false);
+            bigImage.type = Image.Type.Simple;
+            var bigAvatar = AddAvatarView(bigRect.gameObject, bigImage, bigRect, font, 110, followProfile: false);
+
+            var inputRect = NewRect("NameInput_PH_400x90", box);
+            Place(inputRect, TopLeft, TopLeft, new Vector2(40, -450), new Vector2(400, 90));
+            var inputImage = AddImage(inputRect, sprite, InputColor, raycast: true);
+            var inputText = NewText("Text", inputRect, font, "", 38, TextAnchor.MiddleLeft, Dark);
+            Stretch(inputText.rectTransform);
+            inputText.rectTransform.offsetMin = new Vector2(16, 6);
+            inputText.rectTransform.offsetMax = new Vector2(-16, -6);
+            inputText.supportRichText = false;
+            // Chữ mờ do ProfilePopup ghi lúc mở (InputField.placeholder là trường view ghi, nên không gắn LocalizedText).
+            var placeholder = NewText("Placeholder", inputRect, font, UiText.Get("profile.default_name"), 38, TextAnchor.MiddleLeft, InputPlaceholder);
+            Stretch(placeholder.rectTransform);
+            placeholder.rectTransform.offsetMin = new Vector2(16, 6);
+            placeholder.rectTransform.offsetMax = new Vector2(-16, -6);
+            placeholder.fontStyle = FontStyle.Italic;
+            var input = inputRect.gameObject.AddComponent<InputField>();
+            input.targetGraphic = inputImage;
+            input.textComponent = inputText;
+            input.placeholder = placeholder;
+            input.characterLimit = PlayerNameRule.MaxLength;
+            input.lineType = InputField.LineType.SingleLine;
+            input.contentType = InputField.ContentType.Standard;
+
+            var hint = NewLabel("NameHint", box, font, "profile.name_hint", 26, TextAnchor.MiddleLeft, HintColor);
+            Place(hint.rectTransform, TopLeft, TopLeft, new Vector2(40, -550), new Vector2(400, 40));
+            var status = NewText("ProfileStatus", box, font, "", 28, TextAnchor.UpperLeft, Warning);
+            Place(status.rectTransform, TopLeft, TopLeft, new Vector2(40, -600), new Vector2(400, 80));
+
+            var label = NewLabel("AvatarLabel", box, font, "profile.change_avatar", 38, TextAnchor.MiddleLeft, Gold);
+            Place(label.rectTransform, TopLeft, TopLeft, new Vector2(520, -120), new Vector2(600, 60));
+
+            // Khung cuộn 640×460; khung nhìn nới 8 px mỗi cạnh để viền vàng 136 của ô sát mép không bị RectMask2D cắt.
+            var grid = NewRect("AvatarGrid", box);
+            Place(grid, TopLeft, TopLeft, new Vector2(520, -180), new Vector2(640, 460));
+            AddImage(grid, null, new Color(0f, 0f, 0f, 0.25f), raycast: true);
+            var viewport = NewRect("Viewport", grid);
+            Stretch(viewport);
+            viewport.offsetMin = new Vector2(-8, -8);
+            viewport.offsetMax = new Vector2(8, 8);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var content = NewRect("Content", viewport);
+            content.anchorMin = new Vector2(0, 1);
+            content.anchorMax = Vector2.one;
+            content.pivot = new Vector2(0.5f, 1);
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = Vector2.zero;
+            var scroll = grid.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.viewport = viewport;
+            scroll.content = content;
+
+            // Ô mẫu: gốc chỉ mang Button; viền vàng vẽ trước (dưới) hình tròn, chữ cái đầu vẽ sau (trên).
+            var cell = NewRect("AvatarCell_PH_120x120", content);
+            Place(cell, TopLeft, TopLeft, new Vector2(8, -8), new Vector2(120, 120));
+            var ring = NewRect("AvatarSelected_PH_136x136", cell);
+            Place(ring, Center, Center, Vector2.zero, new Vector2(CellRing, CellRing));
+            AddImage(ring, knob, Gold, raycast: false).type = Image.Type.Simple;
+            ring.gameObject.SetActive(false);
+            var circleRect = NewRect("AvatarCircle", cell);
+            Stretch(circleRect);
+            var circle = AddImage(circleRect, knob, AvatarView.NoneColor, raycast: true);
+            circle.type = Image.Type.Simple;
+            var cellButton = cell.gameObject.AddComponent<Button>();
+            cellButton.targetGraphic = circle;
+            AddAvatarView(cell.gameObject, circle, cell, font, 56, followProfile: false);
+            cell.gameObject.SetActive(false);
+
+            var close = BattleSceneBuilder.LabelButton("CloseButton", box, sprite, font, "common.close", GreyButton, BottomCenter, new Vector2(0, 30), new Vector2(300, 100));
+
+            var popup = root.gameObject.AddComponent<ProfilePopup>();
+            var so = new SerializedObject(popup);
+            so.FindProperty("_nameInput").objectReferenceValue = input;
+            so.FindProperty("_status").objectReferenceValue = status;
+            so.FindProperty("_bigAvatar").objectReferenceValue = bigAvatar;
+            so.FindProperty("_gridContent").objectReferenceValue = content;
+            so.FindProperty("_cellTemplate").objectReferenceValue = cellButton;
+            so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            root.gameObject.SetActive(false);
+            return popup;
         }
 
         // Hộp con vẽ trên thanh (spec 5.1 bước 6): Canvas con overrideSorting cao hơn canvas chính, kèm GraphicRaycaster.

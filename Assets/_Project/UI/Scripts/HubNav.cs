@@ -31,9 +31,10 @@ namespace BunDauPeo.UI
         [SerializeField] private MonoBehaviour[] _pages;
         // HUD của Lobby (spec UI hub B 5.1): chỉ bật khi ResourceBarRule.IsLobbyLayout. Ba trường dưới tuỳ chọn để HubNav dựng tay trong test vẫn chạy.
         [SerializeField] private GameObject _lobbyHud;
-        // Avatar và Shop: bấm ra dòng "Sắp có". Banner Gacha: bấm mở ô Gacha.
+        // Shop: bấm ra dòng "Sắp có". Banner Gacha: bấm mở ô Gacha. Avatar: bấm mở Hồ sơ (ProfilePopup nằm trong _pages), tuỳ chọn.
         [SerializeField] private Button[] _comingSoonButtons;
         [SerializeField] private Button _bannerButton;
+        [SerializeField] private Button _profileButton;
         // Bản đồ (trang con của Chọn chế độ), tuỳ chọn: ô chờ có stageMap thì Awake mở nó.
         [SerializeField] private StageMapView _stageMap;
         // Nút Thông báo, tuỳ chọn: ẩn cùng thanh dưới (Gacha lúc cutscene, lộ, tổng).
@@ -115,6 +116,7 @@ namespace BunDauPeo.UI
                 foreach (var button in _comingSoonButtons)
                     if (button != null) button.onClick.AddListener(ShowComingSoon);
             if (_bannerButton != null) _bannerButton.onClick.AddListener(OpenGacha);
+            if (_profileButton != null) _profileButton.onClick.AddListener(OpenProfile);
 
             Refresh();
         }
@@ -128,6 +130,7 @@ namespace BunDauPeo.UI
                 foreach (var button in _comingSoonButtons)
                     if (button != null) button.onClick.RemoveListener(ShowComingSoon);
             if (_bannerButton != null) _bannerButton.onClick.RemoveListener(OpenGacha);
+            if (_profileButton != null) _profileButton.onClick.RemoveListener(OpenProfile);
             // Rời scene (vào trận) thì trả chủ dừng, để sự cố của lần sau không kẹt.
             _service?.Incidents.SetClockPaused(this, false);
             _service = null;
@@ -182,6 +185,8 @@ namespace BunDauPeo.UI
         }
 
         private void OpenGacha() => Select(HubTab.Gacha);
+
+        private void OpenProfile() => _pages.OfType<ProfilePopup>().FirstOrDefault()?.Open();
 
         // Nút Đóng của Menu.
         public void CloseMenu()
