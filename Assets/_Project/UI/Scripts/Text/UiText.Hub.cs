@@ -30,7 +30,7 @@ namespace BunDauPeo.UI
             ("notify.staff_missing", "Thiếu {0}, quán đứng yên", "No {0}, the shop is stopped"),
             ("notify.afk", "Có {0} Coin AFK chờ thu", "{0} AFK Coin to collect"),
             ("notify.stamina_full", "Thể lực đã đầy", "Stamina is full"),
-            ("notify.star_up", "{0} nhân vật đủ mảnh nâng sao", "{0} characters can star up"),
+            ("notify.star_up", "{0} nhân vật đủ mảnh nâng sao", "Ready to star up: {0}"),
             ("profile.title", "Hồ sơ", "Profile"),
             ("profile.default_name", "Người chơi", "Player"),
             ("profile.name_hint", "Tối đa 12 ký tự", "Up to 12 characters"),

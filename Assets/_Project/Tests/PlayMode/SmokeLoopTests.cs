@@ -484,6 +484,11 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsTrue(FindAny(modePanel).activeSelf, Where("Chọn chế độ còn bật dưới Bản đồ"));
             yield return ClickWhenReady("BackButton");
             Assert.IsFalse(FindAny(mapPanel).activeSelf, Where("Quay lại sau khi về từ trận"));
+            // Chọn chế độ bật lúc nạp scene, trước khi CanvasScaler co canvas: scale vẫn phải theo bề rộng thật (màn batch 4:3 → 0.75).
+            var panelRect = (RectTransform)FindAny(modePanel).transform;
+            var scale = panelRect.Find("ModeContent").localScale.x;
+            Assert.Less(panelRect.rect.width, 1900f, Where("ca này cần màn hẹp hơn 16:9"));
+            Assert.AreEqual(FitWidthScale.ScaleFor(panelRect.rect.width), scale, 1e-3f, Where("scale của khung sau khi về từ trận"));
         }
 
         // Đợt C, nút Thông báo (spec 5.3): chấm theo việc, hộp 5 dòng đúng thứ tự, mỗi dòng tới đúng chỗ, qua raycast thật (L-036).
@@ -668,17 +673,19 @@ namespace BunDauPeo.PlayModeTests
                 Assert.AreEqual(i == 1, cells[i].transform.Find(ring).gameObject.activeSelf, Where($"viền vàng của ô {i}"));
             AssertAvatarShows(owned[1], default, Where("avatar Lobby sau khi chọn"));
 
-            _step = "P4 Đóng, nạp lại save";
+            _step = "P4 gõ dở 'Bo' rồi Đóng, nạp lại save";
+            input.text = "Bo"; // không gọi onEndEdit: chỉ đường Close() mới ghi được chữ gõ dở
             yield return ClickWhenReady("CloseButton");
             Assert.IsFalse(FindAny(popup).activeSelf, Where("Đóng phải tắt hộp"));
+            Assert.AreEqual("Bo", profile.Name, Where("Đóng phải ghi chữ gõ dở vào hồ sơ"));
             var saved = new SaveService(_savePath).Load();
-            Assert.AreEqual("An", saved.PlayerName, Where("tên trong file save"));
+            Assert.AreEqual("Bo", saved.PlayerName, Where("tên trong file save"));
             Assert.AreEqual(owned[1].Id, saved.AvatarCharacterId, Where("avatar trong file save"));
 
             _step = "P5 mở lại, gõ dở 'Zed', Reset đường DEV";
             yield return ClickWhenReady(avatarButton);
             input = FindAny(nameInput).GetComponent<InputField>();
-            Assert.AreEqual("An", input.text, Where("mở lại phải hiện tên đã lưu"));
+            Assert.AreEqual("Bo", input.text, Where("mở lại phải hiện tên đã lưu"));
             input.ActivateInputField();
             yield return null;
             yield return null;
@@ -872,6 +879,11 @@ namespace BunDauPeo.PlayModeTests
             yield return null;
             Assert.IsFalse(FindAny("NavBar_PH_1920x120").activeSelf, Where("đang lộ mà thanh dưới còn hiện"));
             Assert.IsFalse(FindAny("ResourceBar_PH_1120x76").activeInHierarchy, Where("đang lộ mà thanh tài nguyên còn hiện"));
+            Assert.IsFalse(FindAny("NotifyBtn_PH_110x100").activeSelf, Where("đang lộ mà nút Thông báo còn hiện"));
+            yield return null;
+            // Điều kiện để ca LobbySceneTests (nút đè nút) bỏ qua nút Bỏ qua của Gacha: nó chỉ bật khi thanh dưới và nút Thông báo đang ẩn.
+            if (FindAny("SkipButton").activeSelf)
+                Assert.IsFalse(FindAny("NavBar_PH_1920x120").activeSelf || FindAny("NotifyBtn_PH_110x100").activeSelf, Where("nút Bỏ qua bật mà thanh dưới hoặc nút Thông báo còn hiện"));
             typeof(GachaView).GetMethod("Dismiss", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Object.FindFirstObjectByType<GachaView>(), null);
             yield return null;
             yield return null;

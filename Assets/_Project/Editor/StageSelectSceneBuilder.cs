@@ -36,10 +36,10 @@ namespace BunDauPeo.EditorTools
             Stretch(panel);
             AddImage(panel, null, Background, raycast: true);
 
-            // Khung 1920×1080 chứa mọi ô; màn hẹp hơn 16:9 thì FitWidthScale co khung lại để cột phải không ra ngoài màn.
+            // Khung 1920×1080 chứa mọi ô; FitWidthScale (trên panel kín màn, nhận được sự kiện đổi cỡ canvas) co khung khi màn hẹp hơn 16:9 và canh giữa khi rộng hơn.
             var content = NewRect("ModeContent", panel);
             Place(content, TopLeft, TopLeft, Vector2.zero, new Vector2(1920, 1080));
-            content.gameObject.AddComponent<FitWidthScale>();
+            panel.gameObject.AddComponent<FitWidthScale>().Content = content;
 
             var title = NewLabel("ModeTitle", content, font, "hub.tab_stages", 56, TextAnchor.MiddleLeft, Gold);
             title.fontStyle = FontStyle.Bold;

@@ -156,11 +156,18 @@ namespace BunDauPeo.Tests
                 RectTransform Tile(string name) => LobbySceneTests.In<RectTransform>(scene, panel.name).Single(t => t.name == name);
 
                 var content = Tile("ModeContent");
-                Assert.IsNotNull(content.GetComponent<FitWidthScale>(), "the tiles shrink to fit a narrow screen");
+                // Component nằm trên panel kín màn (nhận được sự kiện đổi cỡ canvas), co/canh giữa khung con ModeContent.
+                var fit = panel.GetComponent<FitWidthScale>();
+                Assert.IsNotNull(fit, "the tiles shrink to fit a narrow screen");
+                Assert.AreSame(content, fit.Content, "FitWidthScale drives ModeContent");
+                Assert.IsNull(content.GetComponent<FitWidthScale>(), "ModeContent is anchored to a point and never gets resize events");
                 Assert.AreEqual(new Rect(0, 0, 1920, 1080), FromTop(content), "ModeContent is the 1920x1080 frame");
                 Assert.AreEqual(0.75f, FitWidthScale.ScaleFor(1440f), 1e-4f, "4:3");
                 Assert.AreEqual(1f, FitWidthScale.ScaleFor(1920f), "16:9");
                 Assert.AreEqual(1f, FitWidthScale.ScaleFor(2400f), "wider than 16:9 keeps the size");
+                Assert.AreEqual(0f, FitWidthScale.OffsetFor(1440f), 1e-4f, "4:3 fills the width, no offset");
+                Assert.AreEqual(0f, FitWidthScale.OffsetFor(1920f), 1e-4f, "16:9 fills the width, no offset");
+                Assert.AreEqual(240f, FitWidthScale.OffsetFor(2400f), 1e-4f, "20:9 centres the 1920 frame");
 
                 var main = FromTop(Tile("ModeMain_PH_820x560"));
                 Assert.AreEqual(new Rect(100, 200, 820, 560), main, "ModeMain");

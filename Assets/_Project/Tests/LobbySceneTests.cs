@@ -392,9 +392,11 @@ namespace BunDauPeo.Tests
                 Assert.AreSame(Named(scene, NotifyButton).gameObject, new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single()).FindProperty("_notifyButton").objectReferenceValue);
 
                 Assert.GreaterOrEqual(ResourceBarView.RightMargin, 20f + 110f + 10f, "the moved resource bar keeps clear of the button");
+                // Bỏ qua của Gacha chỉ bật khi đang quay, lúc thanh dưới và nút Thông báo đều ẩn (HubNav.SetBarHidden); điều kiện này có assert ở PlayMode Hub_ResourceBar_FollowsTabsAndPages.
+                var skip = new SerializedObject(RestaurantSceneTests.All<GachaView>(scene).Single()).FindProperty("_skipButton").objectReferenceValue;
                 var buttons = RestaurantSceneTests.All<Button>(scene)
                     .Where(b => b.transform != notify && b.GetComponentsInParent<Canvas>(true).All(c => !c.overrideSorting)
-                                && b.name != "SkipButton").ToArray(); // Bỏ qua của Gacha chỉ hiện lúc cutscene, khi thanh dưới, thanh tài nguyên và nút Thông báo đều ẩn (HubNav.SetBarHidden)
+                                && b != skip).ToArray();
                 Assert.Greater(buttons.Length, 10, "the scene has buttons to check against");
                 foreach (var (aspectName, aspect) in Aspects)
                 {

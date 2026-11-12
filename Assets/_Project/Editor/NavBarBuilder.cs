@@ -400,7 +400,7 @@ namespace BunDauPeo.EditorTools
             Place(ring, Center, Center, Vector2.zero, new Vector2(CellRing, CellRing));
             AddImage(ring, knob, Gold, raycast: false).type = Image.Type.Simple;
             ring.gameObject.SetActive(false);
-            var circleRect = NewRect("AvatarCircle", cell);
+            var circleRect = NewRect("AvatarCircle_PH_120x120", cell);
             Stretch(circleRect);
             var circle = AddImage(circleRect, knob, AvatarView.NoneColor, raycast: true);
             circle.type = Image.Type.Simple;

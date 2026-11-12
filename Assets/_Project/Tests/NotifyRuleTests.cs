@@ -76,7 +76,8 @@ namespace BunDauPeo.Tests
             Assert.AreEqual("320 AFK Coin to collect", NotifyRule.Text(NotifyKind.AfkCoins, afk));
             Assert.AreEqual("No Cashier, the shop is stopped", NotifyRule.Text(NotifyKind.StaffMissing, cashier));
             Assert.AreEqual("No Cook, the shop is stopped", NotifyRule.Text(NotifyKind.StaffMissing, cook));
-            Assert.AreEqual("2 characters can star up", NotifyRule.Text(NotifyKind.StarUp, two));
+            Assert.AreEqual("Ready to star up: 2", NotifyRule.Text(NotifyKind.StarUp, two));
+            Assert.AreEqual("Ready to star up: 1", NotifyRule.Text(NotifyKind.StarUp, Snap(starUp: new[] { "a" })), "no plural to get wrong at 1");
             Assert.AreEqual("An incident needs you", NotifyRule.Text(NotifyKind.Incident, Snap(incident: true)));
             Assert.AreEqual("Stamina is full", NotifyRule.Text(NotifyKind.StaminaFull, Snap(stamina: 10, staminaMax: 10)));
         }

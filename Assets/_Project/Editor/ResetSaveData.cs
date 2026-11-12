@@ -1,6 +1,7 @@
 using System;
 using BunDauPeo.Boot;
 using BunDauPeo.Core;
+using BunDauPeo.UI;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,7 +14,8 @@ namespace BunDauPeo.EditorTools
         private static void Menu()
         {
             var live = Application.isPlaying ? UnityEngine.Object.FindFirstObjectByType<GameBootstrap>()?.Session : null;
-            var done = Run(Confirm, new SaveService(GameBootstrap.SavePath), live);
+            // Đang Play: đóng trang/hộp đang mở của hub trước khi Reset, kẻo Hồ sơ gõ dở ghi vào save mới (D-005, L-035).
+            var done = Run(() => Confirm() && CloseHubPages(live), new SaveService(GameBootstrap.SavePath), live);
             if (done) Debug.Log("Reset Save Data: done.");
         }
 
@@ -22,6 +24,12 @@ namespace BunDauPeo.EditorTools
         {
             if (!confirm()) return false;
             return live != null ? live.ResetToDefaults() : service.DeleteAll();
+        }
+
+        private static bool CloseHubPages(GameSession live)
+        {
+            if (live != null) UnityEngine.Object.FindFirstObjectByType<HubNav>()?.CloseOpenPages();
+            return true;
         }
 
         private static bool Confirm() => EditorUtility.DisplayDialog(

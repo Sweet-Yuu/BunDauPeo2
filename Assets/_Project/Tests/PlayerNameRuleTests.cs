@@ -35,5 +35,17 @@ namespace BunDauPeo.Tests
             Assert.AreEqual("Player", PlayerNameRule.Display(""));
             Assert.AreEqual("An", PlayerNameRule.Display("An"));
         }
+        // InputField đếm 12 char UTF-16 và trên Android cắt bằng Substring: có thể để lại nửa cặp surrogate (emoji), không được vào save.
+        [Test]
+        public void Normalize_DropsLoneSurrogates_KeepsWholePairs()
+        {
+            const string emoji = "😀";
+            Assert.AreEqual("abcdefghijk", PlayerNameRule.Normalize("abcdefghijk\uD83D"), "emoji cut in half at 12 chars: the high half goes");
+            Assert.AreEqual("abc", PlayerNameRule.Normalize("\uDE00abc"), "a lone low surrogate goes");
+            Assert.AreEqual("ab", PlayerNameRule.Normalize("a\uD83Db"), "a high surrogate not followed by a low one goes");
+            Assert.AreEqual("a" + emoji + "b", PlayerNameRule.Normalize("a" + emoji + "b"), "a whole emoji stays");
+            Assert.AreEqual("abcdefghijk" + emoji, PlayerNameRule.Normalize("abcdefghijk" + emoji), "11 + 1 emoji = 12 elements stays whole");
+            Assert.AreEqual("abcdefghijkl", PlayerNameRule.Normalize("abcdefghijkl" + emoji), "the 13th element is cut");
+        }
     }
 }
