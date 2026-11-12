@@ -127,6 +127,42 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, closed.Closed, "a page that is not open is left alone");
         }
 
+        // Hộp nổi (IHubOverlay) không làm quán dừng hay ẩn thanh, nhưng Reset/đổi ngôn ngữ vẫn phải đóng được (L-035).
+        [Test]
+        public void LayoutPages_SkipsOverlays_CloseStillClosesThem()
+        {
+            var overlay = new FakeOverlay { Open = true };
+            var page = new FakeHubPage { Open = true };
+            var closed = new FakeHubPage();
+            var pages = new IHubPage[] { overlay, page, closed };
+
+            var layout = HubNav.LayoutPages(pages).ToList();
+
+            Assert.AreEqual(1, layout.Count);
+            Assert.AreSame(page, layout[0]);
+
+            HubNav.ClosePages(pages);
+
+            Assert.IsFalse(overlay.IsOpen, "an overlay still closes");
+            Assert.AreEqual(1, overlay.Closed);
+            Assert.IsFalse(page.IsOpen);
+            Assert.AreEqual(0, closed.Closed);
+        }
+
+        private sealed class FakeOverlay : IHubOverlay
+        {
+            public bool Open;
+            public int Closed;
+
+            public bool IsOpen => Open;
+
+            public void Close()
+            {
+                Open = false;
+                Closed++;
+            }
+        }
+
         [Test]
         public void ClockPaused_FollowsTabAndMenu_AndReleasedOnDisable()
         {

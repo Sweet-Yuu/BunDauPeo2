@@ -70,8 +70,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator FullLoop_NewGame_Stage1_AutoWin_RewardsAndSaveReload()
         {
             _step = "1 nạp Boot";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             Assert.IsNotNull(session, Where("GameBootstrap không có Session"));
             Assert.IsTrue(session.IsNewGame, Where("save tạm phải là game mới"));
@@ -166,8 +165,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Characters_StarUp_SavesAndResetClears()
         {
             _step = "C1 Boot";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var roster = ServiceLocator.Get<Roster>();
             var stars = ServiceLocator.Get<StarService>();
             var starter = roster.GetOwned()[0].Id;
@@ -211,8 +209,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Characters_StarUpButton_FollowsFragmentsUntilMaxStars()
         {
             _step = "M1 Boot, mở màn Nhân vật";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var roster = ServiceLocator.Get<Roster>();
             var stars = ServiceLocator.Get<StarService>();
             var starter = roster.GetOwned()[0].Id;
@@ -244,8 +241,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Characters_StarUp_PersistFails_ShowsNotSaved()
         {
             _step = "P1 Boot, cấp mảnh";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var roster = ServiceLocator.Get<Roster>();
             var stars = ServiceLocator.Get<StarService>();
@@ -308,8 +304,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_Menu_Reset_CancelKeeps_ConfirmClears()
         {
             _step = "R1 Boot";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var roster = session.Roster;
             var starter = roster.GetOwned()[0].Id;
@@ -362,8 +357,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_Menu_Language_KeepsTabAndPersists()
         {
             _step = "G1 Boot (Việt)";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var combat = ServiceLocator.Get<CombatService>();
             // Máy dev có thể là tiếng Anh: ép về tiếng Việt rồi nạp lại để nhãn bắt đầu bằng tiếng Việt.
@@ -408,8 +402,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_BattleBack_OpensStageMap()
         {
             _step = "B1 Boot, vào trận màn Battle đầu";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var combat = ServiceLocator.Get<CombatService>();
             yield return OpenTeamSelectOfFirstBattle(combat);
@@ -454,8 +447,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_TabLoop_OpensEachPanel()
         {
             _step = "T1 Boot";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var restaurant = ServiceLocator.Get<RestaurantService>();
             var hub = Object.FindFirstObjectByType<HubNav>();
             AssertOnlyPanelOpen(null);
@@ -549,8 +541,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_ResourceBar_FollowsTabsAndPages()
         {
             _step = "B1 Boot, Lobby";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var hub = Object.FindFirstObjectByType<HubNav>();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             session.Wallet.Add(CurrencyType.Gem, 5000);
@@ -653,8 +644,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_RestaurantBar_RemembersAcrossReload()
         {
             _step = "K1 Boot, game mới: thanh đóng";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             Assert.IsFalse(FindAny("RestaurantBar_PH_180x460").activeSelf, Where("game mới phải đóng thanh quán"));
             Assert.IsFalse(session.Save.RestaurantBarOpen, Where("game mới: cờ trong save phải false"));
@@ -750,8 +740,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_WorldDrag_PansAndClamps_IncidentStillClicks()
         {
             _step = "D1 Boot, Lobby, kéo 300 px sang trái";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var restaurant = ServiceLocator.Get<RestaurantService>();
             var scroll = FindAny("WorldScroll").GetComponent<ScrollRect>();
             var world = scroll.content;
@@ -840,8 +829,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_GachaPull_HidesBar_UntilBackOnRollPage()
         {
             _step = "H1 Boot, Gacha";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             session.Wallet.Add(CurrencyType.Gem, 5000);
             yield return ClickWhenReady("NavTabGacha_PH_320x120");
@@ -865,8 +853,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_Menu_ResetFails_ShowsError_KeepsMenu_RetryWorks()
         {
             _step = "F1 Boot, +Gem";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var startGems = session.Wallet.Get(CurrencyType.Gem);
             session.Wallet.Add(CurrencyType.Gem, 1000);
@@ -908,8 +895,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_Menu_Reset_ClosesOpenTeamSelect_BeforeResetting()
         {
             _step = "C1 Boot, Chọn đội (dở)";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var combat = ServiceLocator.Get<CombatService>();
             var teamBefore = session.Roster.GetBattleTeam().Select(c => c.Id).ToList();
@@ -1032,8 +1018,7 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Hub_Screenshots_VietnameseAndEnglish()
         {
             _step = "S0 Boot (Việt)";
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
             var session = bootstrap.Session;
             yield return SeedRestaurantForShots(bootstrap);
@@ -1058,8 +1043,7 @@ namespace BunDauPeo.PlayModeTests
 
         private IEnumerator BootWithDevOverlay()
         {
-            SceneManager.LoadScene("Boot");
-            yield return WaitForScene("Restaurant");
+            yield return BootToLobby();
             DevOverlay.Build();
             Assert.IsNotNull(GameObject.Find("DevOverlay"), Where("DevOverlay không dựng được"));
         }
@@ -1308,6 +1292,77 @@ namespace BunDauPeo.PlayModeTests
                 yield return null;
             }
             yield return null; // để Awake/Start/Update đầu của scene chạy
+        }
+
+        // Mở app: Boot nạp Tiêu đề; chạm TapArea qua raycast thật (L-036) rồi mới vào Lobby.
+        private IEnumerator BootToLobby()
+        {
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene(TitleView.TitleScene);
+            yield return ClickWhenReady("TapArea");
+            yield return WaitForScene("Restaurant");
+        }
+
+        // Review Focus 3: chạm Tiêu đề hai lần liền thì Restaurant chỉ nạp một lần; đổi ngôn ngữ nạp thẳng Restaurant, không qua Tiêu đề.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Title_TapEntersLobby()
+        {
+            _step = "T1 Boot → Tiêu đề";
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene(TitleView.TitleScene);
+            Assert.AreEqual(0, Object.FindObjectsByType<HubNav>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length, Where("Tiêu đề chưa có Lobby"));
+            Assert.AreEqual("Touch to start", GameObject.Find("TapHint").GetComponent<Text>().text, Where("game mới: tiếng Anh"));
+            StringAssert.Contains(Application.version, GameObject.Find("VersionText").GetComponent<Text>().text, Where("số phiên bản"));
+
+            _step = "T1b ảnh Tiêu đề";
+            yield return null;
+            yield return null;
+            var shotEn = ScreenCapture1080.Capture("hubc-title-en.png");
+            Assert.IsFalse(shotEn.StartsWith("ERROR", StringComparison.Ordinal), Where(shotEn));
+            GameLanguage.Current = Language.Vi;
+            foreach (var label in Object.FindObjectsByType<LocalizedText>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                label.enabled = false;
+                label.enabled = true;
+            }
+
+            yield return null;
+            yield return null;
+            var shotVi = ScreenCapture1080.Capture("hubc-title.png");
+            Assert.IsFalse(shotVi.StartsWith("ERROR", StringComparison.Ordinal), Where(shotVi));
+            GameLanguage.Current = Language.En;
+
+            _step = "T2 chạm hai lần";
+            var loads = new List<string>();
+            void OnLoaded(Scene scene, LoadSceneMode mode) => loads.Add(scene.name);
+            SceneManager.sceneLoaded += OnLoaded;
+            try
+            {
+                yield return WaitForButtonStep("TapArea");
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click("TapArea").Status, Where("chạm lần 1"));
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click("TapArea").Status, Where("chạm lần 2 cùng khung"));
+                yield return null;
+                var third = UiDriver.Click("TapArea");
+                Assert.IsTrue(third.Status == ClickStatus.Clicked || third.Status == ClickStatus.NotFound, Where($"chạm lần 3 khung kế: {third}"));
+                yield return WaitForScene("Restaurant");
+                for (var i = 0; i < 5; i++) yield return null;
+
+                Assert.AreEqual(1, loads.Count(n => n == "Restaurant"), Where($"Restaurant nạp {loads.Count(n => n == "Restaurant")} lần: {string.Join(",", loads)}"));
+                Assert.AreEqual(1, Object.FindObjectsByType<HubNav>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length, Where("đúng một HubNav"));
+
+                _step = "T3 đổi ngôn ngữ không qua Tiêu đề";
+                loads.Clear();
+                var oldHub = Object.FindFirstObjectByType<HubNav>();
+                yield return ClickWhenReady("NavTabMenu_PH_320x120");
+                yield return ClickWhenReady("MenuLanguageBtn_PH_700x100");
+                yield return WaitForNewHub(oldHub);
+                CollectionAssert.DoesNotContain(loads, TitleView.TitleScene, Where("đổi ngôn ngữ không được nạp Tiêu đề"));
+                Assert.AreEqual("Restaurant", SceneManager.GetActiveScene().name, Where("vẫn ở Lobby"));
+            }
+            finally
+            {
+                SceneManager.sceneLoaded -= OnLoaded;
+            }
         }
 
         private IEnumerator WaitForButtonStep(string name)

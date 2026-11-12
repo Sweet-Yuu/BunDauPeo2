@@ -43,27 +43,34 @@ namespace BunDauPeo.UI
         private static bool _has;
         private static HubTab _tab;
         private static bool _menu;
+        private static bool _stageMap;
 
-        public static void Set(HubTab tab, bool menu)
+        // stageMap chỉ có nghĩa khi tab == Stages: mở luôn Bản đồ (về từ trận).
+        public static void Set(HubTab tab, bool menu, bool stageMap = false)
         {
             _has = true;
             _tab = tab;
             _menu = menu;
+            _stageMap = stageMap;
         }
 
-        public static bool TryTake(out HubTab tab, out bool menu)
+        public static bool TryTake(out HubTab tab, out bool menu, out bool stageMap)
         {
             tab = _tab;
             menu = _menu;
+            stageMap = _stageMap;
             var had = _has;
             _has = false;
             _tab = HubTab.Restaurant;
             _menu = false;
+            _stageMap = false;
             return had;
         }
 
+        public static bool TryTake(out HubTab tab, out bool menu) => TryTake(out tab, out menu, out _);
+
         // Tắt domain reload thì static sống qua các lần Play.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => TryTake(out _, out _);
+        private static void ResetStatics() => TryTake(out _, out _, out _);
     }
 }

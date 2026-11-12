@@ -50,11 +50,12 @@ namespace BunDauPeo.UI
             get
             {
                 if (_pages == null) return false;
-                foreach (var behaviour in _pages)
-                    if (behaviour is IHubPage page && page.IsOpen) return true;
-                return false;
+                return LayoutPages(_pages.OfType<IHubPage>()).Any();
             }
         }
+
+        // Trang đang mở quyết định bố cục và đồng hồ quán; hộp nổi (IHubOverlay) không tính.
+        public static IEnumerable<IHubPage> LayoutPages(IEnumerable<IHubPage> pages) => pages.Where(p => p.IsOpen && p is not IHubOverlay);
 
         // Các trang đang mở. Trả về cùng một danh sách dùng lại mỗi lần gọi: đọc ngay, đừng giữ.
         public IEnumerable<IHubPage> OpenPages
@@ -63,14 +64,13 @@ namespace BunDauPeo.UI
             {
                 _openPages.Clear();
                 if (_pages == null) return _openPages;
-                foreach (var behaviour in _pages)
-                    if (behaviour is IHubPage page && page.IsOpen) _openPages.Add(page);
+                _openPages.AddRange(LayoutPages(_pages.OfType<IHubPage>()));
                 return _openPages;
             }
         }
 
         // Gọi trước LoadScene("Restaurant"): Awake của lần nạp sau mở đúng ô (và Menu) rồi xoá.
-        public static void OpenOnNextLoad(HubTab tab, bool menu) => HubPending.Set(tab, menu);
+        public static void OpenOnNextLoad(HubTab tab, bool menu, bool stageMap = false) => HubPending.Set(tab, menu, stageMap);
 
         private void Awake()
         {

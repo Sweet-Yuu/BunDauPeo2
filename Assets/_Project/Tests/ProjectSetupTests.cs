@@ -40,8 +40,68 @@ namespace BunDauPeo.Tests
                 Assert.IsTrue(ProjectSetup.IsStaleStartScene(name), name);
             }
 
-            foreach (var live in new[] { "Restaurant", "Battle", "Boot" })
+            foreach (var live in new[] { "Battle", "Boot", "Title" })
                 Assert.IsFalse(ProjectSetup.IsStaleStartScene(live), live);
+        }
+
+        // Spec UI hub C 5.1: "Restaurant" là mặc định cũ của đợt A nên cũng đổi sang Tiêu đề; lựa chọn khác của user giữ.
+        [Test]
+        public void StartScene_StaleOrOldDefaultBecomesTitle_OthersKept()
+        {
+            foreach (var stale in new[] { "", "Gacha", "Restaurant" })
+                Assert.IsTrue(ProjectSetup.IsStaleStartScene(stale), stale);
+            foreach (var keep in new[] { "Battle", "Title" })
+                Assert.IsFalse(ProjectSetup.IsStaleStartScene(keep), keep);
+
+            try
+            {
+                foreach (var start in new[] { "", "Gacha", "Restaurant" })
+                {
+                    SetBootStartScene(start);
+                    ProjectSetup.WireBootScene();
+                    Assert.AreEqual("Title", ReadBootStartScene(), $"from '{start}'");
+                }
+
+                SetBootStartScene("Battle");
+                ProjectSetup.WireBootScene();
+                Assert.AreEqual("Battle", ReadBootStartScene(), "a deliberate choice is kept");
+            }
+            finally
+            {
+                SetBootStartScene("Title");
+            }
+        }
+
+        private static void SetBootStartScene(string value)
+        {
+            var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
+            var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
+            try
+            {
+                var so = new SerializedObject(BootstrapIn(scene));
+                so.FindProperty("_startScene").stringValue = value;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+            finally
+            {
+                if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        private static string ReadBootStartScene()
+        {
+            var wasOpen = SceneManager.GetSceneByPath(ProjectSetup.BootScenePath).isLoaded;
+            var scene = EditorSceneManager.OpenScene(ProjectSetup.BootScenePath, OpenSceneMode.Additive);
+            try
+            {
+                return new SerializedObject(BootstrapIn(scene)).FindProperty("_startScene").stringValue;
+            }
+            finally
+            {
+                if (!wasOpen) EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         [Test]
@@ -81,19 +141,27 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void BuildSettings_BootRestaurantBattle_OldScenesGone()
+        public void BuildSettings_BootTitleRestaurantBattle_OldScenesGone()
         {
             ProjectSetup.Run();
 
-            // Đọc lại sau Run (L-032): dựng Restaurant.unity bằng NewScene(Single) dỡ mọi asset đã nạp trước đó.
+            // Đọc lại sau Run (L-032): dựng scene bằng NewScene(Single) dỡ mọi asset đã nạp trước đó.
             var scenes = EditorBuildSettings.scenes;
             CollectionAssert.AreEqual(
-                new[] { ProjectSetup.BootScenePath, ProjectSetup.RestaurantScenePath, ProjectSetup.BattleScenePath },
+                new[] { ProjectSetup.BootScenePath, ProjectSetup.TitleScenePath, ProjectSetup.RestaurantScenePath, ProjectSetup.BattleScenePath },
                 scenes.Select(s => s.path).ToArray());
             Assert.IsTrue(scenes.All(s => s.enabled));
             foreach (var path in ProjectSetup.RemovedScenePaths)
                 Assert.IsNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(path), $"{path} must be deleted");
             Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.RestaurantScenePath));
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.TitleScenePath));
+            Assert.AreEqual("Title", ReadBootStartScene(), "Boot opens the title screen");
+
+            // Chạy lại không lỗi và không đổi thứ tự.
+            Assert.DoesNotThrow(ProjectSetup.Run);
+            CollectionAssert.AreEqual(
+                new[] { ProjectSetup.BootScenePath, ProjectSetup.TitleScenePath, ProjectSetup.RestaurantScenePath, ProjectSetup.BattleScenePath },
+                EditorBuildSettings.scenes.Select(s => s.path).ToArray());
         }
 
         [Test]

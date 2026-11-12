@@ -402,13 +402,14 @@ namespace BunDauPeo.Tests
             });
 
         [Test]
-        public void RestaurantScene_IsSecondInBuildSettings()
+        public void RestaurantScene_IsThirdInBuildSettings_AfterBootAndTitle()
         {
             var scenes = EditorBuildSettings.scenes;
-            Assert.GreaterOrEqual(scenes.Length, 2);
+            Assert.GreaterOrEqual(scenes.Length, 3);
             Assert.AreEqual(ProjectSetup.BootScenePath, scenes[0].path);
-            Assert.AreEqual(ProjectSetup.RestaurantScenePath, scenes[1].path);
-            Assert.IsTrue(scenes[1].enabled);
+            Assert.AreEqual(ProjectSetup.TitleScenePath, scenes[1].path);
+            Assert.AreEqual(ProjectSetup.RestaurantScenePath, scenes[2].path);
+            Assert.IsTrue(scenes[2].enabled);
         }
 
         [Test]

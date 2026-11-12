@@ -37,5 +37,9 @@ namespace BunDauPeo.Core
         public List<StarUpEntry> StarUps = new();
         // Thanh quán ở Lobby đang mở; game mới và save cũ thiếu field này đều là đóng.
         public bool RestaurantBarOpen = false;
+        // Hồ sơ (UI hub C): "" = chưa đặt tên (hiện tên mặc định); JSON ghi null thì người đọc cũng coi như "".
+        public string PlayerName = "";
+        // Id nhân vật làm avatar; "" = chưa chọn (avatar xám). Id không còn sở hữu hay không có trong catalog cũng coi như chưa chọn.
+        public string AvatarCharacterId = "";
     }
 }

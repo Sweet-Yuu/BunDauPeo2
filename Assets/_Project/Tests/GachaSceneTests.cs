@@ -224,11 +224,11 @@ namespace BunDauPeo.Tests
             });
 
         [Test]
-        public void BootScene_StartSceneIsRestaurant() =>
+        public void BootScene_StartSceneIsTitle() =>
             WithScene(ProjectSetup.BootScenePath, scene =>
             {
                 var bootstrap = All<GameBootstrap>(scene).Single();
-                Assert.AreEqual("Restaurant",new SerializedObject(bootstrap).FindProperty("_startScene").stringValue);
+                Assert.AreEqual("Title", new SerializedObject(bootstrap).FindProperty("_startScene").stringValue);
             });
 
         [Test]

@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- UI hub đợt C (Tiêu đề, Chọn chế độ, Thông báo, Hồ sơ): user duyệt [spec](superpowers/specs/2026-11-12-ui-hub-c-design.md) và ảnh mô phỏng 2026-11-12; [kế hoạch](superpowers/plans/2026-11-12-ui-hub-c.md) user duyệt 2026-11-12 (nhánh `docs/ui-hub-c-spec`). Sau đó 🎯 mở phiên 🔨 C1 (Task 1–3).
+- UI hub đợt C (Tiêu đề, Chọn chế độ, Thông báo, Hồ sơ): user duyệt [spec](superpowers/specs/2026-11-12-ui-hub-c-design.md) và ảnh mô phỏng 2026-11-12; [kế hoạch](superpowers/plans/2026-11-12-ui-hub-c.md) user duyệt 2026-11-12 (nhánh `docs/ui-hub-c-spec`). 🔨 C1 (Task 1–3) xong 2026-11-12 trên nhánh `feature/ui-hub-c` (chờ 📋 commit): kiểu thuần và chữ, `PlayerProfile` + save, scene Tiêu đề; 905 EditMode + 31 PlayMode xanh. Tiếp theo: 🔨 C2 (Task 4–5).
 
 ## Tiếp theo
 

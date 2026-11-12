@@ -69,6 +69,13 @@ namespace BunDauPeo.UI
             ("combat.enemies", "Quái", "Enemies"),
             ("combat.challenge", "Thách đấu", "Challenge"),
             ("combat.start", "Vào trận", "Start"),
+            ("stages.mode_main", "Chương chính", "Main story"),
+            ("stages.mode_main_next", "Màn tiếp: {0}", "Next: {0}"),
+            ("stages.mode_main_done", "Đã xong mọi màn", "All stages cleared"),
+            ("stages.mode_hard", "Khó", "Hard"),
+            ("stages.mode_event", "Sự kiện", "Event"),
+            ("stages.mode_challenge", "Thử thách", "Challenge"),
+            ("stages.mode_arena", "Đấu trường", "Arena"),
         };
     }
 }

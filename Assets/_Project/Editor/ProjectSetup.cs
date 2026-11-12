@@ -22,6 +22,7 @@ namespace BunDauPeo.EditorTools
         public const string BootScenePath = "Assets/_Project/Scenes/Boot.unity";
         public const string CatalogPath = "Assets/_Project/Characters/Data/CharacterCatalog.asset";
         public const string NewGameConfigPath = "Assets/_Project/Boot/Data/NewGameConfig.asset";
+        public const string TitleScenePath = "Assets/_Project/Scenes/Title.unity";
         public const string RestaurantScenePath = "Assets/_Project/Scenes/Restaurant.unity";
         public const string BattleScenePath = "Assets/_Project/Scenes/Battle.unity";
         // Ba scene cũ đã thành panel trong Restaurant.unity (UI hub); Run xoá chúng bằng AssetDatabase.DeleteAsset khi còn.
@@ -171,6 +172,7 @@ namespace BunDauPeo.EditorTools
             FillEnglishNames();
 
             CreateBootScene();
+            CreateTitleScene();
             CreateRestaurantScene();
             DeleteRemovedScenes();
             CreateBattleScene();
@@ -182,6 +184,9 @@ namespace BunDauPeo.EditorTools
         // Run giữ scene Restaurant đã có; lệnh này dựng lại từ builder (ghi đè cùng đường dẫn nên GUID và Build Settings không đổi).
         [MenuItem("Tools/BunDauPeo/Rebuild Restaurant Scene")]
         public static void RebuildRestaurantScene() => RestaurantSceneBuilder.Create(RestaurantScenePath);
+
+        [MenuItem("Tools/BunDauPeo/Rebuild Title Scene")]
+        public static void RebuildTitleScene() => TitleSceneBuilder.Create(TitleScenePath);
 
         [MenuItem("Tools/BunDauPeo/Rebuild Battle Scene")]
         public static void RebuildBattleScene() => BattleSceneBuilder.Create(BattleScenePath);
@@ -252,11 +257,11 @@ namespace BunDauPeo.EditorTools
                         changed = true;
                     }
 
-                    // Chỉ đổi giá trị trống hoặc scene đã xoá (Gacha là mặc định cũ): lựa chọn khác của user được giữ.
+                    // Chỉ đổi giá trị trống, scene đã xoá (Gacha) hay mặc định cũ (Restaurant): lựa chọn khác của user được giữ.
                     var start = so.FindProperty("_startScene");
                     if (IsStaleStartScene(start.stringValue))
                     {
-                        start.stringValue = Path.GetFileNameWithoutExtension(RestaurantScenePath);
+                        start.stringValue = Path.GetFileNameWithoutExtension(TitleScenePath);
                         changed = true;
                     }
                 });
@@ -271,8 +276,10 @@ namespace BunDauPeo.EditorTools
             }
         }
 
+        // "Restaurant" là mặc định của đợt A; từ đợt C app mở bằng Tiêu đề nên coi nó như giá trị chưa chọn.
         public static bool IsStaleStartScene(string sceneName) =>
-            string.IsNullOrEmpty(sceneName) || RemovedScenePaths.Any(path => Path.GetFileNameWithoutExtension(path) == sceneName);
+            string.IsNullOrEmpty(sceneName) || sceneName == Path.GetFileNameWithoutExtension(RestaurantScenePath)
+            || RemovedScenePaths.Any(path => Path.GetFileNameWithoutExtension(path) == sceneName);
 
         // Chỉ tạo asset còn thiếu; số bạn đã chỉnh trong Inspector được giữ nguyên.
         private static void CreateRestaurantData()
@@ -553,15 +560,20 @@ namespace BunDauPeo.EditorTools
                     Debug.LogError($"ProjectSetup: could not delete {path}.");
         }
 
+        private static void CreateTitleScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(TitleScenePath) == null) TitleSceneBuilder.Create(TitleScenePath);
+        }
+
         private static void CreateBattleScene()
         {
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(BattleScenePath) == null) BattleSceneBuilder.Create(BattleScenePath);
         }
 
-        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Restaurant (Lobby) và Battle.
+        // Boot luôn đầu tiên (nạp trước mọi scene), rồi Title, Restaurant (Lobby) và Battle.
         private static void PutScenesInBuildOrder()
         {
-            var ordered = new[] { BootScenePath, RestaurantScenePath, BattleScenePath };
+            var ordered = new[] { BootScenePath, TitleScenePath, RestaurantScenePath, BattleScenePath };
             // Scene ngoài Assets/_Project/Scenes/ (SampleScene) bị bỏ khỏi build; file scene giữ nguyên. Ba scene cũ đã xoá thì cũng bỏ.
             var rest = EditorBuildSettings.scenes.Where(s => !ordered.Contains(s.path) && !RemovedScenePaths.Contains(s.path)
                                                              && s.path.StartsWith("Assets/_Project/Scenes/"));
