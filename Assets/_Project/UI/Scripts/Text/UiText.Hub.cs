@@ -23,6 +23,19 @@ namespace BunDauPeo.UI
             ("hub.banner_gacha", "Gacha\nQuay ngay", "Gacha\nPull now"),
             ("hub.shop", "Shop", "Shop"),
             ("hub.res_stamina_next", "+1 sau {0}", "+1 in {0}"),
+            ("hub.notify", "Báo", "Alerts"),
+            ("notify.title", "Việc cần làm", "To do"),
+            ("notify.empty", "Không có việc cần làm", "Nothing to do"),
+            ("notify.incident", "Quán có sự cố đang chờ", "An incident needs you"),
+            ("notify.staff_missing", "Thiếu {0}, quán đứng yên", "No {0}, the shop is stopped"),
+            ("notify.afk", "Có {0} Coin AFK chờ thu", "{0} AFK Coin to collect"),
+            ("notify.stamina_full", "Thể lực đã đầy", "Stamina is full"),
+            ("notify.star_up", "{0} nhân vật đủ mảnh nâng sao", "Ready to star up: {0}"),
+            ("profile.title", "Hồ sơ", "Profile"),
+            ("profile.default_name", "Người chơi", "Player"),
+            ("profile.name_hint", "Tối đa 12 ký tự", "Up to 12 characters"),
+            ("profile.change_avatar", "Đổi avatar", "Change avatar"),
+            ("profile.not_saved", "Chưa lưu được, sẽ thử lại", "Not saved yet, will retry"),
         };
     }
 }

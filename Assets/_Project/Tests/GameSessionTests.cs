@@ -346,6 +346,67 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Profile_DefaultEmpty_PersistsAndResets()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            Assert.AreEqual("", session.Save.PlayerName, "game mới: chưa đặt tên");
+            Assert.AreEqual("", session.Save.AvatarCharacterId, "game mới: chưa chọn avatar");
+
+            Assert.IsTrue(session.SetPlayerName("An"));
+            Assert.IsTrue(session.SetAvatar("a"));
+            var reopened = new GameSession(new SaveService(_path), _catalog, _config);
+            Assert.AreEqual("An", reopened.Save.PlayerName, "đã ghi xuống đĩa");
+            Assert.AreEqual("a", reopened.Save.AvatarCharacterId, "đã ghi xuống đĩa");
+
+            Assert.IsTrue(session.ResetToDefaults());
+            Assert.AreEqual("", session.Save.PlayerName);
+            Assert.AreEqual("", session.Save.AvatarCharacterId);
+            var afterReset = new GameSession(new SaveService(_path), _catalog, _config);
+            Assert.AreEqual("", afterReset.Save.PlayerName, "file sau Reset cũng rỗng");
+            Assert.AreEqual("", afterReset.Save.AvatarCharacterId, "file sau Reset cũng rỗng");
+        }
+
+        // Review Focus 4: save cũ thiếu field hay ghi null vẫn nạp được, người đọc thấy "".
+        [Test]
+        public void OldSave_WithoutOrNullProfileFields_LoadsAsEmpty()
+        {
+            File.WriteAllText(_path, "{\"Version\":1,\"Language\":\"vi\"}");
+            var old = new GameSession(_service, _catalog, _config);
+            Assert.IsFalse(old.IsNewGame, "save cũ hợp lệ không bị coi là hỏng");
+            Assert.AreEqual("", old.Save.PlayerName);
+            Assert.AreEqual("", old.Save.AvatarCharacterId);
+
+            File.WriteAllText(_path, "{\"Version\":1,\"PlayerName\":null,\"AvatarCharacterId\":null}");
+            var nulls = new GameSession(new SaveService(_path), _catalog, _config);
+            Assert.IsFalse(nulls.IsNewGame);
+            Assert.IsTrue(string.IsNullOrEmpty(nulls.Save.PlayerName));
+            var profile = new PlayerProfile(() => nulls.Save.PlayerName, () => nulls.Save.AvatarCharacterId, nulls.SetPlayerName, nulls.SetAvatar);
+            Assert.AreEqual("", profile.Name);
+            Assert.AreEqual("", profile.AvatarId);
+        }
+
+        // Cờ giao diện như thanh quán: lưu lỗi vẫn giữ giá trị mới trong bộ nhớ.
+        [Test]
+        public void SetProfile_SaveFails_KeepsValueInMemory()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            LogAssert.Expect(LogType.Error, new Regex("Save failed"));
+            LogAssert.Expect(LogType.Error, new Regex("Save failed"));
+            using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                Assert.IsFalse(session.SetPlayerName("An"));
+                Assert.IsFalse(session.SetAvatar("x"));
+            }
+            Assert.AreEqual("An", session.Save.PlayerName);
+            Assert.AreEqual("x", session.Save.AvatarCharacterId);
+
+            Assert.IsTrue(session.Persist(), "khoá đã nhả, lần lưu sau ghi lại được");
+            var reopened = new GameSession(new SaveService(_path), _catalog, _config);
+            Assert.AreEqual("An", reopened.Save.PlayerName);
+            Assert.AreEqual("x", reopened.Save.AvatarCharacterId);
+        }
+
+        [Test]
         public void ConfigWithBadEntries_DoesNotThrow()
         {
             var config = TestData.Config(new[] { new CurrencyAmount(CurrencyType.Coin, -5) }, new CharacterDefinition[] { null });

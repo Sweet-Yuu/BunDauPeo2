@@ -72,6 +72,30 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Pending_StageMap_TakenOnce()
+        {
+            HubPending.Set(HubTab.Stages, false, stageMap: true);
+
+            Assert.IsTrue(HubPending.TryTake(out var tab, out var menu, out var stageMap));
+            Assert.AreEqual(HubTab.Stages, tab);
+            Assert.IsFalse(menu);
+            Assert.IsTrue(stageMap);
+            Assert.IsFalse(HubPending.TryTake(out _, out _, out stageMap));
+            Assert.IsFalse(stageMap, "the flag is cleared with the rest");
+
+            // Bản hai tham số vẫn lấy và xoá cả cờ bản đồ.
+            HubPending.Set(HubTab.Stages, false, true);
+            Assert.IsTrue(HubPending.TryTake(out _, out _));
+            Assert.IsFalse(HubPending.TryTake(out _, out _, out stageMap));
+            Assert.IsFalse(stageMap);
+
+            // Không truyền cờ thì mặc định false.
+            HubPending.Set(HubTab.Gacha, true);
+            Assert.IsTrue(HubPending.TryTake(out _, out _, out stageMap));
+            Assert.IsFalse(stageMap, "default is off");
+        }
+
+        [Test]
         public void FromPending_InvalidTab_IsRestaurant()
         {
             Assert.AreEqual(HubTab.Restaurant, HubNavState.FromPending(HubTab.Story, false).Current);

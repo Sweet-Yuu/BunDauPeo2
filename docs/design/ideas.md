@@ -18,11 +18,12 @@ Mỗi ý ghi ngày và người đề xuất. Luồng màn ở [screen-flow.md](
 - **Thông báo tin từ server** (🎨, user đồng ý 2026-11-09). Cần online.
 - **Nhiệm vụ** (🎨, user đồng ý 2026-11-09). Cần online. Lưu ý: 2026-11-03 user đã không lấy nhiệm vụ ngày/tuần từ master plan; bàn lại khi làm.
 - **Hội (Clan)** (🎨, user đồng ý 2026-11-09). Cần online.
-- **Chế độ khác ngoài Chương chính** (🎨, 2026-11-09): Hard, sự kiện… Màn Chọn chế độ đã có ô khoá sẵn.
+- **Chế độ khác ngoài Chương chính** (🎨, 2026-11-09; user chốt tên ô 2026-11-12): 4 ô khoá "Sắp có" ở màn Chọn chế độ của UI hub đợt C là **Khó, Sự kiện, Thử thách, Đấu trường**. Chưa thiết kế luật cho ô nào. Đấu trường dính tới câu "có xếp hạng hay PvP không" của phạm vi online.
 - **Banner sự kiện và gói mua** ở bên trái Lobby (🎨, 2026-11-09). Chỗ banner đã giữ, banner đầu trỏ Gacha.
 - **Nút góc màn Tiêu đề**: ngôn ngữ, xoá cache, hỗ trợ (🎨, user đồng ý 2026-11-09).
-- **Hồ sơ online**: ID, tài khoản (🎨, user đồng ý 2026-11-09).
-- **Thông báo "phần thưởng chưa nhận"** từ Hộp quà, Nhiệm vụ (user, 2026-11-09).
+- **Hồ sơ online**: ID, tài khoản (🎨, user đồng ý 2026-11-09). Làm ở đợt Online; Hồ sơ đợt C chưa chừa chỗ (user chốt 2026-11-12).
+- **Thông báo "phần thưởng chưa nhận"** từ Hộp quà, Nhiệm vụ (user, 2026-11-09). Làm ở đợt Online, không ở UI hub đợt C (user chốt 2026-11-12).
+- **Bước đặt tên lúc mới vào game** (🎨, 2026-11-12): đợt C chỉ cho sửa tên trong Hồ sơ. Bàn cùng luồng hướng dẫn lần đầu chơi.
 
 ## Bỏ
 

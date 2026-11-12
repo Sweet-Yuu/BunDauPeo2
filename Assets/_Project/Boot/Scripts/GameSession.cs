@@ -63,6 +63,19 @@ namespace BunDauPeo.Boot
             return Persist();
         }
 
+        // Hồ sơ cũng là cờ giao diện: lưu lỗi vẫn giữ giá trị mới trong bộ nhớ.
+        public bool SetPlayerName(string name)
+        {
+            Save.PlayerName = name ?? "";
+            return Persist();
+        }
+
+        public bool SetAvatar(string id)
+        {
+            Save.AvatarCharacterId = id ?? "";
+            return Persist();
+        }
+
         // Đưa MỌI thứ đã lưu về như game mới: xoá cả file sao lưu, rồi ghi đè cả PlayerSave thay vì xoá từng field,
         // nên field thêm về sau tự được reset mà không ai phải nhớ. Chỉ gọi sau khi người chơi đã xác nhận.
         public bool ResetToDefaults()

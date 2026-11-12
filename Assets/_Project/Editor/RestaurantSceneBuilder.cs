@@ -244,24 +244,35 @@ namespace BunDauPeo.EditorTools
 
             // Lớp vẽ của Lobby (spec UI hub 5.1), từ dưới lên: quán, HUD Lobby, trang của quán (ở trên), ba panel của thanh, thanh tài nguyên, Menu, thanh dưới, rồi hộp phần thưởng.
             var charactersPanel = CharactersSceneBuilder.BuildPanel(canvas, sprite, font);
-            var stagesPanel = StageSelectSceneBuilder.BuildPanel(canvas, sprite, knob, font);
+            var stagesPanel = StageSelectSceneBuilder.BuildModePanel(canvas, sprite, font);
+            var stageMapPanel = StageSelectSceneBuilder.BuildPanel(canvas, sprite, knob, font);
             var gachaPanel = GachaSceneBuilder.BuildPanel(canvas, sprite, font);
             var resourceBar = NavBarBuilder.BuildResourceBar(canvas, font, sprite, knob);
             var menuPanel = NavBarBuilder.BuildMenu(canvas, font, sprite, out var menuView);
+            var notifyView = NavBarBuilder.BuildNotifyButton(canvas, font, sprite, knob);
             var hub = NavBarBuilder.Build(canvas, font, sprite);
-            NavBarBuilder.WireLobby(hub, resourceBar, lobbyHud.gameObject, new[] { avatar, shop }, banner);
+            var notifyPopup = NavBarBuilder.BuildNotifyPopup(canvas, font, sprite);
+            var profilePopup = NavBarBuilder.BuildProfilePopup(canvas, font, sprite, knob);
+            NavBarBuilder.WireLobby(hub, resourceBar, lobbyHud.gameObject, new[] { shop }, banner, avatar);
             // Trang kín màn: bấm ô khác thì HubNav đóng từng trang đang mở qua IHubPage.Close() (Chọn đội trả đội như lúc mở).
             NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[]
             {
-                staffPanel, upgradePanel, qualityPopup,
-                stagesPanel.GetComponentInChildren<StageInfoPopup>(true), stagesPanel.GetComponentInChildren<StoryPlaceholderPopup>(true),
-                stagesPanel.GetComponentInChildren<TeamSelectPopup>(true), gachaPanel.GetComponentInChildren<GachaHistoryPopup>(true),
+                staffPanel, upgradePanel, qualityPopup, notifyPopup, profilePopup, stageMapPanel.GetComponentInChildren<StageMapView>(true),
+                stageMapPanel.GetComponentInChildren<StageInfoPopup>(true), stageMapPanel.GetComponentInChildren<StoryPlaceholderPopup>(true),
+                stageMapPanel.GetComponentInChildren<TeamSelectPopup>(true), gachaPanel.GetComponentInChildren<GachaHistoryPopup>(true),
             });
+            var stageMap = stageMapPanel.GetComponentInChildren<StageMapView>(true);
+            StageSelectSceneBuilder.WireModePanel(stagesPanel, hub, stageMap);
+            var hubSo = new SerializedObject(hub);
+            hubSo.FindProperty("_stageMap").objectReferenceValue = stageMap;
+            hubSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Hộp Thu AFK dựng sau thanh và có Canvas con (OverBar) nên vẽ đè lên thanh.
             var afkPopup = BuildAfkPopup(canvas, font, sprite);
             viewSo.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
+            NavBarBuilder.WireNotify(notifyView, hub, notifyPopup, scroll, (RectTransform)bubble.transform, staffPanel, afkPopup,
+                charactersPanel.GetComponentInChildren<CharactersView>(true));
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);
@@ -471,12 +482,14 @@ namespace BunDauPeo.EditorTools
         // Avatar, banner Gacha và nút tròn Shop khoá (spec UI hub B 5.4). Chỉ dựng nút; HubNav nối cú bấm ở NavBarBuilder.WireLobby.
         private static (Button Avatar, Button Banner, Button Shop) BuildLobbyButtons(RectTransform hud, Font font, Sprite sprite, Sprite knob)
         {
-            // Avatar: vòng tròn ngoài và vòng trong nhạt hơn, không chữ (Hồ sơ là đợt C).
+            // Avatar (spec UI hub C 5.4): vòng ngoài, mặt tròn bên trong đổi màu và chữ cái đầu theo nhân vật đã chọn (xám khi chưa chọn); bấm mở Hồ sơ.
             var avatar = NewButton("Avatar_PH_140x140", hud, knob, font, "", AvatarColor, TopLeft, new Vector2(20, -20), new Vector2(140, 140));
             ((Image)avatar.targetGraphic).type = Image.Type.Simple;
             var face = NewRect("AvatarFace_PH_100x100", (RectTransform)avatar.transform);
             Place(face, Center, Center, Vector2.zero, new Vector2(100, 100));
-            AddImage(face, knob, AvatarFace, raycast: false).type = Image.Type.Simple;
+            var faceImage = AddImage(face, knob, AvatarFace, raycast: false);
+            faceImage.type = Image.Type.Simple;
+            NavBarBuilder.AddAvatarView(avatar.gameObject, faceImage, face, font, 64, followProfile: true);
 
             var banner = LabelButton("BannerGacha_PH_360x200", hud, sprite, font, "hub.banner_gacha", BannerColor, TopLeft, new Vector2(20, -340), new Vector2(360, 200));
             var bannerText = banner.GetComponentInChildren<Text>();

@@ -10,7 +10,7 @@ namespace BunDauPeo.Tests
     {
         private static readonly string[] GameScenes =
         {
-            ProjectSetup.BootScenePath, ProjectSetup.RestaurantScenePath, ProjectSetup.BattleScenePath,
+            ProjectSetup.BootScenePath, ProjectSetup.TitleScenePath, ProjectSetup.RestaurantScenePath, ProjectSetup.BattleScenePath,
         };
 
         private static AndroidBuild.Config Valid() => new AndroidBuild.Config

@@ -14,7 +14,8 @@ namespace BunDauPeo.Tests
     {
         internal const string Bar = "NavBar_PH_1920x120";
         internal const string CharactersPanel = "CharactersPanel_PH_1920x1080";
-        internal const string StagesPanel = "StageMapPanel_PH_1920x1080";
+        internal const string StagesPanel = "ModeSelectPanel_PH_1920x1080";
+        internal const string StageMapPanel = "StageMapPanel_PH_1920x1080";
         internal const string GachaPanel = "GachaPanel_PH_1920x1080";
         internal const string MenuPanel = "MenuPanel_PH_1920x1080";
         internal const string ResourceBar = "ResourceBar_PH_1120x76";
@@ -86,9 +87,9 @@ namespace BunDauPeo.Tests
                 Assert.IsNotNull(nav.FindProperty("_bar").objectReferenceValue, "_bar");
                 Assert.AreSame(Named(scene, "LobbyHud").gameObject, nav.FindProperty("_lobbyHud").objectReferenceValue, "_lobbyHud");
                 var soon = nav.FindProperty("_comingSoonButtons");
-                Assert.AreEqual(2, soon.arraySize, "_comingSoonButtons: avatar and shop");
-                Assert.AreSame(Named(scene, "Avatar_PH_140x140").GetComponent<Button>(), soon.GetArrayElementAtIndex(0).objectReferenceValue);
-                Assert.AreSame(Named(scene, "HubRoundBtnShop_PH_110x110").GetComponent<Button>(), soon.GetArrayElementAtIndex(1).objectReferenceValue);
+                Assert.AreEqual(1, soon.arraySize, "_comingSoonButtons: only the shop (the avatar opens the profile)");
+                Assert.AreSame(Named(scene, "HubRoundBtnShop_PH_110x110").GetComponent<Button>(), soon.GetArrayElementAtIndex(0).objectReferenceValue);
+                Assert.AreSame(Named(scene, "Avatar_PH_140x140").GetComponent<Button>(), nav.FindProperty("_profileButton").objectReferenceValue, "_profileButton");
                 Assert.AreSame(Named(scene, "BannerGacha_PH_360x200").GetComponent<Button>(), nav.FindProperty("_bannerButton").objectReferenceValue, "_bannerButton");
                 Assert.IsNotNull(nav.FindProperty("_comingSoonToast").objectReferenceValue, "_comingSoonToast");
                 var buttons = nav.FindProperty("_tabButtons");
@@ -99,7 +100,7 @@ namespace BunDauPeo.Tests
 
                 // Mỗi view nằm trong panel của nó và đủ tham chiếu (phần "view có đủ tham chiếu" của ba scene cũ).
                 Assert.IsTrue(RestaurantSceneTests.All<CharactersView>(scene).Single().transform.IsChildOf(Named(scene, CharactersPanel)));
-                Assert.IsTrue(RestaurantSceneTests.All<StageMapView>(scene).Single().transform.IsChildOf(Named(scene, StagesPanel)));
+                Assert.IsTrue(RestaurantSceneTests.All<StageMapView>(scene).Single().transform.IsChildOf(Named(scene, StageMapPanel)));
                 Assert.IsTrue(RestaurantSceneTests.All<GachaView>(scene).Single().transform.IsChildOf(Named(scene, GachaPanel)));
                 Assert.IsTrue(navComponent.transform.parent.GetComponent<Canvas>() != null, "HubNav sits on the one canvas");
 
@@ -172,7 +173,7 @@ namespace BunDauPeo.Tests
                 {
                     new[] { "WorldScroll", "LobbyHud" },
                     new[] { "StaffPanelRoot", "UpgradePanelRoot", "QualityPopupRoot" },
-                    new[] { CharactersPanel, StagesPanel, GachaPanel },
+                    new[] { CharactersPanel, StagesPanel, StageMapPanel, GachaPanel },
                     new[] { ResourceBar },
                     new[] { MenuPanel },
                     new[] { Bar },
@@ -326,6 +327,213 @@ namespace BunDauPeo.Tests
                 foreach (var button in hudButtons)
                     Assert.IsFalse(RestaurantSceneTests.InReferenceCanvas((RectTransform)button.transform).Overlaps(notice), $"{button.name} sits on the reserved notification spot");
             });
+
+        internal const string NotifyButton = "NotifyBtn_PH_110x100";
+
+        // Rect (gốc dưới-trái) của rt khi canvas rộng `width` × 1080 (canvas khớp chiều cao), tính cả localScale của tổ tiên (FitWidthScale).
+        internal static Rect RectAtWidth(RectTransform rt, float width) => Frame(rt, new Vector2(width, 1080f)).Rect;
+
+        private static (Rect Rect, Vector2 LocalSize, float Ratio) Frame(RectTransform rt, Vector2 canvas)
+        {
+            Vector2 parentMin, parentLocal;
+            float parentRatio;
+            if (rt.parent.GetComponent<Canvas>() != null)
+            {
+                parentMin = Vector2.zero;
+                parentLocal = canvas;
+                parentRatio = 1f;
+            }
+            else
+            {
+                var parent = Frame((RectTransform)rt.parent, canvas);
+                parentMin = parent.Rect.min;
+                parentLocal = parent.LocalSize;
+                parentRatio = parent.Ratio;
+            }
+
+            var anchorMin = Vector2.Scale(rt.anchorMin, parentLocal);
+            var anchorMax = Vector2.Scale(rt.anchorMax, parentLocal);
+            var localSize = anchorMax - anchorMin + rt.sizeDelta;
+            var pivotLocal = anchorMin + Vector2.Scale(rt.pivot, anchorMax - anchorMin) + rt.anchoredPosition;
+            var ratio = parentRatio * rt.localScale.x;
+            var size = localSize * ratio;
+            var pivot = parentMin + pivotLocal * parentRatio;
+            return (new Rect(pivot - Vector2.Scale(rt.pivot, size), size), localSize, ratio);
+        }
+
+        // Nút Thông báo (đợt C, spec 5.3): trên-phải (1790, 20), sau Menu và trước thanh dưới. Ở mọi tỉ lệ màn, nút và thanh tài nguyên đã dời (ngoài Lobby,
+        // một ô 280) không đè Button nào, kể cả nút đang tắt (L-025, L-027) và không tính con của hộp OverBar (hộp nổi che cả thanh).
+        [Test]
+        public void NotifyButton_PlacedAboveMenu_ClearOfEveryButton() =>
+            WithLobby(scene =>
+            {
+                var canvas = RestaurantSceneTests.All<Canvas>(scene).Single(c => !c.overrideSorting).transform;
+                var notify = Named(scene, NotifyButton);
+                Assert.AreSame(canvas, notify.parent);
+                Assert.AreEqual(Vector2.one, notify.anchorMin, "top-right anchor");
+                Assert.AreEqual(Vector2.one, notify.anchorMax, "top-right anchor");
+                AssertRect(1790, 20, 110, 100, FromTop(scene, NotifyButton), NotifyButton);
+                Assert.IsFalse(notify.IsChildOf(Named(scene, "LobbyHud")), "the button stays on every page, not only the Lobby");
+                Assert.Less(Named(scene, MenuPanel).GetSiblingIndex(), notify.GetSiblingIndex(), "the button draws over the Menu");
+                Assert.Less(notify.GetSiblingIndex(), Named(scene, Bar).GetSiblingIndex(), "the button draws under the bar");
+
+                var dot = notify.Find("NotifyDot_PH_28x28");
+                Assert.IsNotNull(dot);
+                Assert.IsFalse(dot.gameObject.activeSelf, "the dot starts off");
+                Assert.IsNotNull(notify.GetComponent<Button>());
+
+                var view = RestaurantSceneTests.All<NotifyView>(scene).Single();
+                Assert.AreSame(notify.gameObject, view.gameObject, "NotifyView sits on the button");
+                RestaurantSceneTests.AssertAllReferencesAssigned(view);
+                var so = new SerializedObject(view);
+                Assert.AreSame(notify.GetComponent<Button>(), so.FindProperty("_button").objectReferenceValue);
+                Assert.AreSame(dot.gameObject, so.FindProperty("_dot").objectReferenceValue);
+                Assert.AreSame(RestaurantSceneTests.All<NotifyPopup>(scene).Single(), so.FindProperty("_popup").objectReferenceValue);
+                Assert.AreSame(Named(scene, NotifyButton).gameObject, new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single()).FindProperty("_notifyButton").objectReferenceValue);
+
+                Assert.GreaterOrEqual(ResourceBarView.RightMargin, 20f + 110f + 10f, "the moved resource bar keeps clear of the button");
+                // Bỏ qua của Gacha chỉ bật khi đang quay, lúc thanh dưới và nút Thông báo đều ẩn (HubNav.SetBarHidden); điều kiện này có assert ở PlayMode Hub_ResourceBar_FollowsTabsAndPages.
+                var skip = new SerializedObject(RestaurantSceneTests.All<GachaView>(scene).Single()).FindProperty("_skipButton").objectReferenceValue;
+                var buttons = RestaurantSceneTests.All<Button>(scene)
+                    .Where(b => b.transform != notify && b.GetComponentsInParent<Canvas>(true).All(c => !c.overrideSorting)
+                                && b != skip).ToArray();
+                Assert.Greater(buttons.Length, 10, "the scene has buttons to check against");
+                foreach (var (aspectName, aspect) in Aspects)
+                {
+                    var width = 1080f * aspect;
+                    var spot = RectAtWidth(notify, width);
+                    var resources = new Rect(width - ResourceBarView.RightMargin - 280f, 1080f - 20f - 76f, 280f, 76f);
+                    Assert.IsFalse(spot.Overlaps(resources), $"{aspectName}: the moved resource bar runs under the notification button");
+                    foreach (var button in buttons)
+                    {
+                        var rect = RectAtWidth((RectTransform)button.transform, width);
+                        Assert.IsFalse(rect.Overlaps(spot), $"{aspectName}: {button.name} {rect} sits under the notification button {spot}");
+                        if (button.transform.IsChildOf(Named(scene, ResourceBar)) || button.transform.IsChildOf(Named(scene, "LobbyHud"))) continue;
+                        Assert.IsFalse(rect.Overlaps(resources), $"{aspectName}: {button.name} {rect} sits under the moved resource bar {resources}");
+                    }
+                }
+            });
+
+        // Hộp thả xuống (spec 5.3): dim bấm được kín màn, hộp 640×660 dưới nút, 5 dòng 600×100.
+        [Test]
+        public void OverlayBoxes_NotifyAndProfile() =>
+            WithLobby(scene =>
+            {
+                AssertProfileBox(scene);
+                var root = Named(scene, "NotifyPopup");
+                Assert.IsFalse(root.gameObject.activeSelf, "the box starts closed");
+                Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(root));
+                var canvas = root.GetComponent<Canvas>();
+                Assert.IsNotNull(canvas);
+                Assert.IsTrue(canvas.overrideSorting);
+                Assert.Greater(canvas.sortingOrder, Named(scene, Bar).GetComponentInParent<Canvas>().sortingOrder, "drawn over the bar");
+                Assert.IsNotNull(root.GetComponent<GraphicRaycaster>());
+
+                var dim = Named(scene, "NotifyDim");
+                Assert.IsTrue(dim.IsChildOf(root));
+                Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(dim));
+                Assert.IsNotNull(dim.GetComponent<Button>(), "tapping the dim closes the box");
+                Assert.IsTrue(dim.GetComponent<Image>().raycastTarget);
+                Assert.AreEqual(0.45f, dim.GetComponent<Image>().color.a, 0.01f);
+
+                var box = Named(scene, "NotifyBox_PH_640x660");
+                Assert.IsTrue(box.IsChildOf(root));
+                AssertRect(1260, 180, 640, 660, FromTop(scene, "NotifyBox_PH_640x660"), "NotifyBox");
+                Assert.AreEqual(Vector2.one, box.anchorMin, "top-right anchor");
+                var boxTop = FromTop(scene, "NotifyBox_PH_640x660");
+                var rows = box.GetComponentsInChildren<Button>(true).Where(b => b.name == "NotifyRow_PH_600x100").ToArray();
+                Assert.AreEqual(5, rows.Length);
+                for (var i = 0; i < rows.Length; i++)
+                {
+                    var row = FromTop(RestaurantSceneTests.InReferenceCanvas((RectTransform)rows[i].transform));
+                    Assert.AreEqual(new Vector2(600, 100), row.size, $"row {i}");
+                    Assert.AreEqual(boxTop.x + 20f, row.x, 0.01f, $"row {i} x");
+                    Assert.AreEqual(boxTop.y + 90f + 110f * i, row.y, 0.01f, $"row {i} y");
+                }
+
+                Assert.AreEqual("notify.title", box.GetComponentsInChildren<LocalizedText>(true).First(l => l.name == "NotifyTitle").Key);
+                Assert.AreEqual("notify.empty", Named(scene, "NotifyEmpty").GetComponent<LocalizedText>().Key);
+
+                var popup = RestaurantSceneTests.All<NotifyPopup>(scene).Single();
+                Assert.AreSame(root.gameObject, popup.gameObject, "NotifyPopup sits on its root");
+                RestaurantSceneTests.AssertAllReferencesAssigned(popup);
+                Assert.IsTrue((object)popup is IHubOverlay);
+                var pages = new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single()).FindProperty("_pages");
+                Assert.IsTrue(Enumerable.Range(0, pages.arraySize).Any(i => ReferenceEquals(pages.GetArrayElementAtIndex(i).objectReferenceValue, popup)), "NotifyPopup is in HubNav._pages");
+            });
+
+        // Hộp Hồ sơ (spec 5.4): kín màn qua OverBar, nền không là Button (bấm nền không đóng), hộp 1200×800 giữa màn, ô tên 12 ký tự, lưới cuộn, ô mẫu tắt.
+        private static void AssertProfileBox(Scene scene)
+        {
+            var root = Named(scene, "ProfilePopup");
+            Assert.IsFalse(root.gameObject.activeSelf, "the profile box starts closed");
+            Assert.AreEqual(new Rect(0, 0, 1920, 1080), RestaurantSceneTests.InReferenceCanvas(root));
+            var canvas = root.GetComponent<Canvas>();
+            Assert.IsNotNull(canvas);
+            Assert.IsTrue(canvas.overrideSorting);
+            Assert.Greater(canvas.sortingOrder, Named(scene, Bar).GetComponentInParent<Canvas>().sortingOrder, "drawn over the bar");
+            Assert.IsNotNull(root.GetComponent<GraphicRaycaster>());
+            var dim = root.GetComponent<Image>();
+            Assert.IsNotNull(dim, "the root draws the dim");
+            Assert.IsTrue(dim.raycastTarget, "the dim blocks clicks behind it");
+            Assert.AreEqual(0.5f, dim.color.a, 0.01f);
+            Assert.AreEqual(0f, dim.color.r + dim.color.g + dim.color.b, "black dim");
+            Assert.IsNull(root.GetComponent<Button>(), "tapping the dim must not close the box (typed text would be lost)");
+
+            AssertRect(360, 140, 1200, 800, FromTop(scene, "ProfileBox_PH_1200x800"), "ProfileBox");
+            Assert.IsTrue(Named(scene, "ProfileBox_PH_1200x800").IsChildOf(root));
+            Assert.AreEqual("profile.title", Named(scene, "ProfileTitle").GetComponent<LocalizedText>().Key);
+            AssertRect(440, 280, 240, 240, FromTop(scene, "ProfileAvatar_PH_240x240"), "ProfileAvatar");
+            var avatar = Named(scene, "ProfileAvatar_PH_240x240");
+            Assert.IsNotNull(avatar.GetComponent<AvatarView>());
+            RestaurantSceneTests.AssertAllReferencesAssigned(avatar.GetComponent<AvatarView>(), "_followProfile");
+            Assert.IsNotNull(avatar.Find("AvatarInitial"));
+
+            var input = Named(scene, "NameInput_PH_400x90").GetComponent<InputField>();
+            Assert.IsNotNull(input);
+            AssertRect(400, 590, 400, 90, FromTop(scene, "NameInput_PH_400x90"), "NameInput");
+            Assert.AreEqual(12, input.characterLimit);
+            Assert.AreEqual(InputField.LineType.SingleLine, input.lineType);
+            Assert.AreEqual(InputField.ContentType.Standard, input.contentType);
+            Assert.IsTrue(input.placeholder is Text, "the placeholder is a Text the popup fills with the default name");
+            Assert.IsNull(input.placeholder.GetComponent<LocalizedText>(), "InputField.placeholder is written at runtime, so no LocalizedText");
+            Assert.AreEqual("profile.name_hint", Named(scene, "NameHint").GetComponent<LocalizedText>().Key);
+            Assert.IsNotNull(Named(scene, "ProfileStatus").GetComponent<Text>());
+            Assert.AreEqual("", Named(scene, "ProfileStatus").GetComponent<Text>().text, "no error line at first");
+            Assert.AreEqual("profile.change_avatar", Named(scene, "AvatarLabel").GetComponent<LocalizedText>().Key);
+
+            var grid = Named(scene, "AvatarGrid");
+            var scroll = grid.GetComponent<ScrollRect>();
+            Assert.IsNotNull(scroll);
+            Assert.IsTrue(scroll.vertical && !scroll.horizontal, "the grid scrolls vertically only");
+            Assert.AreEqual(ScrollRect.MovementType.Clamped, scroll.movementType);
+            Assert.IsNotNull(grid.GetComponentInChildren<RectMask2D>(true), "cells are clipped to the grid");
+            var template = grid.GetComponentsInChildren<Button>(true).Single(b => b.name == "AvatarCell_PH_120x120");
+            Assert.IsFalse(template.gameObject.activeSelf, "the cell template is off");
+            Assert.AreEqual(new Vector2(120, 120), ((RectTransform)template.transform).sizeDelta);
+            Assert.IsNotNull(template.transform.Find("AvatarSelected_PH_136x136"), "gold ring under the circle");
+            Assert.IsNotNull(template.GetComponent<AvatarView>());
+            Assert.IsNotNull(template.transform.Find("AvatarInitial"), "a cell shows the character's initial");
+
+            var close = Named(scene, "ProfilePopup").GetComponentsInChildren<Button>(true).Single(b => b.name == "CloseButton");
+            Assert.AreEqual(new Vector2(300, 100), ((RectTransform)close.transform).sizeDelta);
+            AssertRect(810, 810, 300, 100, FromTop(RestaurantSceneTests.InReferenceCanvas((RectTransform)close.transform)), "CloseButton");
+
+            var popup = RestaurantSceneTests.All<ProfilePopup>(scene).Single();
+            Assert.AreSame(root.gameObject, popup.gameObject, "ProfilePopup sits on its root");
+            RestaurantSceneTests.AssertAllReferencesAssigned(popup);
+            Assert.IsTrue((object)popup is IHubOverlay);
+            var nav = new SerializedObject(RestaurantSceneTests.All<HubNav>(scene).Single());
+            var pages = nav.FindProperty("_pages");
+            Assert.IsTrue(Enumerable.Range(0, pages.arraySize).Any(i => ReferenceEquals(pages.GetArrayElementAtIndex(i).objectReferenceValue, popup)), "ProfilePopup is in HubNav._pages");
+
+            var lobbyAvatar = Named(scene, "Avatar_PH_140x140");
+            Assert.IsNotNull(lobbyAvatar.GetComponent<AvatarView>(), "the Lobby avatar shows the chosen character");
+            RestaurantSceneTests.AssertAllReferencesAssigned(lobbyAvatar.GetComponent<AvatarView>(), "_followProfile");
+            Assert.IsTrue(new SerializedObject(lobbyAvatar.GetComponent<AvatarView>()).FindProperty("_followProfile").boolValue, "the Lobby avatar follows PlayerProfile.Changed");
+            Assert.IsFalse(new SerializedObject(avatar.GetComponent<AvatarView>()).FindProperty("_followProfile").boolValue, "the popup draws its own avatar");
+            Assert.IsNotNull(lobbyAvatar.GetComponentsInChildren<Transform>(true).SingleOrDefault(t => t.name == "AvatarInitial"));
+        }
 
         // Spec 5.3: một ResourceBar 1120×76 với 4 ô 280 theo thứ tự Thể lực, Coin, Material, Gem; Material không có nút +.
         [Test]

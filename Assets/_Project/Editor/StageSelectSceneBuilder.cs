@@ -26,17 +26,91 @@ namespace BunDauPeo.EditorTools
         private static readonly Vector2 Center = new(0.5f, 0.5f);
         private static readonly Vector2 TopLeft = new(0, 1);
 
-        // Panel Bản đồ của Lobby (spec UI hub 5.4): kín màn, nền đặc chặn bấm, lúc đầu tắt. Trong hàm này `canvas` là chính panel.
-        // Nút Quay lại bỏ (thanh dưới lo); tiêu đề chương dời sang chỗ nút cũ; dòng gợi ý lên trên vạch 120 px.
+        private static readonly Color MainTileColor = new(0.15f, 0.52f, 0.55f);
+
+        // Chọn chế độ (spec UI hub C 5.2): kín màn, nền đặc chặn bấm, lúc đầu tắt. Thẻ Chương chính ở trái, bốn ô khoá 2×2 ở phải;
+        // đáy các ô y 760 nên nằm trên vạch 120 px. View nối HubNav và Bản đồ ở WireModePanel (hai thứ đó dựng sau).
+        public static RectTransform BuildModePanel(RectTransform parent, Sprite sprite, Font font)
+        {
+            var panel = NewRect("ModeSelectPanel_PH_1920x1080", parent);
+            Stretch(panel);
+            AddImage(panel, null, Background, raycast: true);
+
+            // Khung 1920×1080 chứa mọi ô; FitWidthScale (trên panel kín màn, nhận được sự kiện đổi cỡ canvas) co khung khi màn hẹp hơn 16:9 và canh giữa khi rộng hơn.
+            var content = NewRect("ModeContent", panel);
+            Place(content, TopLeft, TopLeft, Vector2.zero, new Vector2(1920, 1080));
+            panel.gameObject.AddComponent<FitWidthScale>().Content = content;
+
+            var title = NewLabel("ModeTitle", content, font, "hub.tab_stages", 56, TextAnchor.MiddleLeft, Gold);
+            title.fontStyle = FontStyle.Bold;
+            Place(title.rectTransform, TopLeft, TopLeft, new Vector2(60, -30), new Vector2(800, 90));
+
+            var main = BuildTile("ModeMain_PH_820x560", content, sprite, MainTileColor, new Vector2(100, 200), new Vector2(820, 560));
+            var mainName = NewLabel("ModeMainName", (RectTransform)main.transform, font, "stages.mode_main", 80, TextAnchor.MiddleCenter, Color.white);
+            mainName.fontStyle = FontStyle.Bold;
+            Place(mainName.rectTransform, Center, Center, new Vector2(0, 50), new Vector2(760, 140));
+            var mainSub = NewText("ModeMainSub", (RectTransform)main.transform, font, "", 40, TextAnchor.MiddleCenter, Gold);
+            Place(mainSub.rectTransform, Center, Center, new Vector2(0, -90), new Vector2(760, 80));
+
+            var locked = new Button[4];
+            var lockedNames = new[] { "ModeLockedHard_PH_440x260", "ModeLockedEvent_PH_440x260", "ModeLockedChallenge_PH_440x260", "ModeLockedArena_PH_440x260" };
+            var lockedKeys = new[] { "stages.mode_hard", "stages.mode_event", "stages.mode_challenge", "stages.mode_arena" };
+            for (var i = 0; i < locked.Length; i++)
+            {
+                var position = new Vector2(1000 + 460 * (i % 2), 200 + 300 * (i / 2));
+                locked[i] = BuildTile(lockedNames[i], content, sprite, LockedColor, position, new Vector2(440, 260));
+                var tile = (RectTransform)locked[i].transform;
+                var name = NewLabel("TileName", tile, font, lockedKeys[i], 52, TextAnchor.MiddleCenter, Color.white);
+                Place(name.rectTransform, Center, Center, new Vector2(0, 30), new Vector2(400, 90));
+                var soon = NewLabel("TileSoon", tile, font, "hub.coming_soon", 34, TextAnchor.MiddleCenter, new Color(0.80f, 0.82f, 0.88f));
+                Place(soon.rectTransform, Center, Center, new Vector2(0, -50), new Vector2(400, 60));
+                NavBarBuilder.BuildLock(tile, "Lock_PH_40x48", new Vector2(-180, 90));
+            }
+
+            var view = panel.gameObject.AddComponent<ModeSelectView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_mainButton").objectReferenceValue = main;
+            so.FindProperty("_mainSubText").objectReferenceValue = mainSub;
+            so.FindProperty("_lockedButtons").arraySize = locked.Length;
+            for (var i = 0; i < locked.Length; i++) so.FindProperty("_lockedButtons").GetArrayElementAtIndex(i).objectReferenceValue = locked[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            panel.gameObject.SetActive(false);
+            return panel;
+        }
+
+        public static void WireModePanel(RectTransform modePanel, HubNav hub, StageMapView map)
+        {
+            var so = new SerializedObject(modePanel.GetComponent<ModeSelectView>());
+            so.FindProperty("_hub").objectReferenceValue = hub;
+            so.FindProperty("_map").objectReferenceValue = map;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Ô của Chọn chế độ: góc trên-trái ở (x, y) tính từ góc trên-trái màn.
+        private static Button BuildTile(string name, RectTransform parent, Sprite sprite, Color color, Vector2 topLeft, Vector2 size)
+        {
+            var rect = NewRect(name, parent);
+            Place(rect, TopLeft, TopLeft, new Vector2(topLeft.x, -topLeft.y), size);
+            var image = AddImage(rect, sprite, color, raycast: true);
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            return button;
+        }
+
+        // Panel Bản đồ của Lobby (spec UI hub 5.4; đợt C: trang con của Chọn chế độ, có nút Quay lại): kín màn, nền đặc chặn bấm, lúc đầu tắt. Trong hàm này `canvas` là chính panel.
+        // Nút Quay lại ở góc trên-trái, tiêu đề chương bên phải nút; dòng gợi ý trên vạch 120 px.
         public static RectTransform BuildPanel(RectTransform parent, Sprite sprite, Sprite knob, Font font)
         {
             var canvas = NewRect("StageMapPanel_PH_1920x1080", parent);
             Stretch(canvas);
             AddImage(canvas, null, Background, raycast: true);
 
+            // Quay lại (về Chọn chế độ) chiếm góc trên-trái; tiêu đề chương nằm bên phải nút.
+            var back = BackButton("BackButton", canvas, sprite, font);
             var chapter = NewLabel("ChapterText", canvas, font, "combat.chapter_1", 56, TextAnchor.MiddleLeft, Gold);
             chapter.fontStyle = FontStyle.Bold;
-            Place(chapter.rectTransform, TopLeft, TopLeft, new Vector2(30, -30), new Vector2(500, 70));
+            Place(chapter.rectTransform, TopLeft, TopLeft, new Vector2(260, -30), new Vector2(500, 70));
 
             // Gốc của nút, đoạn nối và dấu NEXT; mẫu tắt sẵn, view nhân bản lúc chạy.
             var map = NewRect("Map", canvas);
@@ -63,6 +137,8 @@ namespace BunDauPeo.EditorTools
             var viewObject = NewRect("StageMapView", canvas);
             var view = viewObject.gameObject.AddComponent<StageMapView>();
             var so = new SerializedObject(view);
+            so.FindProperty("_root").objectReferenceValue = canvas.gameObject;
+            so.FindProperty("_backButton").objectReferenceValue = back;
             so.FindProperty("_nodesRoot").objectReferenceValue = map;
             so.FindProperty("_nodeTemplate").objectReferenceValue = node;
             so.FindProperty("_linkTemplate").objectReferenceValue = link;

@@ -31,9 +31,14 @@ namespace BunDauPeo.UI
         [SerializeField] private MonoBehaviour[] _pages;
         // HUD của Lobby (spec UI hub B 5.1): chỉ bật khi ResourceBarRule.IsLobbyLayout. Ba trường dưới tuỳ chọn để HubNav dựng tay trong test vẫn chạy.
         [SerializeField] private GameObject _lobbyHud;
-        // Avatar và Shop: bấm ra dòng "Sắp có". Banner Gacha: bấm mở ô Gacha.
+        // Shop: bấm ra dòng "Sắp có". Banner Gacha: bấm mở ô Gacha. Avatar: bấm mở Hồ sơ (ProfilePopup nằm trong _pages), tuỳ chọn.
         [SerializeField] private Button[] _comingSoonButtons;
         [SerializeField] private Button _bannerButton;
+        [SerializeField] private Button _profileButton;
+        // Bản đồ (trang con của Chọn chế độ), tuỳ chọn: ô chờ có stageMap thì Awake mở nó.
+        [SerializeField] private StageMapView _stageMap;
+        // Nút Thông báo, tuỳ chọn: ẩn cùng thanh dưới (Gacha lúc cutscene, lộ, tổng).
+        [SerializeField] private GameObject _notifyButton;
 
         private readonly HashSet<object> _barHiders = new();
         private readonly List<IHubPage> _openPages = new();
@@ -50,11 +55,12 @@ namespace BunDauPeo.UI
             get
             {
                 if (_pages == null) return false;
-                foreach (var behaviour in _pages)
-                    if (behaviour is IHubPage page && page.IsOpen) return true;
-                return false;
+                return LayoutPages(_pages.OfType<IHubPage>()).Any();
             }
         }
+
+        // Trang đang mở quyết định bố cục và đồng hồ quán; hộp nổi (IHubOverlay) không tính.
+        public static IEnumerable<IHubPage> LayoutPages(IEnumerable<IHubPage> pages) => pages.Where(p => p.IsOpen && p is not IHubOverlay);
 
         // Các trang đang mở. Trả về cùng một danh sách dùng lại mỗi lần gọi: đọc ngay, đừng giữ.
         public IEnumerable<IHubPage> OpenPages
@@ -63,21 +69,26 @@ namespace BunDauPeo.UI
             {
                 _openPages.Clear();
                 if (_pages == null) return _openPages;
-                foreach (var behaviour in _pages)
-                    if (behaviour is IHubPage page && page.IsOpen) _openPages.Add(page);
+                _openPages.AddRange(LayoutPages(_pages.OfType<IHubPage>()));
                 return _openPages;
             }
         }
 
         // Gọi trước LoadScene("Restaurant"): Awake của lần nạp sau mở đúng ô (và Menu) rồi xoá.
-        public static void OpenOnNextLoad(HubTab tab, bool menu) => HubPending.Set(tab, menu);
+        public static void OpenOnNextLoad(HubTab tab, bool menu, bool stageMap = false) => HubPending.Set(tab, menu, stageMap);
 
         private void Awake()
         {
             if (!HasAllReferences()) return;
 
-            if (HubPending.TryTake(out var tab, out var menu)) State = HubNavState.FromPending(tab, menu);
+            if (HubPending.TryTake(out var tab, out var menu, out var stageMap)) State = HubNavState.FromPending(tab, menu);
             ApplyPanels();
+            // FromPending có thể đổi tab về Quán (tab hỏng): cờ chỉ có nghĩa khi đang ở Màn chơi.
+            if (stageMap && State.Current == HubTab.Stages && _stageMap != null)
+            {
+                _stageMap.Open();
+                ApplyLobbyHud();
+            }
         }
 
         private void OnEnable()
@@ -105,6 +116,7 @@ namespace BunDauPeo.UI
                 foreach (var button in _comingSoonButtons)
                     if (button != null) button.onClick.AddListener(ShowComingSoon);
             if (_bannerButton != null) _bannerButton.onClick.AddListener(OpenGacha);
+            if (_profileButton != null) _profileButton.onClick.AddListener(OpenProfile);
 
             Refresh();
         }
@@ -118,6 +130,7 @@ namespace BunDauPeo.UI
                 foreach (var button in _comingSoonButtons)
                     if (button != null) button.onClick.RemoveListener(ShowComingSoon);
             if (_bannerButton != null) _bannerButton.onClick.RemoveListener(OpenGacha);
+            if (_profileButton != null) _profileButton.onClick.RemoveListener(OpenProfile);
             // Rời scene (vào trận) thì trả chủ dừng, để sự cố của lần sau không kẹt.
             _service?.Incidents.SetClockPaused(this, false);
             _service = null;
@@ -173,6 +186,8 @@ namespace BunDauPeo.UI
 
         private void OpenGacha() => Select(HubTab.Gacha);
 
+        private void OpenProfile() => _pages.OfType<ProfilePopup>().FirstOrDefault()?.Open();
+
         // Nút Đóng của Menu.
         public void CloseMenu()
         {
@@ -189,6 +204,7 @@ namespace BunDauPeo.UI
             else _barHiders.Remove(owner);
             // Rời scene thì _bar có thể đã bị huỷ trước OnDisable của người gọi.
             if (_bar != null) _bar.SetActive(_barHiders.Count == 0);
+            if (_notifyButton != null) _notifyButton.SetActive(_barHiders.Count == 0);
         }
 
         // Bấm ô khác: trang kín màn đang mở đóng qua đúng đường nút Quay lại của nó (trả SetSpawnBlocked...).

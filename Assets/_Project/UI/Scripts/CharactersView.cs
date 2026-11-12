@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using UnityEngine;
@@ -68,6 +69,17 @@ namespace BunDauPeo.UI
         // Đổi từ nơi khác (Reset, Gacha): dòng trạng thái cũ không còn đúng.
         private void OnRosterChanged()
         {
+            _statusText.text = "";
+            Redraw();
+        }
+
+        // Chọn theo id (nút Thông báo "đủ mảnh"); id không có trong danh sách thì không làm gì.
+        public void SelectById(string id)
+        {
+            if (!_subscribed || id == null) return;
+
+            if (!CharacterListRows.Build(_roster, _stars).Any(r => r.Character.Id == id)) return;
+            _selectedId = id;
             _statusText.text = "";
             Redraw();
         }

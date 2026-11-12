@@ -121,7 +121,7 @@ namespace BunDauPeo.UI
             return true;
         }
 
-        private void Open()
+        public void Open()
         {
             // Panel che "!" nên không sinh sự cố mới; sự cố đang chạy vẫn đếm để xếp người xử lý được.
             _service.Incidents.SetSpawnBlocked(this, true);

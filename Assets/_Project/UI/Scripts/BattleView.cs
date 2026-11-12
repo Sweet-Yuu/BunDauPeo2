@@ -156,7 +156,7 @@ namespace BunDauPeo.UI
         // Bản đồ là panel của Lobby: về quán với ô Màn chơi mở sẵn (spec UI hub 5.7).
         private static void Back()
         {
-            HubNav.OpenOnNextLoad(HubTab.Stages, menu: false);
+            HubNav.OpenOnNextLoad(HubTab.Stages, menu: false, stageMap: true);
             SceneManager.LoadScene(RestaurantScene);
         }
 

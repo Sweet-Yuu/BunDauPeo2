@@ -103,6 +103,8 @@ namespace BunDauPeo.Boot
             _session.ApplyLanguage();
             ServiceLocator.Register(new LanguageSwitcher(_session.SetLanguage));
             ServiceLocator.Register(new RestaurantBarPref(() => _session.Save.RestaurantBarOpen, _session.SetRestaurantBarOpen));
+            ServiceLocator.Register(new PlayerProfile(() => _session.Save.PlayerName, () => _session.Save.AvatarCharacterId,
+                _session.SetPlayerName, _session.SetAvatar));
             ServiceLocator.Register(new GachaService(_session.Save, _session.Wallet, _session.Roster, _catalog,
                 _bannerCatalog, new System.Random(), _session.Persist));
 
