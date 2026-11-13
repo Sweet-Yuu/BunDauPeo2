@@ -11,9 +11,11 @@ Mục ghi *khởi điểm* là giá trị tạm để bắt đầu cân bằng, 
 |---|---|---|
 | Coin | Khách trả tiền ở quán, thu thập AFK | Mua nâng cấp quán |
 | Material | Thưởng màn chơi | Mua nâng cấp quán |
-| Gem | Thưởng màn chơi; mua trong game; quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
+| Gem | Thưởng màn chơi; [Nhiệm vụ](#nhiệm-vụ) (Online đợt 3); Hộp quà (Online đợt 4); sau 31/12: mua trong game, quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
 
 Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để quán chạy vừa đi đánh.
+
+**Online** (user chốt 2026-11-13, [spec Online](../superpowers/specs/2026-11-13-online-design.md)): phải có mạng mới chơi được. Từ Online đợt 2, Gem, nhân vật, mảnh, nâng sao, gacha, thể lực, vào trận và thưởng màn do **server** tính và ghi (chống gian lận mức 2). Coin, Material và quán vẫn tính trên máy.
 
 ## Nhân vật
 
@@ -56,7 +58,7 @@ Quán gần như tự động, nên AFK phải **kém hơn chơi thật**, để
 - **Thu nhập lý thuyết** là cận trên của mô phỏng, tính bằng công thức nút cổ chai từ nhân viên và nâng cấp ([spec 4.2](../superpowers/specs/2026-11-01-restaurant-design.md#42-thu-nhập-lý-thuyết-incomecalculator-hàm-tĩnh-thuần)), không ngẫu nhiên. **Chốt lúc thoát game**, nên không lách được bằng cách xếp nhân viên giỏi ngay trước khi thu thập. Quán thiếu một vai thì bằng 0.
 - **Hệ số chất lượng tính lúc thu thập**, không phải lúc thoát. Nhờ vậy vắng nhiều ngày thì quà giảm (xem Chuyên cần ở mục Quán).
 - **Thu thập:** người chơi tự bấm, tiền vào ví và bộ đếm về 0. Mở lại màn quán sau khi vắng từ 5 phút thì hiện popup thu thập; nút "Thu AFK" còn trên màn quán khi có Coin chờ. Thu mà lưu không được thì Coin vẫn vào ví nhưng người chơi được báo "chưa lưu được dữ liệu" (ở popup lẫn nút), game thử lưu lại ở lần lưu sau. Bấm thẻ sao ở màn quán mở popup chất lượng (chuyên cần 7 ngày, hôm nay, sự cố, hệ số AFK).
-- **Đồng hồ máy:** thời gian âm (đồng hồ bị lùi) tính là 0. Chỉnh đồng hồ tiến để gian lận thì chấp nhận, vì game offline và đã có trần 12 giờ.
+- **Đồng hồ:** thời gian âm (đồng hồ bị lùi) tính là 0. Từ Online đợt 1, AFK tính theo **giờ server**, nên chỉnh giờ máy không lách được (user chốt 2026-11-13, [spec Online](../superpowers/specs/2026-11-13-online-design.md)). Trước đó, chỉnh đồng hồ tiến để gian lận được chấp nhận, vì có trần 12 giờ.
 - **Quán chưa kiếm tiền khi thoát** (thu nhập bằng 0) thì thời gian vắng không tính vào trần, để không bị kẹt ở trần mà không có gì để thu.
 
 Save cần lưu: thời điểm hoạt động cuối, thu nhập lý thuyết mỗi giây lúc thoát, số giây đã tích, số Coin lý thuyết đang chờ (chưa nhân hệ số chất lượng), cùng thời gian có mặt từng ngày và điểm 10 sự cố gần nhất cho chất lượng. Triển khai trong [spec Restaurant](../superpowers/specs/2026-11-01-restaurant-design.md).
@@ -86,18 +88,18 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 
 (user chốt 2026-11-03, theo master plan mục 20.7, thay luật 2026-11-02; [D-008](../decisions/decisions.md). Luật mới so với [vision](../vision/vision.md), `TODO(user)` cập nhật vision)
 
-- Tối đa **100**, hồi **1 điểm mỗi 5 phút theo giờ máy, kể cả khi tắt game** (từ 0 lên đầy mất 8 giờ 20). Đầy thì không tích thêm.
+- Tối đa **100**, hồi **1 điểm mỗi 5 phút theo giờ server** (từ Online đợt 1; trước đó theo giờ máy; user chốt 2026-11-13), **kể cả khi tắt game** (từ 0 lên đầy mất 8 giờ 20). Đầy thì không tích thêm.
 - Mỗi màn đánh tốn **10**, kể cả màn boss; màn cốt truyện tốn 0.
 - **Trừ một lần ngay khi vào trận hợp lệ**, và lưu ngay. Thua, bỏ cuộc, tắt app giữa trận đều **không hoàn**. "Thử lại" sau khi thua là một lần vào mới, trừ lại. Chỉ trừ sau khi mọi kiểm tra (màn, mở khoá, đội, cấu hình) đã qua, nên bị từ chối vào thì không mất thể lực. Nếu không lưu được thì không vào trận và không mất thể lực.
 - Nút DEV "Chiến đấu thử" (panel Cài đặt) vào thẳng, không trừ thể lực và không có thưởng.
 - Không mua thể lực bằng Gem, không có vật phẩm hồi thể lực.
-- Đồng hồ máy chạy lùi thì không hồi và không mất thể lực. Chỉnh đồng hồ tiến để gian lận thì chấp nhận, như [AFK](#afk).
+- Đồng hồ chạy lùi thì không hồi và không mất thể lực. Từ Online đợt 1 tính theo giờ server, chỉnh giờ máy không đổi được thể lực; từ đợt 2 server trừ thể lực khi vào trận.
 - Reset Save Data đưa thể lực về đầy.
 
 ## Gacha
 
 - Banner có chi phí Gem cho 1 lượt và 10 lượt, tỉ lệ theo độ hiếm, ngưỡng đảm bảo. MVP có **1 banner**; bộ đếm đảm bảo lưu theo Id banner nên thêm banner sau không đổi save.
-- Roll trên máy, vì game offline. Thiếu Gem thì không quay và không đổi gì.
+- Roll trên **server** từ Online đợt 2 (user chốt 2026-11-13, [spec Online](../superpowers/specs/2026-11-13-online-design.md)); trước đó roll trên máy. Server trừ Gem, trao nhân vật hoặc mảnh, ghi bộ đếm đảm bảo và lịch sử. Thiếu Gem thì không quay và không đổi gì; mất mạng giữa lúc quay cũng không đổi gì.
 - Số *khởi điểm* (user chốt 2026-10-31), đặt trong banner SO: tỉ lệ **R 70 / SR 25 / SSR 5**; **100 Gem** một lượt, **900 Gem** mười lượt. Trong cùng độ hiếm, mọi nhân vật của banner có xác suất như nhau.
 - **Đảm bảo SSR:** lượt thứ **50** kể từ SSR gần nhất chắc chắn ra SSR. Đếm theo từng banner, quay lẻ hay quay 10 đều tính từng lượt, về 0 khi ra SSR (kể cả trúng tỉ lệ thường), lưu trong save. Không soft pity. Ngưỡng 0 là tắt.
 - **Đảm bảo quay 10:** lượt thứ 10 mà chưa có SR trở lên thì ra SR hoặc SSR (theo tỉ lệ SR:SSR). Bật/tắt trong banner.
@@ -107,13 +109,22 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 - **Lịch sử quay:** lưu trong save, 50 lượt gần nhất (mỗi lần bấm Quay 1 hoặc Quay 10 là một mục), Reset Save Data xoá. Trang roll có nút Lịch sử mở popup chỉ đọc, mới nhất trên cùng.
 - Nhân vật trùng thành mảnh: xem mục [Nhân vật](#nhân-vật). Thiết kế đầy đủ: [spec Gacha](../superpowers/specs/2026-10-31-gacha-design.md).
 
+## Nhiệm vụ
+
+(user chốt 2026-11-13, Online đợt 3, [spec Online mục 5.10](../superpowers/specs/2026-11-13-online-design.md); đảo lại quyết định 2026-11-03 không lấy nhiệm vụ ngày/tuần của master plan.) Danh sách và thưởng là số *khởi điểm*, đặt trong `MissionCatalog` (SO).
+
+- **Nhiệm vụ ngày**, làm mới **00:00 giờ Việt Nam (UTC+7)** theo giờ server, giống nhau cho mọi người: Vào trận 3 lần, Thắng 1 màn, Quay gacha 1 lượt (quay 10 tính 10), Thu tiền AFK 1 lần, Xử lý 1 sự cố ở quán. Mỗi việc **20 Gem**; đủ cả 5 việc thì thêm **50 Gem**.
+- **Nhiệm vụ tân thủ**, một lần, hiện theo thứ tự, làm trước cũng tính, tổng **650 Gem**: Đặt tên trong Hồ sơ (50), Xếp 1 nhân viên (50), Xếp đội và thắng màn đầu (100), Quay gacha lần đầu (50), Mua nâng cấp quán đầu tiên (50), Thu AFK lần đầu (50), Nâng sao một nhân vật (100), Thắng 10 màn đánh khác nhau, không tính màn cốt truyện (200).
+- **Nhận:** server trao Gem, kiểm chưa nhận và đủ mục tiêu. Việc do máy đếm (AFK, sự cố, tên, nhân viên, nâng cấp) thì server tin số của máy nhưng giữ giới hạn một lần mỗi ngày / một lần mãi mãi.
+- Mở từ nút tròn Nhiệm vụ ở Lobby ([luồng màn](screen-flow.md)). Reset Save Data xoá toàn bộ tiến độ và lượt nhận.
+
 ## Kiếm tiền
 
-(user duyệt hướng 2026-11-02, [D-007](../decisions/decisions.md); chưa có spec, làm sau Combat và UI hub)
+(user duyệt hướng 2026-11-02, [D-007](../decisions/decisions.md); chưa có spec. **Nạp tiền và quảng cáo làm sau 31/12**, bản 31/12 không có tiền thật, user chốt 2026-11-13, [spec Online](../superpowers/specs/2026-11-13-online-design.md))
 
 - Game tải miễn phí. Năm nguồn thu: **gói Gem**, **thẻ tháng**, **gói tân thủ**, **gói nhân vật khởi đầu**, **quảng cáo thưởng** (xem quảng cáo để nhận Gem).
 - Luật hiện hành không đổi: thể lực không mua được bằng Gem ([Thể lực](#thể-lực)); gacha giữ nguyên số khởi điểm.
 - `TODO(user)`, chốt trong spec riêng: nội dung và giá từng gói (số Gem mỗi gói; thẻ tháng nhận bao nhiêu Gem mỗi ngày; gói nhân vật khởi đầu gồm mấy nhân vật; gói tân thủ khác gói nhân vật khởi đầu ở đâu); quảng cáo thưởng cho bao nhiêu Gem mỗi lượt và tối đa mấy lượt mỗi ngày.
 - `TODO(user)`: Reset Save Data có xoá quyền lợi đã mua hay không. [D-005](../decisions/decisions.md) đang nói xoá toàn bộ, trong khi quyền lợi mua gắn với tài khoản cửa hàng và thường khôi phục được.
-- `TODO(user)`: save và roll gacha nằm trên máy, người chơi sửa được; khi có tiền thật phải quyết định chống gian lận tới mức nào ([D-003](../decisions/decisions.md) từng chấp nhận vì không có tiền thật).
+- Chống gian lận: đã chốt **mức 2** ở Online (Gem, gacha và mọi thứ sinh ra Gem hay nhân vật nằm trên server, user chốt 2026-11-13). Khi có tiền thật thì xét lại có cần mức cao hơn không.
 - Giá và tỉ lệ mua trong sheet master plan (tab *Giả định KD*) chỉ là ước lượng để dự báo doanh thu 2027, không phải luật chơi.
