@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-038 — Gọi UGS thật từ Editor mở bằng CLI: 403 rồi "chỉ khởi tạo trong Play Mode" (2026-11-15)  #process #unity-files
+- Triệu chứng: O1-a đọc danh sách môi trường bị 403 (Editor từ `unity open` chưa đăng nhập tài khoản Unity, `CloudProjectSettings.projectId` rỗng); sau khi user đăng nhập, project chỉ có `production`; gọi `UgsGameServer` bằng `unity command script run` ở Edit mode thì `ServicesInitializationException`.
+- Nguyên nhân gốc: Deployment và Environments cần Editor đã đăng nhập; `UnityServices.InitializeAsync` từ chối Edit mode.
+- Luật từ nay: trước khi deploy, chạy script đọc `EnvironmentsApi` (refresh) để thấy `projectId`, người dùng và đủ môi trường; thiếu thì nhờ user đăng nhập trong cửa sổ Editor hoặc tạo môi trường, không tự làm. Gọi UGS thật thì vào Play (Boot chỉ tới Tiêu đề), `EnableBackgroundPlay()`, rồi `script run` từ file ngoài repo; thoát Play và kiểm `git status`.
+
 ### L-036 — Test chạm gửi sự kiện thẳng lên nút không bắt được nút bị che (2026-11-11)  #ui #process
 - Triệu chứng: review cuối nhánh UI hub B thấy banner Gacha che "!" Thu ngân ở 16:10 và 4:3 mà mọi test xanh. `Swipe` của test kéo quán tự đặt `eligibleForClick = false`, ca bấm "!" dùng `ClickDirect` (`ExecuteEvents` thẳng lên nút).
 - Nguyên nhân gốc: giả lập chạm bỏ qua raycast và chuỗi pointerDown → kéo → pointerUp của input module, nên "nút bấm được" và "kéo không bấm nhầm" luôn đúng dù code làm gì.

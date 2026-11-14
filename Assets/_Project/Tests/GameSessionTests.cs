@@ -428,5 +428,40 @@ namespace BunDauPeo.Tests
             Assert.IsNotNull(session.Save.Stamina);
             Assert.AreEqual((0, 0L), (session.Save.Stamina.Current, session.Save.Stamina.AnchorUtcTicks), "anchor 0 reads as a full bar");
         }
+
+        [Test]
+        public void FromServer_UsesServerSave_WritesCache_NoNewGameGrant()
+        {
+            // Bản đệm khác bản server: server là bản chính (spec 5.3), bản đệm bị ghi đè.
+            var stale = new PlayerSave();
+            stale.Balances.Add(new CurrencyAmount(CurrencyType.Coin, 999));
+            _service.Save(stale);
+            var fromServer = new PlayerSave();
+            fromServer.Balances.Add(new CurrencyAmount(CurrencyType.Coin, 5));
+
+            var session = new GameSession(_service, _catalog, _config, fromServer);
+
+            Assert.IsFalse(session.IsNewGame);
+            Assert.AreEqual(5, session.Wallet.Get(CurrencyType.Coin));
+            Assert.IsFalse(session.Roster.IsOwned("a"), "server save must not get the starter grant");
+            Assert.AreEqual(5, new Wallet(new SaveService(_path).Load()).Get(CurrencyType.Coin));
+        }
+
+        [Test]
+        public void FromServer_OldJsonMissingFields_LoadsWithDefaults()
+        {
+            Assert.IsTrue(OnlineStartup.TryParseSave("{\"Version\":1,\"Balances\":[{\"Type\":0,\"Amount\":5}]}", out var old));
+
+            var session = new GameSession(_service, _catalog, _config, old);
+
+            Assert.AreEqual(0, session.Save.SaveRevision);
+            Assert.AreEqual("", session.Save.PlayerName);
+            Assert.IsNotNull(session.Save.Stamina);
+            Assert.IsFalse(session.IsNewGame);
+            Assert.AreEqual(5, session.Wallet.Get(CurrencyType.Coin), "no starting currency added on top");
+            Assert.IsFalse(session.Roster.IsOwned("a"));
+            Assert.IsFalse(OnlineStartup.TryParseSave("{broken", out _));
+            Assert.IsFalse(OnlineStartup.TryParseSave("", out _));
+        }
     }
 }

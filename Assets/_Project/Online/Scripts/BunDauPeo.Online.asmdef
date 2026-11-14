@@ -1,0 +1,6 @@
+{
+  "name": "BunDauPeo.Online",
+  "rootNamespace": "BunDauPeo.Online",
+  "references": ["BunDauPeo.Core", "BunDauPeo.Rules", "Unity.Services.Core", "Unity.Services.Core.Environments", "Unity.Services.Authentication", "Unity.Services.CloudSave", "Unity.Services.CloudCode"],
+  "autoReferenced": true
+}

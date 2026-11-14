@@ -41,5 +41,7 @@ namespace BunDauPeo.Core
         public string PlayerName = "";
         // Id nhân vật làm avatar; "" = chưa chọn (avatar xám). Id không còn sở hữu hay không có trong catalog cũng coi như chưa chọn.
         public string AvatarCharacterId = "";
+        // Tăng mỗi lần đẩy khoá save lên server thành công (spec 5.3); chỉ để ghi log và kiểm đồng bộ.
+        public long SaveRevision = 0;
     }
 }

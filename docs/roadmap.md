@@ -5,7 +5,7 @@
 
 ## Đang làm
 
-- 📐 Online: [spec](superpowers/specs/2026-11-13-online-design.md) user duyệt 2026-11-13; [kế hoạch đợt 1](superpowers/plans/2026-11-13-online-1.md) user duyệt 2026-11-13 (nhánh `docs/online-spec`); kế tiếp: 🎯 mở phiên 🔨 O1-a. User chốt: UGS, phải có mạng, server giữ Gem (mức 2), 4 đợt (nền ~24/11, logic server ~12/12, Google + Nhiệm vụ ~22/12, Hộp quà ~28/12), bỏ Thông báo tin, nạp tiền và quảng cáo sau 31/12. Đợt 1: 8 task, 2 phiên 🔨 (O1-a, O1-b), dừng playtest sau Task 8.
+- 📐 Online: [spec](superpowers/specs/2026-11-13-online-design.md) user duyệt 2026-11-13; [kế hoạch đợt 1](superpowers/plans/2026-11-13-online-1.md) user duyệt 2026-11-13 (nhánh `docs/online-spec`). 🔨 O1-a (Task 1–4) xong code trên nhánh `feature/online-1`: 5 package UGS, assembly `Rules`, module `ServerModule/` (.NET 8, test chạy .NET 9), server giả, giờ server, session dựng từ server, `CloudSync`, `UgsGameServer`, menu Online Mode; EditMode 926/926, `dotnet test` 3/3; module đã deploy lên môi trường `development` và gọi thật một lượt thành công (2026-11-15). PlayMode chờ O1-b (Tiêu đề chưa gọi `StartAsync`). Kế tiếp: 🎯 mở phiên 🔨 O1-b. User chốt: UGS, phải có mạng, server giữ Gem (mức 2), 4 đợt (nền ~24/11, logic server ~12/12, Google + Nhiệm vụ ~22/12, Hộp quà ~28/12), bỏ Thông báo tin, nạp tiền và quảng cáo sau 31/12. Đợt 1: 8 task, 2 phiên 🔨 (O1-a, O1-b), dừng playtest sau Task 8.
 
 ## Tiếp theo
 

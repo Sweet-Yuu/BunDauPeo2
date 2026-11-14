@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <Configurations>Debug;Release</Configurations>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Com.Unity.Services.CloudCode.Apis" Version="0.0.27" />
+        <PackageReference Include="Com.Unity.Services.CloudCode.Core" Version="0.0.7" />
+    </ItemGroup>
+
+    <!-- Rules dùng chung với game (spec 5.2): không file nào trong đó được dùng UnityEngine. -->
+    <ItemGroup>
+        <Compile Include="..\..\Assets\_Project\Rules\**\*.cs" LinkBase="Rules" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+    </PropertyGroup>
+
+</Project>
