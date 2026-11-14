@@ -15,6 +15,12 @@
 
 ## Danh sách
 
+### D-013 — Commit cấu hình môi trường UGS của Editor: mặc định `development` (2026-11-15)
+- Bối cảnh: Online đợt 1 (O1-a) chọn môi trường Unity Gaming Services trong Editor, làm Unity sinh `ProjectSettings/Packages/com.unity.services.core/Settings.json` (`EnvironmentName`, `EnvironmentId`). File chỉ có tên và ID môi trường, không có khoá bí mật.
+- Quyết định: commit file này (user chốt 2026-11-15), nên Editor trên mọi máy mặc định gọi môi trường `development`.
+- Lý do / đánh đổi: máy mới clone về chạy được ngay, không phải chọn lại môi trường; ai muốn thử môi trường khác phải đổi trong Editor và không commit thay đổi đó. Bản phát hành chọn môi trường `production` ở bước build (việc của kênh chuẩn bị phát hành CH Play), không dựa vào file này.
+- Trạng thái: Accepted
+
 ### D-012 — Song ngữ bằng bảng C# tự viết, ngôn ngữ lưu trong `PlayerSave` (2026-11-08)
 - Bối cảnh: master plan yêu cầu mọi chữ trong game có tiếng Việt và tiếng Anh. Game dùng uGUI `Text`, chưa có TextMeshPro, offline, chỉ hai ngôn ngữ.
 - Quyết định: bảng `UiText` (mỗi khu một file `partial`, key `khu.tên`) cộng `LocalizedText` cho nhãn cố định do builder dựng; ScriptableObject có thêm `_displayNameEn`, `DisplayName` qua `GameLanguage.Pick`. Ngôn ngữ lưu ở `PlayerSave.Language` (`"vi"`/`"en"`, `""` = chưa chọn, mặc định tiếng Anh, không theo máy: user chốt 2026-11-11, đợt B thay "theo máy" ban đầu), đổi ở panel Cài đặt DEV và ở Menu của hub qua `LanguageSwitcher`, rồi nạp lại scene (trừ Battle). Reset Save Data xoá lựa chọn, game quay về tiếng Anh ([D-005](#d-005--reset-save-data-xoá-toàn-bộ-dữ-liệu-đã-lưu-luôn-hỏi-xác-nhận-2026-10-31)).
