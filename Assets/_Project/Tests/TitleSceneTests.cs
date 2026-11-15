@@ -40,7 +40,6 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(960f, hint.center.x, 0.01f, "TapHint centre x");
                 Assert.AreEqual(830f, hint.center.y, 0.01f, "TapHint centre y");
                 Assert.AreEqual(1200f, hint.width, 0.01f, "TapHint width");
-                Assert.AreEqual("title.tap_to_start", LabelOf(scene, "TapHint").Key);
 
                 var version = LobbySceneTests.Named(scene, "VersionText");
                 Assert.AreEqual(new Vector2(1, 0), version.anchorMin, "VersionText anchored bottom-right");
@@ -62,6 +61,19 @@ namespace BunDauPeo.Tests
 
                 RestaurantSceneTests.AssertAllReferencesAssigned(RestaurantSceneTests.All<TitleView>(scene).Single());
                 Assert.IsTrue(UiText.AllEntries.Any(e => e.Key == "title.game_name") && UiText.AllEntries.Any(e => e.Key == "title.tap_to_start"));
+            });
+
+        // Online đợt 1 (spec 5.4): "Đang kết nối…" thay chỗ "Chạm để bắt đầu" trên cùng dòng TapHint, không thêm nút nào vào Tiêu đề;
+        // hộp mạng là OnlineOverlay dựng bằng code, không nằm trong scene.
+        [Test]
+        public void Scene_TapHintWrittenByView_NoNewButton() =>
+            WithTitle(scene =>
+            {
+                Assert.IsNull(LabelOf(scene, "TapHint"), "TitleView writes TapHint (tap to start, then connecting), so no LocalizedText");
+                var buttons = RestaurantSceneTests.All<Button>(scene);
+                Assert.AreEqual(1, buttons.Length, "only TapArea");
+                Assert.AreEqual("TapArea", buttons[0].name);
+                Assert.IsTrue(UiText.AllEntries.Any(e => e.Key == "online.connecting"), "online.connecting key");
             });
     }
 }

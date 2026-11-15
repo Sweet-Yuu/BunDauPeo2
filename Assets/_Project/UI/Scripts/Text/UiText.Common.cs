@@ -6,7 +6,7 @@ namespace BunDauPeo.UI
         private static readonly (string Key, string Vi, string En)[] Common =
         {
             ("common.close", "Đóng", "Close"),
-            ("common.cancel", "Hủy", "Cancel"),
+            ("common.cancel", "Huỷ", "Cancel"),
             ("common.continue", "Tiếp tục", "Continue"),
             ("common.no", "Không", "No"),
             ("common.not_now", "Thôi", "Not now"),

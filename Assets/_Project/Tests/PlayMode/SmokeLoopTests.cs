@@ -36,6 +36,7 @@ namespace BunDauPeo.PlayModeTests
         private string _realSaveHash;
         private string _step = "SetUp";
         private bool _refused;
+        private LocalGameServer _server;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -48,6 +49,9 @@ namespace BunDauPeo.PlayModeTests
             _realSaveHash = HashRealSave();
             yield return null; // Play đã chạy hẳn rồi mới đặt override và nạp Boot
             GameBootstrap.SavePathOverride = _savePath;
+            // Menu Online Mode có thể đang để UGS: test không bao giờ chạm mạng (spec 5.12).
+            _server = new LocalGameServer();
+            GameBootstrap.ServerFactory = () => _server;
         }
 
         [UnityTearDown]
@@ -55,11 +59,15 @@ namespace BunDauPeo.PlayModeTests
         {
             if (_refused) yield break; // bản Boot đang chạy là của người chơi, không phải của test: không huỷ, không xoá
             GameBootstrap.SavePathOverride = null;
+            GameBootstrap.ServerFactory = null;
             GameLanguage.Current = Language.Vi;
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
             if (bootstrap != null) Object.Destroy(bootstrap.gameObject); // DontDestroyOnLoad nên không tự mất
-            var overlay = GameObject.Find("DevOverlay"); // test panel DEV dựng tay, cũng DontDestroyOnLoad
-            if (overlay != null) Object.Destroy(overlay);
+            foreach (var name in new[] { "DevOverlay", "OnlineOverlay" }) // dựng bằng code, cũng DontDestroyOnLoad
+            {
+                var overlay = GameObject.Find(name);
+                if (overlay != null) Object.Destroy(overlay);
+            }
             ServiceLocator.Clear();
             yield return null;
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
@@ -195,7 +203,7 @@ namespace BunDauPeo.PlayModeTests
             var card = GameObject.Find("CharacterCard0");
             var info = card.transform.Find("InfoText").GetComponent<Text>();
             StringAssert.Contains(new string('★', startStars + 1), info.text, Where("thẻ phải hiện sao mới trước khi Reset"));
-            Assert.IsTrue(ServiceLocator.Get<GameResetter>().Reset(), Where("Reset thất bại"));
+            Assert.AreEqual(OnlineStatus.Ok, Done(ServiceLocator.Get<GameResetter>().ResetAsync()), Where("Reset thất bại"));
             Assert.AreEqual(startStars, stars.GetStars(starter), Where("sao sau Reset"));
             Assert.AreEqual(0, roster.GetFragments(starter), Where("mảnh sau Reset"));
             yield return null;
@@ -654,6 +662,14 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(UiText.Get("profile.default_name"), input.placeholder.GetComponent<Text>().text, Where("ô trống phải hiện tên mặc định"));
             Assert.AreEqual("", input.text, Where("chưa đặt tên thì ô trống"));
 
+            _step = "P2b dòng ID, Sao chép (Online đợt 1)";
+            StringAssert.Contains(_server.PlayerId, FindAny("ProfileIdText").GetComponent<Text>().text, Where("dòng ID có PlayerId đầy đủ"));
+            Assert.IsFalse(FindAny("CopiedText").activeSelf, Where("chưa bấm Sao chép"));
+            GUIUtility.systemCopyBuffer = "";
+            yield return ClickWhenReady("ProfileIdCopyBtn_PH_200x70");
+            Assert.AreEqual(_server.PlayerId, GUIUtility.systemCopyBuffer, Where("clipboard có ID"));
+            Assert.IsTrue(FindAny("CopiedText").activeSelf, Where("hiện Đã chép"));
+
             _step = "P3 đặt tên (trim, cắt 12 ký tự), chọn avatar ô thứ hai";
             input.text = " An  ";
             input.onEndEdit.Invoke(input.text);
@@ -692,7 +708,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsTrue(input.isFocused, Where("ô tên phải đang focus, nếu không ca này không thử gì"));
             input.text = "Zed";
             var oldHub = Object.FindFirstObjectByType<HubNav>();
-            Assert.IsTrue(DevOverlay.ResetAll(), Where("Reset"));
+            Assert.AreEqual(OnlineStatus.Ok, Done(DevOverlay.ResetAll()), Where("Reset"));
             Assert.IsFalse(FindAny(popup).activeSelf, Where("Reset phải đóng hộp Hồ sơ trước khi chạy"));
             Assert.AreEqual("", profile.Name, Where("tên sau Reset phải về mặc định"));
             Assert.AreEqual("", profile.AvatarId, Where("avatar sau Reset phải về trống"));
@@ -1187,7 +1203,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(startGems, session.Wallet.Get(CurrencyType.Gem), Where("thử lại phải reset được"));
         }
 
-        // N1: Reset lỗi thì Menu còn mở, Chọn đội cũng còn mở bên dưới nếu Reset không đóng nó; Hủy sau đó sẽ ghi lại đội cũ vào
+        // N1: Reset lỗi thì Menu còn mở, Chọn đội cũng còn mở bên dưới nếu Reset không đóng nó; Huỷ sau đó sẽ ghi lại đội cũ vào
         // save vừa bị ghi đè. Reset phải đóng trang trước (đội chọn dở về như lúc mở) rồi mới chạy.
         [UnityTest, Timeout(180000)]
         public IEnumerator Hub_Menu_Reset_ClosesOpenTeamSelect_BeforeResetting()
@@ -1207,7 +1223,7 @@ namespace BunDauPeo.PlayModeTests
             var locked = new FileStream(_savePath, FileMode.Open, FileAccess.Read, FileShare.None);
             try
             {
-                LogAssert.Expect(LogType.Error, new Regex("Save failed")); // Hủy lưu đội đã trả về, file đang khoá
+                LogAssert.Expect(LogType.Error, new Regex("Save failed")); // Huỷ lưu đội đã trả về, file đang khoá
                 LogAssert.Expect(LogType.Error, new Regex("Reset failed"));
                 LogAssert.Expect(LogType.Error, new Regex("MenuView: Reset Save Data FAILED"));
                 yield return ClickWhenReady("ResetYesBtn_PH_340x110");
@@ -1293,9 +1309,13 @@ namespace BunDauPeo.PlayModeTests
             _step = "S Menu" + suffix;
             yield return ClickWhenReady("NavTabMenu_PH_320x120");
             yield return Shot("menu", suffix);
+            yield return Shot("menu", suffix, "online1");
             yield return ClickWhenReady("MenuResetBtn_PH_700x100");
             yield return Shot("reset", suffix);
             yield return ClickWhenReady("ResetNoBtn_PH_340x110");
+            yield return ClickWhenReady("MenuDeleteAccountBtn_PH_700x100");
+            yield return Shot("delete-account", suffix, "online1");
+            yield return ClickWhenReady("DeleteNoBtn_PH_340x110");
             yield return ClickWhenReady("NavTabRestaurant_PH_320x120");
 
             yield return ShootProfile(suffix);
@@ -1313,6 +1333,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsTrue(profile.SetAvatar(owned[2].Id), Where("đặt avatar"));
             yield return ClickWhenReady("Avatar_PH_140x140");
             yield return Shot("profile", suffix, "hubc");
+            yield return Shot("profile", suffix, "online1");
             yield return ClickWhenReady("CloseButton");
             yield return Shot("lobby-avatar", suffix, "hubc");
         }
@@ -1415,19 +1436,36 @@ namespace BunDauPeo.PlayModeTests
             SceneManager.LoadScene("Boot");
             yield return WaitForScene(TitleView.TitleScene);
             var bootstrap = Object.FindFirstObjectByType<GameBootstrap>();
-            var session = bootstrap.Session;
+            // Chưa có session trước khi chạm (ngôn ngữ Tiêu đề lấy từ bản đệm): đổi thẳng ngôn ngữ đang hiện.
             foreach (var (language, titleSuffix) in new[] { (Language.Vi, ""), (Language.En, "-en") })
             {
-                Assert.IsTrue(session.SetLanguage(language), Where($"SetLanguage({language})"));
-                var oldTitle = Object.FindFirstObjectByType<TitleView>();
-                SceneManager.LoadScene(TitleView.TitleScene);
-                while (Object.FindFirstObjectByType<TitleView>() == oldTitle) yield return null;
+                GameLanguage.Current = language;
+                yield return ReloadTitle();
                 yield return Shot("title", titleSuffix, "hubc");
             }
 
+            _step = "S0b Tiêu đề Đang kết nối… và hộp Không kết nối được";
+            foreach (var (language, suffix) in new[] { (Language.Vi, ""), (Language.En, "-en") })
+            {
+                GameLanguage.Current = language;
+                yield return ReloadTitle();
+                _server.LoadGate = new System.Threading.Tasks.TaskCompletionSource<bool>();
+                yield return ClickWhenReady("TapArea");
+                yield return Shot("title-connecting", suffix, "online1");
+                _server.FailNext(OnlineStatus.NetworkError);
+                _server.LoadGate.SetResult(true);
+                _server.LoadGate = null;
+                yield return WaitForButtonStep(OnlineRetry);
+                yield return Shot("connect-failed", suffix, "online1");
+                OnlineOverlay.Hide();
+            }
+
             _step = "S0 vào Lobby (Việt)";
+            GameLanguage.Current = Language.Vi;
+            yield return ReloadTitle();
             yield return ClickWhenReady("TapArea");
             yield return WaitForScene("Restaurant");
+            var session = bootstrap.Session;
             yield return SeedRestaurantForShots(bootstrap);
             Assert.IsTrue(session.SetLanguage(Language.Vi), Where("SetLanguage(Vi)"));
             var oldHub = Object.FindFirstObjectByType<HubNav>();
@@ -1548,7 +1586,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual("en", session.Save.Language, Where("save"));
 
             _step = "L4 Reset về tiếng Anh";
-            Assert.IsTrue(ServiceLocator.Get<GameResetter>().Reset(), Where("Reset"));
+            Assert.AreEqual(OnlineStatus.Ok, Done(ServiceLocator.Get<GameResetter>().ResetAsync()), Where("Reset"));
             Assert.AreEqual("", session.Save.Language, Where("Reset phải xoá lựa chọn ngôn ngữ"));
             Assert.AreEqual(Language.En, GameLanguage.Current, Where("sau Reset phải là tiếng Anh"));
         }
@@ -1593,7 +1631,7 @@ namespace BunDauPeo.PlayModeTests
         }
 
         // N1 đường DEV: Reset ở panel DEV không nạp lại scene, nên Chọn đội mở dở phải được đóng (trả đội) trước khi xoá;
-        // nếu không, Hủy sau đó ghi người đã mất vào save mới (D-005).
+        // nếu không, Huỷ sau đó ghi người đã mất vào save mới (D-005).
         [UnityTest, Timeout(180000)]
         public IEnumerator DevOverlay_Reset_ClosesOpenTeamSelect_NoStaleTeamAfterCancel()
         {
@@ -1612,11 +1650,11 @@ namespace BunDauPeo.PlayModeTests
             yield return ClickWhenReady("Xoá hết");
             Assert.IsFalse(session.Roster.IsOwned(extra), Where("Reset phải xoá người thêm"));
 
-            _step = "N3 Hủy (nếu popup còn mở)";
+            _step = "N3 Huỷ (nếu popup còn mở)";
             var popups = Object.FindObjectsByType<TeamSelectPopup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Assert.AreEqual(0, popups.Count(p => p.IsOpen), Where("Reset phải đóng Chọn đội trước khi xoá"));
             foreach (var popup in popups) popup.Cancel();
-            CollectionAssert.DoesNotContain(session.Save.BattleTeam, extra, Where("đội sau Hủy mang người không còn sở hữu"));
+            CollectionAssert.DoesNotContain(session.Save.BattleTeam, extra, Where("đội sau Huỷ mang người không còn sở hữu"));
         }
 
         // Góp ý 1: đổi ngôn ngữ ở DEV lưu cả save, nên đội chọn dở phải được trả về trước đó, như đường Menu.
@@ -1727,13 +1765,7 @@ namespace BunDauPeo.PlayModeTests
             var shotEn = ScreenCapture1080.Capture("hubc-title-en.png");
             Assert.IsFalse(shotEn.StartsWith("ERROR", StringComparison.Ordinal), Where(shotEn));
             GameLanguage.Current = Language.Vi;
-            foreach (var label in Object.FindObjectsByType<LocalizedText>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            {
-                label.enabled = false;
-                label.enabled = true;
-            }
-
-            yield return null;
+            yield return ReloadTitle();
             yield return null;
             var shotVi = ScreenCapture1080.Capture("hubc-title.png");
             Assert.IsFalse(shotVi.StartsWith("ERROR", StringComparison.Ordinal), Where(shotVi));
@@ -1770,6 +1802,291 @@ namespace BunDauPeo.PlayModeTests
             {
                 SceneManager.sceneLoaded -= OnLoaded;
             }
+        }
+
+        // --- Online đợt 1: Tiêu đề kết nối, hộp mạng (OnlineOverlay).
+
+        private const string OnlineRetry = "OnlineRetryBtn_PH_340x110";
+
+        private static string OnlineTitleText() => GameObject.Find("OnlineTitle")?.GetComponent<Text>().text;
+
+        private IEnumerator ReloadTitle()
+        {
+            var old = Object.FindFirstObjectByType<TitleView>();
+            SceneManager.LoadScene(TitleView.TitleScene);
+            while (Object.FindFirstObjectByType<TitleView>() == null || Object.FindFirstObjectByType<TitleView>() == old) yield return null;
+            yield return null;
+        }
+
+        private static PlayerSave ServerSave(LocalGameServer server) => JsonUtility.FromJson<PlayerSave>(server.StoredSave);
+
+        // Server giả hoàn tất mọi lệnh ngay, nên lệnh async của game đã xong khi trả về.
+        private OnlineStatus Done(System.Threading.Tasks.Task<OnlineStatus> task)
+        {
+            Assert.IsTrue(task.IsCompleted, Where("lệnh chưa xong với server giả"));
+            return task.Result;
+        }
+
+        // Review Focus 2: Reset lúc mất mạng không xoá gì, hộp Mất kết nối hiện; Thử lại thì Reset chạy đúng một lần.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Reset_Offline_ShowsBoxThenResetsOnce()
+        {
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var newCoins = session.Wallet.Get(CurrencyType.Coin);
+            session.Wallet.Add(CurrencyType.Coin, 7);
+            Assert.IsTrue(session.Persist(), Where("ghi bản đệm"));
+            var resets = 0;
+            session.ResetCompleted += () => resets++;
+
+            _step = "O1 mất mạng, Reset → Xoá hết";
+            _server.FailNextOn(nameof(IGameServer.ResetPlayerAsync), OnlineStatus.NetworkError);
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            yield return ClickWhenReady("ResetYesBtn_PH_340x110");
+            Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp Mất kết nối"));
+            Assert.AreEqual(UiText.Get("online.lost_title"), OnlineTitleText(), Where("chữ hộp"));
+            Assert.AreEqual(newCoins + 7, session.Wallet.Get(CurrencyType.Coin), Where("Coin còn"));
+            Assert.AreEqual(newCoins + 7, new Wallet(new SaveService(_savePath).Load()).Get(CurrencyType.Coin), Where("bản đệm còn"));
+            Assert.AreEqual(0, resets, Where("chưa reset"));
+
+            _step = "O2 có mạng, Thử lại";
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            yield return ClickWhenReady(OnlineRetry);
+            yield return WaitForNewHub(oldHub);
+            Assert.IsFalse(OnlineOverlay.IsShown, Where("hộp đóng"));
+            Assert.AreEqual(1, resets, Where("ResetCompleted đúng một lần"));
+            Assert.AreEqual(newCoins, session.Wallet.Get(CurrencyType.Coin), Where("game mới"));
+            Assert.AreEqual(newCoins, ServerSave(_server).Balances.Single(b => b.Type == CurrencyType.Coin).Amount, Where("server có game mới"));
+        }
+
+        // Xoá tài khoản: Huỷ thì không đổi gì; Xoá → về Tiêu đề; chạm → người chơi mới, game mới.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Menu_DeleteAccount_ReturnsToTitleAsNewGame()
+        {
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var newCoins = session.Wallet.Get(CurrencyType.Coin);
+            session.Wallet.Add(CurrencyType.Coin, 7);
+            Assert.IsTrue(session.Persist(), Where("ghi bản đệm"));
+            var oldId = _server.PlayerId;
+
+            _step = "X1 Xoá tài khoản → Huỷ";
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuDeleteAccountBtn_PH_700x100");
+            Assert.AreEqual(1, UiDriver.FindButtons("DeleteYesBtn_PH_340x110").Count, Where("hộp xác nhận hiện"));
+            yield return ClickWhenReady("DeleteNoBtn_PH_340x110");
+            Assert.AreEqual(0, UiDriver.FindButtons("DeleteYesBtn_PH_340x110").Count, Where("Huỷ đóng hộp"));
+            Assert.AreEqual(oldId, _server.PlayerId, Where("Huỷ không xoá"));
+            Assert.AreEqual(newCoins + 7, session.Wallet.Get(CurrencyType.Coin), Where("Huỷ không đổi gì"));
+
+            _step = "X2 Xoá tài khoản → Xoá";
+            yield return ClickWhenReady("MenuDeleteAccountBtn_PH_700x100");
+            yield return ClickWhenReady("DeleteYesBtn_PH_340x110");
+            yield return WaitForScene(TitleView.TitleScene);
+            Assert.IsFalse(ServiceLocator.Get<IGameStarter>().IsStarted, Where("session đã bỏ"));
+            Assert.IsNull(_server.StoredSave, Where("server không còn save"));
+            Assert.IsNull(new SaveService(_savePath).Load(), Where("bản đệm đã xoá"));
+
+            _step = "X3 chạm → người chơi mới";
+            yield return ClickWhenReady("TapArea");
+            yield return WaitForScene("Restaurant");
+            Assert.AreNotEqual("", _server.PlayerId, Where("đã đăng nhập lại"));
+            Assert.AreNotEqual(oldId, _server.PlayerId, Where("ID mới"));
+            var fresh = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            Assert.IsTrue(fresh.IsNewGame, Where("game mới"));
+            Assert.AreEqual(newCoins, fresh.Wallet.Get(CurrencyType.Coin), Where("Coin game mới"));
+        }
+
+        // Review Focus 1 và 4: lỗi ở từng bước thì Thử lại chạy tiếp từ bước đó; chạm thêm hay Thử lại hai lần chỉ dựng session một lần.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Title_ConnectFailsAtEachStep_RetryEntersOnce()
+        {
+            _step = "C0 server đã có save";
+            _server.Seed(JsonUtility.ToJson(new PlayerSave { PlayerName = "seeded" }));
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene(TitleView.TitleScene);
+            var loads = new List<string>();
+            void OnLoaded(Scene scene, LoadSceneMode mode) => loads.Add(scene.name);
+            SceneManager.sceneLoaded += OnLoaded;
+            try
+            {
+                var failedTitle = UiText.Get("online.connect_failed_title");
+
+                _step = "C1 đăng nhập lỗi";
+                _server.FailNextOn(nameof(IGameServer.SignInAsync), OnlineStatus.NetworkError);
+                yield return ClickWhenReady("TapArea");
+                Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp Không kết nối được"));
+                Assert.AreEqual(failedTitle, OnlineTitleText(), Where("chữ hộp"));
+                Assert.AreEqual(ClickStatus.Blocked, UiDriver.Click("TapArea").Status, Where("hộp chặn chạm Tiêu đề"));
+                Assert.AreEqual("", _server.PlayerId, Where("chưa đăng nhập"));
+                Assert.AreEqual(0, _server.BootstrapCalls, Where("chưa gọi Bootstrap"));
+
+                _step = "C2 Bootstrap lỗi";
+                _server.FailNextOn(nameof(IGameServer.BootstrapAsync), OnlineStatus.NetworkError);
+                yield return ClickWhenReady(OnlineRetry);
+                Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp hiện lại"));
+                Assert.AreEqual(failedTitle, OnlineTitleText(), Where("chữ hộp"));
+                var playerId = _server.PlayerId;
+                Assert.AreNotEqual("", playerId, Where("đã đăng nhập"));
+                Assert.AreEqual(1, _server.BootstrapCalls, Where("Bootstrap một lần (lỗi)"));
+
+                _step = "C3 tải save lỗi";
+                _server.FailNextOn(nameof(IGameServer.LoadSaveAsync), OnlineStatus.NetworkError);
+                yield return ClickWhenReady(OnlineRetry);
+                Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp hiện lại"));
+                Assert.AreEqual(2, _server.BootstrapCalls, Where("Bootstrap gọi lại sau lần lỗi"));
+                Assert.AreEqual(playerId, _server.PlayerId, Where("không đăng nhập lại thành người chơi mới"));
+
+                _step = "C4 Thử lại hai lần liền, chạm Tiêu đề khi đang kết nối";
+                _server.LoadGate = new System.Threading.Tasks.TaskCompletionSource<bool>();
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click(OnlineRetry).Status, Where("Thử lại lần 1"));
+                Assert.AreNotEqual(ClickStatus.Clicked, UiDriver.Click(OnlineRetry).Status, Where("Thử lại lần 2: hộp đã đóng"));
+                Assert.AreEqual(UiText.Get("online.connecting"), GameObject.Find("TapHint").GetComponent<Text>().text, Where("Đang kết nối…"));
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click("TapArea").Status, Where("chạm khi đang kết nối"));
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click("TapArea").Status, Where("chạm lần nữa"));
+                yield return null;
+                Assert.AreEqual(0, loads.Count(n => n == "Restaurant"), Where("chưa vào khi save chưa tải xong"));
+                _server.LoadGate.SetResult(true);
+                _server.LoadGate = null;
+                yield return WaitForScene("Restaurant");
+                for (var i = 0; i < 5; i++) yield return null;
+
+                Assert.AreEqual(1, loads.Count(n => n == "Restaurant"), Where($"Restaurant nạp {loads.Count(n => n == "Restaurant")} lần: {string.Join(",", loads)}"));
+                Assert.AreEqual(1, Object.FindObjectsByType<HubNav>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length, Where("đúng một HubNav"));
+                Assert.AreEqual(2, _server.BootstrapCalls, Where("Bootstrap không gọi thêm"));
+                Assert.AreEqual(playerId, _server.PlayerId, Where("cùng người chơi"));
+                Assert.IsFalse(OnlineOverlay.IsShown, Where("hộp đóng"));
+                var save = Object.FindFirstObjectByType<GameBootstrap>().Session.Save;
+                Assert.AreEqual("seeded", save.PlayerName, Where("dùng save trên server"));
+                Assert.AreEqual(0, save.OwnedCharacterIds.Count, Where("không cấp nhân vật khởi đầu lên save có sẵn"));
+            }
+            finally
+            {
+                SceneManager.sceneLoaded -= OnLoaded;
+            }
+        }
+
+        // Đẩy save lỗi liên tục 30 giây: hộp Mất kết nối chặn mọi chạm; có mạng lại thì Thử lại đẩy bản mới và đóng hộp.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_ConnectionLost_BoxBlocksThenRetry()
+        {
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var sync = ServiceLocator.Get<CloudSync>();
+
+            _step = "L1 mất mạng, đổi save, tua 31 giây";
+            _server.FailNext(OnlineStatus.NetworkError, 100);
+            session.Wallet.Add(CurrencyType.Coin, 7);
+            Assert.IsTrue(session.Persist(), Where("ghi bản đệm"));
+            var coins = session.Wallet.Get(CurrencyType.Coin);
+            sync.Tick(CloudSync.DebounceSeconds);
+            sync.Tick(CloudSync.LostAfterSeconds - CloudSync.DebounceSeconds + 1f);
+            yield return null;
+            Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp Mất kết nối"));
+            Assert.AreEqual(UiText.Get("online.lost_title"), OnlineTitleText(), Where("chữ hộp"));
+
+            _step = "L2 hộp chặn thanh dưới";
+            var hub = Object.FindFirstObjectByType<HubNav>();
+            var tab = hub.State.Current;
+            Assert.AreEqual(ClickStatus.Blocked, UiDriver.Click("NavTabGacha_PH_320x120").Status, Where("ô Gacha bị che"));
+            Assert.AreEqual(tab, hub.State.Current, Where("panel không đổi"));
+
+            _step = "L3 có mạng, Thử lại";
+            _server.FailNext(OnlineStatus.Ok, 0);
+            yield return ClickWhenReady(OnlineRetry);
+            yield return null;
+            Assert.IsFalse(OnlineOverlay.IsShown, Where("hộp đóng"));
+            Assert.AreEqual(coins, ServerSave(_server).Balances.Single(b => b.Type == CurrencyType.Coin).Amount, Where("server có bản mới"));
+        }
+
+        // Máy khác ghi save: hộp Tài khoản đang dùng ở máy khác; Về màn Tiêu đề bỏ thay đổi chưa đẩy, chạm lại thì lấy bản trên server.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator OtherDevice_ReturnsToTitle()
+        {
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var sync = ServiceLocator.Get<CloudSync>();
+            var flush = sync.FlushAsync();
+            while (!flush.IsCompleted) yield return null;
+            var serverCoins = ServerSave(_server).Balances.Single(b => b.Type == CurrencyType.Coin).Amount;
+
+            _step = "D1 máy khác, đổi save, tua 5 giây";
+            _server.SimulateOtherDevice();
+            session.Wallet.Add(CurrencyType.Coin, 7);
+            Assert.IsTrue(session.Persist(), Where("ghi bản đệm"));
+            sync.Tick(CloudSync.DebounceSeconds);
+            yield return null;
+            Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp máy khác"));
+            Assert.AreEqual(UiText.Get("online.other_device_title"), OnlineTitleText(), Where("chữ hộp"));
+
+            _step = "D2 Về màn Tiêu đề";
+            yield return ClickWhenReady(OnlineRetry);
+            yield return WaitForScene(TitleView.TitleScene);
+            Assert.IsFalse(ServiceLocator.Get<IGameStarter>().IsStarted, Where("session đã bỏ"));
+            Assert.IsFalse(OnlineOverlay.IsShown, Where("hộp đóng"));
+
+            _step = "D3 chạm vào lại";
+            yield return ClickWhenReady("TapArea");
+            yield return WaitForScene("Restaurant");
+            Assert.AreEqual(serverCoins, Object.FindFirstObjectByType<GameBootstrap>().Session.Wallet.Get(CurrencyType.Coin), Where("Coin là bản trên server"));
+        }
+
+        // Review O1 mục 4: Xoá tài khoản lỗi server (không phải mạng) → dòng báo lỗi ở Menu; không mở hộp Mất kết nối chỉ có nút Thử lại,
+        // vì module lỗi mãi thì hộp đó kẹt vòng.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Menu_DeleteAccount_ServerError_ShowsError_NoRetryLoop()
+        {
+            yield return BootToLobby();
+            var oldId = _server.PlayerId;
+
+            _step = "E1 lỗi server, Xoá tài khoản → Xoá";
+            _server.FailNextOn(nameof(IGameServer.DeleteAccountAsync), OnlineStatus.ServerError);
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuDeleteAccountBtn_PH_700x100");
+            yield return ClickWhenReady("DeleteYesBtn_PH_340x110");
+            Assert.IsFalse(OnlineOverlay.IsShown, Where("không mở hộp Mất kết nối"));
+            Assert.AreEqual(MenuViewText.DeleteFailed(), GameObject.Find("MenuStatus").GetComponent<Text>().text, Where("dòng báo lỗi"));
+            Assert.AreEqual(1, UiDriver.FindButtons("MenuDeleteAccountBtn_PH_700x100").Count, Where("Menu còn mở"));
+            Assert.AreEqual(oldId, _server.PlayerId, Where("tài khoản còn"));
+        }
+
+        // Review O1 mục 5: hộp Thử lại của Reset không bị sự kiện đẩy save chung (Lost, Restored) đổi nút hay đóng mất.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Hub_Reset_Offline_SyncLostDoesNotTakeOverRetry()
+        {
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var sync = ServiceLocator.Get<CloudSync>();
+            var newCoins = session.Wallet.Get(CurrencyType.Coin);
+            var resets = 0;
+            session.ResetCompleted += () => resets++;
+
+            _step = "R1 mất mạng, đổi save, Reset → Xoá hết";
+            _server.FailNext(OnlineStatus.NetworkError, 100);
+            session.Wallet.Add(CurrencyType.Coin, 7);
+            Assert.IsTrue(session.Persist(), Where("ghi bản đệm"));
+            yield return ClickWhenReady("NavTabMenu_PH_320x120");
+            yield return ClickWhenReady("MenuResetBtn_PH_700x100");
+            yield return ClickWhenReady("ResetYesBtn_PH_340x110");
+            Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp Mất kết nối của Reset"));
+            Assert.AreEqual(0, resets, Where("chưa reset"));
+
+            _step = "R2 đẩy save lỗi quá 30 giây";
+            sync.Tick(CloudSync.DebounceSeconds);
+            sync.Tick(CloudSync.LostAfterSeconds);
+            yield return null;
+            Assert.IsTrue(sync.IsLost, Where("CloudSync đã báo mất kết nối"));
+            Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp còn"));
+
+            _step = "R3 có mạng, Thử lại";
+            _server.FailNext(OnlineStatus.Ok, 0);
+            var oldHub = Object.FindFirstObjectByType<HubNav>();
+            yield return ClickWhenReady(OnlineRetry);
+            yield return WaitForNewHub(oldHub);
+            Assert.AreEqual(1, resets, Where("Thử lại chạy Reset"));
+            Assert.IsFalse(OnlineOverlay.IsShown, Where("hộp đóng"));
+            Assert.AreEqual(newCoins, session.Wallet.Get(CurrencyType.Coin), Where("game mới"));
         }
 
         private IEnumerator WaitForButtonStep(string name)

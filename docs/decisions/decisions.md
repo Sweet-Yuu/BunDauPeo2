@@ -15,6 +15,18 @@
 
 ## Danh sách
 
+### D-014 — Online bằng Unity Gaming Services, phải có mạng mới chơi (2026-11-13)
+- Bối cảnh: game công khai trên CH Play ngày 31/12/2026 cho người dùng thật; save cục bộ và gacha trên máy ([D-003](#d-003--offline-mobile-màn-ngang-không-nạp-tiền-thật-2026-10-30)) dễ bị sửa. User duyệt [spec Online](../superpowers/specs/2026-11-13-online-design.md) 2026-11-13. (Kế hoạch đợt 1 gọi là "D-013"; số đó đã dùng cho cấu hình môi trường, nên quyết định này là D-014.)
+- Quyết định: dịch vụ server là UGS (Authentication, Cloud Save, Cloud Code). Mở app phải đăng nhập được (đợt 1 ẩn danh) mới vào game; mất mạng thì hộp chặn có Thử lại. Server là bản chính của save (khoá `save`); file trên máy chỉ là bản đệm, không bao giờ đẩy đè lên server khi mở game. Chống gian lận mức 2: giờ server; từ đợt 2 Gem và mọi thứ sinh ra Gem hay nhân vật do server tính. Logic server viết bằng C# trong module Cloud Code kiểu `.ccmr` (`ServerModule/`, .NET 8) vì dự án giữ Unity 6000.3; giao thức dùng chung qua assembly `BunDauPeo.Rules` (C# thuần). Hai môi trường: `development` (Editor, build Development) và `production` (bản phát hành).
+- Lý do / đánh đổi: UGS nối sẵn với project Unity, gói miễn phí đủ cho bản đầu, không phải tự dựng backend. Đổi lại: không chơi offline được; lần đẩy save cuối trước khi hệ điều hành giết app có thể mất ~5 giây thay đổi Coin/quán; trận đánh vẫn chạy trên máy nên thắng thua không kiểm được (chấp nhận ở mức 2). Test luôn dùng `LocalGameServer`, không chạm mạng.
+- Trạng thái: Accepted
+
+### D-013 — Commit cấu hình môi trường UGS của Editor: mặc định `development` (2026-11-15)
+- Bối cảnh: Online đợt 1 (O1-a) chọn môi trường Unity Gaming Services trong Editor, làm Unity sinh `ProjectSettings/Packages/com.unity.services.core/Settings.json` (`EnvironmentName`, `EnvironmentId`). File chỉ có tên và ID môi trường, không có khoá bí mật.
+- Quyết định: commit file này (user chốt 2026-11-15), nên Editor trên mọi máy mặc định gọi môi trường `development`.
+- Lý do / đánh đổi: máy mới clone về chạy được ngay, không phải chọn lại môi trường; ai muốn thử môi trường khác phải đổi trong Editor và không commit thay đổi đó. Bản phát hành chọn môi trường `production` ở bước build (việc của kênh chuẩn bị phát hành CH Play), không dựa vào file này.
+- Trạng thái: Accepted
+
 ### D-012 — Song ngữ bằng bảng C# tự viết, ngôn ngữ lưu trong `PlayerSave` (2026-11-08)
 - Bối cảnh: master plan yêu cầu mọi chữ trong game có tiếng Việt và tiếng Anh. Game dùng uGUI `Text`, chưa có TextMeshPro, offline, chỉ hai ngôn ngữ.
 - Quyết định: bảng `UiText` (mỗi khu một file `partial`, key `khu.tên`) cộng `LocalizedText` cho nhãn cố định do builder dựng; ScriptableObject có thêm `_displayNameEn`, `DisplayName` qua `GameLanguage.Pick`. Ngôn ngữ lưu ở `PlayerSave.Language` (`"vi"`/`"en"`, `""` = chưa chọn, mặc định tiếng Anh, không theo máy: user chốt 2026-11-11, đợt B thay "theo máy" ban đầu), đổi ở panel Cài đặt DEV và ở Menu của hub qua `LanguageSwitcher`, rồi nạp lại scene (trừ Battle). Reset Save Data xoá lựa chọn, game quay về tiếng Anh ([D-005](#d-005--reset-save-data-xoá-toàn-bộ-dữ-liệu-đã-lưu-luôn-hỏi-xác-nhận-2026-10-31)).
@@ -52,6 +64,7 @@
 - Bối cảnh: [D-003](#d-003--offline-mobile-màn-ngang-không-nạp-tiền-thật-2026-10-30) chọn offline và không IAP. User duyệt đổi hướng kiếm tiền khi cập nhật master plan.
 - Quyết định: Android là nền tảng đầu tiên; game tải miễn phí; nguồn thu là gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu và quảng cáo thưởng. Quán, chiến đấu và gacha vẫn chạy offline; mua và xem quảng cáo cần mạng. Màn ngang và save cục bộ giữ nguyên.
 - Lý do / đánh đổi: có doanh thu để duy trì dự án. Theo D-003, phải xét lại `Wallet`, gacha và save khi làm spec: cách trao Gem sau khi mua (chống mất/nhận trùng), Reset Save Data với quyền lợi đã mua, chống sửa save. Chưa quyết, ghi `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
+- Cập nhật 2026-11-13: quán, chiến đấu, gacha không còn chạy offline ([D-014](#d-014--online-bằng-unity-gaming-services-phải-có-mạng-mới-chơi-2026-11-13)); nạp tiền và quảng cáo làm sau 31/12.
 - Trạng thái: Accepted (hướng; chi tiết chờ spec)
 
 ### D-006 — Chưa dùng CI chạy test Unity (2026-10-31)
@@ -64,10 +77,11 @@
 - Bối cảnh: user muốn đưa game về mặc định bằng một nút thay vì xoá file tay, và nút phải có hiệu lực với **mọi thứ đã lưu**, kể cả dữ liệu các tính năng thêm về sau.
 - Quyết định: menu Editor `Tools/BunDauPeo/Reset Save Data...` (`ResetSaveData.Run`) và lõi `GameSession.ResetToDefaults()` cho nút trong game (làm ở UI hub). Chưa xác nhận thì không xoá gì. Reset xoá mọi file `save.json.*` (`.bak`, `.tmp`, `.corrupt`) rồi file chính, ghi đè cả `PlayerSave` bằng `new PlayerSave()`, cấp lại đồ game mới, lưu, rồi báo `Wallet.Changed` và `Roster.Changed`.
 - Luật cho code về sau (**bắt buộc**):
-  1. Dữ liệu cần lưu chỉ nằm trong `PlayerSave` và đi qua `SaveService`. Không dùng `PlayerPrefs` hay file riêng; nếu bắt buộc thì phải thêm vào đường reset và có test.
+  1. Dữ liệu cần lưu chỉ nằm trong `PlayerSave` (và từ đợt 2 Online, `ServerState` do server ghi) và đi qua `SaveService`. Không dùng `PlayerPrefs` hay file riêng; nếu bắt buộc thì phải thêm vào đường reset và có test. Ngoại lệ: token phiên mà SDK Authentication của UGS tự cất trong `PlayerPrefs` (dữ liệu của SDK, không phải của người chơi; Reset giữ nó để giữ ID, Xoá tài khoản xoá nó).
   2. Field mới của `PlayerSave` phải có giá trị khởi tạo đúng cho game mới, vì reset ghi đè bằng bản mặc định.
   3. Trạng thái chạy nằm ngoài `PlayerSave` (ví dụ simulation của quán, bộ đếm AFK trong bộ nhớ) phải tự reset khi `ResetToDefaults()` chạy; thêm cách nghe sự kiện reset khi các tính năng đó ra đời.
   4. Đang Play thì phải reset qua session đang chạy, không xoá file ngầm, nếu không `OnApplicationQuit` ghi lại dữ liệu cũ.
+  5. (Online, [D-014](#d-014--online-bằng-unity-gaming-services-phải-có-mạng-mới-chơi-2026-11-13)) Reset gọi `ResetPlayer` trên server **trước** (`GameSession.ResetToDefaultsAsync`); server lỗi thì không xoá gì trên máy, đẩy save chạy lại. Server xong mới xoá máy rồi đẩy save game mới; ID người chơi giữ nguyên. Xoá tài khoản là đường riêng (`AccountDeleter`): xoá trên server rồi tài khoản, xoá bản đệm, về Tiêu đề.
 - Lý do / đánh đổi: phải xoá `.bak`, nếu không `Load` hồi sinh dữ liệu cũ; xoá luôn `.corrupt` nên mất bản cứu hộ cuối, hộp xác nhận nói rõ điều này. File chính xoá sau cùng để lỗi giữa chừng không để lại `.bak` mà mất file chính; xoá thất bại thì bộ nhớ giữ nguyên.
 - Ngoại lệ (user chốt 2026-11-06, [D-009](#d-009--công-cụ-thử-tự-động-seam-save-hai-assembly-mới-chỉ-vòng-combat-2026-11-04)): thư mục `playtest-backup/` của công cụ thử (Editor) không bị reset xoá. Chỉ áp dụng cho thư mục đó, nằm ngoài `PlayerSave`; không mở rộng cho file riêng của tính năng.
 - Trạng thái: Accepted
@@ -82,7 +96,7 @@
 - Bối cảnh: game gacha thường cần server để chống gian lận; template đang cho phép xoay cả màn dọc.
 - Quyết định: chơi offline, save JSON cục bộ, roll gacha trên máy, không IAP. Player Settings chỉ cho phép màn ngang.
 - Lý do / đánh đổi: không cần server và backend. Người chơi có thể sửa save hoặc chỉnh đồng hồ để gian lận, chấp nhận được vì không có tiền thật. Nếu thêm IAP phải xét lại `Wallet`, gacha và save.
-- Trạng thái: Superseded by D-007 (phần "không IAP" và "offline hoàn toàn"; màn ngang và save cục bộ vẫn giữ)
+- Trạng thái: Superseded by D-007 và D-014 (D-007: phần "không IAP"; D-014: "offline", "save JSON cục bộ", "roll gacha trên máy"; màn ngang vẫn giữ)
 
 ### D-002 — Folder theo tính năng, asmdef riêng, không event bus (2026-10-30)
 - Bối cảnh: game gồm nhiều hệ thống làm lần lượt, cần giữ chúng không dính nhau.

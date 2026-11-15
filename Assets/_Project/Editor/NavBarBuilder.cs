@@ -29,6 +29,8 @@ namespace BunDauPeo.EditorTools
         private static readonly Color GreyButton = new(0.45f, 0.47f, 0.55f);
         private static readonly Color DangerColor = new(0.85f, 0.20f, 0.20f);
         private static readonly Color DangerPanel = new(0.35f, 0.10f, 0.10f);
+        // Chữ đỏ của nút Xoá tài khoản (ảnh mô phỏng Online bản 1).
+        private static readonly Color DeleteText = new(1f, 0.35f, 0.35f);
         private static readonly Color Dim = new(0f, 0f, 0f, 0.65f);
         private static readonly Color Warning = new(1f, 0.65f, 0.45f);
         private static readonly Color Gold = new(1f, 0.85f, 0.4f);
@@ -365,8 +367,19 @@ namespace BunDauPeo.EditorTools
 
             var hint = NewLabel("NameHint", box, font, "profile.name_hint", 26, TextAnchor.MiddleLeft, HintColor);
             Place(hint.rectTransform, TopLeft, TopLeft, new Vector2(40, -550), new Vector2(400, 40));
+            // Online 5.9: dòng ID riêng dưới gợi ý tên, rộng gần hết cột trái (user chốt 2026-11-15, thay bản ảnh mô phỏng ID và Sao chép
+            // cùng hàng: ID dài co chữ quá nhỏ); Sao chép và "Đã chép" ở dòng dưới. ID dài hơn dòng (Local) thì chữ co lại, không đè lưới avatar.
+            var idText = NewText("ProfileIdText", box, font, "", 26, TextAnchor.MiddleLeft, Color.white);
+            Place(idText.rectTransform, TopLeft, TopLeft, new Vector2(40, -600), new Vector2(470, 50));
+            idText.resizeTextForBestFit = true;
+            idText.resizeTextMinSize = 16;
+            idText.resizeTextMaxSize = 26;
+            var copy = BattleSceneBuilder.LabelButton("ProfileIdCopyBtn_PH_200x70", box, sprite, font, "profile.copy", GreyButton, TopLeft, new Vector2(40, -655), new Vector2(200, 70));
+            var copied = NewLabel("CopiedText", box, font, "profile.copied", 24, TextAnchor.MiddleLeft, Gold);
+            Place(copied.rectTransform, TopLeft, TopLeft, new Vector2(255, -672), new Vector2(185, 36));
+            copied.gameObject.SetActive(false);
             var status = NewText("ProfileStatus", box, font, "", 28, TextAnchor.UpperLeft, Warning);
-            Place(status.rectTransform, TopLeft, TopLeft, new Vector2(40, -600), new Vector2(400, 80));
+            Place(status.rectTransform, TopLeft, TopLeft, new Vector2(40, -735), new Vector2(400, 60));
 
             var label = NewLabel("AvatarLabel", box, font, "profile.change_avatar", 38, TextAnchor.MiddleLeft, Gold);
             Place(label.rectTransform, TopLeft, TopLeft, new Vector2(520, -120), new Vector2(600, 60));
@@ -419,6 +432,9 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_gridContent").objectReferenceValue = content;
             so.FindProperty("_cellTemplate").objectReferenceValue = cellButton;
             so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.FindProperty("_idText").objectReferenceValue = idText;
+            so.FindProperty("_copyButton").objectReferenceValue = copy;
+            so.FindProperty("_copiedText").objectReferenceValue = copied.gameObject;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             root.gameObject.SetActive(false);
@@ -448,12 +464,15 @@ namespace BunDauPeo.EditorTools
             Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -40), new Vector2(800, 90));
 
             // Nhãn Ngôn ngữ do MenuView ghi lúc chạy (theo ngôn ngữ hiện tại), nên không gắn LocalizedText.
-            var language = NewButton("MenuLanguageBtn_PH_700x100", panel, sprite, font, "", ButtonColor, Center, new Vector2(0, 170), new Vector2(700, 100));
-            var reset = BattleSceneBuilder.LabelButton("MenuResetBtn_PH_700x100", panel, sprite, font, "hub.reset", DangerColor, Center, new Vector2(0, 40), new Vector2(700, 100));
-            var dev = BattleSceneBuilder.LabelButton("MenuDevBtn_PH_700x100", panel, sprite, font, "hub.dev", GreyButton, Center, new Vector2(0, -90), new Vector2(700, 100));
+            // Online đợt 1 (ảnh mô phỏng bản 1): Xoá tài khoản ngay dưới Reset; cả cột dịch lên để Đóng vẫn trên vạch 120 px.
+            var language = NewButton("MenuLanguageBtn_PH_700x100", panel, sprite, font, "", ButtonColor, Center, new Vector2(0, 230), new Vector2(700, 100));
+            var reset = BattleSceneBuilder.LabelButton("MenuResetBtn_PH_700x100", panel, sprite, font, "hub.reset", DangerColor, Center, new Vector2(0, 110), new Vector2(700, 100));
+            var deleteAccount = BattleSceneBuilder.LabelButton("MenuDeleteAccountBtn_PH_700x100", panel, sprite, font, "menu.delete_account", GreyButton, Center, new Vector2(0, -10), new Vector2(700, 100));
+            deleteAccount.GetComponentInChildren<Text>().color = DeleteText;
+            var dev = BattleSceneBuilder.LabelButton("MenuDevBtn_PH_700x100", panel, sprite, font, "hub.dev", GreyButton, Center, new Vector2(0, -130), new Vector2(700, 100));
             var status = NewText("MenuStatus", panel, font, "", 36, TextAnchor.MiddleCenter, Warning);
-            Place(status.rectTransform, Center, Center, new Vector2(0, -190), new Vector2(1000, 60));
-            var close = BattleSceneBuilder.LabelButton("MenuCloseBtn_PH_300x90", panel, sprite, font, "common.close", GreyButton, Center, new Vector2(0, -300), new Vector2(300, 90));
+            Place(status.rectTransform, Center, Center, new Vector2(0, -220), new Vector2(1000, 60));
+            var close = BattleSceneBuilder.LabelButton("MenuCloseBtn_PH_300x90", panel, sprite, font, "common.close", GreyButton, Center, new Vector2(0, -320), new Vector2(300, 90));
 
             // Hộp xác nhận Reset: nền mờ kín màn che cả thanh (OverBar) và hộp đỏ giữa màn.
             var confirmRoot = NewRect("ResetConfirmRoot", panel);
@@ -465,9 +484,25 @@ namespace BunDauPeo.EditorTools
             AddImage(box, sprite, DangerPanel, raycast: false);
             var prompt = NewLabel("PromptText", box, font, "hub.reset_confirm", 40, TextAnchor.MiddleCenter, Color.white);
             Place(prompt.rectTransform, TopCenter, TopCenter, new Vector2(0, -40), new Vector2(720, 200));
+            FitText(prompt);
             var yes = BattleSceneBuilder.LabelButton("ResetYesBtn_PH_340x110", box, sprite, font, "hub.reset_yes", DangerColor, BottomCenter, new Vector2(-190, 50), new Vector2(340, 110));
             var no = BattleSceneBuilder.LabelButton("ResetNoBtn_PH_340x110", box, sprite, font, "common.cancel", GreyButton, BottomCenter, new Vector2(190, 50), new Vector2(340, 110));
             confirmRoot.gameObject.SetActive(false);
+
+            // Hộp xác nhận Xoá tài khoản (spec 5.8): như hộp Reset, chữ riêng.
+            var deleteRoot = NewRect("DeleteAccountRoot", panel);
+            Stretch(deleteRoot);
+            AddImage(deleteRoot, null, Dim, raycast: true);
+            OverBar(deleteRoot);
+            var deleteBox = NewRect("DeleteAccountBox_PH_900x420", deleteRoot);
+            Place(deleteBox, Center, Center, Vector2.zero, new Vector2(900, 420));
+            AddImage(deleteBox, sprite, DangerPanel, raycast: false);
+            var deletePrompt = NewLabel("PromptText", deleteBox, font, "menu.delete_account_confirm", 40, TextAnchor.MiddleCenter, Color.white);
+            Place(deletePrompt.rectTransform, TopCenter, TopCenter, new Vector2(0, -40), new Vector2(820, 200));
+            FitText(deletePrompt);
+            var deleteYes = BattleSceneBuilder.LabelButton("DeleteYesBtn_PH_340x110", deleteBox, sprite, font, "menu.delete_yes", DangerColor, BottomCenter, new Vector2(-190, 50), new Vector2(340, 110));
+            var deleteNo = BattleSceneBuilder.LabelButton("DeleteNoBtn_PH_340x110", deleteBox, sprite, font, "common.cancel", GreyButton, BottomCenter, new Vector2(190, 50), new Vector2(340, 110));
+            deleteRoot.gameObject.SetActive(false);
 
             var so = new SerializedObject(view);
             so.FindProperty("_languageButton").objectReferenceValue = language;
@@ -479,10 +514,22 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_resetConfirmRoot").objectReferenceValue = confirmRoot.gameObject;
             so.FindProperty("_resetYesButton").objectReferenceValue = yes;
             so.FindProperty("_resetNoButton").objectReferenceValue = no;
+            so.FindProperty("_deleteAccountButton").objectReferenceValue = deleteAccount;
+            so.FindProperty("_deleteConfirmRoot").objectReferenceValue = deleteRoot.gameObject;
+            so.FindProperty("_deleteYesButton").objectReferenceValue = deleteYes;
+            so.FindProperty("_deleteNoButton").objectReferenceValue = deleteNo;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             panel.gameObject.SetActive(false);
             return panel;
+        }
+
+        // Câu xác nhận dài (thêm câu về máy chủ, bản tiếng Anh) co chữ cho vừa hộp thay vì bị cắt.
+        private static void FitText(Text text)
+        {
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 24;
+            text.resizeTextMaxSize = text.fontSize;
         }
 
         private static Button BuildTab(RectTransform bar, Font font, Sprite sprite, int index)

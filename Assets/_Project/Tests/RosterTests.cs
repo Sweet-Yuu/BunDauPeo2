@@ -239,7 +239,7 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(4, new Roster(_save, _catalog).GetFragments("c0"));
         }
 
-        // N1 (D-005): ảnh chụp đội chụp trước Reset; sau Reset save là game mới, nên Hủy không được ghi lại id không còn sở hữu.
+        // N1 (D-005): ảnh chụp đội chụp trước Reset; sau Reset save là game mới, nên Huỷ không được ghi lại id không còn sở hữu.
         [Test]
         public void RestoreTeam_AfterSaveOverwritten_DropsIdsNoLongerOwned()
         {

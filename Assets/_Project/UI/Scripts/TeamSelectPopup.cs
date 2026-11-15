@@ -71,7 +71,7 @@ namespace BunDauPeo.UI
             Refresh();
         }
 
-        // Hủy: trả đội và vai ở quán về như lúc mở (spec UI hub 5.5). Không lưu đội chọn dở; chỉ Vào trận (EnterStage) lưu đội mới.
+        // Huỷ: trả đội và vai ở quán về như lúc mở (spec UI hub 5.5). Không lưu đội chọn dở; chỉ Vào trận (EnterStage) lưu đội mới.
         // Nhưng autosave của quán có thể đã ghi đội dở xuống đĩa lúc popup mở, nên lưu lại đội đã trả về để đĩa khớp bộ nhớ.
         public void Cancel()
         {
@@ -82,7 +82,7 @@ namespace BunDauPeo.UI
             if (restore) service?.Persist();
         }
 
-        // IHubPage: bấm ô khác của thanh hay đổi ngôn ngữ đóng trang đúng như nút Hủy.
+        // IHubPage: bấm ô khác của thanh hay đổi ngôn ngữ đóng trang đúng như nút Huỷ.
         public void Close() => Cancel();
 
         private void Hide()

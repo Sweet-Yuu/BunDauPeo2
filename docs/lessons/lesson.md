@@ -26,6 +26,16 @@
 
 ## Đang hiệu lực
 
+### L-039 — Dòng chữ dài thay đổi (ID người chơi) dựng đúng ảnh mô phỏng nhưng co chữ không đọc được (2026-11-15)  #ui #process
+- Triệu chứng: Hồ sơ đặt ID và nút Sao chép cùng hàng như ảnh mô phỏng; ô ID còn 260 px nên ID 38 ký tự co về ~14 px, chỉ thấy khi xem ảnh chụp. User chọn cho ID một dòng riêng.
+- Nguyên nhân gốc: ảnh mô phỏng vẽ ID rút gọn ("4fK2…"), không ai tính bề rộng của chuỗi dài nhất (ID UGS ~28 ký tự, ID `LocalGameServer` 38 ký tự).
+- Luật từ nay: chữ có độ dài thay đổi (ID, tên, số lớn) thì trước khi dựng, tính bề rộng chuỗi dài nhất ở cỡ chữ đã chốt (Arial ~0,5 em mỗi ký tự) so với ô; không vừa thì hỏi user trước. Xem ảnh chụp có chuỗi thật dài nhất, không chỉ chuỗi mẫu.
+
+### L-038 — Gọi UGS thật từ Editor mở bằng CLI: 403 rồi "chỉ khởi tạo trong Play Mode" (2026-11-15)  #process #unity-files
+- Triệu chứng: O1-a đọc danh sách môi trường bị 403 (Editor từ `unity open` chưa đăng nhập tài khoản Unity, `CloudProjectSettings.projectId` rỗng); sau khi user đăng nhập, project chỉ có `production`; gọi `UgsGameServer` bằng `unity command script run` ở Edit mode thì `ServicesInitializationException`.
+- Nguyên nhân gốc: Deployment và Environments cần Editor đã đăng nhập; `UnityServices.InitializeAsync` từ chối Edit mode.
+- Luật từ nay: trước khi deploy, chạy script đọc `EnvironmentsApi` (refresh) để thấy `projectId`, người dùng và đủ môi trường; thiếu thì nhờ user đăng nhập trong cửa sổ Editor hoặc tạo môi trường, không tự làm. Gọi UGS thật thì vào Play (Boot chỉ tới Tiêu đề), `EnableBackgroundPlay()`, rồi `script run` từ file ngoài repo; thoát Play và kiểm `git status`.
+
 ### L-036 — Test chạm gửi sự kiện thẳng lên nút không bắt được nút bị che (2026-11-11)  #ui #process
 - Triệu chứng: review cuối nhánh UI hub B thấy banner Gacha che "!" Thu ngân ở 16:10 và 4:3 mà mọi test xanh. `Swipe` của test kéo quán tự đặt `eligibleForClick = false`, ca bấm "!" dùng `ClickDirect` (`ExecuteEvents` thẳng lên nút).
 - Nguyên nhân gốc: giả lập chạm bỏ qua raycast và chuỗi pointerDown → kéo → pointerUp của input module, nên "nút bấm được" và "kéo không bấm nhầm" luôn đúng dù code làm gì.
@@ -51,7 +61,7 @@
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
 
 - L-037 (2026-11-13) Test đọc Build Settings, Boot, Title và chỉ xanh sau khi `ProjectSetupTests` gọi `ProjectSetup.Run()` ghi lại file; `Rebuild` bị chặn quyền ở C1 nên lượt test đầu đỏ và tự sinh file đem commit (lần thứ 3 sau L-002, L-032)  #unity-files #process → [code-style, Test](../guides/code-style.md#test)
-- L-035 (2026-11-11) Ảnh chụp để Hủy trả về còn sống qua Reset, Hủy ghi người đã mất vào save mới  #script #process → [code-style, Service, tiền và save](../guides/code-style.md#service-tiền-và-save)
+- L-035 (2026-11-11) Ảnh chụp để Huỷ trả về còn sống qua Reset, Huỷ ghi người đã mất vào save mới  #script #process → [code-style, Service, tiền và save](../guides/code-style.md#service-tiền-và-save)
 - L-026 (2026-11-06) `Capture1080("tên")` không tự thêm đuôi `.png` (lặp ở UI hub B)  #ui #process → đã sửa công cụ: `ScreenCapture1080` tự thêm `.png`, có test; không còn luật
 - L-029, L-034 (2026-11-07, 2026-11-09) Test EditMode với MonoBehaviour: `OnEnable` không chạy ngoài Play, MonoBehaviour giả trong assembly Tests không gắn được  #script #process → [code-style, Test](../guides/code-style.md#test)
 - L-033 (2026-11-09) Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn  #ui #process → [unity-workflow, UI và hình tạm](../guides/unity-workflow.md#ui-và-hình-tạm)

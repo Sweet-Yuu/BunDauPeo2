@@ -1,6 +1,6 @@
 {
   "name": "BunDauPeo.Boot",
   "rootNamespace": "BunDauPeo.Boot",
-  "references": ["BunDauPeo.Core", "BunDauPeo.Characters", "BunDauPeo.Gacha", "BunDauPeo.Restaurant", "BunDauPeo.Combat"],
+  "references": ["BunDauPeo.Core", "BunDauPeo.Rules", "BunDauPeo.Online", "BunDauPeo.Characters", "BunDauPeo.Gacha", "BunDauPeo.Restaurant", "BunDauPeo.Combat"],
   "autoReferenced": true
 }

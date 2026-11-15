@@ -1,0 +1,7 @@
+{
+    "name": "BunDauPeo.Rules",
+    "rootNamespace": "BunDauPeo.Rules",
+    "references": [],
+    "autoReferenced": true,
+    "noEngineReferences": true
+}
