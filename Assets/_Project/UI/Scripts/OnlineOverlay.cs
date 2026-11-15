@@ -1,0 +1,169 @@
+using System;
+using BunDauPeo.Core;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+namespace BunDauPeo.UI
+{
+    // Hộp mạng (spec 5.4, ảnh mô phỏng bản 1 ở mục 10): Không kết nối được, Mất kết nối, Tài khoản đang dùng ở máy khác.
+    // Một hộp giữ cỡ, đổi chữ; nền mờ kín màn chặn mọi chạm, vẽ trên mọi scene, thanh dưới, nút Thông báo và panel DEV.
+    // Dựng bằng code như DevOverlay để có trên mọi scene mà không builder nào phải nhớ.
+    public static class OnlineOverlay
+    {
+        public const int SortingOrder = 1100;
+        private static readonly Vector2 BoxSize = new(900, 420);
+        private static readonly Vector2 ButtonSize = new(340, 110);
+        private static readonly Color Dim = new(0, 0, 0, 0.6f);
+        private static readonly Color Panel = new(0.13f, 0.16f, 0.22f);
+        private static readonly Color Gold = new(1f, 0.85f, 0.4f);
+        private static readonly Color ButtonColor = new(0.22f, 0.55f, 0.32f);
+
+        private static GameObject _root;
+        private static GameObject _dim;
+        private static Text _title;
+        private static Text _body;
+        private static Text _buttonLabel;
+        private static Action _action;
+        private static IGameStarter _watched;
+
+        // Tắt domain reload thì static còn nguyên sang lần Play sau.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            _root = null;
+            _dim = null;
+            _action = null;
+            _watched = null;
+        }
+
+        public static bool IsShown => _dim != null && _dim.activeSelf;
+
+        public static void ShowConnectFailed(Action retry) => Show("online.connect_failed_title", "online.connect_failed_body", "online.retry", retry);
+
+        public static void ShowLost(Action retry) => Show("online.lost_title", "online.lost_body", "online.retry", retry);
+
+        public static void ShowOtherDevice(Action toTitle) => Show("online.other_device_title", "online.other_device_body", "online.to_title", toTitle);
+
+        public static void Hide()
+        {
+            _action = null;
+            if (_dim != null) _dim.SetActive(false);
+        }
+
+        // Hộp giữa game: starter sống suốt app (qua Shutdown), nên nghe nó một lần; Tiêu đề gọi trước khi dựng session.
+        public static void Watch(IGameStarter starter)
+        {
+            if (starter == null || starter == _watched) return;
+            if (_watched != null)
+            {
+                _watched.ConnectionProblem -= OnProblem;
+                _watched.ConnectionRestored -= Hide;
+            }
+
+            _watched = starter;
+            starter.ConnectionProblem += OnProblem;
+            starter.ConnectionRestored += Hide;
+        }
+
+        private static void OnProblem(OnlineStatus status)
+        {
+            if (status == OnlineStatus.OtherDevice) ShowOtherDevice(ToTitle);
+            // Hộp đóng khi lượt đẩy thành công (ConnectionRestored); lỗi nữa thì hộp ở lại để bấm tiếp.
+            else ShowLost(() => _ = ServiceLocator.Get<CloudSync>().FlushAsync());
+        }
+
+        // Bỏ thay đổi chưa đẩy: Tiêu đề đăng nhập lại và tải bản trên server (spec 5.4, máy đăng nhập sau thắng).
+        private static void ToTitle()
+        {
+            Hide();
+            _watched?.Shutdown();
+            SceneManager.LoadScene(TitleView.TitleScene);
+        }
+
+        private static void Show(string titleKey, string bodyKey, string buttonKey, Action action)
+        {
+            Build();
+            _title.text = UiText.Get(titleKey);
+            _body.text = UiText.Get(bodyKey);
+            _buttonLabel.text = UiText.Get(buttonKey);
+            _action = action;
+            _dim.SetActive(true);
+        }
+
+        private static void OnButton()
+        {
+            var action = _action;
+            action?.Invoke();
+        }
+
+        private static void Build()
+        {
+            if (_root != null) return;
+
+            _root = new GameObject("OnlineOverlay", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            UnityEngine.Object.DontDestroyOnLoad(_root);
+            var canvas = _root.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = SortingOrder;
+            var scaler = _root.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 1f;
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            var dim = NewRect("OnlineDim", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            AddImage(dim, Dim, raycast: true);
+            _dim = dim.gameObject;
+
+            var center = new Vector2(0.5f, 0.5f);
+            var box = NewRect("OnlineBox_PH_900x420", dim, center, center, Vector2.zero, BoxSize);
+            AddImage(box, Panel, raycast: true);
+
+            var top = new Vector2(0.5f, 1f);
+            _title = NewText("OnlineTitle", box, font, 52, Gold, top, new Vector2(0, -75), new Vector2(840, 90));
+            _title.fontStyle = FontStyle.Bold;
+            _body = NewText("OnlineBody", box, font, 36, Color.white, top, new Vector2(0, -195), new Vector2(820, 140));
+
+            var bottom = new Vector2(0.5f, 0f);
+            var button = NewRect("OnlineRetryBtn_PH_340x110", box, bottom, bottom, new Vector2(0, 40 + ButtonSize.y / 2), ButtonSize);
+            var image = AddImage(button, ButtonColor, raycast: true);
+            var click = button.gameObject.AddComponent<Button>();
+            click.targetGraphic = image;
+            click.onClick.AddListener(OnButton);
+            _buttonLabel = NewText("Label", button, font, 40, Color.white, center, Vector2.zero, ButtonSize);
+
+            _dim.SetActive(false);
+        }
+
+        private static RectTransform NewRect(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size)
+        {
+            var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+            return rect;
+        }
+
+        private static Image AddImage(RectTransform rect, Color color, bool raycast)
+        {
+            var image = rect.gameObject.AddComponent<Image>();
+            image.color = color;
+            image.raycastTarget = raycast;
+            return image;
+        }
+
+        private static Text NewText(string name, Transform parent, Font font, int size, Color color, Vector2 anchor, Vector2 position, Vector2 box)
+        {
+            var text = NewRect(name, parent, anchor, anchor, position, box).gameObject.AddComponent<Text>();
+            text.font = font;
+            text.fontSize = size;
+            text.color = color;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.raycastTarget = false;
+            return text;
+        }
+    }
+}

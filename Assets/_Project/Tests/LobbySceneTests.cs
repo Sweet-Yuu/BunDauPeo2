@@ -140,6 +140,77 @@ namespace BunDauPeo.Tests
                 SceneTextAsserts.AssertLocalizedTexts(scene);
             });
 
+        // Online đợt 1 (spec 5.8, ảnh mô phỏng bản 1): Xoá tài khoản ngay dưới Reset, cùng cỡ; hộp xác nhận riêng vẽ trên thanh; DEV dời xuống.
+        // Ở mọi tỉ lệ màn, các nút của Menu không chạm dải 0–120 hay nút Thông báo.
+        [Test]
+        public void Menu_DeleteAccountButton_UnderReset_ClearOfBar() =>
+            WithLobby(scene =>
+            {
+                const string reset = "MenuResetBtn_PH_700x100", delete = "MenuDeleteAccountBtn_PH_700x100", dev = "MenuDevBtn_PH_700x100";
+                var menu = Named(scene, MenuPanel);
+                Assert.AreSame(menu, Named(scene, delete).parent, "the button sits in the Menu panel");
+                var resetRect = RestaurantSceneTests.InReferenceCanvas(Named(scene, reset));
+                var deleteRect = RestaurantSceneTests.InReferenceCanvas(Named(scene, delete));
+                var devRect = RestaurantSceneTests.InReferenceCanvas(Named(scene, dev));
+                Assert.AreEqual(resetRect.size, deleteRect.size, "same size as Reset");
+                Assert.AreEqual(resetRect.center.x, deleteRect.center.x, 0.01f, "same column as Reset");
+                Assert.Less(deleteRect.yMax, resetRect.yMin, "below Reset");
+                Assert.Less(devRect.yMax, deleteRect.yMin, "DEV moved below Delete account");
+                Assert.AreEqual("menu.delete_account", Named(scene, delete).GetComponentInChildren<LocalizedText>(true).Key);
+                Assert.AreEqual(Color.red.r, Named(scene, delete).GetComponentInChildren<Text>(true).color.r, 0.01f, "red label");
+
+                var box = Named(scene, "DeleteAccountBox_PH_900x420");
+                Assert.IsTrue(box.parent.GetComponent<Canvas>().overrideSorting, "the confirm box draws over the bar (OverBar)");
+                Assert.IsFalse(box.parent.gameObject.activeSelf, "the confirm box starts off");
+                AssertRect(510, 330, 900, 420, FromTop(scene, "DeleteAccountBox_PH_900x420"), "DeleteAccountBox_PH_900x420");
+                foreach (var name in new[] { "DeleteYesBtn_PH_340x110", "DeleteNoBtn_PH_340x110" })
+                    Assert.IsTrue(Named(scene, name).IsChildOf(box), name);
+                var keys = box.GetComponentsInChildren<LocalizedText>(true).Select(l => l.Key).ToArray();
+                foreach (var key in new[] { "menu.delete_account_confirm", "menu.delete_yes", "common.cancel" })
+                    CollectionAssert.Contains(keys, key, "DeleteAccountBox labels");
+
+                var notify = Named(scene, NotifyButton);
+                foreach (var (aspectName, aspect) in Aspects)
+                {
+                    var width = 1080f * aspect;
+                    var spot = RectAtWidth(notify, width);
+                    foreach (var button in menu.GetComponentsInChildren<Button>(true).Where(b => b.GetComponentsInParent<Canvas>(true).All(c => !c.overrideSorting)))
+                    {
+                        var rect = RectAtWidth((RectTransform)button.transform, width);
+                        Assert.GreaterOrEqual(rect.yMin, HubNav.BarHeight, $"{aspectName}: {button.name} {rect} reaches the bar strip");
+                        Assert.IsFalse(rect.Overlaps(spot), $"{aspectName}: {button.name} {rect} sits under the notification button");
+                    }
+                }
+            });
+
+        // Online đợt 1 (spec 5.9, ảnh mô phỏng bản 1): dòng ID + Sao chép dưới "Tối đa 12 ký tự", cột trái, không đè ô tên, lưới avatar, nút Đóng.
+        [Test]
+        public void Profile_HasIdRowAndCopyButton() =>
+            WithLobby(scene =>
+            {
+                const string id = "ProfileIdText", copy = "ProfileIdCopyBtn_PH_200x70", copied = "CopiedText";
+                var box = Named(scene, "ProfileBox_PH_1200x800");
+                foreach (var name in new[] { id, copy, copied }) Assert.IsTrue(Named(scene, name).IsChildOf(box), name);
+                Assert.IsNotNull(Named(scene, copy).GetComponent<Button>());
+                Assert.AreEqual(new Vector2(200, 70), Named(scene, copy).sizeDelta);
+                Assert.AreEqual("profile.copy", Named(scene, copy).GetComponentInChildren<LocalizedText>(true).Key);
+                Assert.IsNull(Named(scene, id).GetComponent<LocalizedText>(), "the popup writes the id at runtime");
+                Assert.AreEqual(26, Named(scene, id).GetComponent<Text>().fontSize);
+                Assert.AreEqual("profile.copied", Named(scene, copied).GetComponent<LocalizedText>().Key);
+                Assert.IsFalse(Named(scene, copied).gameObject.activeSelf, "Copied shows only after a tap");
+
+                var hint = FromTop(scene, "NameHint");
+                var idRect = FromTop(scene, id);
+                var copyRect = FromTop(scene, copy);
+                Assert.GreaterOrEqual(idRect.yMin, hint.yMax, "under the name hint");
+                Assert.Less(idRect.xMin, 600f, "left column");
+                Assert.AreEqual(idRect.center.y, copyRect.center.y, 0.01f, "Copy sits on the id row");
+                var close = FromTop(RestaurantSceneTests.InReferenceCanvas((RectTransform)Named(scene, "ProfilePopup").GetComponentsInChildren<Button>(true).Single(b => b.name == "CloseButton").transform));
+                foreach (var other in new[] { FromTop(scene, "NameInput_PH_400x90"), FromTop(scene, "AvatarGrid"), close, FromTop(scene, "ProfileStatus") })
+                    foreach (var (name, rect) in new[] { (id, idRect), (copy, copyRect), (copied, FromTop(scene, copied)) })
+                        Assert.IsFalse(rect.Overlaps(other), $"{name} {rect} overlaps {other}");
+            });
+
         // Nút của chính thanh và hộp vẽ trên thanh (Canvas con overrideSorting) được miễn; trang Gacha lúc thanh ẩn (cutscene, lộ, tổng) cũng vậy.
         [Test]
         public void NoButtonUnderBar() =>

@@ -52,6 +52,9 @@ namespace BunDauPeo.Boot
         public CloudSync Sync { get; private set; }
         public bool IsStarted => Session != null;
 
+        public event Action<OnlineStatus> ConnectionProblem;
+        public event Action ConnectionRestored;
+
         // Ba service sống qua Shutdown: Tiêu đề cần chúng để dựng lại session.
         public void RegisterBase()
         {
@@ -80,6 +83,8 @@ namespace BunDauPeo.Boot
         {
             if (_runner != null)
             {
+                // Destroy chờ cuối khung: tắt ngay để quán không ghi bản đệm sau khi Xoá tài khoản đã xoá nó.
+                _runner.enabled = false;
                 if (Application.isPlaying) UnityEngine.Object.Destroy(_runner);
                 else UnityEngine.Object.DestroyImmediate(_runner);
             }
@@ -158,12 +163,31 @@ namespace BunDauPeo.Boot
             return OnlineStatus.Ok;
         }
 
+        // Xoá tài khoản (spec 5.8): server xoá dữ liệu và tài khoản trước; lỗi thì không xoá gì trên máy và đẩy save chạy lại.
+        private async Task<OnlineStatus> DeleteAccountAsync(CloudSync sync)
+        {
+            await sync.StopAsync();
+            var status = await _server.DeleteAccountAsync();
+            if (status != OnlineStatus.Ok)
+            {
+                sync.Resume();
+                return status;
+            }
+
+            _signedIn = false;
+            Shutdown();
+            // Tài khoản đã mất nên bản đệm chỉ còn là rác; xoá lỗi thì lần sau vẫn là game mới (server không có save), chỉ cần log.
+            new SaveService(_savePath).DeleteAll();
+            // Như cài mới: Tiêu đề tiếng Anh tới khi người chơi chọn (D-012).
+            GameLanguage.Current = GameLanguage.Resolve("");
+            return OnlineStatus.Ok;
+        }
+
         private void Build()
         {
             var session = new GameSession(new SaveService(_savePath), _catalog, _newGame, _serverSave);
             ServiceLocator.Register(session.Wallet);
             ServiceLocator.Register(session.Roster);
-            ServiceLocator.Register(new GameResetter(session.ResetToDefaults));
             session.ApplyLanguage();
             ServiceLocator.Register(new LanguageSwitcher(session.SetLanguage));
             ServiceLocator.Register(new RestaurantBarPref(() => session.Save.RestaurantBarOpen, session.SetRestaurantBarOpen));
@@ -192,6 +216,13 @@ namespace BunDauPeo.Boot
             session.Persisted += sync.MarkDirty;
             // Game mới đã ghi bản đệm trong constructor, trước khi có người nghe Persisted: tự đánh dấu để server có save.
             if (session.IsNewGame) sync.MarkDirty();
+            sync.Lost += () => ConnectionProblem.SafeInvoke(OnlineStatus.NetworkError);
+            sync.Restored += () => ConnectionRestored.SafeInvoke();
+            sync.OtherDevice += () => ConnectionProblem.SafeInvoke(OnlineStatus.OtherDevice);
+            // Hộp Mất kết nối: Thử lại đẩy ngay qua đây.
+            ServiceLocator.Register(sync);
+            ServiceLocator.Register(new GameResetter(() => session.ResetToDefaultsAsync(_server, sync)));
+            ServiceLocator.Register(new AccountDeleter(() => DeleteAccountAsync(sync)));
 
             Session = session;
             Restaurant = restaurant;

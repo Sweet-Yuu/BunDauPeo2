@@ -90,6 +90,20 @@ namespace BunDauPeo.Core
             _dirty = false;
         }
 
+        // Reset, Xoá tài khoản: dừng rồi chờ lượt đang đẩy xong, để lượt cũ không ghi save lên server sau lệnh xoá.
+        public async Task StopAsync()
+        {
+            Stop();
+            if (Uploading) await _inFlight;
+        }
+
+        // Lệnh xoá trên server lỗi: chạy lại; thay đổi chưa lên server (kể cả lượt bị bỏ khi dừng) được đẩy lại.
+        public void Resume()
+        {
+            _stopped = false;
+            if (_unsynced) _dirty = true;
+        }
+
         private void StartUpload()
         {
             _dirty = false;

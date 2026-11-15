@@ -463,5 +463,75 @@ namespace BunDauPeo.Tests
             Assert.IsFalse(OnlineStartup.TryParseSave("{broken", out _));
             Assert.IsFalse(OnlineStartup.TryParseSave("", out _));
         }
+
+        // Session như Boot dựng: save trên server, CloudSync nghe Persisted.
+        private (GameSession Session, LocalGameServer Server, CloudSync Sync) OnlineSession()
+        {
+            var server = new LocalGameServer();
+            Assert.AreEqual(OnlineStatus.Ok, server.SignInAsync().Result);
+            var session = new GameSession(_service, _catalog, _config, null);
+            var sync = new CloudSync(server, () => JsonUtility.ToJson(session.Save), () => session.Save.SaveRevision++);
+            session.Persisted += sync.MarkDirty;
+            session.Wallet.Add(CurrencyType.Coin, 5);
+            Assert.IsTrue(session.Persist());
+            Assert.IsTrue(sync.FlushAsync().IsCompleted);
+            return (session, server, sync);
+        }
+
+        // Review Focus 2 (spec 5.8): server lỗi thì không xoá gì: bộ nhớ, bản đệm, server giữ nguyên; đẩy save chạy lại.
+        [Test]
+        public void Reset_ServerFails_KeepsEverything()
+        {
+            var (session, server, sync) = OnlineSession();
+            var stored = server.StoredSave;
+            var cache = File.ReadAllText(_path);
+            var resets = 0;
+            session.ResetCompleted += () => resets++;
+
+            server.FailNext(OnlineStatus.NetworkError);
+            var reset = session.ResetToDefaultsAsync(server, sync);
+
+            Assert.IsTrue(reset.IsCompleted);
+            Assert.AreEqual(OnlineStatus.NetworkError, reset.Result);
+            Assert.AreEqual(505, session.Wallet.Get(CurrencyType.Coin), "memory kept");
+            Assert.IsTrue(session.Roster.IsOwned("a"));
+            Assert.AreEqual(cache, File.ReadAllText(_path), "cache file kept");
+            Assert.AreEqual(stored, server.StoredSave, "server save kept");
+            Assert.AreEqual(0, resets, "ResetCompleted not raised");
+
+            session.Wallet.Add(CurrencyType.Coin, 1);
+            session.Persist();
+            Assert.IsTrue(sync.FlushAsync().IsCompleted);
+            Assert.AreEqual(506, new Wallet(JsonUtility.FromJson<PlayerSave>(server.StoredSave)).Get(CurrencyType.Coin), "sync runs again after the failed reset");
+        }
+
+        [Test]
+        public void Reset_Ok_ClearsCacheAndServer_KeepsId()
+        {
+            var (session, server, sync) = OnlineSession();
+            var id = server.PlayerId;
+            session.Save.PlayerName = "Peo";
+            session.Persist();
+            var backup = Path.Combine(_dir, "playtest-backup");
+            Directory.CreateDirectory(backup);
+            File.WriteAllText(Path.Combine(backup, "save.json"), "{}");
+            File.WriteAllText(_path + ".corrupt", "x");
+            var resets = 0;
+            session.ResetCompleted += () => resets++;
+
+            var reset = session.ResetToDefaultsAsync(server, sync);
+
+            Assert.IsTrue(reset.IsCompleted);
+            Assert.AreEqual(OnlineStatus.Ok, reset.Result);
+            Assert.AreEqual(1, resets);
+            Assert.AreEqual(500, session.Wallet.Get(CurrencyType.Coin), "new game currency only");
+            Assert.AreEqual("", session.Save.PlayerName);
+            Assert.IsFalse(File.Exists(_path + ".corrupt"));
+            Assert.IsTrue(File.Exists(Path.Combine(backup, "save.json")), "playtest-backup kept (D-009)");
+            var onServer = JsonUtility.FromJson<PlayerSave>(server.StoredSave);
+            Assert.AreEqual(500, new Wallet(onServer).Get(CurrencyType.Coin), "server holds the new game");
+            Assert.AreEqual("", onServer.PlayerName);
+            Assert.AreEqual(id, server.PlayerId, "player id kept");
+        }
     }
 }

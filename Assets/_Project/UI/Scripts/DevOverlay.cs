@@ -91,10 +91,10 @@ namespace BunDauPeo.UI
             if (hub != null) hub.CloseOpenPages();
         }
 
-        public static bool ResetAll()
+        public static System.Threading.Tasks.Task<OnlineStatus> ResetAll()
         {
             CloseHubPages();
-            return ServiceLocator.Get<GameResetter>().Reset();
+            return ServiceLocator.Get<GameResetter>().ResetAsync();
         }
 
         // Trả dòng báo cho nút: "" khi đã nạp lại scene.
@@ -113,6 +113,9 @@ namespace BunDauPeo.UI
         }
 
         // Mọi nút DEV nằm trong panel Cài đặt, chỉ người thử bấm Menu → DEV mới mở; ngoài panel không có nút nào nên không đè nút game (L-025).
+        // Panel sống qua Về Tiêu đề (máy khác, Xoá tài khoản) còn service thì dựng lại: lấy service lúc bấm, không giữ bản cũ.
+        private static CombatService Combat() => ServiceLocator.Get<CombatService>();
+
         // Chuyển màn do thanh dưới của hub làm. Reset luôn qua hộp xác nhận (D-005).
         private static void BuildSettings(Font font, CombatService combat)
         {
@@ -135,15 +138,15 @@ namespace BunDauPeo.UI
             const float Left = 40, Right = 520, Width = 440;
             AddButton(box, font, "Chiến đấu thử", new Vector2(Left, 475), Width, () =>
             {
-                if (StartTrialBattle(combat)) dim.gameObject.SetActive(false);
+                if (StartTrialBattle(Combat())) dim.gameObject.SetActive(false);
             });
             Text stageLabel = null;
             stageLabel = AddButton(box, font, StageLabel(combat), new Vector2(Right, 475), Width, () =>
             {
-                _trialStageId = NextBattleStageId(combat.Config.Stages, _trialStageId);
-                stageLabel.text = StageLabel(combat);
+                _trialStageId = NextBattleStageId(Combat().Config.Stages, _trialStageId);
+                stageLabel.text = StageLabel(Combat());
             });
-            AddButton(box, font, "Hồi đầy thể lực", new Vector2(Left, 395), Width, combat.Stamina.Refill);
+            AddButton(box, font, "Hồi đầy thể lực", new Vector2(Left, 395), Width, () => Combat().Stamina.Refill());
             // Qua ví như mọi nguồn thu khác (không chạm file save), nên Changed bắn và Reset Save Data xoá sạch như thường.
             AddButton(box, font, $"+{MaterialGrant} Material", new Vector2(Right, 395), Width,
                 () => ServiceLocator.Get<Wallet>().Add(CurrencyType.Material, MaterialGrant));
@@ -164,19 +167,20 @@ namespace BunDauPeo.UI
             var confirm = NewRect("ResetConfirm", box, new Vector2(40, 40), new Vector2(920, 170));
             confirm.gameObject.AddComponent<Image>().color = new Color(0.35f, 0.1f, 0.1f, 1f);
             var prompt = AddLabel(confirm, font, ConfirmPrompt, new Vector2(20, 80), new Vector2(880, 80), 32);
-            var yes = AddButton(confirm, font, "Xoá hết", new Vector2(40, 10), 400, () =>
+            var yes = AddButton(confirm, font, "Xoá hết", new Vector2(40, 10), 400, async () =>
             {
-                // Thất bại (file bị khoá...) thì giữ panel mở và báo rõ, không đóng như thành công.
-                if (ResetAll())
+                // Thất bại (mất mạng, file bị khoá...) thì giữ panel mở và báo rõ, không đóng như thành công.
+                var status = await ResetAll();
+                if (status == OnlineStatus.Ok)
                 {
                     Debug.Log("DevOverlay: Reset Save Data = True");
                     dim.gameObject.SetActive(false);
                     return;
                 }
 
-                prompt.text = ResetFailedMessage;
+                prompt.text = ResetFailedMessage + $" ({status})";
                 prompt.color = new Color(1f, 0.9f, 0.3f);
-                Debug.LogError("DevOverlay: Reset Save Data FAILED.");
+                Debug.LogError($"DevOverlay: Reset Save Data FAILED ({status}).");
             });
             yes.GetComponentInParent<Image>().color = new Color(0.85f, 0.2f, 0.2f);
             AddButton(confirm, font, "Huỷ", new Vector2(480, 10), 400, () => confirm.gameObject.SetActive(false));

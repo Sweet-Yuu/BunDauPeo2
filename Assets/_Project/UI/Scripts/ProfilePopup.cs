@@ -8,7 +8,8 @@ using UnityEngine.UI;
 
 namespace BunDauPeo.UI
 {
-    // Hộp Hồ sơ giữa màn (spec UI hub C 5.4): tên sửa được (tối đa PlayerNameRule.MaxLength), avatar chọn trong lưới nhân vật đã sở hữu.
+    // Hộp Hồ sơ giữa màn (spec UI hub C 5.4): tên sửa được (tối đa PlayerNameRule.MaxLength), avatar chọn trong lưới nhân vật đã sở hữu;
+    // dòng ID người chơi + Sao chép (Online 5.9).
     // Component nằm trên root của hộp nên IsOpen = root bật. Là hộp nổi (IHubOverlay): không đổi bố cục Lobby.
     public class ProfilePopup : MonoBehaviour, IHubOverlay
     {
@@ -25,6 +26,11 @@ namespace BunDauPeo.UI
         [SerializeField] private RectTransform _gridContent;
         [SerializeField] private Button _cellTemplate;
         [SerializeField] private Button _closeButton;
+        [SerializeField] private Text _idText;
+        [SerializeField] private Button _copyButton;
+        [SerializeField] private GameObject _copiedText;
+
+        private const float CopiedSeconds = 2f;
 
         private sealed class Cell
         {
@@ -38,6 +44,8 @@ namespace BunDauPeo.UI
         private PlayerProfile _profile;
         private Roster _roster;
         private RestaurantService _service;
+        private IGameServer _server;
+        private float _copiedUntil;
         private bool _wired;
         // Chỉ nhận cú kết thúc gõ khi hộp mở: InputField còn focus bắn onEndEdit lúc bị tắt (Close, nạp lại scene).
         private bool _open;
@@ -56,6 +64,9 @@ namespace BunDauPeo.UI
             ((Text)_nameInput.placeholder).text = PlayerNameRule.Display("");
             _nameInput.SetTextWithoutNotify(_profile.Name);
             _status.text = "";
+            // Đọc lại mỗi lần mở: Xoá tài khoản rồi vào lại là người chơi mới.
+            _idText.text = UiText.Format("profile.player_id", PlayerId());
+            _copiedText.SetActive(false);
             RebuildGrid();
             _bigAvatar.Show(AvatarView.Current());
         }
@@ -85,6 +96,7 @@ namespace BunDauPeo.UI
             {
                 _profile = ServiceLocator.Get<PlayerProfile>();
                 _roster = ServiceLocator.Get<Roster>();
+                _server = ServiceLocator.Get<IGameServer>();
                 _service = ServiceLocator.Get<RestaurantService>();
                 _service.Incidents.SetSpawnBlocked(this, true);
             }
@@ -102,11 +114,28 @@ namespace BunDauPeo.UI
             _service = null;
             _profile = null;
             _roster = null;
+            _server = null;
+        }
+
+        private void Update()
+        {
+            if (_copiedText != null && _copiedText.activeSelf && Time.unscaledTime >= _copiedUntil) _copiedText.SetActive(false);
+        }
+
+        private string PlayerId() => _server?.PlayerId ?? "";
+
+        // shortcut: WebGL có thể không chép ra clipboard của trình duyệt qua systemCopyBuffer; nâng khi playtest WebGL thấy lỗi (kế hoạch Task 7).
+        private void CopyId()
+        {
+            GUIUtility.systemCopyBuffer = PlayerId();
+            _copiedText.SetActive(true);
+            _copiedUntil = Time.unscaledTime + CopiedSeconds;
         }
 
         private bool HasAllReferences()
         {
-            var ok = _nameInput != null && _status != null && _bigAvatar != null && _gridContent != null && _cellTemplate != null && _closeButton != null;
+            var ok = _nameInput != null && _status != null && _bigAvatar != null && _gridContent != null && _cellTemplate != null && _closeButton != null
+                     && _idText != null && _copyButton != null && _copiedText != null;
             if (!ok) Debug.LogError($"{nameof(ProfilePopup)}: references are not assigned.", this);
             return ok;
         }
@@ -119,6 +148,7 @@ namespace BunDauPeo.UI
             _wired = true;
             _nameInput.onEndEdit.AddListener(OnNameEnd);
             _closeButton.onClick.AddListener(Close);
+            _copyButton.onClick.AddListener(CopyId);
         }
 
         private void OnNameEnd(string text)

@@ -109,6 +109,28 @@ namespace BunDauPeo.Boot
             return Persist();
         }
 
+        // Reset online (spec 5.8, D-005): server xoá trước, rồi mới xoá máy. Server lỗi thì không xoá gì, đẩy save chạy lại.
+        // Server xong mà xoá/ghi bản đệm lỗi: bản trong bộ nhớ (cũ hay mới) vẫn được đẩy lên, nên server luôn khớp với máy.
+        public async System.Threading.Tasks.Task<OnlineStatus> ResetToDefaultsAsync(IGameServer server, CloudSync sync)
+        {
+            if (server == null) throw new ArgumentNullException(nameof(server));
+            if (sync == null) throw new ArgumentNullException(nameof(sync));
+
+            await sync.StopAsync();
+            var status = await server.ResetPlayerAsync();
+            if (status != OnlineStatus.Ok)
+            {
+                sync.Resume();
+                return status;
+            }
+
+            var reset = ResetToDefaults();
+            sync.Resume();
+            sync.MarkDirty();
+            await sync.FlushAsync();
+            return reset ? OnlineStatus.Ok : OnlineStatus.ServerError;
+        }
+
         private void GrantNewGame()
         {
             foreach (var line in _newGame.StartingCurrency)

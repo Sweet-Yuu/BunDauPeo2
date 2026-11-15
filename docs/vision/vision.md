@@ -5,7 +5,7 @@
 
 ## Một câu mô tả
 
-BunDauPeo là game RPG gacha 2D turn-based kết hợp quản lý quán bún đậu mắm tôm, chơi trên Android màn ngang, tải miễn phí, có mua trong game và quảng cáo thưởng; phần chơi cốt lõi chạy offline.
+BunDauPeo là game RPG gacha 2D turn-based kết hợp quản lý quán bún đậu mắm tôm, chơi trên Android màn ngang, tải miễn phí, có mua trong game và quảng cáo thưởng; cần mạng để chơi, tiến độ lưu trên server.
 
 ## Trải nghiệm cốt lõi
 
@@ -18,7 +18,7 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 ## Đối tượng & nền tảng
 
 - Đối tượng: TODO(user)
-- Nền tảng mục tiêu: Android trước, màn ngang. Tải miễn phí; có mua trong game và quảng cáo thưởng (user duyệt hướng này 2026-11-02, [D-007](../decisions/decisions.md)). Quán, chiến đấu và gacha chạy offline; mua và xem quảng cáo cần mạng.
+- Nền tảng mục tiêu: Android trước, màn ngang. Tải miễn phí; có mua trong game và quảng cáo thưởng (user duyệt hướng này 2026-11-02, [D-007](../decisions/decisions.md)). Phải có mạng mới chơi được (user đổi hướng 2026-11-13, [D-014](../decisions/decisions.md)).
 
 ## Phong cách
 
@@ -32,7 +32,7 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - Chiến đấu turn-based theo màn chơi: mỗi nhân vật có 1 đánh thường, 1 skill, 1 ultimate.
 - UI hub có thanh điều hướng dưới.
 - Lưu game cục bộ.
-- Online, xong trong bản 31/12 (user chốt 2026-11-09). Phạm vi chưa chốt: đăng nhập, lưu save trên server, Hộp quà, Thông báo tin, Nhiệm vụ, Hội, Hồ sơ online (xem [ideas](../design/ideas.md)), và có làm xếp hạng hay PvP không. `TODO(user)`: chốt trong spec Online.
+- Online, xong trong bản 31/12 (user chốt 2026-11-09): đăng nhập (ẩn danh, Google Play Games trên Android), save trên server, Gem và gacha do server giữ, Nhiệm vụ, Hộp quà, Hồ sơ online. Phạm vi và bốn đợt ở [spec Online](../superpowers/specs/2026-11-13-online-design.md) (user duyệt 2026-11-13); không có Hội, xếp hạng, PvP, Thông báo tin trong bản 31/12.
 - Mua trong game (gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu) và quảng cáo thưởng nhận Gem. Luật và `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
 - Nhân vật trùng thành mảnh để nâng sao (tối đa 5★); nâng sao tăng HP, Tấn công, Thủ (user chốt 2026-11-08, [spec Nâng sao](../superpowers/specs/2026-11-08-star-up-design.md)).
 

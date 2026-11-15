@@ -48,7 +48,7 @@ flowchart TD
   Notify["Nút Thông báo, hộp thả xuống (có)"] -->|bấm dòng| Lobby
   Menu --> Lang["Ngôn ngữ Việt ↔ Anh (có)"]
   Menu --> Reset["Reset dữ liệu + xác nhận (có)"]
-  Menu -.-> DelAcc["Xoá tài khoản + xác nhận (mới, O1)"]
+  Menu -.-> DelAcc["Xoá tài khoản + xác nhận (O1)"] -.->|Xoá| Title
   Menu -->|chỉ bản dev| Dev["Panel DEV (có)"]
   Battle -->|menu tạm dừng → Cài đặt, bản dev| Dev
   Dev -->|Chiến đấu thử| Battle
@@ -74,8 +74,8 @@ flowchart TD
 | Shop | nút tròn Shop; nút + của Thể lực, Coin, Gem | — | — (thiếu) | khoá ("Sắp có"); nạp tiền và quảng cáo làm sau 31/12 |
 | Menu | ô **Menu**, mở trên panel đang đứng | Đóng → panel đang đứng; bấm ô khác → ô đó | — (thiếu) | có, panel kín màn: Ngôn ngữ (đổi xong vẫn ở đúng ô, Menu vẫn mở; game mới và sau Reset là **tiếng Anh**), Reset dữ liệu, **Xoá tài khoản** (O1, dưới Reset), DEV (chỉ bản dev), Đóng |
 | Hộp Reset dữ liệu | Menu → Reset | Huỷ → Menu; Xoá hết → Lobby như game mới | — | có, hộp ([D-005](../decisions/decisions.md)). O1: câu xác nhận thêm "Xoá cả dữ liệu trên máy chủ. Tài khoản và liên kết vẫn giữ."; Reset giữ ID người chơi; mất mạng thì không xoá gì |
-| Hộp Xoá tài khoản | Menu → Xoá tài khoản | Huỷ → Menu; xoá xong → game mới với tài khoản mới | — | mới, O1: hộp xác nhận riêng ghi "vĩnh viễn, không lấy lại được, mất cả liên kết Google". Đường xoá trong app theo luật Google Play |
-| Hồ sơ | bấm avatar | Đóng → Lobby | — (thiếu) | có, **hộp giữa màn 1200×800**: tên sửa được (tối đa 12 ký tự, rỗng thì "Người chơi" / "Player"), lưới nhân vật đang sở hữu để đổi avatar; Reset xoá cả hai. O1: dòng **ID** + nút **Sao chép** ("Đã chép" 2 giây). O3: dòng **Tài khoản** + nút **Liên kết Google Play Games** (chỉ Android) |
+| Hộp Xoá tài khoản | Menu → nút **Xoá tài khoản** (ngay dưới Reset, cùng cỡ, chữ đỏ) | Huỷ → Menu; Xoá → về **Tiêu đề**, chạm vào là người chơi mới | — | đang làm, O1 (nhánh `feature/online-1`, ảnh `online1-delete-account*.png`): hộp xác nhận đỏ "Xoá vĩnh viễn tài khoản và mọi dữ liệu, kể cả liên kết Google. Không lấy lại được.", nút [Xoá] [Huỷ]. Đường xoá trong app theo luật Google Play |
+| Hồ sơ | bấm avatar | Đóng → Lobby | — (thiếu) | có, **hộp giữa màn 1200×800**: tên sửa được (tối đa 12 ký tự, rỗng thì "Người chơi" / "Player"), lưới nhân vật đang sở hữu để đổi avatar; Reset xoá cả hai. O1 (đang làm, ảnh `online1-profile*.png`): dòng **"ID: <PlayerId>"** + nút **Sao chép** ("Đã chép" 2 giây), ở cột trái dưới dòng "Tối đa 12 ký tự". O3: dòng **Tài khoản** + nút **Liên kết Google Play Games** (chỉ Android) |
 | Nhiệm vụ | nút tròn Nhiệm vụ ở Lobby; dòng "thưởng nhiệm vụ" của Thông báo (O4) | Quay lại → Lobby | — (thiếu) | mới, O3, trang kín màn: tab Ngày / Tân thủ; mỗi dòng tên, thanh tiến độ, thưởng, nút Nhận ("Đã nhận" khi xong); Nhận hết; tab Ngày ghi giờ còn lại tới lượt làm mới. Luật ở [game-design](game-design.md#nhiệm-vụ). Ảnh mô phỏng duyệt ở spec con O3 |
 | Hộp quà | nút tròn Hộp quà ở Lobby; dòng "quà chưa nhận" của Thông báo | Quay lại → Lobby | — (thiếu) | mới, O4, trang kín màn: quà đang trong hạn chưa nhận (tên, thưởng, hạn), nút Nhận, Nhận hết. Quà phát từ server. Ảnh mô phỏng duyệt ở spec con O4 |
 | Panel DEV | Menu → DEV; menu tạm dừng trong trận → Cài đặt | Đóng | — | có: Chiến đấu thử, Màn thử, Hồi thể lực, +Material, +Gem, Tua AFK, Ngôn ngữ, Reset, Đóng |
@@ -86,7 +86,7 @@ Mỗi panel chỉ hiện loại tiền nó dùng (user chốt 2026-11-09 và 202
 
 ## Hộp mạng
 
-O1, user chốt 2026-11-13. Đều là hộp vẽ trên cả thanh dưới và nút Thông báo.
+O1, user chốt 2026-11-13; đang làm trên nhánh `feature/online-1` (ảnh `online1-title-connecting*.png`, `online1-connect-failed*.png`). Cả ba dùng chung một hộp `OnlineBox_PH_900x420`, vẽ trên mọi màn, kể cả thanh dưới và nút Thông báo.
 
 | Hộp | Khi nào | Nút |
 |---|---|---|

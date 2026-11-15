@@ -46,7 +46,8 @@ namespace BunDauPeo.EditorTools
             name.fontStyle = FontStyle.Bold;
             Stretch(name.rectTransform);
 
-            var hint = NewLabel("TapHint", canvas, font, "title.tap_to_start", 64, TextAnchor.MiddleCenter, Color.white);
+            // TitleView ghi chữ lúc chạy ("Chạm để bắt đầu", rồi "Đang kết nối…") nên không gắn LocalizedText.
+            var hint = NewText("TapHint", canvas, font, UiText.Get("title.tap_to_start"), 64, TextAnchor.MiddleCenter, Color.white);
             Place(hint.rectTransform, TopCenter, Center, new Vector2(0, -830), new Vector2(1200, 100));
 
             var version = NewText("VersionText", canvas, font, UiText.Format("title.version", Application.version), 36, TextAnchor.LowerRight, Color.white);

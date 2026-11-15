@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using BunDauPeo.Boot;
 using BunDauPeo.Core;
 using BunDauPeo.UI;
@@ -38,13 +39,24 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void GameResetter_Reset_ReturnsDelegateResult()
+        public void GameResetter_ResetAsync_ReturnsDelegateResult()
         {
             var calls = 0;
-            Assert.IsTrue(new GameResetter(() => { calls++; return true; }).Reset());
-            Assert.IsFalse(new GameResetter(() => { calls++; return false; }).Reset(), "reset thất bại phải báo false");
+            Assert.AreEqual(OnlineStatus.Ok, new GameResetter(() => { calls++; return Task.FromResult(OnlineStatus.Ok); }).ResetAsync().Result);
+            Assert.AreEqual(OnlineStatus.NetworkError, new GameResetter(() => { calls++; return Task.FromResult(OnlineStatus.NetworkError); }).ResetAsync().Result,
+                "reset thất bại phải báo đúng lỗi");
             Assert.AreEqual(2, calls);
             Assert.Throws<ArgumentNullException>(() => new GameResetter(null));
+        }
+
+        [Test]
+        public void AccountDeleter_NullThrows_ReturnsDelegateResult()
+        {
+            var calls = 0;
+            Assert.AreEqual(OnlineStatus.Ok, new AccountDeleter(() => { calls++; return Task.FromResult(OnlineStatus.Ok); }).DeleteAsync().Result);
+            Assert.AreEqual(OnlineStatus.ServerError, new AccountDeleter(() => { calls++; return Task.FromResult(OnlineStatus.ServerError); }).DeleteAsync().Result);
+            Assert.AreEqual(2, calls);
+            Assert.Throws<ArgumentNullException>(() => new AccountDeleter(null));
         }
 
         [Test]
@@ -85,7 +97,10 @@ namespace BunDauPeo.Tests
             session.Persist();
             Assert.AreEqual(30 + DevOverlay.GemGrant, session.Wallet.Get(CurrencyType.Gem));
 
-            Assert.IsTrue(new GameResetter(session.ResetToDefaults).Reset());
+            var server = new LocalGameServer();
+            Assert.AreEqual(OnlineStatus.Ok, server.SignInAsync().Result);
+            var sync = new CloudSync(server, () => UnityEngine.JsonUtility.ToJson(session.Save), () => { });
+            Assert.AreEqual(OnlineStatus.Ok, new GameResetter(() => session.ResetToDefaultsAsync(server, sync)).ResetAsync().Result);
 
             Assert.AreEqual(30, session.Wallet.Get(CurrencyType.Gem));
             var reopened = new GameSession(new SaveService(path), TestData.Catalog(a), config);
