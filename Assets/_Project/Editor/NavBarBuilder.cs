@@ -367,18 +367,19 @@ namespace BunDauPeo.EditorTools
 
             var hint = NewLabel("NameHint", box, font, "profile.name_hint", 26, TextAnchor.MiddleLeft, HintColor);
             Place(hint.rectTransform, TopLeft, TopLeft, new Vector2(40, -550), new Vector2(400, 40));
-            // Online 5.9 (ảnh mô phỏng bản 1): dòng ID + Sao chép dưới gợi ý tên, cột trái; ID dài thì chữ co lại, không đè lưới avatar.
+            // Online 5.9: dòng ID riêng dưới gợi ý tên, rộng gần hết cột trái (user chốt 2026-11-15, thay bản ảnh mô phỏng ID và Sao chép
+            // cùng hàng: ID dài co chữ quá nhỏ); Sao chép và "Đã chép" ở dòng dưới. ID dài hơn dòng (Local) thì chữ co lại, không đè lưới avatar.
             var idText = NewText("ProfileIdText", box, font, "", 26, TextAnchor.MiddleLeft, Color.white);
-            Place(idText.rectTransform, TopLeft, TopLeft, new Vector2(40, -600), new Vector2(260, 70));
+            Place(idText.rectTransform, TopLeft, TopLeft, new Vector2(40, -600), new Vector2(470, 50));
             idText.resizeTextForBestFit = true;
-            idText.resizeTextMinSize = 14;
+            idText.resizeTextMinSize = 16;
             idText.resizeTextMaxSize = 26;
-            var copy = BattleSceneBuilder.LabelButton("ProfileIdCopyBtn_PH_200x70", box, sprite, font, "profile.copy", GreyButton, TopLeft, new Vector2(310, -600), new Vector2(200, 70));
-            var copied = NewLabel("CopiedText", box, font, "profile.copied", 24, TextAnchor.MiddleCenter, Gold);
-            Place(copied.rectTransform, TopLeft, TopLeft, new Vector2(310, -675), new Vector2(130, 36));
+            var copy = BattleSceneBuilder.LabelButton("ProfileIdCopyBtn_PH_200x70", box, sprite, font, "profile.copy", GreyButton, TopLeft, new Vector2(40, -655), new Vector2(200, 70));
+            var copied = NewLabel("CopiedText", box, font, "profile.copied", 24, TextAnchor.MiddleLeft, Gold);
+            Place(copied.rectTransform, TopLeft, TopLeft, new Vector2(255, -672), new Vector2(185, 36));
             copied.gameObject.SetActive(false);
             var status = NewText("ProfileStatus", box, font, "", 28, TextAnchor.UpperLeft, Warning);
-            Place(status.rectTransform, TopLeft, TopLeft, new Vector2(40, -680), new Vector2(260, 80));
+            Place(status.rectTransform, TopLeft, TopLeft, new Vector2(40, -735), new Vector2(400, 60));
 
             var label = NewLabel("AvatarLabel", box, font, "profile.change_avatar", 38, TextAnchor.MiddleLeft, Gold);
             Place(label.rectTransform, TopLeft, TopLeft, new Vector2(520, -120), new Vector2(600, 60));

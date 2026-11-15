@@ -204,7 +204,10 @@ namespace BunDauPeo.Tests
                 var copyRect = FromTop(scene, copy);
                 Assert.GreaterOrEqual(idRect.yMin, hint.yMax, "under the name hint");
                 Assert.Less(idRect.xMin, 600f, "left column");
-                Assert.AreEqual(idRect.center.y, copyRect.center.y, 0.01f, "Copy sits on the id row");
+                // User chốt 2026-11-15: ID một dòng riêng rộng gần hết cột trái (ID UGS ~28 ký tự đọc được ở cỡ 26), Sao chép ở dòng dưới.
+                Assert.GreaterOrEqual(idRect.width, 460f, "the id row spans the left column");
+                Assert.GreaterOrEqual(copyRect.yMin, idRect.yMax, "Copy sits under the id row");
+                Assert.AreEqual(idRect.xMin, copyRect.xMin, 0.01f, "Copy lines up with the id");
                 var close = FromTop(RestaurantSceneTests.InReferenceCanvas((RectTransform)Named(scene, "ProfilePopup").GetComponentsInChildren<Button>(true).Single(b => b.name == "CloseButton").transform));
                 foreach (var other in new[] { FromTop(scene, "NameInput_PH_400x90"), FromTop(scene, "AvatarGrid"), close, FromTop(scene, "ProfileStatus") })
                     foreach (var (name, rect) in new[] { (id, idRect), (copy, copyRect), (copied, FromTop(scene, copied)) })
