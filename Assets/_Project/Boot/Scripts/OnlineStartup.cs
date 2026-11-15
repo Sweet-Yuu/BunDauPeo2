@@ -163,14 +163,16 @@ namespace BunDauPeo.Boot
             return OnlineStatus.Ok;
         }
 
-        // Xoá tài khoản (spec 5.8): server xoá dữ liệu và tài khoản trước; lỗi thì không xoá gì trên máy và đẩy save chạy lại.
+        // Xoá tài khoản (spec 5.8): server xoá dữ liệu và tài khoản trước; lỗi thì không xoá gì trên máy và đẩy lại save.
         private async Task<OnlineStatus> DeleteAccountAsync(CloudSync sync)
         {
             await sync.StopAsync();
             var status = await _server.DeleteAccountAsync();
             if (status != OnlineStatus.Ok)
             {
+                // UGS xoá dữ liệu rồi mới xoá tài khoản: bước sau lỗi thì server có thể đã trống, nên đẩy lại save trong bộ nhớ ngay.
                 sync.Resume();
+                sync.MarkDirty();
                 return status;
             }
 

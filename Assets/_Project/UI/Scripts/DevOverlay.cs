@@ -83,7 +83,7 @@ namespace BunDauPeo.UI
         // Battle không nạp lại: scene đang chạy trận, nạp lại làm hỏng trận.
         public static bool ShouldReloadScene(string activeScene) => activeScene != BattleView.BattleScene;
 
-        // Trang kín màn của hub đang mở (Chọn đội...) giữ ảnh chụp đội cũ: đóng trước khi lưu hay xoá save, kẻo Hủy sau đó ghi đội cũ
+        // Trang kín màn của hub đang mở (Chọn đội...) giữ ảnh chụp đội cũ: đóng trước khi lưu hay xoá save, kẻo Huỷ sau đó ghi đội cũ
         // vào save mới (D-005, L-035). Battle không có hub.
         private static void CloseHubPages()
         {

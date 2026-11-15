@@ -392,6 +392,8 @@ Khung 1920×1080. Hộp giữ cỡ, nền mờ kín màn vẽ trên thanh dướ
 **Hộp Tài khoản đang dùng ở máy khác** (bản 1; cùng khung, nút "Về màn Tiêu đề").
 
 **Hồ sơ, thêm dòng ID** (bản 1; dưới dòng gợi ý "Tối đa 12 ký tự", cột trái):
+
+> Đổi sau playtest (user chốt 2026-11-15): dòng ID rộng 470 px (gần hết cột trái), nút Sao chép xuống dòng dưới, canh trái với ID. Bản 1 bên dưới để ID và Sao chép cùng một dòng 260 px, làm ID UGS dài co chữ quá nhỏ. Ảnh thật: `online1-profile.png`.
 ```
 ┌──────────────────────── Hồ sơ ────────────────────────┐
 │   ( A )  avatar lớn          Đổi avatar                 │

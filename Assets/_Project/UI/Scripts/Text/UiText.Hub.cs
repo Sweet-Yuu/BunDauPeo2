@@ -24,6 +24,7 @@ namespace BunDauPeo.UI
             ("menu.delete_account_confirm", "Xoá vĩnh viễn tài khoản và mọi dữ liệu, kể cả liên kết Google. Không lấy lại được.",
                 "Permanently delete your account and all data, including linked Google account. This cannot be undone."),
             ("menu.delete_yes", "Xoá", "Delete"),
+            ("menu.delete_account_failed", "Chưa xoá được tài khoản: máy chủ báo lỗi. Thử lại sau.", "Couldn't delete the account: server error. Try again later."),
             ("hub.back", "Quay lại", "Back"),
             ("hub.banner_gacha", "Gacha\nQuay ngay", "Gacha\nPull now"),
             ("hub.shop", "Shop", "Shop"),

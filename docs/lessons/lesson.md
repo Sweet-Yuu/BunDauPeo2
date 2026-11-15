@@ -61,7 +61,7 @@
 Nội dung đầy đủ nằm trong lịch sử git của file này (trước 2026-11-03; L-025, L-027, L-028 ở commit `eef6ade`). Luật hiện hành ở file được trỏ tới.
 
 - L-037 (2026-11-13) Test đọc Build Settings, Boot, Title và chỉ xanh sau khi `ProjectSetupTests` gọi `ProjectSetup.Run()` ghi lại file; `Rebuild` bị chặn quyền ở C1 nên lượt test đầu đỏ và tự sinh file đem commit (lần thứ 3 sau L-002, L-032)  #unity-files #process → [code-style, Test](../guides/code-style.md#test)
-- L-035 (2026-11-11) Ảnh chụp để Hủy trả về còn sống qua Reset, Hủy ghi người đã mất vào save mới  #script #process → [code-style, Service, tiền và save](../guides/code-style.md#service-tiền-và-save)
+- L-035 (2026-11-11) Ảnh chụp để Huỷ trả về còn sống qua Reset, Huỷ ghi người đã mất vào save mới  #script #process → [code-style, Service, tiền và save](../guides/code-style.md#service-tiền-và-save)
 - L-026 (2026-11-06) `Capture1080("tên")` không tự thêm đuôi `.png` (lặp ở UI hub B)  #ui #process → đã sửa công cụ: `ScreenCapture1080` tự thêm `.png`, có test; không còn luật
 - L-029, L-034 (2026-11-07, 2026-11-09) Test EditMode với MonoBehaviour: `OnEnable` không chạy ngoài Play, MonoBehaviour giả trong assembly Tests không gắn được  #script #process → [code-style, Test](../guides/code-style.md#test)
 - L-033 (2026-11-09) Mô phỏng UI để popup thành hộp giữa màn, user sửa thành kín màn  #ui #process → [unity-workflow, UI và hình tạm](../guides/unity-workflow.md#ui-và-hình-tạm)

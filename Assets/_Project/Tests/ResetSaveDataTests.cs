@@ -59,5 +59,18 @@ namespace BunDauPeo.Tests
 
             Assert.AreEqual(500, live.Wallet.Get(CurrencyType.Coin));
         }
+
+        // Review O1 mục 1: chế độ UGS mà chưa có session (chưa Play, hay còn ở Tiêu đề) không với tới save trên server; chỉ xoá bản đệm
+        // thì Play lại tiến độ về như cũ (D-005). Từ chối, báo cần vào game, không hỏi và không xoá gì.
+        [Test]
+        public void Run_UgsWithoutSession_RefusesAndDeletesNothing()
+        {
+            var asked = false;
+            var told = 0;
+            Assert.IsFalse(ResetSaveData.Run(() => { asked = true; return true; }, _service, null, useUgs: true, needsPlay: () => told++));
+            Assert.IsFalse(asked, "nothing to confirm");
+            Assert.AreEqual(1, told, "tells the user to enter the game first");
+            Assert.IsTrue(File.Exists(_path), "the cache is kept");
+        }
     }
 }

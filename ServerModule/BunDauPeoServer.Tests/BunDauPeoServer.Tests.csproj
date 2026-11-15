@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <!-- net9.0: máy chỉ có .NET 9 SDK (user chốt 2026-11-13); module vẫn net8.0 như Cloud Code chạy. -->
+    <!-- net9.0 trên máy có .NET 9 SDK (máy user, chốt 2026-11-13); máy chỉ có .NET 8 SDK (CI) thì net8.0, kẻo restore cả sln báo
+         NETSDK1045. Module vẫn net8.0 như Cloud Code chạy. -->
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework Condition="$(NETCoreSdkVersion.StartsWith('8.'))">net8.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>

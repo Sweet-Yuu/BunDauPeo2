@@ -100,7 +100,7 @@ namespace BunDauPeo.Characters
             return true;
         }
 
-        // Chọn đội dở rồi Hủy: trả đội và vai ở quán về như lúc mở. Cả hai danh sách, vì AddToTeam gỡ người khỏi quán.
+        // Chọn đội dở rồi Huỷ: trả đội và vai ở quán về như lúc mở. Cả hai danh sách, vì AddToTeam gỡ người khỏi quán.
         public TeamSnapshot SnapshotTeam() => new(_save.BattleTeam.ToArray(), _save.Staff.ToArray());
 
         public void RestoreTeam(TeamSnapshot snapshot)

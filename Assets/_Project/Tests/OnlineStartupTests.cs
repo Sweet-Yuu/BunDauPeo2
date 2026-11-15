@@ -70,5 +70,23 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(1, _host.GetComponents<RestaurantRunner>().Length);
             Assert.AreEqual(2, _server.BootstrapCalls, "each start asks the server again");
         }
+
+        // Review O1 mục 4: UGS xoá dữ liệu (ResetPlayer) rồi mới xoá tài khoản; bước sau lỗi thì server đã trống mà tài khoản còn.
+        // Save trong bộ nhớ phải được đẩy lại ngay, kẻo tắt app lúc đó thì mở lại cùng ID là game mới.
+        [Test]
+        public async Task DeleteAccount_FailsAfterServerWiped_PushesSaveAgain()
+        {
+            Assert.AreEqual(OnlineStatus.Ok, await _startup.StartAsync());
+            await _startup.Sync.FlushAsync();
+            Assert.IsNotNull(_server.StoredSave, "the new game is on the server");
+
+            _server.Seed(null);
+            _server.FailNextOn(nameof(IGameServer.DeleteAccountAsync), OnlineStatus.NetworkError);
+            Assert.AreEqual(OnlineStatus.NetworkError, await ServiceLocator.Get<AccountDeleter>().DeleteAsync());
+            Assert.IsTrue(_startup.IsStarted, "the game keeps running");
+
+            await _startup.Sync.FlushAsync();
+            Assert.IsNotNull(_server.StoredSave, "the save is pushed back");
+        }
     }
 }

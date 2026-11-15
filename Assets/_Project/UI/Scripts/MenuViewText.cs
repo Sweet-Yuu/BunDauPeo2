@@ -6,6 +6,7 @@ namespace BunDauPeo.UI
         public static string LanguageLabel() => UiText.Get("hub.language");
         public static string LanguageNotSaved() => UiText.Get("hub.language_not_saved");
         public static string ResetFailed() => UiText.Get("hub.reset_failed");
+        public static string DeleteFailed() => UiText.Get("menu.delete_account_failed");
         public static string ComingSoon() => UiText.Get("hub.coming_soon");
     }
 }

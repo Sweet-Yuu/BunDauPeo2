@@ -229,7 +229,7 @@ namespace BunDauPeo.EditorTools
         }
 
         // Trang kín màn (S1, spec UI hub 5.5), hai cột trong vùng trên vạch: tên màn ở trên; trái: tối đa 4 hàng đợt (5 ô vuông, boss
-        // lớn hơn); phải: hàng ô thưởng, thể lực, cảnh báo, nút Thách đấu dưới-phải (neo mép phải hộp). Hủy là nút Quay lại trên-trái.
+        // lớn hơn); phải: hàng ô thưởng, thể lực, cảnh báo, nút Thách đấu dưới-phải (neo mép phải hộp). Huỷ là nút Quay lại trên-trái.
         // Toạ độ tính từ tâm hộp nội dung (1920×960 trên thanh), y hướng lên; nội dung nằm trong ±800 để màn 4:3 nhỏ của test vẫn thấy hết.
         private static StageInfoPopup BuildInfoPopup(RectTransform canvas, Sprite sprite, Font font)
         {
@@ -319,7 +319,7 @@ namespace BunDauPeo.EditorTools
         }
 
         // Trang kín màn (T1, spec UI hub 5.5): lưới 16 thẻ chân dung 150×190 (8×2, phân trang); hàng dưới: 5 chip 150×120 chia theo
-        // đội hình tự xếp bên trái, Vào trận bên phải; Hủy là nút Quay lại trên-trái. Toạ độ từ tâm hộp nội dung (1920×960 trên thanh).
+        // đội hình tự xếp bên trái, Vào trận bên phải; Huỷ là nút Quay lại trên-trái. Toạ độ từ tâm hộp nội dung (1920×960 trên thanh).
         // Hai hộp xác nhận nằm trong cùng nền chặn chạm và tắt sẵn (thể lực chưa bị trừ khi hộp mở); chúng giữ cỡ cũ, vẽ trên thanh.
         private static TeamSelectPopup BuildTeamPopup(RectTransform canvas, Sprite sprite, Sprite knob, Font font)
         {

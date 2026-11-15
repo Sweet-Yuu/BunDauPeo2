@@ -17,7 +17,7 @@ namespace BunDauPeo.Core
         // JSON khoá save, null nếu chưa có; nhớ write lock cho lần đẩy sau.
         Task<OnlineResult<string>> LoadSaveAsync();
 
-        // Xung đột write lock (máy khác vừa ghi) → OtherDevice.
+        // Xung đột write lock (máy khác vừa ghi, hoặc lượt trước của máy này đã ghi mà mất trả lời) → OtherDevice; CloudSync phân biệt hai ca.
         Task<OnlineStatus> UploadSaveAsync(string json);
 
         // Xoá dữ liệu trên server, giữ tài khoản và ID.

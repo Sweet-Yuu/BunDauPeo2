@@ -26,6 +26,8 @@ namespace BunDauPeo.UI
         private static Text _buttonLabel;
         private static Action _action;
         private static IGameStarter _watched;
+        // Hộp đang chờ Thử lại một lệnh (Reset, Xoá tài khoản): sự kiện đẩy save chung không được đổi nút hay đóng hộp.
+        private static bool _forCommand;
 
         // Tắt domain reload thì static còn nguyên sang lần Play sau.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -35,19 +37,26 @@ namespace BunDauPeo.UI
             _dim = null;
             _action = null;
             _watched = null;
+            _forCommand = false;
         }
 
         public static bool IsShown => _dim != null && _dim.activeSelf;
 
         public static void ShowConnectFailed(Action retry) => Show("online.connect_failed_title", "online.connect_failed_body", "online.retry", retry);
 
-        public static void ShowLost(Action retry) => Show("online.lost_title", "online.lost_body", "online.retry", retry);
+        // Thử lại một lệnh đang dở (Reset, Xoá tài khoản); Mất kết nối của đẩy save dùng OnProblem.
+        public static void ShowLost(Action retry)
+        {
+            Show("online.lost_title", "online.lost_body", "online.retry", retry);
+            _forCommand = true;
+        }
 
         public static void ShowOtherDevice(Action toTitle) => Show("online.other_device_title", "online.other_device_body", "online.to_title", toTitle);
 
         public static void Hide()
         {
             _action = null;
+            _forCommand = false;
             if (_dim != null) _dim.SetActive(false);
         }
 
@@ -58,19 +67,24 @@ namespace BunDauPeo.UI
             if (_watched != null)
             {
                 _watched.ConnectionProblem -= OnProblem;
-                _watched.ConnectionRestored -= Hide;
+                _watched.ConnectionRestored -= OnRestored;
             }
 
             _watched = starter;
             starter.ConnectionProblem += OnProblem;
-            starter.ConnectionRestored += Hide;
+            starter.ConnectionRestored += OnRestored;
         }
 
         private static void OnProblem(OnlineStatus status)
         {
             if (status == OnlineStatus.OtherDevice) ShowOtherDevice(ToTitle);
             // Hộp đóng khi lượt đẩy thành công (ConnectionRestored); lỗi nữa thì hộp ở lại để bấm tiếp.
-            else ShowLost(() => _ = ServiceLocator.Get<CloudSync>().FlushAsync());
+            else if (!_forCommand) Show("online.lost_title", "online.lost_body", "online.retry", () => _ = ServiceLocator.Get<CloudSync>().FlushAsync());
+        }
+
+        private static void OnRestored()
+        {
+            if (!_forCommand) Hide();
         }
 
         // Bỏ thay đổi chưa đẩy: Tiêu đề đăng nhập lại và tải bản trên server (spec 5.4, máy đăng nhập sau thắng).
@@ -88,6 +102,7 @@ namespace BunDauPeo.UI
             _body.text = UiText.Get(bodyKey);
             _buttonLabel.text = UiText.Get(buttonKey);
             _action = action;
+            _forCommand = false;
             _dim.SetActive(true);
         }
 

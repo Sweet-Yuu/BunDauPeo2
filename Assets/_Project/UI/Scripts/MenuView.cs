@@ -113,7 +113,7 @@ namespace BunDauPeo.UI
         private void ConfirmReset()
         {
             _resetConfirmRoot.SetActive(false);
-            // Trang đang mở (Chọn đội...) giữ ảnh chụp đội cũ: đóng trước, kẻo Hủy sau Reset lỗi ghi đội cũ vào save mới (D-005, L-035).
+            // Trang đang mở (Chọn đội...) giữ ảnh chụp đội cũ: đóng trước, kẻo Huỷ sau Reset lỗi ghi đội cũ vào save mới (D-005, L-035).
             _hub.CloseOpenPages();
             _ = ResetAsync(_resetter);
         }
@@ -170,8 +170,15 @@ namespace BunDauPeo.UI
                 return;
             }
 
-            // Lỗi nào cũng là server chưa xoá (bản đệm chỉ xoá sau khi server xong): hộp Mất kết nối, Thử lại một lần.
+            // Tài khoản còn và bản đệm chưa xoá; dữ liệu server có thể đã xoá giữa chừng, nên Boot đã đẩy lại save trong bộ nhớ.
             Debug.LogWarning($"MenuView: delete account failed ({status}).");
+            // Lỗi server (module hỏng) thì Thử lại ngay cũng lỗi: báo ở dòng trạng thái, không mở hộp chỉ có Thử lại kẻo kẹt vòng.
+            if (status != OnlineStatus.NetworkError)
+            {
+                if (this != null) _statusText.text = MenuViewText.DeleteFailed();
+                return;
+            }
+
             OnlineOverlay.ShowLost(() =>
             {
                 OnlineOverlay.Hide();

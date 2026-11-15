@@ -13,6 +13,8 @@ namespace BunDauPeo.Core
         private string _failOn;
         private OnlineStatus _failOnStatus;
         private bool _otherDeviceNext;
+        private bool _loseNextReply;
+        private bool _writeLockStale;
 
         public LocalGameServer() : this(() => DateTime.UtcNow) { }
 
@@ -46,6 +48,10 @@ namespace BunDauPeo.Core
 
         public void SimulateOtherDevice() => _otherDeviceNext = true;
 
+        // Lượt đẩy kế tiếp ghi xong nhưng trả lời mất (hết giờ, NetworkError): máy giữ write lock cũ nên các lượt đẩy sau xung đột
+        // (OtherDevice) tới khi tải lại save, như Cloud Save thật.
+        public void LoseNextUploadReply() => _loseNextReply = true;
+
         // Editor chế độ Local nạp bản đệm làm dữ liệu server để tiến độ còn qua các lần Play.
         public void Seed(string json) => StoredSave = json;
 
@@ -75,8 +81,12 @@ namespace BunDauPeo.Core
             return Load();
         }
 
-        private OnlineResult<string> Load() =>
-            Refuse(nameof(LoadSaveAsync), out var status) ? OnlineResult<string>.Fail(status) : OnlineResult<string>.Success(StoredSave);
+        private OnlineResult<string> Load()
+        {
+            if (Refuse(nameof(LoadSaveAsync), out var status)) return OnlineResult<string>.Fail(status);
+            _writeLockStale = false;
+            return OnlineResult<string>.Success(StoredSave);
+        }
 
         public Task<OnlineStatus> UploadSaveAsync(string json)
         {
@@ -100,8 +110,12 @@ namespace BunDauPeo.Core
                 return OnlineStatus.OtherDevice;
             }
 
+            if (_writeLockStale) return OnlineStatus.OtherDevice;
             StoredSave = json;
-            return OnlineStatus.Ok;
+            if (!_loseNextReply) return OnlineStatus.Ok;
+            _loseNextReply = false;
+            _writeLockStale = true;
+            return OnlineStatus.NetworkError;
         }
 
         public Task<OnlineStatus> ResetPlayerAsync()

@@ -16,7 +16,8 @@ namespace BunDauPeo.EditorTools
             var live = Application.isPlaying ? UnityEngine.Object.FindFirstObjectByType<GameBootstrap>()?.Session : null;
             if (live == null)
             {
-                if (Run(Confirm, new SaveService(GameBootstrap.SavePath), null)) Debug.Log("Reset Save Data: done.");
+                if (Run(Confirm, new SaveService(GameBootstrap.SavePath), null, GameBootstrap.UseUgsInEditor, ExplainNeedsPlay))
+                    Debug.Log("Reset Save Data: done.");
                 return;
             }
 
@@ -29,8 +30,15 @@ namespace BunDauPeo.EditorTools
         }
 
         // live != null khi đang Play: phải reset cả session đang chạy, nếu không OnApplicationQuit sẽ ghi lại dữ liệu cũ.
-        public static bool Run(Func<bool> confirm, SaveService service, GameSession live)
+        // UGS mà chưa có session: không với tới save trên server, chỉ xoá bản đệm thì Play lại tiến độ về như cũ (D-005), nên từ chối.
+        public static bool Run(Func<bool> confirm, SaveService service, GameSession live, bool useUgs = false, Action needsPlay = null)
         {
+            if (live == null && useUgs)
+            {
+                needsPlay?.Invoke();
+                return false;
+            }
+
             if (!confirm()) return false;
             return live != null ? live.ResetToDefaults() : service.DeleteAll();
         }
@@ -40,6 +48,12 @@ namespace BunDauPeo.EditorTools
             if (live != null) UnityEngine.Object.FindFirstObjectByType<HubNav>()?.CloseOpenPages();
             return true;
         }
+
+        private static void ExplainNeedsPlay() => EditorUtility.DisplayDialog(
+            "Reset Save Data",
+            "Chế độ UGS: save nằm trên server, menu này chưa với tới khi chưa vào game.\n\n" +
+            "Vào Play, chạm Tiêu đề để vào game rồi chạy lại menu này để reset cả server.\n\nChưa xoá gì.",
+            "OK");
 
         private static bool Confirm() => EditorUtility.DisplayDialog(
             "Reset Save Data",

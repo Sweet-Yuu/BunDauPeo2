@@ -11,7 +11,7 @@ namespace BunDauPeo.Online
     {
         public static OnlineStatus Map(Exception e) => e switch
         {
-            // Lỗi write lock: máy khác đã ghi khoá save sau lần ta đọc (spec 5.4).
+            // Lỗi write lock: khoá save đã bị ghi sau lần ta đọc (spec 5.4); CloudSync loại ca lượt trước của ta ghi xong mà mất trả lời.
             CloudSaveException { Reason: CloudSaveExceptionReason.Conflict } => OnlineStatus.OtherDevice,
             RequestFailedException r when IsNetwork(r.ErrorCode) => OnlineStatus.NetworkError,
             TimeoutException or HttpRequestException => OnlineStatus.NetworkError,

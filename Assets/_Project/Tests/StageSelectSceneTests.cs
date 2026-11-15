@@ -49,7 +49,7 @@ namespace BunDauPeo.Tests
             });
 
         // S1 (trang kín màn): hai cột trong vùng trên vạch. Trái: tên, quái. Phải: thưởng, thể lực, cảnh báo, nút Thách đấu dưới-phải.
-        // Nút Hủy là nút Quay lại ở góc trên-trái.
+        // Nút Huỷ là nút Quay lại ở góc trên-trái.
         [Test]
         public void StageSelectScene_InfoPopup_TwoColumns_InsideBox() =>
             WithStageSelect(scene =>
@@ -236,7 +236,7 @@ namespace BunDauPeo.Tests
 
         private static Rect RectOf(Component part) => RestaurantSceneTests.InReferenceCanvas((RectTransform)part.transform);
 
-        // T1 (trang kín màn): 16 thẻ 8×2 không đè, 5 chip cùng hàng, Vào trận cùng hàng chip và bên phải chip cuối; Hủy là nút Quay lại trên-trái.
+        // T1 (trang kín màn): 16 thẻ 8×2 không đè, 5 chip cùng hàng, Vào trận cùng hàng chip và bên phải chip cuối; Huỷ là nút Quay lại trên-trái.
         [Test]
         public void StageSelectScene_TeamPopup_SixteenCards_NoOverlap_ButtonsBesideChips() =>
             WithStageSelect(scene =>
@@ -340,7 +340,7 @@ namespace BunDauPeo.Tests
                 popup.Close();
             });
 
-        // Review Focus 2: Hủy (cũng là Close() của IHubPage) trả đội và vai ở quán về như lúc mở popup. AddToTeam gỡ người khỏi quán,
+        // Review Focus 2: Huỷ (cũng là Close() của IHubPage) trả đội và vai ở quán về như lúc mở popup. AddToTeam gỡ người khỏi quán,
         // nên phải trả cả hai danh sách; chỉ trả đội thì người đó mất chỗ ở quán.
         [Test]
         public void TeamSelect_Cancel_RestoresTeamAndStaffAsOpened() =>
@@ -369,11 +369,11 @@ namespace BunDauPeo.Tests
                 Assert.IsFalse(popup.IsOpen);
                 CollectionAssert.AreEqual(teamBefore, rig.Roster.GetBattleTeam().Select(c => c.Id).ToArray(), "team after Cancel");
                 CollectionAssert.AreEqual(staffBefore, rig.Roster.GetStaff(StaffRole.Cook).Select(c => c.Id).ToArray(), "h02 must be back in the kitchen");
-                // Autosave của quán có thể đã ghi đội chọn dở xuống đĩa lúc popup mở: Hủy lưu lại đội đã trả về (một lần).
+                // Autosave của quán có thể đã ghi đội chọn dở xuống đĩa lúc popup mở: Huỷ lưu lại đội đã trả về (một lần).
                 Assert.AreEqual(persistsBefore + 1, rig.PersistCalls, "Cancel saves the restored team once, never the half-made one");
             });
 
-        // Bấm ô khác của thanh gọi Close() qua IHubPage: phải là đường Hủy chứ không chỉ ẩn popup.
+        // Bấm ô khác của thanh gọi Close() qua IHubPage: phải là đường Huỷ chứ không chỉ ẩn popup.
         [Test]
         public void TeamSelect_Close_IsCancel() =>
             WithStageSelect(scene =>

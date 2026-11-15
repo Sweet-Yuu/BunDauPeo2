@@ -41,11 +41,12 @@ namespace BunDauPeo.Core
 
         public void MarkDirty()
         {
+            if (!_unsynced) _unsyncedAge = 0;
+            _unsynced = true;
+            // Đang dừng (chờ lệnh Reset/Xoá): chỉ ghi nhận, Resume đẩy bù nếu lệnh lỗi.
             if (_stopped) return;
             if (!_dirty) _dirtyAge = 0;
             _dirty = true;
-            if (!_unsynced) _unsyncedAge = 0;
-            _unsynced = true;
         }
 
         public void Tick(float unscaledDt)
@@ -116,6 +117,8 @@ namespace BunDauPeo.Core
             try
             {
                 status = await _server.UploadSaveAsync(json);
+                // Xung đột ngay sau một lượt lỗi: lượt đó có thể đã ghi xong mà mất trả lời (write lock cũ), không phải máy khác.
+                if (status == OnlineStatus.OtherDevice && _failures > 0 && !_stopped) status = await ReconcileAsync(json);
             }
             catch (Exception e)
             {
@@ -150,6 +153,37 @@ namespace BunDauPeo.Core
                     _dirty = true;
                     break;
             }
+        }
+
+        // Lượt lỗi không tăng SaveRevision, nên server giữ đúng số của bản đang đẩy nghĩa là bản đó do máy này ghi (spec 5.3: kiểm đồng bộ).
+        // Tải lại cũng nhận write lock mới cho lượt đẩy kế.
+        // shortcut: hai máy cùng tài khoản cùng số SaveRevision sẽ bị nhận nhầm; so thêm ID phiên khi có liên kết tài khoản (đợt 3).
+        // Tải lại lỗi thì chưa biết ai ghi: trả lỗi đó để thử lại sau, không báo nhầm OtherDevice.
+        private async Task<OnlineStatus> ReconcileAsync(string json)
+        {
+            var server = await _server.LoadSaveAsync();
+            if (!server.Ok) return server.Status;
+            var own = server.Value != null && Revision(server.Value) is long theirs && theirs == Revision(json);
+            if (!own) return OnlineStatus.OtherDevice;
+            return _stopped ? OnlineStatus.Ok : await _server.UploadSaveAsync(json);
+        }
+
+        private static long? Revision(string json)
+        {
+            try
+            {
+                return UnityEngine.JsonUtility.FromJson<RevisionOnly>(json)?.SaveRevision;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
+
+        [Serializable]
+        private sealed class RevisionOnly
+        {
+            public long SaveRevision;
         }
     }
 }

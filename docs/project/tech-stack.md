@@ -13,7 +13,7 @@
 | UI | uGUI 2.0.0 (+ module UIElements có sẵn) |
 | 2D | Animation 13.0.4, Aseprite importer 3.0.1, PSD importer, SpriteShape, Tilemap (+ extras) |
 | Online ([D-014](../decisions/decisions.md)) | UGS: Core 1.19.0, Authentication 3.8.1, Cloud Save 3.4.2, Cloud Code 2.10.4 (dòng 2.10.x cho `.ccmr`), Deployment 1.7.2 (chỉ Editor) |
-| Module server | `ServerModule/` ngoài `Assets/`: module Cloud Code `.ccmr` .NET 8 (`BunDauPeoServer`), test .NET (`dotnet test ServerModule/BunDauPeoServer.sln`); cần .NET SDK trên máy |
+| Module server | `ServerModule/` ngoài `Assets/`: module Cloud Code `.ccmr` .NET 8 (`BunDauPeoServer`), test .NET (`dotnet test ServerModule/BunDauPeoServer.sln`); cần .NET SDK 8 hoặc 9: project test tự chọn `net9.0` khi có SDK 9, `net8.0` khi chỉ có SDK 8 (cần runtime khớp để chạy test) |
 | Khác | MCP for Unity 10.3.0 (git), Timeline 1.8.12, Visual Scripting 1.9.11, Test Framework 1.6.0 |
 | IDE | Rider / Visual Studio |
 
