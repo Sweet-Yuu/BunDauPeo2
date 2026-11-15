@@ -177,6 +177,8 @@ Một `PlayerSave` trong bộ nhớ như hiện nay (code game ít đổi), như
 
 ### 5.5 Đẩy phần "máy giữ" lên server (đợt 1)
 
+> Sửa sau review (2026-11-15): server từ chối vì xung đột ngay sau một lượt đẩy lỗi hoặc hết giờ thì tải lại bản trên server và so `SaveRevision`; bản đó là lượt đẩy trước của chính máy này thì cập nhật write lock rồi đẩy lại, chỉ khác máy mới báo `OtherDevice`. Giới hạn: hai máy cùng tài khoản trùng `SaveRevision` vẫn bị nhận nhầm, đợt 3 so thêm ID phiên.
+
 - `GameSession.Persist()` giữ nguyên chữ ký `bool`: ghi bản đệm (như cũ), đánh dấu `save` "bẩn", trả kết quả ghi bản đệm. `CloudSync` (Online) đẩy khoá `save` khi bẩn: **gộp lượt**, tối đa một lần mỗi **5 giây**, và đẩy ngay khi app vào nền (`OnApplicationPause(true)`) hay thoát.
 - Đẩy dùng write lock của Cloud Save (`SaveItem` kèm lock nhận được lần trước). Xung đột → mục 5.4.
 - Đang đẩy mà có thay đổi mới → đẩy thêm một lượt sau. Đẩy lỗi mạng → thử lại sau 5 giây; quá 30 giây → hộp Mất kết nối.
@@ -208,6 +210,8 @@ Lệnh của module (mỗi lệnh đọc `state`, chạy `ServerHandlers`, ghi `
 - "Chiến đấu thử" của DEV (không trừ thể lực, không thưởng) vẫn chạy trên máy, không gọi server.
 
 ### 5.8 Reset Save Data và Xoá tài khoản (đợt 1)
+
+> Sửa sau review (2026-11-15): Editor ở chế độ UGS mà chưa vào Play thì menu Reset Save Data từ chối và nhắc vào Play để reset cả server (không chỉ xoá bản đệm, D-005).
 
 **Reset Save Data** (Menu, hộp xác nhận như nay) — luật D-005 mở rộng cho server:
 1. Chưa xác nhận thì không xoá gì. Hộp xác nhận thêm dòng: "Xoá cả dữ liệu trên máy chủ. Tài khoản và liên kết vẫn giữ."
