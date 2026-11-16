@@ -115,6 +115,21 @@ Quy trình (brainstorming, viết kế hoạch, TDD, review) dùng skill `superp
 - **Trang và popup mới kín màn** (L-033): mặc định che kín 1920×1080 với thanh dưới vẫn hiện, nội dung trong vùng trên vạch 120 px; chỉ hộp xác nhận và hộp phần thưởng là hộp giữ cỡ, nền mờ kín màn vẽ trên thanh ([spec UI hub 5.5](../superpowers/specs/2026-11-09-ui-hub-design.md)). Hỏi luật này trước khi vẽ ảnh mô phỏng, đừng lấy cỡ popup đang có làm mặc định.
 - **Nút Thông báo và hộp nổi** (UI hub đợt C): nút Thông báo ở `(1790, 20, 110, 100)` vẽ trên Menu, không `Button` nào khác được giao rect đó (có test, xét cả nút đang tắt và các tỉ lệ màn). Hộp nổi trên hub (hộp Thông báo, hộp Hồ sơ) cài `IHubOverlay`: không đổi bố cục Lobby, không dừng quán, vẫn đóng được qua `HubNav.CloseOpenPages` (L-035). Hai hộp này là ngoại lệ của L-033 (hộp giữ cỡ, nền mờ kín màn vẽ trên thanh; user chốt 2026-11-12). Nền hộp Hồ sơ không là `Button`: bấm nền không đóng, để khỏi mất chữ đang gõ.
 
+## Build phát hành
+
+Quyết định: [D-015](../decisions/decisions.md). Checklist cho user: [production-deploy](../release/production-deploy.md).
+
+- **Điểm vào:** `BunDauPeo.EditorTools.AndroidBuild.BuildRelease` (APK debug thử vẫn là `Build`, D-011). Đuôi `-buildOutput` là `.aab` thì ra AAB kèm symbols, đuôi `.apk` thì ra APK phát hành để smoke; không có thì ra `D:/bdp_BunDauPeo/android/release/BunDauPeo-<versionCode>.aab`.
+- **Ký:** bốn biến môi trường `BDP_KEYSTORE_PATH`, `BDP_KEYSTORE_PASS`, `BDP_KEY_ALIAS`, `BDP_KEY_PASS`, đặt trong phiên shell chạy build, không ghi ra file. Keystore để ở `D:/bdp_BunDauPeo/keys/` (ngoài repo, `.gitignore` chặn `*.keystore`, `*.jks`, `*.aab`). Mật khẩu không vào chat, log, `ProjectSettings`.
+- **Lệnh** (Editor đóng; chạy nền, chờ thông báo, không poll):
+
+```bash
+unity build . --target Android --execute-method BunDauPeo.EditorTools.AndroidBuild.BuildRelease --output-path ../../bdp_BunDauPeo/android/release/BunDauPeo-1.aab --log-file ../../bdp_BunDauPeo/android/release/build-aab.log --timeout 3600
+```
+
+- **Kiểm sau build:** `aapt2 dump badging` (package, `targetSdkVersion '36'`, `versionCode`, không `debuggable`), `aapt2 dump permissions`, `zipalign -c -P 16 -v 4` (căn lề 16 KB); `unzip -l` AAB có `base/lib/arm64-v8a/` và symbols. Công cụ ở `Android/sdk/build-tools/` trong thư mục Editor.
+- `BuildRelease` luôn trả lại cài đặt ký và `buildAppBundle` trong `finally`; chỉ `Application.isBatchMode` mới thoát Editor.
+
 ## Online
 
 Mạng là bắt buộc từ Online đợt 1 ([D-014](../decisions/decisions.md), [spec](../superpowers/specs/2026-11-13-online-design.md)). Boot không dựng session; chạm Tiêu đề mới đăng nhập và dựng session (`IGameStarter.StartAsync`).

@@ -18,7 +18,7 @@ namespace BunDauPeo.Tests
             PackageName = AndroidBuild.PackageName, DefaultOrientation = UIOrientation.AutoRotation,
             Portrait = false, PortraitUpsideDown = false, LandscapeLeft = true, LandscapeRight = true,
             Backend = ScriptingImplementation.IL2CPP, Architectures = AndroidArchitecture.ARM64,
-            MinSdk = 25, CustomKeystore = false, AppBundle = false, Scenes = (string[])GameScenes.Clone(),
+            MinSdk = 25, TargetSdk = 36, VersionCode = 1, Development = false, CustomKeystore = false, AppBundle = false, Scenes = (string[])GameScenes.Clone(),
         };
 
         [Test]
@@ -47,6 +47,79 @@ namespace BunDauPeo.Tests
             var both = Valid();
             both.Architectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
             CollectionAssert.IsEmpty(AndroidBuild.Problems(both), "ARMv7 + ARM64 is fine");
+        }
+
+        private static AndroidBuild.Config ValidRelease()
+        {
+            var c = Valid();
+            c.CustomKeystore = true;
+            c.AppBundle = true;
+            return c;
+        }
+
+        [Test]
+        public void Problems_ReleaseKind_ReportsEachFault()
+        {
+            CollectionAssert.IsEmpty(AndroidBuild.Problems(ValidRelease(), AndroidBuild.BuildKind.ReleaseAab), "valid release");
+            var cases = new (string Name, Action<AndroidBuild.Config> Break, string Mention)[]
+            {
+                ("target sdk", c => c.TargetSdk = 35, "Target API"),
+                ("version code", c => c.VersionCode = 0, "versionCode"),
+                ("no signing", c => c.CustomKeystore = false, "ký phát hành"),
+                ("no app bundle", c => c.AppBundle = false, "App Bundle"),
+                ("development", c => c.Development = true, "Development"),
+            };
+            foreach (var (name, breakIt, mention) in cases)
+            {
+                var c = ValidRelease();
+                breakIt(c);
+                var problems = AndroidBuild.Problems(c, AndroidBuild.BuildKind.ReleaseAab);
+                Assert.AreEqual(1, problems.Count, $"{name}: {string.Join(" | ", problems)}");
+                StringAssert.Contains(mention, problems[0], name);
+            }
+        }
+
+        [Test]
+        public void Problems_DebugKind_DoesNotDemandRelease()
+        {
+            var c = Valid();
+            c.TargetSdk = 0;
+            c.VersionCode = 0;
+            c.Development = true;
+            CollectionAssert.IsEmpty(AndroidBuild.Problems(c, AndroidBuild.BuildKind.DebugApk));
+        }
+
+        [Test]
+        public void ReleaseOutputPath_UsesVersionCode()
+        {
+            Assert.AreEqual("../../bdp_BunDauPeo/android/release/BunDauPeo-7.aab", AndroidBuild.ReleaseOutputPath(new[] { "Unity.exe", "-quit" }, 7));
+            Assert.AreEqual("X.aab", AndroidBuild.ReleaseOutputPath(new[] { "Unity.exe", "-buildOutput", "X.aab" }, 7));
+            Assert.AreEqual("../../bdp_BunDauPeo/android/release/BunDauPeo-7.aab", AndroidBuild.ReleaseOutputPath(new[] { "Unity.exe", "-buildOutput" }, 7));
+        }
+
+        [Test]
+        public void ProjectSettings_HoldNoKeystoreSecrets()
+        {
+            var text = System.IO.File.ReadAllText("ProjectSettings/ProjectSettings.asset");
+            foreach (var key in new[] { "AndroidKeystoreName:", "AndroidKeyaliasName:" })
+            {
+                var line = text.Split((char)10).First(l => l.TrimStart().StartsWith(key));
+                Assert.AreEqual(key, line.Trim(), key);
+            }
+
+            // Ký rồi trả lại không được để lại gì trong cài đặt (Unity ghi '{inproject}: ' nếu gán "").
+            var saved = AndroidSigning.Apply(k => "x");
+            AndroidSigning.Restore(saved);
+            var so = new SerializedObject(Unsupported.GetSerializedAssetInterfaceSingleton("PlayerSettings"));
+            Assert.AreEqual("", so.FindProperty("AndroidKeystoreName").stringValue);
+            Assert.AreEqual("", so.FindProperty("AndroidKeyaliasName").stringValue);
+        }
+
+        [Test]
+        public void CurrentProject_TargetSdk36()
+        {
+            Assert.AreEqual(AndroidSdkVersions.AndroidApiLevel36, PlayerSettings.Android.targetSdkVersion);
+            Assert.AreEqual(AndroidBuild.VersionCode, PlayerSettings.Android.bundleVersionCode);
         }
 
         [Test]

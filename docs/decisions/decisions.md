@@ -15,6 +15,12 @@
 
 ## Danh sách
 
+### D-015 — Phát hành CH Play bằng AAB ký khoá upload, target API 36, khoá ngoài repo (2026-11-16)
+- Bối cảnh: user chốt 2026-11-16 itch.io 31/12, thử kín CH Play khoảng 12–13/12, công khai đầu T1/2027. Spec: [release-prep-design](../superpowers/specs/2026-11-16-release-prep-design.md), kế hoạch: [release-prep](../superpowers/plans/2026-11-16-release-prep.md).
+- Quyết định: bản phát hành là AAB (`AndroidBuild.BuildRelease`, `BuildKind.ReleaseAab`), `targetSdk 36`, không Development, kèm symbols, `versionCode` tăng 1 mỗi lần upload (hằng `AndroidBuild.VersionCode`). Ký bằng 4 biến môi trường `BDP_KEYSTORE_PATH`, `BDP_KEYSTORE_PASS`, `BDP_KEY_ALIAS`, `BDP_KEY_PASS` (`AndroidSigning`): gán trong bộ nhớ lúc build rồi trả lại, không ghi vào `ProjectSettings`, log hay repo; keystore phải nằm ngoài thư mục project. Play App Signing bật, khoá của mình chỉ là khoá upload. APK debug của D-011 giữ nguyên (`BuildKind.DebugApk`). Deploy `production` và tạo khoá thật là việc của user ([checklist](../release/production-deploy.md)).
+- Lý do / đánh đổi: Google Play bắt AAB và target mới cho app mới; biến môi trường tránh bí mật lọt vào repo. Mất khoá upload thì phải xin Google đặt lại.
+- Trạng thái: Proposed (chuyển Accepted khi user duyệt spec)
+
 ### D-014 — Online bằng Unity Gaming Services, phải có mạng mới chơi (2026-11-13)
 - Bối cảnh: game công khai trên CH Play ngày 31/12/2026 cho người dùng thật; save cục bộ và gacha trên máy ([D-003](#d-003--offline-mobile-màn-ngang-không-nạp-tiền-thật-2026-10-30)) dễ bị sửa. User duyệt [spec Online](../superpowers/specs/2026-11-13-online-design.md) 2026-11-13. (Kế hoạch đợt 1 gọi là "D-013"; số đó đã dùng cho cấu hình môi trường, nên quyết định này là D-014.)
 - Quyết định: dịch vụ server là UGS (Authentication, Cloud Save, Cloud Code). Mở app phải đăng nhập được (đợt 1 ẩn danh) mới vào game; mất mạng thì hộp chặn có Thử lại. Server là bản chính của save (khoá `save`); file trên máy chỉ là bản đệm, không bao giờ đẩy đè lên server khi mở game. Chống gian lận mức 2: giờ server; từ đợt 2 Gem và mọi thứ sinh ra Gem hay nhân vật do server tính. Logic server viết bằng C# trong module Cloud Code kiểu `.ccmr` (`ServerModule/`, .NET 8) vì dự án giữ Unity 6000.3; giao thức dùng chung qua assembly `BunDauPeo.Rules` (C# thuần). Hai môi trường: `development` (Editor, build Development) và `production` (bản phát hành).
@@ -38,7 +44,7 @@
 ### D-011 — Build Android thử: APK debug, IL2CPP ARM64, package `com.sweetyuu.bundaupeo` (2026-11-07)
 - Bối cảnh: roadmap có mục "Build Android thử sớm" để bắt lỗi riêng của nền tảng trước hạn 31/12/2026. Spec: [build-android-design](../superpowers/specs/2026-11-07-build-android-design.md).
 - Quyết định: APK (không AAB), IL2CPP, ARM64, min API 25, chỉ màn ngang, ký debug, `BuildOptions.Development`, Boot là scene đầu, bỏ `SampleScene` khỏi build. Build chỉ kiểm cấu hình (`AndroidBuild.Problems`), không ghi `ProjectSettings`; cấu hình ghi một lần qua `ProjectSetup.ApplyBuildSettings`. Editor ở lại target Android sau khi build.
-- Lý do / đánh đổi: package không đổi được sau khi lên Play; `productName`/`companyName` giữ nguyên vì quyết định thư mục save. IL2CPP build chậm (~7 phút lần đầu); nhánh không Development chưa được build thử.
+- Lý do / đánh đổi: package không đổi được sau khi lên Play; `productName`/`companyName` giữ nguyên vì quyết định thư mục save. IL2CPP build chậm (~7 phút lần đầu). Bản phát hành (AAB, không Development) xem [D-015](#d-015--phát-hành-ch-play-bằng-aab-ký-khoá-upload-target-api-36-khoá-ngoài-repo-2026-11-16).
 - Trạng thái: Accepted
 
 ### D-010 — Điều khiển Editor bằng MCP for Unity của CoplayDev, gỡ MCP cũ (2026-11-06)
