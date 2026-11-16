@@ -9,7 +9,7 @@
 
 ## Tiếp theo
 
-Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử được. Đích: bản Android chơi được ngày 31/12/2026.
+Mỗi mục có spec và kế hoạch riêng, kèm UI tối thiểu để thử được. Đích (user chốt 2026-11-16): bản itch.io chơi được giữa T12 và đủ tính năng ngày 31/12/2026; CH Play thử kín ~12–13/12 (hạn cứng 15/12), công khai đầu T1/2027. Xem [spec chuẩn bị phát hành](superpowers/specs/2026-11-16-release-prep-design.md) (nhánh `docs/release-prep`).
 
 Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunDauPeo_MasterPlan_GoogleSheets.md`, v0.43, viết ngày 21/10 cho bản dự án cũ). Chỉ lấy các phần user chọn bên dưới. Luật đã làm giữ nguyên: chọn chiêu kiểu FGO + AUTO (không đổi sang "hybrid"), quán theo dây chuyền ba vai, chất lượng, AFK. Không lấy: nội tại/phong độ nhân viên, điểm danh, nhiệm vụ ngày/tuần, cấp nhân vật bằng Gold.
 
@@ -20,7 +20,7 @@ Ngày 2026-11-03 user đối chiếu master plan (`C:\Users\Admin\Downloads\BunD
 - [ ] Quảng cáo thưởng test (master plan, thuộc Kiếm tiền): ô đầu shop xem quảng cáo nhận Gem, có giới hạn mỗi ngày, ad unit test. Cần UI hub.
 - [ ] Kiếm tiền, phần mua thật: gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu. User duyệt hướng 2026-11-02 ([D-007](decisions/decisions.md)); master plan để IAP thật **sau 31/12**. `TODO(user)`: nội dung, giá gói và luật Reset Save Data với quyền lợi đã mua, xem [game-design](design/game-design.md#kiếm-tiền).
 - [ ] Cốt truyện Chương 1 (master plan, user đưa vào bản 31/12 ngày 2026-11-03, thay "sau MVP"): Péo, Hợp chất X, phe địch toàn tôm; hội thoại thật thay hai nút cốt truyện giữ chỗ của Combat. `TODO(user)`: kịch bản, loại tôm, tên boss. Quái mẫu của Combat (ruồi, chuột, gián) phải đổi sang tôm.
-- [ ] Build Android, test trên máy thật, Closed Test: hạn bản chơi được 31/12/2026. Lịch dự kiến các việc còn lại ở sheet master plan (tab *Tiến độ*).
+- [ ] Build Android, test trên máy thật, Closed Test: bản chơi được 31/12/2026 là bản itch.io; CH Play công khai đầu T1/2027 (2026-11-16). Lịch dự kiến các việc còn lại ở sheet master plan (tab *Tiến độ*).
 - [ ] Kiểm save trên Android thật (`File.Replace`, lưu khi vào nền): user tạm hoãn (2026-11-01), làm sau khi user nối điện thoại.
 
 ## Đã xong

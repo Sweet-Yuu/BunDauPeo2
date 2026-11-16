@@ -23,6 +23,7 @@ _Cập nhật 2026-11-15 bởi 🎯 Điều phối #2 khi user mở phiên đi�
 - #3 (`local_5a225b50-3bd4-4f15-b1bc-b15e5f2928eb`) nhắn 📋, 🎨 và 📐 Online đợt 2 để báo cáo gửi về #3 thay cho #2. Chờ user xác nhận việc mở kênh con.
 - 2026-11-16: app chặn mở kênh (giới hạn số phiên tự mở), 🎯 để thẻ; user bấm, mở [📐 Chuẩn bị phát hành CH Play 1/1](#local_f2be49ba-6b8c-416f-8db8-162730699d47) (Opus 5.5 high, worktree `.claude/worktrees/jolly-tharp-ad3076`, nhánh `docs/release-prep` từ `main`).
 - 📐 Chuẩn bị phát hành xong spec + kế hoạch (🎯 kiểm: 3 file có trong worktree; chưa commit, đã nhắn 📋; spec chưa có "duyệt" rõ). Theo 📐 (user chốt trong kênh đó): itch.io trước (giữa T12), thử kín Play ~12–13/12 (hạn cứng 15/12), CH Play công khai **đầu T1/2027**, Google Sites cho chính sách, xoá tài khoản qua email, user tự deploy Cloud Code production. 2 phiên 🔨 (R1 ≤28/11, R2 1–3/12). Lệch: roadmap/vision còn ghi Android "31/12"; đợt Online 2 phá tương thích module thì cần hàng rào ClientTooOld. Hỏi user xác nhận ngày trước khi sửa roadmap.
+- User: "Sửa theo đó". 🎯 sửa roadmap (đích, mục Build Android) và vision (nơi phát hành: itch.io 31/12, CH Play đầu T1/2027); chưa commit, nhờ 📋. 📋 đã commit spec + kế hoạch release-prep (worktree `docs/release-prep`) và `01de44e` (roadmap/history #3) lên `docs/online-2-plan`. Spec release-prep vẫn chờ user duyệt trong kênh 📐.
 
 ### #2 — 2026-11-03 — 🎯 Điều phối #2
 
