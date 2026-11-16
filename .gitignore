@@ -122,7 +122,7 @@ InitTestScene*.unity*
 # BunDauPeo: cấu hình cầu nối Unity CLI, máy nào tự sinh của máy đó
 /ProjectSettings/Packages/com.unity.pipeline/
 # BunDauPeo: thư mục riêng của user, agent không đụng
-/Không động tới/
+/_Scratch/
 ServerModule/**/bin/
 ServerModule/**/obj/
 # Module Cloud Code (.ccmr) cần sln/csproj trong repo, khác file do Unity sinh

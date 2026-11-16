@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace BunDauPeo.EditorTools
 {
-    // Dựng scene Restaurant bằng code theo spec Restaurant 5.1 (bố cục từ ba ảnh Mota/restaurant-layout-*), cùng khuôn GachaSceneBuilder.
+    // Dựng scene Restaurant bằng code theo spec Restaurant 5.1 (bố cục từ ba ảnh ReferenceImages/restaurant-layout-*), cùng khuôn GachaSceneBuilder.
     // Hình trong Canvas đều là Image: sàn, tường, đồ vật là hình vuông đặc (không gán sprite) cùng một góc xoay; người và cây là Knob;
     // thẻ và nút là UISprite/Knob. Chữ là Text của uGUI (docs dự án thắng skill ui-ugui, xem GachaSceneBuilder).
     internal static class RestaurantSceneBuilder
