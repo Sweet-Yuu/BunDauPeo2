@@ -93,6 +93,9 @@ O1, user chốt 2026-11-13; đang làm trên nhánh `feature/online-1` (ảnh `o
 | Không kết nối được | ở Tiêu đề, một bước đăng nhập lỗi | **Thử lại** (chạy lại từ bước lỗi). Chưa xong thì không vào được game |
 | Mất kết nối | giữa game: lệnh server lỗi vì mạng, đẩy save lỗi quá 30 giây, hay chờ server quá 10 giây | **Thử lại**. Hộp chặn mọi chạm; quán vẫn chạy phía sau |
 | Tài khoản đang dùng ở máy khác | máy khác vừa đăng nhập cùng tài khoản (máy đăng nhập sau thắng) | **Về màn Tiêu đề** (bỏ thay đổi chưa đẩy, đăng nhập lại) |
+| Cần cập nhật (O2) | bản game quá cũ so với server: ở Tiêu đề khi đăng nhập, hay giữa game khi gửi lệnh bất kỳ | **không có nút**: "Bản game này đã cũ. Hãy cập nhật lên bản mới nhất để chơi tiếp." Chưa có nút mở cửa hàng |
+
+**Màn chờ** (O2, user duyệt 2026-11-16, [spec con O2 mục 7.1](../superpowers/specs/2026-11-16-online-2-design.md)). Lệnh server do người chơi bấm (Quay ×1/×10, Vào trận, Kết quả trận, Nâng sao, Nhận, nút DEV gọi server) bật một lớp trong suốt chặn chạm toàn màn, kể cả thanh dưới và nút Thông báo, nằm dưới hộp mạng. Màn không tối đi. Sau 0,5 giây mới hiện ô vuông trắng xoay `WaitSpinner_PH_64x64` và chữ "Đang gửi…" `WaitLabel_PH_400x60` ở giữa màn; trả lời sớm hơn thì không nháy gì. Quá 10 giây hoặc lỗi mạng thì tắt lớp chờ, mở hộp Mất kết nối; Thử lại gửi lại đúng lượt đó.
 
 ## Bố cục Lobby (user duyệt ảnh mô phỏng bản 2, 2026-11-09)
 

@@ -32,7 +32,7 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - Chiến đấu turn-based theo màn chơi: mỗi nhân vật có 1 đánh thường, 1 skill, 1 ultimate.
 - UI hub có thanh điều hướng dưới.
 - Lưu game cục bộ.
-- Online, xong trong bản 31/12 (user chốt 2026-11-09): đăng nhập (ẩn danh, Google Play Games trên Android), save trên server, Gem và gacha do server giữ, Nhiệm vụ, Hộp quà, Hồ sơ online. Phạm vi và bốn đợt ở [spec Online](../superpowers/specs/2026-11-13-online-design.md) (user duyệt 2026-11-13); không có Hội, xếp hạng, PvP, Thông báo tin trong bản 31/12.
+- Online, xong trong bản 31/12 (user chốt 2026-11-09): đăng nhập (ẩn danh, Google Play Games trên Android), save trên server, Gem và gacha do server giữ, Nhiệm vụ, Hộp quà, Hồ sơ online. Phạm vi và bốn đợt ở [spec Online](../superpowers/specs/2026-11-13-online-design.md) (user duyệt 2026-11-13); không có Hội, xếp hạng, PvP, Thông báo tin trong bản 31/12. Nơi phát hành (user chốt 2026-11-16): bản 31/12 là itch.io; CH Play công khai đầu T1/2027.
 - Mua trong game (gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu) và quảng cáo thưởng nhận Gem. Luật và `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
 - Nhân vật trùng thành mảnh để nâng sao (tối đa 5★); nâng sao tăng HP, Tấn công, Thủ (user chốt 2026-11-08, [spec Nâng sao](../superpowers/specs/2026-11-08-star-up-design.md)).
 
