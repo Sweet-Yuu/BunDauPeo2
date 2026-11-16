@@ -8,7 +8,7 @@
 
 **Tech Stack:** Unity 6000.3.15f1 (Android SDK 36, NDK, OpenJDK đã cài), C#, `BuildPipeline`, `aapt2` + `zipalign` trong SDK build-tools, CLI `unity`. Không thêm package.
 
-**Spec:** [docs/superpowers/specs/2026-11-16-release-prep-design.md](../specs/2026-11-16-release-prep-design.md) (trạng thái: chờ duyệt; **không bắt đầu Task 1 khi spec chưa được user duyệt**). Bản nháp chữ: [docs/release/drafts.md](../../release/drafts.md).
+**Spec:** [docs/superpowers/specs/2026-11-16-release-prep-design.md](../specs/2026-11-16-release-prep-design.md) (đã duyệt 2026-11-16). Bản nháp chữ: [docs/release/drafts.md](../../release/drafts.md).
 
 ## Global Constraints
 
