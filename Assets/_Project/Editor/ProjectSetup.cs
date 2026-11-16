@@ -599,6 +599,9 @@ namespace BunDauPeo.EditorTools
             PlayerSettings.companyName = "Sweet-Yuu";
             PlayerSettings.productName = "BunDauPeo";
 
+            PlayerSettings.Android.targetSdkVersion = (AndroidSdkVersions)AndroidBuild.TargetSdk;
+            PlayerSettings.Android.bundleVersionCode = AndroidBuild.VersionCode;
+
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
             PlayerSettings.allowedAutorotateToPortrait = false;
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
