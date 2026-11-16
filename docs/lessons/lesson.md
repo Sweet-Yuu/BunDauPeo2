@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-040 — Trả cài đặt ký bằng setter làm Unity ghi rác vào ProjectSettings.asset (2026-11-16)  #build #editor
+- Triệu chứng: sau `BuildRelease` thật, `AndroidKeystoreName` trong `ProjectSettings.asset` thành `'{inproject}: '` dù `Restore()` đã gán lại giá trị cũ (rỗng, kể cả `null`); test đọc file đỏ.
+- Nguyên nhân gốc: setter `PlayerSettings.Android.keystoreName` luôn chuẩn hoá đường dẫn, không giữ được chuỗi rỗng.
+- Luật từ nay: trả lại cài đặt Android mà setter chuẩn hoá bằng `SerializedObject` của `PlayerSettings`; test kiểm giá trị `SerializedObject` sau `Apply`/`Restore`, và `git diff ProjectSettings` sau build chỉ có dòng định đổi.
+
 ### L-039 — Dòng chữ dài thay đổi (ID người chơi) dựng đúng ảnh mô phỏng nhưng co chữ không đọc được (2026-11-15)  #ui #process
 - Triệu chứng: Hồ sơ đặt ID và nút Sao chép cùng hàng như ảnh mô phỏng; ô ID còn 260 px nên ID 38 ký tự co về ~14 px, chỉ thấy khi xem ảnh chụp. User chọn cho ID một dòng riêng.
 - Nguyên nhân gốc: ảnh mô phỏng vẽ ID rút gọn ("4fK2…"), không ai tính bề rộng của chuỗi dài nhất (ID UGS ~28 ký tự, ID `LocalGameServer` 38 ký tự).

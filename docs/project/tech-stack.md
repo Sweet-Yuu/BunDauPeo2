@@ -21,6 +21,6 @@
 
 - Package `com.unity.pipeline` (cầu nối CLI `unity`) là bản experimental, và `com.coplaydev.unity-mcp` (MCP for Unity, git tag `v10.3.0`, [D-010](../decisions/decisions.md)) là công cụ Editor — đừng dựa vào chúng cho code game. `com.unity.ai.assistant` đã gỡ.
 - Active Input Handling: Input System only (`activeInputHandler: 1` trong `ProjectSettings.asset`).
-- Nền tảng build mục tiêu: mobile màn ngang ([D-003](../decisions/decisions.md)). Android trước ([D-007](../decisions/decisions.md)); cấu hình build ở [D-011](../decisions/decisions.md). Module Android (SDK 34–36, NDK, OpenJDK) đã cài cho 6000.3.15f1.
+- Nền tảng build mục tiêu: mobile màn ngang ([D-003](../decisions/decisions.md)). Android trước ([D-007](../decisions/decisions.md)); cấu hình build ở [D-011](../decisions/decisions.md). Bản phát hành: AAB, target API 36, ký khoá upload với Play App Signing ([D-015](../decisions/decisions.md)). Module Android (SDK 34–36, NDK, OpenJDK) đã cài cho 6000.3.15f1.
 - Online: hai môi trường UGS, `development` (Editor chế độ UGS và build Development; file cấu hình Editor commit theo [D-013](../decisions/decisions.md)) và `production` (bản phát hành). Game chỉ chứa Project ID và tên môi trường, không có khoá bí mật. Project test của module chạy trên net9.0 khi máy chưa có .NET 8 SDK; module thật vẫn là net8.0. Cách chạy và deploy: mục "Online" của [unity-workflow.md](../guides/unity-workflow.md).
 - CLI: `unity` 1.0.0-beta.15 là công cụ chính. Lệnh và quy tắc dùng ở [unity-workflow.md](../guides/unity-workflow.md).
