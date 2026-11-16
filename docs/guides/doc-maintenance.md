@@ -11,11 +11,13 @@
 | Thêm thư mục/quy ước đặt tên | `project/structure.md` |
 | Chốt quy ước code mới | `guides/code-style.md` |
 | Bắt đầu / xong một task | `roadmap.md` |
-| Kênh điều phối mở/đóng kênh con, user chốt quyết định | `studio/history.md` (chỉ kênh 🎯 ghi; 📋 commit) |
+| Mở/đóng luồng, cấp/nhả khoá Unity | `studio/board.md` (chỉ 👑 CEO ghi) |
+| Leader mở/đóng kênh con, user chốt trong luồng | `studio/streams/<luồng>.md` (chỉ Leader luồng đó ghi) |
+| Đổi cách vận hành studio, luật agent | đúng file trong `studio/` (chỉ 👑 CEO ghi) |
 | Xong một feature (trước khi hỏi PR) | thêm dòng "Đã xong, đây là lịch sử" vào đầu spec của nó; nâng các lesson của nhánh thành luật (xem `lessons/lesson.md`, mục Cách ghi) |
 | Phát hiện lệnh Unity CLI mới/sai, skill Unity cần thêm vào bảng chọn | `guides/unity-workflow.md` |
 | Thêm nguồn tham khảo | `references/README.md` |
-| Thêm hoặc đổi tên ảnh trong `Mota/` | `references/ui-screens.md` |
+| Thêm hoặc đổi tên ảnh trong `ReferenceImages/` | `references/ui-screens.md` |
 | User đổi ý tưởng/phạm vi | `vision/vision.md` — **chỉ khi user yêu cầu** |
 | User chốt hoặc đổi luật chơi | `design/game-design.md` |
 

@@ -18,7 +18,7 @@
       "Edit(Logs/**)",
       "Edit(UserSettings/**)",
       "Edit(Temp/**)",
-      "Edit(Không động tới/**)",
+      "Edit(_Scratch/**)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(git push --force-with-lease:*)",

@@ -142,8 +142,8 @@ Mạng là bắt buộc từ Online đợt 1 ([D-014](../decisions/decisions.md)
 
 ## Git
 
-- **Ai commit:** chỉ kênh 📋 Thư ký, khi worker (📐 🔨 🔍) nhắn báo xong (user chốt 2026-11-06, luồng ở [studio](../studio/README.md#commit-và-push)). Worker tạo và chuyển nhánh được, nhưng không commit. Push lên `origin` (`https://github.com/Sweet-Yuu/BunDauPeo2.git`); nhánh chưa có upstream thì `git push -u origin <nhánh>`. Không force push, không sửa lịch sử đã push. Chỉ push khi báo cáo của worker ghi test xanh; test đỏ thì trả lại worker sửa.
-- **Session khác** (🎯, không có vai): chỉ commit/push khi user yêu cầu.
+- **Ai commit:** chỉ kênh 📋 Thư ký, khi một kênh gửi báo cáo cuối kênh (user chốt 2026-11-06, luật ở [studio/roles/secretary.md](../studio/roles/secretary.md)). Kênh khác tạo và chuyển nhánh được, nhưng không commit. Push lên `origin` (`https://github.com/Sweet-Yuu/BunDauPeo2.git`); nhánh chưa có upstream thì `git push -u origin <nhánh>`. Không force push, không sửa lịch sử đã push. Chỉ push khi báo cáo của worker ghi test xanh; test đỏ thì trả lại worker sửa.
+- **Kênh 👑 CEO** (hoặc session không ghi vai): chỉ commit/push khi user yêu cầu.
 - Cuối ngày làm việc, user tự kiểm tra và push các commit còn sót; không có lịch tự động.
 - `.gitignore` đã chặn `Library/`, `Logs/`, `UserSettings/`, `Temp/`, `*.sln`, `*.csproj`. `git add` theo đường dẫn cụ thể, không `git add -A` (đã chặn trong `.claude/settings.json`).
 - File mới trong `Assets/` thì add theo thư mục hoặc add cả `<file>.meta`; trước mỗi commit chạy `git status --short`, không để sót `?? *.meta` (L-005).

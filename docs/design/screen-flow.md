@@ -56,7 +56,7 @@ flowchart TD
 
 ## Các màn
 
-| Màn | Mở từ | Quay về | Ảnh `Mota/` | Trạng thái |
+| Màn | Mở từ | Quay về | Ảnh `ReferenceImages/` | Trạng thái |
 |---|---|---|---|---|
 | Tiêu đề | Boot, mỗi lần mở app (không hiện khi về từ trận, đổi ngôn ngữ, Reset, quay lại từ nền) | chạm → Lobby | `title-touch-to-start.jpg` | có: scene `Title`, "Bun Dau Peo" trong `Logo_PH_900x300`, "Chạm để bắt đầu", số phiên bản, không có nút góc. O1: chạm → chữ đổi thành "Đang kết nối…" → đăng nhập → Lobby; hộp "Tài khoản đang dùng ở máy khác" cũng đưa về đây |
 | Lobby (quán) | ô **Quán**; về từ Trận | — | `hub-home-annotated-en.png`, `restaurant-layout-*` | có: quán 2.5D kéo được + bố cục hub ([mục dưới](#bố-cục-lobby-user-duyệt-ảnh-mô-phỏng-bản-2-2026-11-09)) |
@@ -145,7 +145,7 @@ Luật làm UI (ảnh mô phỏng duyệt trước, tên `<Tên>_PH_<rộng>x<ca
 
 ## Ảnh còn thiếu
 
-User thả vào `Mota/` theo tên gợi ý, agent cập nhật [ui-screens.md](../references/ui-screens.md).
+User thả vào `ReferenceImages/` theo tên gợi ý, agent cập nhật [ui-screens.md](../references/ui-screens.md).
 
 | Màn | Cần ảnh gì | Tên gợi ý |
 |---|---|---|

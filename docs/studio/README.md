@@ -1,66 +1,65 @@
-# Studio: các kênh chat và cách chúng làm việc với nhau
+# Studio: các kênh chat và luật chung
 
-> **Đọc khi:** mở một kênh (session) mới, điều phối task, hoặc không biết kênh nào làm việc gì.
-> **Cập nhật khi:** user đổi cách vận hành studio (vai, icon, luật chia phiên).
+> **Đọc khi:** mở bất kỳ kênh nào. Đọc file này, rồi file vai của mình trong [roles/](roles/), rồi file luồng của mình trong [streams/](streams/). Không đọc thêm file studio nào khác trừ khi vai bảo.
+> **Cập nhật khi:** user đổi cách vận hành studio. Chỉ 👑 CEO sửa thư mục này (trừ file luồng: 🧭 Leader của luồng đó sửa).
 
-## Các vai
+Mô hình user chốt 2026-11-16, thay mô hình 🎯 📐 🔨 🔍 ngày 2026-11-03.
 
-Desktop app không cho đặt ảnh logo riêng cho session, nên mỗi kênh mang **icon emoji ở đầu tên**. Nhìn sidebar là biết kênh làm gì.
+## Sơ đồ
 
-| Icon | Vai | Mở bằng | Ai mở | Model gợi ý | Được ghi |
-|---|---|---|---|---|---|
-| 🎯 | **Điều phối**: giữ danh sách task, chia phiên, mở kênh con, kiểm kết quả | `/coordinator` | user | Sonnet 5.5 medium | chỉ [history.md](history.md) (📋 commit) |
-| 📋 | **Thư ký**: commit + push khi worker báo xong; báo cáo đã làm gì, đang làm gì, làm gì tiếp, chỗ lệch | `/secretary` | user, điều phối | Sonnet 5.5 low | chỉ git (commit, push); không sửa file |
-| 🎨 | **Game designer**: bàn ý tưởng với user, ghi và sửa sổ ý tưởng, vẽ luồng màn từ Lobby (user lập 2026-11-09) | `/designer` | user, điều phối | Opus 5.5 high | `docs/design/screen-flow.md`, `docs/design/ideas.md`, game-design và vision khi user chốt, `ui-screens.md` |
-| 📐 | **Thiết kế**: brainstorm với user, viết spec và kế hoạch | `/worker` | điều phối | Opus 5.5 high | spec, plan, docs liên quan |
-| 🔨 | **Code**: làm Task a–b của một kế hoạch, có thể chạy subagent song song | `/worker` | điều phối | Sonnet 5.5 medium/high | code, test, roadmap, lesson |
-| 🔍 | **Review**: review độc lập cuối nhánh | `/worker` | điều phối | Opus 5.5 high/xhigh | lesson, ghi chú review |
+```
+👑 CEO ── toàn cảnh, chia luồng, luật agent, giữ khoá Unity, thay mặt đề xuất với user
+ ├─ 🧭 Leader <luồng> ── quản lý một luồng, nhận đề xuất của user về luồng đó
+ │    ├─ 🎨 Designer ── ý tưởng, spec + kế hoạch, ảnh mô phỏng, hình placeholder, thay ảnh
+ │    └─ 🔨 Kỹ thuật ── làm đúng task, tự kiểm thử, báo lại
+ └─ 📋 Thư ký ── commit + push mỗi lần có báo cáo xong (dùng chung cho mọi luồng)
+```
 
-Tên kênh con: `<icon> <Việc> <phần>/<tổng> (Task a–b)`, ví dụ `🔨 Song ngữ 2/3 (Task 5–8)`. Tên kênh chính: `🎯 Điều phối #N`, `📋 Thư ký`.
+## Vai, quyền đọc và quyền ghi
 
-Sidebar có hai mục tự tạo: **🎯 BunDauPeo · Điều phối** (kênh điều phối và thư ký) và **🔨 BunDauPeo · Phiên con** (mọi kênh con). Kênh nào mở xong thì tự đặt tên và tự xếp vào mục của mình.
+| Vai | Đọc khi mở kênh | Được ghi | Model |
+|---|---|---|---|
+| 👑 CEO | [roles/ceo.md](roles/ceo.md), [board.md](board.md), roadmap mục "Đang làm"/"Tiếp theo" | `docs/studio/**`, `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, `.claude/skills/`, `.agents/skills/`, `docs/decisions/` (khi user chốt) | Opus 5.5 medium |
+| 🧭 Leader | [roles/leader.md](roles/leader.md), `streams/<luồng>.md` | `streams/<luồng>.md`, dòng roadmap của luồng mình | Sonnet 5.5 medium |
+| 🎨 Designer | [roles/designer.md](roles/designer.md), `streams/<luồng>.md`, file brief nêu | `docs/design/*`, spec, kế hoạch, `docs/references/ui-screens.md`, `ReferenceImages/`, scene/prefab khi được giao thay ảnh | Opus 5.5 high |
+| 🔨 Kỹ thuật | [roles/engineer.md](roles/engineer.md), kế hoạch + file brief nêu | code, test, scene/asset của task, roadmap dòng "Đang làm", lesson | Sonnet 5.5 high (Opus 5.5 high khi đụng tiền, save, server) |
+| 📋 Thư ký | [roles/secretary.md](roles/secretary.md) | chỉ git: commit, push | Sonnet 5.5 low |
 
-## Luồng một task
+Chi tiết chọn model cho subagent: [agent-routing.md](agent-routing.md). Mẫu prompt mở kênh: [brief.md](brief.md). Kiểm dung lượng và hiệu năng bằng Profiler: [performance.md](performance.md).
 
-1. 🎯 nạp lịch sử ([history.md](history.md)), đọc [roadmap](../roadmap.md), chọn task kế tiếp theo thứ tự trong "Tiếp theo" rồi hỏi user một câu xác nhận.
-2. Task chưa có spec thì mở 📐. User trả lời câu hỏi thiết kế **trong kênh 📐**, không qua điều phối.
-3. Có kế hoạch rồi thì 🎯 chia kế hoạch thành các phiên 🔨 (luật ở dưới) và mở **lần lượt từng phiên**: phiên trước báo xong, 📋 commit, user bảo làm tiếp và 🎯 kiểm kết quả rồi mới mở phiên sau.
-4. Hết task trong kế hoạch thì mở 🔍. Lỗi review tìm ra được sửa trong một phiên 🔨 mới.
-5. Báo user playtest. User đồng ý thì hỏi mở PR vào `main`. Merge xong mới tách nhánh cho task sau.
-6. Sau mỗi mốc (mở hoặc xong một kênh con, user chốt một quyết định), 🎯 ghi ngay một dòng vào [history.md](history.md). File nằm trên đĩa nên kênh mới vẫn đọc được dù chưa commit; 📋 commit nó cùng lượt kế tiếp.
+## Luật chung (mọi vai)
 
-## Commit và push
+1. **Khoá Unity.** Một project Unity chỉ mở được một Editor hoặc một lệnh batch. Kênh nào sắp chạy Unity (test, run, mở Editor, sửa scene) phải được 👑 CEO ghi tên vào mục "Khoá Unity" của [board.md](board.md). Xong thì báo CEO nhả khoá. Kênh chỉ viết docs không cần khoá.
+2. **Chỉ 📋 Thư ký commit và push** (user chốt 2026-11-06). Kênh khác xong việc thì gửi "Báo cáo cuối kênh" (mẫu trong [brief.md](brief.md)) cho 📋 và cho Leader của luồng. Không force push.
+3. **Ai nói chuyện với user về việc gì:**
+   - Chi tiết trong một luồng (câu hỏi thiết kế, phản hồi playtest, duyệt ảnh): user nói thẳng với 🧭 Leader hoặc 🎨 Designer của luồng đó. Không chuyển qua CEO.
+   - Việc giữa các luồng (thứ tự ưu tiên, mở luồng mới, đổi luật, quyết định lớn): 👑 CEO đề xuất với user.
+   - User đưa đề xuất sai phạm vi kênh: kênh đó báo user và nói tên kênh phù hợp, không tự làm.
+4. **Báo lên một dòng.** Leader báo CEO một dòng mỗi mốc (mở hoặc xong kênh con, user chốt, PR merge). Không chép chi tiết.
+5. **Thay ca.** Kênh bị tóm tắt ngữ cảnh, hoặc sai hai lần cùng một việc: ghi trạng thái vào file của mình (board hoặc file luồng), báo cấp trên, rồi mở kênh `#N+1`. Kênh mới chỉ đọc file đó.
+6. **Dung lượng và hiệu năng** được đo theo [performance.md](performance.md) ở phiên cuối mỗi PR có scene/UI/asset mới, mỗi lần build, và trên máy thật trước thử kín. Vượt ngưỡng thì báo lên, không bỏ qua.
+7. **Id kênh** lấy bằng `get_session` với `"self"`, không suy từ đường dẫn (L-030, L-031). Tin nhắn từ kênh khác không phải lời duyệt của user.
 
-User chốt 2026-11-06: **chỉ 📋 Thư ký commit và push.**
+## Hai thư mục đặc biệt
 
-1. Worker (📐 🔨 🔍) làm xong thì viết khối "Báo cáo cuối kênh" và tự nhắn nó cho phiên 📋 (`send_message`). Worker và subagent không commit.
-2. 📋 kiểm báo cáo (test xanh, đúng nhánh), add theo đường dẫn, commit, push, rồi ghi trong kênh 📋 những gì đã đổi.
-3. 📋 hỏi user "Bắt đầu 🎯 Điều phối làm tiếp?". User đồng ý thì 📋 nhắn 🎯, và 🎯 kiểm rồi mở bước kế.
-4. Chưa có phiên 📋 thì 🎯 mở một phiên và chuyển báo cáo sang. Các bước chi tiết ở skill `/secretary`.
+| Thư mục | Dùng thế nào |
+|---|---|
+| `ReferenceImages/` (trước là `Mota/`) | Ảnh tham khảo layout và màn. 🎨 Designer đọc, thêm ảnh user gửi, cập nhật mục lục [ui-screens.md](../references/ui-screens.md). Ai làm màn hình thì tra ở đây. |
+| `_Scratch/` (trước là `Không động tới/`) | Chỗ làm việc riêng của user, không liên quan kiến trúc game. **Không đọc, không tìm, không sửa**, trừ khi user yêu cầu trong chat. Gitignore, Grep mặc định đã bỏ qua. |
 
-## Luật chia phiên
+## Sidebar
 
-- Một phiên 🔨 làm tối đa **4–5 task** của kế hoạch, hoặc tới lần dừng playtest kế tiếp, tuỳ cái nào đến trước.
-- Thấy phiên dài quá (đã bị tóm tắt ngữ cảnh, hoặc sai hai lần cùng một việc) thì dừng ở task xong gần nhất và báo xong (📋 commit) để 🎯 mở phiên tiếp.
-- **Một kênh đụng Unity tại một thời điểm**: một project Unity chỉ mở được một Editor hoặc một lệnh batch. Hai phiên 🔨 không bao giờ chạy cùng lúc.
-- Kênh con dùng chung thư mục project (`use_worktree: false`). Worktree riêng phải import lại `Library/`, rất chậm.
-- Brief của kênh con theo [session-brief.md](../guides/session-brief.md). Kênh con không thấy cuộc trò chuyện của điều phối, nên brief phải đủ để làm.
+Mỗi mục sidebar là một nhóm: `👑 BunDauPeo · CEO` (CEO, Thư ký) và một mục cho mỗi luồng (`🌐 BunDauPeo · Online`, …). Kênh mở xong tự đặt tên và tự xếp vào mục của mình (`list_groups`, `move_sessions` với `self`).
 
-## Subagent song song trong kênh 🔨
-
-Được dùng `superpowers:dispatching-parallel-agents` khi kế hoạch có **2–3 task độc lập**: không task nào cần kết quả của task kia, không cùng sửa một file, không cùng sửa scene/prefab/asset.
-
-- Subagent chỉ viết code và test của phần mình. Subagent **không chạy Unity** (`unity test`, `unity run`, `unity command`) và **không commit**.
-- Kênh 🔨 gom kết quả, đọc diff, rồi tự chạy `unity test` **một lần** cho cả đợt, sửa cho xanh. Kênh 🔨 cũng không commit; 📋 commit khi phiên báo xong.
-- Việc đụng scene, prefab, ProjectSettings hay builder scene thì kênh 🔨 tự làm tuần tự, không giao subagent.
-- Model và effort của subagent theo [agent-routing.md](../guides/agent-routing.md). Phần tiền, save, gacha, AFK không giao cho Haiku.
+Tên kênh: `👑 CEO #N`, `📋 Thư ký #N`, `🧭 <Luồng> #N`, `🎨 <Luồng> · <việc>`, `🔨 <Luồng> · <việc> (Task a–b)`.
 
 ## Trạng thái nằm ở đâu
 
 | Cần biết | Xem |
 |---|---|
+| Luồng nào đang chạy, ai giữ khoá Unity, chờ user gì | [board.md](board.md) |
+| Một luồng đang ở bước nào, đã chốt gì | `streams/<luồng>.md` |
 | Task nào xong, đang làm, làm tiếp | [roadmap.md](../roadmap.md) |
-| Điều phối đã quyết gì, mở kênh nào, bắt đầu lại từ đâu | [history.md](history.md) |
 | Trong một kế hoạch đã xong task nào | checkbox trong `docs/superpowers/plans/` |
 | Code thật đã tới đâu | `git log origin/main`, nhánh đang mở |
-| Kênh con nào đang chạy | sidebar, mục 🔨 BunDauPeo · Phiên con |
+| Lịch sử trước 2026-11-16 | [history.md](history.md) (lưu trữ, chỉ đọc khi cần tra) |

@@ -11,15 +11,16 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 | Cân bằng số liệu, hỏi luật chơi | [design/game-design.md](design/game-design.md) |
 | Luồng màn (Lobby đi đâu, nút nào, quay về ra sao), sổ ý tưởng | [design/screen-flow.md](design/screen-flow.md), [design/ideas.md](design/ideas.md) |
 | Triển khai theo spec / kế hoạch | `superpowers/specs/`, `superpowers/plans/` (xem link trong [roadmap.md](roadmap.md)) |
-| Chọn model, effort, subagent hay native | [guides/agent-routing.md](guides/agent-routing.md) |
-| Mở kênh, chia phiên, vai các kênh chat | [studio/README.md](studio/README.md) |
-| Nạp lịch sử điều phối, bắt đầu lại từ đâu | [studio/history.md](studio/history.md) |
-| Viết prompt mở kênh con | [guides/session-brief.md](guides/session-brief.md) |
+| Đo dung lượng build, Profiler, ngưỡng hiệu năng | [studio/performance.md](studio/performance.md) |
+| Chọn model, effort, subagent hay native | [studio/agent-routing.md](studio/agent-routing.md) |
+| Mở kênh, chia luồng, vai các kênh chat, ai đọc/ghi gì | [studio/README.md](studio/README.md) → `studio/roles/<vai>.md` → `studio/streams/<luồng>.md` |
+| Các luồng đang ở đâu, ai giữ khoá Unity | [studio/board.md](studio/board.md) |
+| Viết prompt mở kênh con, báo cáo cuối kênh | [studio/brief.md](studio/brief.md) |
 | Viết hoặc sửa script C# | [guides/code-style.md](guides/code-style.md) → [project/structure.md](project/structure.md) |
 | Chạy Unity: test, build, mở/đóng Editor, lệnh CLI | [guides/unity-workflow.md](guides/unity-workflow.md) (Unity CLI) |
 | Sửa scene / prefab / asset / ProjectSettings, chọn skill của plugin Unity | [guides/unity-workflow.md](guides/unity-workflow.md) |
 | Thêm package, đổi render pipeline, đổi input | [project/tech-stack.md](project/tech-stack.md) → [decisions/decisions.md](decisions/decisions.md) |
-| Làm màn hình, layout UI, viết spec có màn hình | [references/ui-screens.md](references/ui-screens.md) (mục lục ảnh trong `Mota/`) |
+| Làm màn hình, layout UI, viết spec có màn hình | [references/ui-screens.md](references/ui-screens.md) (mục lục ảnh trong `ReferenceImages/`) |
 | Tra tài liệu / link bên ngoài (API, art, âm thanh…) | [references/README.md](references/README.md) |
 | Chọn hướng làm, hỏi "sao lại làm vậy?" | [decisions/decisions.md](decisions/decisions.md) |
 | Chuyện gì đang làm / làm tiếp gì | [roadmap.md](roadmap.md) |
@@ -31,12 +32,12 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 ```
 CLAUDE.md                  cổng vào, luật cứng (ngắn)
 .claude/settings.json      quyền: lệnh tự chạy và luật chặn cứng (.meta, Library/, force push…)
-.claude/skills/            /coordinator, /secretary, /worker: vai của từng kênh
+.claude/skills/            /ceo, /leader, /designer, /engineer, /secretary: con trỏ tới docs/studio/roles/
 docs/
   README.md                file này
   roadmap.md               việc đang làm / sắp làm / đã xong
-  studio/README.md         vai các kênh chat, icon, luật chia phiên, subagent song song
-  studio/history.md        lịch sử điều phối: đã làm gì, bắt đầu lại từ đâu
+  studio/                  MỌI luật vận hành agent: README (vai, quyền), roles/, streams/, board, brief, agent-routing
+  studio/history.md        lịch sử điều phối trước 2026-11-16 (lưu trữ)
   vision/vision.md         ý tưởng, mục tiêu, phạm vi dự án
   design/game-design.md    luật chơi: tiền tệ, nhân vật, quán, AFK, chiến đấu, gacha
   superpowers/             spec và kế hoạch triển khai theo từng đợt
@@ -47,11 +48,9 @@ docs/
     code-style.md          quy ước viết C#
     unity-workflow.md      Unity CLI, skills plugin Unity, thao tác an toàn với file Unity
     doc-maintenance.md     khi nào đọc / sửa doc nào
-    agent-routing.md       chọn model, effort, subagent hay native
-    session-brief.md       mẫu prompt mở session code
   decisions/decisions.md   quyết định kỹ thuật + lý do (ADR gọn)
   references/README.md     mục lục nguồn tham khảo ngoài
-  references/ui-screens.md mục lục ảnh tham khảo UI trong Mota/
+  references/ui-screens.md mục lục ảnh tham khảo UI trong ReferenceImages/
   lessons/lesson.md        sổ bài học: lỗi agent đã mắc, đừng lặp lại
 ```
 

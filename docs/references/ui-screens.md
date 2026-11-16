@@ -1,9 +1,9 @@
 # Ảnh tham khảo UI và màn chơi
 
 > **Đọc khi:** thiết kế hoặc làm một màn hình, layout UI, hoặc viết spec có màn hình.
-> **Cập nhật khi:** thêm, đổi tên hoặc xoá ảnh trong `Mota/`.
+> **Cập nhật khi:** thêm, đổi tên hoặc xoá ảnh trong `ReferenceImages/`.
 
-`Mota/` chứa ảnh chụp layout và các màn mà user muốn hướng đến, gồm Princess Connect Re:Dive, Epic Seven (`battle-result-*`, `story-*`) và Fate/Grand Order (`battle-skill-select-*`). Mở đúng ảnh của màn đang làm (`Glob "Mota/battle-*"`), không cần xem hết.
+`ReferenceImages/` chứa ảnh chụp layout và các màn mà user muốn hướng đến, gồm Princess Connect Re:Dive, Epic Seven (`battle-result-*`, `story-*`) và Fate/Grand Order (`battle-skill-select-*`). Mở đúng ảnh của màn đang làm (`Glob "ReferenceImages/battle-*"`), không cần xem hết.
 
 ## Quy tắc
 
@@ -14,7 +14,7 @@
 
 ## Danh sách
 
-| Nhóm | File (trong `Mota/`) | Xem gì |
+| Nhóm | File (trong `ReferenceImages/`) | Xem gì |
 |---|---|---|
 | Vào game | `title-touch-to-start.jpg` | Màn tiêu đề: logo, "Touch To Start", nút menu góc trên |
 | Hub | `hub-home-annotated-en.png` | **Xem trước:** màn chính có nhãn tiếng Anh cho từng vùng và 7 mục thanh điều hướng dưới |
