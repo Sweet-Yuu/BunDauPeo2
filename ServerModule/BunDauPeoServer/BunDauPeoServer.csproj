@@ -16,6 +16,10 @@
         <Compile Include="..\..\Assets\_Project\Rules\**\*.cs" LinkBase="Rules" />
     </ItemGroup>
 
+    <ItemGroup>
+        <EmbeddedResource Include="GameData.json" />
+    </ItemGroup>
+
     <PropertyGroup>
         <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
     </PropertyGroup>
