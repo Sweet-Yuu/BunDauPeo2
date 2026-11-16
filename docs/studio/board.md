@@ -7,19 +7,19 @@ _Cập nhật 2026-11-16 bởi 👑 CEO #1._
 
 ## Nền
 
-`main` ở `8779098`: Foundation, Gacha, Restaurant, Combat, công cụ thử, layout theo ảnh tham khảo, Build Android thử, Song ngữ, Nâng sao, UI hub 3 đợt, Online đợt 1 (PR #18), Release prep R1 (PR #19). Test: 944 EditMode + 41 PlayMode + `dotnet test` 3/3.
+`main` ở `496da65` (PR #20: mô hình studio mới): Foundation, Gacha, Restaurant, Combat, công cụ thử, layout theo ảnh tham khảo, Build Android thử, Song ngữ, Nâng sao, UI hub 3 đợt, Online đợt 1 (PR #18), Release prep R1 (PR #19). Test: 944 EditMode + 41 PlayMode + `dotnet test` 3/3.
 
 **Lịch** (user chốt 2026-11-16): itch.io giữa T12, đủ tính năng 31/12; CH Play thử kín ~12–13/12 (hạn cứng 15/12), công khai đầu T1/2027. Thứ tự cắt khi trễ: Hộp quà → Nhiệm vụ ngày → dời ngày công khai.
 
 ## Khoá Unity
 
-Đang giữ: **không ai**.
+Đang giữ: **không ai**. (O2-a xong, `b34453b` trên `origin/feature/online-2`, nhả 2026-11-16; 🧭 Online xin lại cho O2-b.)
 
 ## Luồng
 
 | Luồng | File | Leader | Bước kế |
 |---|---|---|---|
-| 🌐 Online | [streams/online.md](streams/online.md) | xem file luồng | PR kế hoạch đợt 2 → 🔨 O2-a |
+| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | O2-a xong (`b34453b`); kế tiếp 🔨 O2-b (Task 6–9) |
 | 🚀 Phát hành | [streams/release.md](streams/release.md) | chưa mở | R2 khi có khoá upload + icon |
 | 🍜 Nội dung game | [streams/content.md](streams/content.md) | chưa mở | sau Online đợt 2 |
 | 💰 Kiếm tiền | chưa có | chưa mở | sau 31/12 |
@@ -34,8 +34,6 @@ _Cập nhật 2026-11-16 bởi 👑 CEO #1._
 ## Chờ user (giữa các luồng)
 
 - Xem ngưỡng dung lượng/hiệu năng CEO đề xuất ở [performance.md](performance.md); chưa đo lần nào. Đề xuất đo nền trong Editor ngay sau Online O2-a.
-- Duyệt PR `docs/studio-ceo` (mô hình mới, đổi tên `ReferenceImages/`, `_Scratch/`) → `main`, trước khi kênh nào đổi nhánh trong checkout chung.
-- Duyệt PR kế hoạch Online đợt 2 (`docs/online-2-plan`).
 - Phát hành: U3 khoá upload, U5 deploy production, U7 icon PNG, U9 thử save trên điện thoại, D-015 → Accepted, tài khoản Play Console (trước 30/11), email hỗ trợ.
 - Ảnh `ReferenceImages/hub-missions.jpg`, `ReferenceImages/hub-presents-popup.jpg` trước spec Online đợt 3/4.
 - Giá nâng cấp (quán bằng Material, nhân vật bằng Coin) mới nằm ở `ideas.md`, chưa xếp roadmap.

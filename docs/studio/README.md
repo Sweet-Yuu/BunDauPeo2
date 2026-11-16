@@ -49,7 +49,7 @@ Chi tiết chọn model cho subagent: [agent-routing.md](agent-routing.md). Mẫ
 
 ## Sidebar
 
-Mỗi mục sidebar là một nhóm: `👑 BunDauPeo · CEO` (CEO, Thư ký) và một mục cho mỗi luồng (`🌐 BunDauPeo · Online`, …). Kênh mở xong tự đặt tên và tự xếp vào mục của mình (`list_groups`, `move_sessions` với `self`).
+Mỗi mục sidebar là một nhóm: `👑 BunDauPeo · CEO` (CEO, Thư ký) và một mục cho mỗi luồng (`🌐 BunDauPeo · Online`, …). Kênh do một kênh khác mở sẽ tự lồng dưới kênh mở nó và không chuyển group riêng được. Vì vậy CEO mở Leader xong thì tách ra (`detach_session`) rồi xếp vào group luồng (`move_sessions`); kênh con của Leader tự lồng dưới Leader, nằm cùng group. Kênh tự đặt tên khi mở.
 
 Tên kênh: `👑 CEO #N`, `📋 Thư ký #N`, `🧭 <Luồng> #N`, `🎨 <Luồng> · <việc>`, `🔨 <Luồng> · <việc> (Task a–b)`.
 
