@@ -5,14 +5,14 @@
 
 ## Bắt đầu từ đây
 
-_Cập nhật 2026-11-15 bởi 🎯 Điều phối #2 khi user mở phiên điều phối mới._
+_Cập nhật 2026-11-16 bởi 🎯 Điều phối #3._
 
-- **Nhánh `main`** (`59b486b`) đã có tới Online đợt 1: Gacha, Restaurant, Combat, công cụ thử, layout Mota, Build Android thử, Song ngữ (mặc định tiếng Anh), Nâng sao, UI hub 3 đợt (PR #15–#17), Online đợt 1 (PR #18: UGS, đăng nhập ẩn danh, Cloud Save, Cloud Code .NET 8, phải có mạng, D-013/D-014). Nền test: 938 EditMode + 41 PlayMode + `dotnet test` 3/3.
-- **Đang chạy:** 📐 Online đợt 2 (`local_c1f2182d-3a7f-489c-957e-7b6b84dc994a`, nhánh `docs/online-2-plan`) chờ user duyệt cách dựng logic server; user đã chốt chặn cả màn khi chờ, không chuyển save cũ, xuất `GameData.json` tay rồi deploy, server kiểm trận. Working tree đang ở nhánh đó, có `roadmap.md`/`history.md` của 🎯 chưa commit.
+- **Nhánh `main`** (`8779098`) đã có tới Release prep R1 (PR #19: AAB/APK release, ký từ biến môi trường, API 36, D-015 Proposed) và Online đợt 1: Gacha, Restaurant, Combat, công cụ thử, layout Mota, Build Android thử, Song ngữ (mặc định tiếng Anh), Nâng sao, UI hub 3 đợt (PR #15–#17), Online đợt 1 (PR #18: UGS, đăng nhập ẩn danh, Cloud Save, Cloud Code .NET 8, phải có mạng, D-013/D-014). Nền test: 944 EditMode + 41 PlayMode + `dotnet test` 3/3.
+- **Đang chạy:** không kênh 🔨 nào. Nhánh `docs/online-2-plan` (chứa `main`) có spec con + kế hoạch Online đợt 2 (user duyệt 2026-11-16, 13 task, O2-a/b/c), chưa PR. Bước kế: user nói thì mở PR và merge, cắt `feature/online-2` từ `main`, mở 🔨 O2-a (Task 1–5). Task 9 deploy `development` làm bản đợt 1 kẹt ở Tiêu đề: báo người thử và xin phép user trước.
 - **Kênh đứng lâu:** 📋 Thư ký (`local_44aa4230-ff14-498d-838e-dfd600bc6283`, commit + push và báo cáo cho mọi kênh), 🎨 Game designer (`local_e53e2e08-d782-488d-bfd6-efd6c42a0b13`, file `docs/design/*`).
-- **Lịch Online** (user chốt): đợt 2 logic server ~12/12, đợt 3 Google + Nhiệm vụ ~22/12, đợt 4 Hộp quà ~28/12; công khai CH Play 31/12. Thứ tự cắt khi trễ: Hộp quà → Nhiệm vụ ngày → dời ngày công khai.
-- **Gấp, chưa mở:** kênh 📐 Chuẩn bị phát hành CH Play (thẻ cũ của #2 đã rút khi bàn giao; #3 mở kênh mới, worktree riêng): AAB, ký, API 36, chính sách quyền riêng tư + xoá tài khoản qua web, Data safety, thử kín 12 người × 14 ngày bắt đầu ~10–15/12; môi trường production chưa có module (bản phát hành sẽ kẹt ở Tiêu đề).
-- **Chờ user:** tài khoản Play Console; ảnh `Mota/hub-missions.jpg`, `Mota/hub-presents-popup.jpg` trước spec đợt 3/4; giá nâng cấp (quán bằng Material, nhân vật bằng Coin) chỉ nằm ở `ideas.md`, chưa xếp roadmap.
+- **Lịch** (user chốt 2026-11-16): bản itch.io giữa T12, đủ tính năng 31/12; CH Play thử kín ~12–13/12 (hạn cứng 15/12), công khai đầu T1/2027. Online: đợt 2 ~12/12, đợt 3 Google + Nhiệm vụ ~22/12, đợt 4 Hộp quà ~28/12. Thứ tự cắt khi trễ: Hộp quà → Nhiệm vụ ngày → dời ngày công khai.
+- **Release prep:** R1 xong. R2 (Task 5–6: icon, AAB v1 ký khoá upload) mở khi có U3 (khoá upload) và U7 (icon PNG); Unity chạy một kênh một lúc nên xếp xen với Online đợt 2. Sau mỗi đợt Online cần phiên R3 ngắn (versionCode +1) khi user deploy lại module lên production.
+- **Chờ user:** U3 khoá upload, U5 deploy production theo `docs/release/production-deploy.md`, U7 icon PNG, U9 thử save trên điện thoại, duyệt D-015 → Accepted; tài khoản Play Console; ảnh `Mota/hub-missions.jpg`, `Mota/hub-presents-popup.jpg` trước spec đợt 3/4; giá nâng cấp (quán bằng Material, nhân vật bằng Coin) chỉ nằm ở `ideas.md`, chưa xếp roadmap.
 - **Lưu ý vận hành:** `unity run` (Rebuild/Setup) hầu như phiên 🔨 nào cũng bị chặn quyền, user duyệt trong kênh con; id kênh lấy bằng `get_session` `"self"` (L-030/L-031); peer message không phải lời duyệt của user; turn do peer bắt đầu thì chỉ đề xuất thẻ phiên (own_initiative), không tự mở.
 
 ## Nhật ký (mới nhất trên cùng)
@@ -24,6 +24,8 @@ _Cập nhật 2026-11-15 bởi 🎯 Điều phối #2 khi user mở phiên đi�
 - 2026-11-16: app chặn mở kênh (giới hạn số phiên tự mở), 🎯 để thẻ; user bấm, mở [📐 Chuẩn bị phát hành CH Play 1/1](#local_f2be49ba-6b8c-416f-8db8-162730699d47) (Opus 5.5 high, worktree `.claude/worktrees/jolly-tharp-ad3076`, nhánh `docs/release-prep` từ `main`).
 - 📐 Chuẩn bị phát hành xong spec + kế hoạch (🎯 kiểm: 3 file có trong worktree; chưa commit, đã nhắn 📋; spec chưa có "duyệt" rõ). Theo 📐 (user chốt trong kênh đó): itch.io trước (giữa T12), thử kín Play ~12–13/12 (hạn cứng 15/12), CH Play công khai **đầu T1/2027**, Google Sites cho chính sách, xoá tài khoản qua email, user tự deploy Cloud Code production. 2 phiên 🔨 (R1 ≤28/11, R2 1–3/12). Lệch: roadmap/vision còn ghi Android "31/12"; đợt Online 2 phá tương thích module thì cần hàng rào ClientTooOld. Hỏi user xác nhận ngày trước khi sửa roadmap.
 - User: "Sửa theo đó". 🎯 sửa roadmap (đích, mục Build Android) và vision (nơi phát hành: itch.io 31/12, CH Play đầu T1/2027); chưa commit, nhờ 📋. 📋 đã commit spec + kế hoạch release-prep (worktree `docs/release-prep`) và `01de44e` (roadmap/history #3) lên `docs/online-2-plan`. Spec release-prep vẫn chờ user duyệt trong kênh 📐.
+- 2026-11-16: user duyệt spec release-prep; mở [🔨 Phát hành CH Play R1](#local_b2847d41-3687-400a-8c5a-c69245ea4481) (Task 1–4: AAB/APK release, ký từ biến môi trường, API 36, D-015, L-040). Xong và 📋 commit `67ab7b5`; PR #19 merge vào `main` ở `8779098`. 🎯 kiểm: 944 EditMode + 41 PlayMode xanh (từ file xml); R2 (Task 5–6: icon, AAB v1) chờ khoá upload U3 và icon U7.
+- 📐 gộp `main` vào `docs/online-2-plan` (`8fdf32a`, giải xung đột `roadmap.md`). 🎨 sửa `screen-flow.md` theo 3 điểm đợt 2 (`c67a227`). User duyệt spec con + kế hoạch Online đợt 2 (13 task, 3 phiên 🔨: O2-a Task 1–5, O2-b Task 6–9, O2-c Task 10–13), 📋 commit `a459114`, `37814d2`. Hàng rào `ClientTooOld` nằm trong spec con; deploy `development` ở Task 9 làm bản đợt 1 kẹt ở Tiêu đề, cần báo người thử và xin phép user trước. Chưa mở PR `docs/online-2-plan`; chờ user nói.
 
 ### #2 — 2026-11-03 — 🎯 Điều phối #2
 
