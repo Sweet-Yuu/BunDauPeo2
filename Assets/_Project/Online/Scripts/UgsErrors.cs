@@ -1,6 +1,8 @@
 using System;
 using System.Net.Http;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
+using Unity.Services.CloudCode;
 using Unity.Services.CloudSave;
 using Unity.Services.Core;
 
@@ -13,6 +15,8 @@ namespace BunDauPeo.Online
         {
             // Lỗi write lock: khoá save đã bị ghi sau lần ta đọc (spec 5.4); CloudSync loại ca lượt trước của ta ghi xong mà mất trả lời.
             CloudSaveException { Reason: CloudSaveExceptionReason.Conflict } => OnlineStatus.OtherDevice,
+            // Module ném ClientTooOldException: Cloud Code gói message trong lỗi nên dò chuỗi (spec con 3.3).
+            CloudCodeException c when c.Message != null && c.Message.Contains(ServerProtocol.ClientTooOldTag) => OnlineStatus.ClientTooOld,
             RequestFailedException r when IsNetwork(r.ErrorCode) => OnlineStatus.NetworkError,
             TimeoutException or HttpRequestException => OnlineStatus.NetworkError,
             _ => OnlineStatus.ServerError,

@@ -1,6 +1,7 @@
 using System;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using UnityEngine;
 
 namespace BunDauPeo.Boot
@@ -110,33 +111,42 @@ namespace BunDauPeo.Boot
         }
 
         // Reset online (spec 5.8, D-005): server xoá trước, rồi mới xoá máy. Server lỗi thì không xoá gì, đẩy save chạy lại.
-        // Server xong mà xoá/ghi bản đệm lỗi: bản trong bộ nhớ (cũ hay mới) vẫn được đẩy lên, nên server luôn khớp với máy.
+        // Server xong mà xoá/ghi bản đệm lỗi: bản trong bộ nhớ vẫn được đẩy lên, nên server luôn khớp với máy.
+        // Gem, nhân vật, thể lực… của game mới là của server (state mới trả về), không phải của máy.
         public async System.Threading.Tasks.Task<OnlineStatus> ResetToDefaultsAsync(IGameServer server, CloudSync sync)
         {
             if (server == null) throw new ArgumentNullException(nameof(server));
             if (sync == null) throw new ArgumentNullException(nameof(sync));
-
             await sync.StopAsync();
-            var status = await server.ResetPlayerAsync();
-            if (status != OnlineStatus.Ok)
+            var result = await server.ResetPlayerAsync();
+            if (!result.Ok)
             {
                 sync.Resume();
-                return status;
+                return result.Status;
             }
-
             var reset = ResetToDefaults();
+            // Xoá bản đệm lỗi thì bộ nhớ giữ nguyên (không đổi nửa vời); Gem/nhân vật khớp server ở lần mở sau.
+            if (reset && result.Value != null) ApplyServerState(result.Value);
             sync.Resume();
             sync.MarkDirty();
             await sync.FlushAsync();
             return reset ? OnlineStatus.Ok : OnlineStatus.ServerError;
         }
 
+        // Server là bản chính của 8 field nó giữ (spec con 4.3): chép vào save, lưu bản đệm, báo view.
+        public void ApplyServerState(ServerState state)
+        {
+            ServerStateApplier.Apply(Save, state);
+            Persist();
+            Wallet.NotifyChanged();
+            Roster.NotifyChanged();
+        }
+
+        // Gem và nhân vật khởi đầu do server cấp (ServerState.NewGame); máy chỉ cấp phần nó giữ (Coin, Material).
         private void GrantNewGame()
         {
             foreach (var line in _newGame.StartingCurrency)
-                if (line.Amount > 0) Wallet.Add(line.Type, line.Amount);
-            foreach (var starter in _newGame.StarterCharacters)
-                if (starter != null) Roster.Add(starter.Id);
+                if (line.Amount > 0 && line.Type != CurrencyType.Gem) Wallet.Add(line.Type, line.Amount);
         }
     }
 }

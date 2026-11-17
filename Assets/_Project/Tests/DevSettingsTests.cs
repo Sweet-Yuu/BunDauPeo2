@@ -95,11 +95,12 @@ namespace BunDauPeo.Tests
 
             DevOverlay.GrantGems(session.Wallet);
             session.Persist();
-            Assert.AreEqual(30 + DevOverlay.GemGrant, session.Wallet.Get(CurrencyType.Gem));
+            Assert.AreEqual(DevOverlay.GemGrant, session.Wallet.Get(CurrencyType.Gem), "the device grants no starting Gem");
 
-            var server = new LocalGameServer();
+            // Gem khởi đầu là của server: Reset trả về đúng số đó.
+            var server = new LocalGameServer(new BunDauPeo.Rules.GameData { NewGame = { StartingGem = 30 } });
             Assert.AreEqual(OnlineStatus.Ok, server.SignInAsync().Result);
-            var sync = new CloudSync(server, () => UnityEngine.JsonUtility.ToJson(session.Save), () => { });
+            var sync = new CloudSync(server, () => UnityEngine.JsonUtility.ToJson(session.Save), () => { }, () => "");
             Assert.AreEqual(OnlineStatus.Ok, new GameResetter(() => session.ResetToDefaultsAsync(server, sync)).ResetAsync().Result);
 
             Assert.AreEqual(30, session.Wallet.Get(CurrencyType.Gem));

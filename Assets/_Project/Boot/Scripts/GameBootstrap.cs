@@ -92,19 +92,23 @@ namespace BunDauPeo.Boot
             var cached = ReadCache();
             GameLanguage.Current = GameLanguage.Resolve(cached?.Language ?? "");
 
+            // Dữ liệu cân bằng dựng một lần từ các SO: server Local dùng để chạy luật, máy so mã băm với server thật.
+            var gameData = GameDataBuilder.Build(_catalog, _bannerCatalog, _starConfig, _combatConfig, _newGameConfig);
+
             var server = ServerFactory != null
                 ? ServerFactory()
                 : ServerChoice.Create(Application.isEditor, UseUgsInEditor, Debug.isDebugBuild);
             if (server == null)
             {
                 // Editor chế độ Local: bản đệm làm dữ liệu "server" để tiến độ còn qua các lần Play.
-                var local = new LocalGameServer();
+                var local = new LocalGameServer(gameData);
                 if (cached != null) local.Seed(JsonUtility.ToJson(cached));
                 server = local;
             }
 
+            (server as LocalGameServer)?.UseDataIfEmpty(gameData);
             _startup = new OnlineStartup(server, new ServerTime(), SavePath, _catalog, _newGameConfig, _bannerCatalog,
-                _restaurantConfig, _combatConfig, _starConfig, gameObject);
+                _restaurantConfig, _combatConfig, _starConfig, gameData, gameObject);
             _startup.RegisterBase();
 
             _active = this;

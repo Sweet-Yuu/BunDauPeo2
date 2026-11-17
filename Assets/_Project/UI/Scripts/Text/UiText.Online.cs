@@ -14,6 +14,10 @@ namespace BunDauPeo.UI
             ("online.other_device_title", "Tài khoản đang dùng ở máy khác", "Account in use on another device"),
             ("online.other_device_body", "Tài khoản này vừa đăng nhập ở máy khác. Về màn Tiêu đề để tải lại.", "This account just signed in on another device. Return to the title screen to reload."),
             ("online.to_title", "Về màn Tiêu đề", "Back to title"),
+            // Online đợt 2 (spec con 7.1–7.3): màn chờ lệnh server và hộp bản cũ.
+            ("online.sending", "Đang gửi…", "Sending…"),
+            ("online.too_old_title", "Cần cập nhật", "Update required"),
+            ("online.too_old_body", "Bản game này đã cũ.\nHãy cập nhật lên bản mới nhất để chơi tiếp.", "This version is out of date.\nPlease update to the latest version to keep playing."),
         };
     }
 }

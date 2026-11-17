@@ -188,6 +188,7 @@ namespace BunDauPeo.Tests
                 var a = Hero("a");
                 var session = new GameSession(new SaveService(Path.Combine(dir, "save.json")), TestData.Catalog(a),
                     TestData.Config(new[] { new CurrencyAmount(CurrencyType.Coin, 500) }, a));
+                session.Roster.Add("a"); // nhân vật khởi đầu do server cấp, không phải session
                 session.Roster.AddToTeam("a");
                 var service = CombatTestData.Service(roster: session.Roster, persist: session.Persist);
                 session.ResetCompleted += service.ResetRuntime;

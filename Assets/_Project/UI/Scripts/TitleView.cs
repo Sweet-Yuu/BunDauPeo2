@@ -75,6 +75,10 @@ namespace BunDauPeo.UI
             }
 
             OnlineOverlay.Watch(starter);
+            // Cổng lệnh có từ lúc dựng starter (qua RegisterBase), nên hộp và màn chờ nghe được cả lệnh đầu tiên của game.
+            var gate = ServiceLocator.Get<CommandGate>();
+            OnlineOverlay.Watch(gate);
+            WaitOverlay.Watch(gate);
             var status = await starter.StartAsync();
             // Scene đã đổi trong lúc chờ (vd. test nạp lại Tiêu đề): view cũ không làm gì nữa.
             if (this == null) return;
@@ -82,7 +86,8 @@ namespace BunDauPeo.UI
 
             if (status != OnlineStatus.Ok)
             {
-                OnlineOverlay.ShowConnectFailed(Retry);
+                if (status == OnlineStatus.ClientTooOld) OnlineOverlay.ShowTooOld();
+                else OnlineOverlay.ShowConnectFailed(Retry);
                 return;
             }
 

@@ -14,6 +14,7 @@ namespace BunDauPeo.Core
         private readonly IGameServer _server;
         private readonly Func<string> _snapshotJson;
         private readonly Action _onUploaded;
+        private readonly Func<string> _sessionId;
 
         private bool _dirty;
         private double _dirtyAge;
@@ -25,8 +26,9 @@ namespace BunDauPeo.Core
         private bool _stopped;
         private Task _inFlight;
 
-        public CloudSync(IGameServer server, Func<string> snapshotJson, Action onUploaded)
+        public CloudSync(IGameServer server, Func<string> snapshotJson, Action onUploaded, Func<string> sessionId)
         {
+            _sessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _snapshotJson = snapshotJson ?? throw new ArgumentNullException(nameof(snapshotJson));
             _onUploaded = onUploaded ?? throw new ArgumentNullException(nameof(onUploaded));
@@ -36,6 +38,7 @@ namespace BunDauPeo.Core
         public event Action Lost;
         public event Action Restored;
         public event Action OtherDevice;
+        public event Action NoState;
 
         private bool Uploading => _inFlight != null && !_inFlight.IsCompleted;
 
@@ -114,11 +117,11 @@ namespace BunDauPeo.Core
         private async Task UploadAsync(string json)
         {
             OnlineStatus status;
+            var noState = false;
             try
             {
                 status = await _server.UploadSaveAsync(json);
-                // Xung đột ngay sau một lượt lỗi: lượt đó có thể đã ghi xong mà mất trả lời (write lock cũ), không phải máy khác.
-                if (status == OnlineStatus.OtherDevice && _failures > 0 && !_stopped) status = await ReconcileAsync(json);
+                if (status == OnlineStatus.OtherDevice && !_stopped) (status, noState) = await ResolveConflictAsync(json);
             }
             catch (Exception e)
             {
@@ -128,6 +131,14 @@ namespace BunDauPeo.Core
             }
 
             if (_stopped) return;
+            if (noState)
+            {
+                // Server không còn state (Reset mất trả lời, tài khoản đã xoá): về Tiêu đề dựng lại, không phải "máy khác".
+                Stop();
+                NoState.SafeInvoke();
+                return;
+            }
+
             switch (status)
             {
                 case OnlineStatus.Ok:
@@ -155,35 +166,19 @@ namespace BunDauPeo.Core
             }
         }
 
-        // Lượt lỗi không tăng SaveRevision, nên server giữ đúng số của bản đang đẩy nghĩa là bản đó do máy này ghi (spec 5.3: kiểm đồng bộ).
-        // Tải lại cũng nhận write lock mới cho lượt đẩy kế.
-        // shortcut: hai máy cùng tài khoản cùng số SaveRevision sẽ bị nhận nhầm; so thêm ID phiên khi có liên kết tài khoản (đợt 3).
-        // Tải lại lỗi thì chưa biết ai ghi: trả lỗi đó để thử lại sau, không báo nhầm OtherDevice.
-        private async Task<OnlineStatus> ReconcileAsync(string json)
+        // Mọi xung đột khoá save (spec con 3.6): so mã phiên trong state (Protected, máy không tự ghi được) với mã máy này giữ.
+        // Đọc mã lỗi thì chưa biết ai ghi: trả lỗi đó để thử lại sau, không báo nhầm OtherDevice.
+        private async Task<(OnlineStatus status, bool noState)> ResolveConflictAsync(string json)
         {
-            var server = await _server.LoadSaveAsync();
-            if (!server.Ok) return server.Status;
-            var own = server.Value != null && Revision(server.Value) is long theirs && theirs == Revision(json);
-            if (!own) return OnlineStatus.OtherDevice;
-            return _stopped ? OnlineStatus.Ok : await _server.UploadSaveAsync(json);
-        }
+            var active = await _server.LoadActiveSessionIdAsync();
+            if (!active.Ok) return (active.Status, false);
+            if (active.Value == null) return (OnlineStatus.OtherDevice, true);
+            if (active.Value != _sessionId()) return (OnlineStatus.OtherDevice, false);
 
-        private static long? Revision(string json)
-        {
-            try
-            {
-                return UnityEngine.JsonUtility.FromJson<RevisionOnly>(json)?.SaveRevision;
-            }
-            catch (ArgumentException)
-            {
-                return null;
-            }
-        }
-
-        [Serializable]
-        private sealed class RevisionOnly
-        {
-            public long SaveRevision;
+            // Lượt đẩy trước của máy này đã ghi mà mất trả lời: tải lại nhận write lock mới rồi đẩy lại một lần.
+            var load = await _server.LoadSaveAsync();
+            if (!load.Ok) return (load.Status, false);
+            return (_stopped ? OnlineStatus.Ok : await _server.UploadSaveAsync(json), false);
         }
     }
 }
