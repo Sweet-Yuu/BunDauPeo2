@@ -19,7 +19,7 @@ namespace BunDauPeo.Tests
             Fragments = new List<FragmentCount> { new() { CharacterId = "a", Count = 4 } },
             StarUps = new List<StarUpEntry> { new() { CharacterId = "a", Count = 2 } },
             GachaPity = new List<PityEntry> { new() { BannerId = "b1", Pulls = 9 } },
-            GachaHistory = new List<GachaHistoryEntry> { new() { Utc = 5, BannerId = "b1", Count = 1, CharacterIds = new[] { "a" } } },
+            GachaHistory = new List<GachaHistoryEntry> { new() { Utc = 638_000_000_000_000_000L, BannerId = "b1", Count = 1, CharacterIds = new[] { "a" } } },
             Stamina = new StaminaState { Current = 40, AnchorUtcTicks = 777 },
             ClearedStages = new List<string> { "s1" },
         };
@@ -48,6 +48,21 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(50, new Wallet(save).Get(CurrencyType.Coin));
             // Đi vòng về state: nếu thiếu field nào thì JSON lệch.
             Assert.AreEqual(JsonUtility.ToJson(state), JsonUtility.ToJson(ServerStateApplier.FromSave(save)));
+        }
+
+        // Bản đệm đợt 1 ghi giây Unix; GachaViewText đọc ticks, nên FromSave đổi sang ticks, còn ticks thật giữ nguyên.
+        [Test]
+        public void FromSave_OldUnixSecondsHistory_BecomesTicks_TicksKept()
+        {
+            var save = new PlayerSave();
+            var when = new System.DateTime(2026, 11, 3, 8, 0, 0, System.DateTimeKind.Utc);
+            save.GachaHistory.Add(new GachaHistoryEntry { Utc = new System.DateTimeOffset(when).ToUnixTimeSeconds(), BannerId = "b", Count = 1 });
+            save.GachaHistory.Add(new GachaHistoryEntry { Utc = when.Ticks, BannerId = "b", Count = 1 });
+
+            var history = ServerStateApplier.FromSave(save).GachaHistory;
+
+            Assert.AreEqual(when.Ticks, history[0].Utc, "seconds converted");
+            Assert.AreEqual(when.Ticks, history[1].Utc, "ticks untouched");
         }
 
         [Test]

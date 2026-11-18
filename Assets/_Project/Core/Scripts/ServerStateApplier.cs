@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BunDauPeo.Rules;
 using UnityEngine;
@@ -33,11 +34,20 @@ namespace BunDauPeo.Core
                 Fragments = new List<FragmentCount>(save.Fragments),
                 StarUps = new List<StarUpEntry>(save.StarUps),
                 GachaPity = new List<PityEntry>(save.GachaPity),
-                GachaHistory = new List<GachaHistoryEntry>(save.GachaHistory),
+                GachaHistory = new List<GachaHistoryEntry>(save.GachaHistory.ConvertAll(HistoryToTicks)),
                 Stamina = new StaminaState { Current = save.Stamina.Current, AnchorUtcTicks = save.Stamina.AnchorUtcTicks },
                 ClearedStages = new List<string>(save.ClearedStages),
             };
             return state.Clone();
+        }
+
+        // Đợt 1 ghi giây Unix (~1,7 tỉ); ticks của mọi ngày sau năm 0001 đều lớn hơn 1e11 nhiều. Dưới ngưỡng là giây.
+        private const long SecondsBelow = 100_000_000_000L;
+
+        private static GachaHistoryEntry HistoryToTicks(GachaHistoryEntry entry)
+        {
+            if (entry.Utc > 0 && entry.Utc < SecondsBelow) entry.Utc = DateTimeOffset.FromUnixTimeSeconds(entry.Utc).UtcTicks;
+            return entry;
         }
 
         // Bản tải lên khoá save: không còn field server giữ, nên máy khác hay bản sửa tay không đổi được chúng.

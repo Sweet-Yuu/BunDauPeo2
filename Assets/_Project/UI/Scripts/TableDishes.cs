@@ -9,6 +9,14 @@ namespace BunDauPeo.UI
         public static bool[] Occupied(IReadOnlyList<CustomerSnapshot> customers, int tableCount)
         {
             var result = new bool[tableCount < 0 ? 0 : tableCount];
+            Fill(customers, result);
+            return result;
+        }
+
+        // Như Occupied nhưng ghi vào mảng có sẵn (view gọi mỗi khung, không được cấp phát).
+        public static void Fill(IReadOnlyList<CustomerSnapshot> customers, bool[] result)
+        {
+            System.Array.Clear(result, 0, result.Length);
             for (var i = 0; i < customers.Count; i++)
             {
                 var c = customers[i];
@@ -17,8 +25,6 @@ namespace BunDauPeo.UI
                     result[c.TableIndex] = true;
                 }
             }
-
-            return result;
         }
     }
 }

@@ -400,6 +400,29 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, rig.PersistCalls);
         }
 
+        // Mất trả lời EnterStage, bấm Thử lại: thể lực trừ một lần, vé là vé server giữ, server nhận hai lệnh cùng RequestId.
+        [Test]
+        public void EnterStage_LostReplyThenRetry_StaminaOnce_SameTicket()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            var lost = 0;
+            rig.Gate.Lost += retry =>
+            {
+                lost++;
+                retry();
+            };
+            rig.Server.LoseNextReply();
+
+            var result = rig.Service.EnterStageAsync("b1").Sync();
+
+            Assert.AreEqual(1, lost, "the player saw the Lost box once and pressed Retry");
+            Assert.AreEqual(EnterStageStatus.Entered, result.Status);
+            Assert.AreEqual(90, rig.Server.State.Stamina.Current, "charged once, not twice");
+            Assert.AreEqual(90, rig.Save.Stamina.Current);
+            Assert.AreEqual(rig.Server.State.PendingTicket, result.Session.Ticket, "the retry got the first ticket back");
+            Assert.AreEqual(2, rig.Server.CommandCalls, "the lost send plus the retry");
+        }
+
         [Test]
         public void EnterStage_StarredCharacter_HasScaledStats()
         {

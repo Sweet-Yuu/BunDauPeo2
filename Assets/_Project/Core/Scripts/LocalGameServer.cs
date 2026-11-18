@@ -20,6 +20,7 @@ namespace BunDauPeo.Core
         private bool _otherDeviceNext;
         private bool _loseNextReply;
         private bool _loseNextCommandReply;
+        private bool _loseNextResetReply;
         private bool _writeLockStale;
         private TaskCompletionSource<bool> _delayNext;
         private string _sessionId = "";
@@ -101,6 +102,9 @@ namespace BunDauPeo.Core
         public bool RejectDev { get; set; }
 
         public void DelayNext(TaskCompletionSource<bool> gate) => _delayNext = gate;
+
+        // Reset kế tiếp xoá xong trên server rồi trả NetworkError (mất trả lời); Reset lại thì chạy lần nữa và thành công.
+        public void LoseNextResetReply() => _loseNextResetReply = true;
 
         // Máy khác Bootstrap: phiên đang giữ đổi, lệnh kế tiếp của máy này nhận OtherDevice.
         public void SimulateOtherDeviceBootstrap()
@@ -211,6 +215,12 @@ namespace BunDauPeo.Core
 
             StoredSave = null;
             State = recreate ? ServerHandlers.ResetState(_data, _sessionId) : null;
+            if (_loseNextResetReply)
+            {
+                _loseNextResetReply = false;
+                return OnlineResult<ServerState>.Fail(OnlineStatus.NetworkError);
+            }
+
             return OnlineResult<ServerState>.Success(State?.Clone());
         }
 

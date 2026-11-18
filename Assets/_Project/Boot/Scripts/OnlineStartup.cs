@@ -84,6 +84,8 @@ namespace BunDauPeo.Boot
         // Đăng nhập giữ nguyên (cùng người chơi); Bootstrap và tải save chạy lại để lấy bản mới trên server.
         public void Shutdown()
         {
+            // Lệnh đang chờ Thử lại thuộc phiên cũ: nhả cổng, không thì Busy kẹt sang phiên sau.
+            _gate.Abort();
             TearDownGame();
             _bootstrapped = false;
             _saveLoaded = false;

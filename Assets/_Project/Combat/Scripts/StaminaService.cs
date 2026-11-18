@@ -11,6 +11,7 @@ namespace BunDauPeo.Combat
         private readonly PlayerSave _save;
         private readonly CombatConfig _config;
         private readonly Func<DateTime> _utcNow;
+        private readonly StaminaState _scratch = new StaminaState();
 
         public StaminaService(PlayerSave save, CombatConfig config, Func<DateTime> utcNow)
         {
@@ -40,10 +41,12 @@ namespace BunDauPeo.Combat
 
         private StaminaState Settled()
         {
-            var raw = _save.Stamina ?? new StaminaState();
-            var copy = new StaminaState { Current = raw.Current, AnchorUtcTicks = raw.AnchorUtcTicks };
-            StaminaRules.Settle(copy, _utcNow().Ticks, Max, RegenTicks);
-            return copy;
+            var raw = _save.Stamina;
+            // Dùng lại một bản nháp: thanh tài nguyên đọc mỗi khung, mỗi lần new là một lần cấp phát. Chủ yếu đọc ngay, không giữ.
+            _scratch.Current = raw?.Current ?? 0;
+            _scratch.AnchorUtcTicks = raw?.AnchorUtcTicks ?? 0;
+            StaminaRules.Settle(_scratch, _utcNow().Ticks, Max, RegenTicks);
+            return _scratch;
         }
     }
 }

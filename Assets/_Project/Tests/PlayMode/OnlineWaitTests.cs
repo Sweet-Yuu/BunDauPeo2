@@ -148,6 +148,118 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click("NavTabStages_PH_320x120").Status, "thanh dưới bấm lại được");
         }
 
+        // Bấm nút thật (raycast) hai lần khi server giữ lệnh: lệnh tới server đúng một lần, lần bấm hai bị lớp chờ chặn; xong thì nút bấm lại được.
+        private IEnumerator PressTwiceWhileHeld(string button, Func<bool> done)
+        {
+            var calls = _server.CommandCalls;
+            var open = new TaskCompletionSource<bool>();
+            _server.DelayNext(open);
+
+            try
+            {
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click(button).Status, button);
+                yield return null;
+                yield return null;
+                Assert.IsTrue(WaitOverlay.IsBlocking, button + ": lớp chờ phải bật");
+                Assert.AreNotEqual(ClickStatus.Clicked, UiDriver.Click(button).Status, button + ": lần bấm hai không được tới nút");
+                yield return new WaitForSecondsRealtime(0.2f);
+                Assert.AreEqual(calls + 1, _server.CommandCalls, button + ": server nhận đúng một lệnh");
+            }
+            finally
+            {
+                // Test đỏ giữa chừng mà lệnh còn treo thì lớp chờ kẹt và kéo đỏ các test sau.
+                open.TrySetResult(true);
+            }
+
+            yield return WaitUntil(() => !WaitOverlay.IsBlocking, button + ": lớp chờ tắt");
+            Assert.IsTrue(done(), button + ": lệnh đã xong");
+            Assert.AreEqual(calls + 1, _server.CommandCalls, button + ": vẫn đúng một lệnh sau khi xong");
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DoublePress_Gacha_OneCommand()
+        {
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene(TitleView.TitleScene);
+            yield return ClickWhenReady("TapArea");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            _server.State.Gem += 5000;
+            session.ApplyServerState(_server.State);
+            var pulls = _server.State.GachaHistory.Count;
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+
+            yield return PressTwiceWhileHeld("TenButton", () => _server.State.GachaHistory.Count == pulls + 1);
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DoublePress_StarUp_OneCommand()
+        {
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene(TitleView.TitleScene);
+            yield return ClickWhenReady("TapArea");
+            yield return WaitForScene("Restaurant");
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var stars = ServiceLocator.Get<BunDauPeo.Characters.StarService>();
+            var id = session.Roster.GetOwned()[0].Id;
+            var cost = stars.GetNextCost(id);
+            Assert.Greater(cost, 0, "nhân vật đầu đã tối đa sao");
+            // Đủ mảnh cho hai lần nâng: lần bấm hai mà lọt qua thì server nhận hai lệnh.
+            _server.State.Fragments.Add(new FragmentCount { CharacterId = id, Count = cost * 2 });
+            session.ApplyServerState(_server.State);
+            var before = stars.GetStars(id);
+            yield return ClickWhenReady("NavTabCharacters_PH_320x120");
+            yield return ClickWhenReady("CharacterCard0");
+
+            yield return PressTwiceWhileHeld("StarUpButton", () => stars.GetStars(id) == before + 1);
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator DoublePress_EnterStage_OneCommand()
+        {
+            SceneManager.LoadScene("Boot");
+            yield return WaitForScene(TitleView.TitleScene);
+            yield return ClickWhenReady("TapArea");
+            yield return WaitForScene("Restaurant");
+            var combat = ServiceLocator.Get<BunDauPeo.Combat.CombatService>();
+            var stages = combat.Config.Stages.Items;
+            var battleIndex = 0;
+            while (stages[battleIndex].Kind != BunDauPeo.Combat.StageKind.Battle) battleIndex++;
+            yield return ClickWhenReady("NavTabStages_PH_320x120");
+            yield return ClickWhenReady("ModeMain_PH_820x560");
+            for (var i = 0; i < battleIndex; i++)
+            {
+                yield return ClickWhenReady("Node" + i);
+                yield return ClickWhenReady("ContinueButton");
+            }
+
+            yield return ClickWhenReady("Node" + battleIndex);
+            yield return ClickWhenReady("ChallengeButton");
+            yield return ClickWhenReady("TeamCard0");
+
+            // Một thẻ đội có thể hỏi xác nhận trước khi gửi (NeedsConfirm): hộp đó không phải lệnh, nên chỉ đếm từ lúc gửi.
+            var calls = _server.CommandCalls;
+            var open = new TaskCompletionSource<bool>();
+            _server.DelayNext(open);
+            Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click("StartButton").Status);
+            yield return null;
+            if (GameObject.Find("SmallConfirmYesButton") != null) yield return ClickWhenReady("SmallConfirmYesButton");
+            yield return WaitUntil(() => WaitOverlay.IsBlocking, "lớp chờ bật khi vào trận");
+            try
+            {
+                Assert.AreNotEqual(ClickStatus.Clicked, UiDriver.Click("StartButton").Status, "lần bấm hai không được tới nút");
+                yield return new WaitForSecondsRealtime(0.2f);
+                Assert.AreEqual(calls + 1, _server.CommandCalls, "server nhận đúng một lệnh vào màn");
+            }
+            finally
+            {
+                open.TrySetResult(true);
+            }
+
+            yield return WaitForScene(BunDauPeo.UI.BattleView.BattleScene);
+            Assert.AreEqual(calls + 1, _server.CommandCalls);
+        }
+
         // Hộp Cần cập nhật ở Tiêu đề (bước Bootstrap), không nút, bản tiếng Anh dài nhất vừa khung 900 px (L-039).
         [UnityTest, Timeout(180000)]
         public IEnumerator TooOld_AtTitle_ShowsBoxWithoutButton()

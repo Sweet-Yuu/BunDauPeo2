@@ -58,7 +58,23 @@ namespace BunDauPeo.Combat
         public BattleUnit Current => _queue.Count > 0 ? _queue[0] : null;
 
         // Còn lại trong vòng này, để vẽ thanh lượt. [0] là Current.
-        public IReadOnlyList<BattleUnit> RemainingOrder => _queue.Where(u => u.IsAlive).ToList();
+        public IReadOnlyList<BattleUnit> RemainingOrder
+        {
+            get
+            {
+                var list = new List<BattleUnit>();
+                CopyRemainingOrder(list);
+                return list;
+            }
+        }
+
+        // Như RemainingOrder nhưng ghi vào danh sách có sẵn: view gọi mỗi khung nên không được cấp phát (performance.md).
+        public void CopyRemainingOrder(List<BattleUnit> into)
+        {
+            into.Clear();
+            for (var i = 0; i < _queue.Count; i++)
+                if (_queue[i].IsAlive) into.Add(_queue[i]);
+        }
 
         public ActionAvailability GetAvailability(BattleActionKind kind)
         {

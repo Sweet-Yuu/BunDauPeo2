@@ -127,9 +127,10 @@ namespace BunDauPeo.UI
 
             var running = _service != null && _service.IsRunning;
             _invalidText.gameObject.SetActive(!running);
-            _invalidText.text = CombatViewText.InvalidConfigLine();
             if (!running)
             {
+                // Chuỗi chỉ cần khi hiện; Update chạy mỗi khung nên không dựng chuỗi lúc đang chạy bình thường.
+                _invalidText.text = CombatViewText.InvalidConfigLine();
                 _nextMarker.gameObject.SetActive(false);
                 return;
             }

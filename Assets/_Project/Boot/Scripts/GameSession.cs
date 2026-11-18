@@ -121,7 +121,9 @@ namespace BunDauPeo.Boot
             var result = await server.ResetPlayerAsync();
             if (!result.Ok)
             {
-                sync.Resume();
+                // Mất mạng thì server có thể đã xoá mà trả lời mất: đẩy lại save cũ lúc này sẽ dựng lại dữ liệu vừa Reset (D-005).
+                // Hộp Mất kết nối bắt Thử lại Reset; lần đó xong hoặc lỗi khác thì mới đẩy tiếp. Chưa chắc Cloud Save thật đối xử thế nào với lượt đẩy này.
+                if (result.Status != OnlineStatus.NetworkError) sync.Resume();
                 return result.Status;
             }
             var reset = ResetToDefaults();

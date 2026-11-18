@@ -25,6 +25,9 @@ namespace BunDauPeo.UI
         private BattleUnit _chosenAlly;
         // Nút và vòng vẫn hiện người phe ta gần nhất khi tới lượt quái.
         private BattleUnit _lastAlly;
+        private int _shownCooldown = -1;
+        private string _shownTurnName;
+        private bool _turnLineDrawn;
 
         // chosen*: người chơi đã chạm, hoặc null. Chiêu Damage một mục tiêu: quái đã chọn nếu còn sống và thuộc đợt này, không thì mặc định;
         // chiêu Heal một mục tiêu: tương tự với người phe ta. Chiêu không cần chọn thì null.
@@ -119,13 +122,25 @@ namespace BunDauPeo.UI
             _ultimateButton.interactable = !locked && session.GetAvailability(BattleActionKind.Ultimate) == ActionAvailability.Available;
 
             var unit = _lastAlly;
-            _skillLabel.text = CombatViewText.SkillButton(unit != null ? unit.SkillCooldown : 0);
+            var cooldown = unit != null ? unit.SkillCooldown : 0;
+            if (cooldown != _shownCooldown)
+            {
+                _shownCooldown = cooldown;
+                _skillLabel.text = CombatViewText.SkillButton(cooldown);
+            }
+
             _ultimateRing.fillAmount = unit != null && unit.Ultimate != null
                 ? CombatViewText.UltimateFill(unit.Energy, unit.Ultimate.EnergyCost, _service.Config.MaxEnergy)
                 : 0f;
 
             var acting = _view.ActingUnit ?? session.Current;
-            _turnLine.text = acting != null ? CombatViewText.TurnLine(acting.DisplayName) : "";
+            var actingName = acting?.DisplayName;
+            if (!ReferenceEquals(actingName, _shownTurnName) || !_turnLineDrawn)
+            {
+                _shownTurnName = actingName;
+                _turnLineDrawn = true;
+                _turnLine.text = acting != null ? CombatViewText.TurnLine(acting.DisplayName) : "";
+            }
 
             MarkTargets(session);
         }

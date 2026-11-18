@@ -535,11 +535,11 @@ namespace BunDauPeo.Tests
             var resets = 0;
             session.ResetCompleted += () => resets++;
 
-            server.FailNext(OnlineStatus.NetworkError);
+            server.FailNext(OnlineStatus.ServerError);
             var reset = session.ResetToDefaultsAsync(server, sync);
 
             Assert.IsTrue(reset.IsCompleted);
-            Assert.AreEqual(OnlineStatus.NetworkError, reset.Result);
+            Assert.AreEqual(OnlineStatus.ServerError, reset.Result);
             Assert.AreEqual(505, session.Wallet.Get(CurrencyType.Coin), "memory kept");
             Assert.IsTrue(session.Roster.IsOwned("a"));
             Assert.AreEqual(cache, File.ReadAllText(_path), "cache file kept");
@@ -550,6 +550,31 @@ namespace BunDauPeo.Tests
             session.Persist();
             Assert.IsTrue(sync.FlushAsync().IsCompleted);
             Assert.AreEqual(506, new Wallet(JsonUtility.FromJson<PlayerSave>(server.StoredSave)).Get(CurrencyType.Coin), "sync runs again after the failed reset");
+        }
+
+        // Reset xong trên server nhưng mất trả lời: không được đẩy save cũ lên đè dữ liệu vừa Reset; Thử lại Reset xong mới đẩy tiếp.
+        [Test]
+        public void Reset_LostReply_DoesNotPushOldSave_RetryFinishes()
+        {
+            var (session, server, sync) = OnlineSession();
+            session.Wallet.Add(CurrencyType.Coin, 7);
+            session.Persist();
+            var uploads = server.UploadCalls;
+            server.LoseNextResetReply();
+
+            var first = session.ResetToDefaultsAsync(server, sync);
+            session.Wallet.Add(CurrencyType.Coin, 1);
+            session.Persist();
+            sync.Tick(CloudSync.DebounceSeconds + 1f);
+            Assert.IsTrue(sync.FlushAsync().IsCompleted);
+
+            Assert.AreEqual(OnlineStatus.NetworkError, first.Result);
+            Assert.IsNull(server.StoredSave, "the old save did not come back after the server reset");
+            Assert.AreEqual(uploads, server.UploadCalls, "nothing was uploaded while the Reset is unresolved");
+
+            var retry = session.ResetToDefaultsAsync(server, sync);
+            Assert.AreEqual(OnlineStatus.Ok, retry.Result);
+            Assert.AreEqual(500, new Wallet(JsonUtility.FromJson<PlayerSave>(server.StoredSave)).Get(CurrencyType.Coin), "the server holds the new game");
         }
 
         [Test]

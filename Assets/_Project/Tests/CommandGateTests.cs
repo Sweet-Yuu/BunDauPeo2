@@ -90,6 +90,58 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public async Task Abort_WhileLostBoxUp_ReleasesGate_RetryIsNoOp()
+        {
+            var seen = new List<bool>();
+            _gate.WaitingChanged += seen.Add;
+            Action retry = null;
+            _gate.Lost += r => retry = r;
+            var calls = 0;
+
+            var run = _gate.RunAsync(_ =>
+            {
+                calls++;
+                return Task.FromResult(OnlineResult<CommandResponse>.Fail(OnlineStatus.NetworkError));
+            });
+            await Until(() => retry != null);
+
+            _gate.Abort();
+            var result = await run;
+            retry();
+
+            Assert.AreEqual(OnlineStatus.OtherDevice, result.Status);
+            Assert.IsFalse(_gate.Busy, "Busy must not stay stuck after the session is dropped");
+            CollectionAssert.AreEqual(new[] { true, false }, seen, "a late Retry press does not turn the wait overlay on");
+            Assert.AreEqual(1, calls, "a late Retry press sends nothing");
+
+            var next = await _gate.RunAsync(_ => Task.FromResult(Reply(CommandCode.Ok)));
+            Assert.IsTrue(next.Ok, "the next command is accepted");
+        }
+
+        [Test]
+        public async Task Abort_WhileSending_ReleasesGate()
+        {
+            var hang = new TaskCompletionSource<OnlineResult<CommandResponse>>();
+            var lost = 0;
+            _gate.Lost += _ => lost++;
+
+            var run = _gate.RunAsync(_ => hang.Task);
+            _gate.Abort();
+            var result = await run;
+
+            Assert.AreEqual(OnlineStatus.OtherDevice, result.Status);
+            Assert.IsFalse(_gate.Busy);
+            Assert.AreEqual(0, lost, "no Lost box for a dropped session");
+        }
+
+        [Test]
+        public void Abort_WhenIdle_DoesNothing()
+        {
+            _gate.Abort();
+            Assert.IsFalse(_gate.Busy);
+        }
+
+        [Test]
         public async Task ServerError_ShowsLost()
         {
             var lost = 0;

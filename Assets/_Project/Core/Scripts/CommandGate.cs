@@ -13,6 +13,7 @@ namespace BunDauPeo.Core
 
         private readonly Func<TimeSpan, Task> _delay;
         private bool _waiting;
+        private TaskCompletionSource<bool> _abort;
 
         public CommandGate(Func<TimeSpan, Task> delay) => _delay = delay ?? throw new ArgumentNullException(nameof(delay));
 
@@ -42,17 +43,20 @@ namespace BunDauPeo.Core
 
             Busy = true;
             var requestId = Guid.NewGuid().ToString("N");
+            var abort = _abort = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             SetWaiting(true);
             try
             {
                 while (true)
                 {
-                    var result = await AttemptAsync(call, requestId);
+                    var result = await AttemptAsync(call, requestId, abort.Task);
+                    if (abort.Task.IsCompleted) return OnlineResult<CommandResponse>.Fail(OnlineStatus.OtherDevice);
                     if (result.Status == OnlineStatus.NetworkError || result.Status == OnlineStatus.ServerError)
                     {
                         // Không ai nghe thì không có ai bấm Thử lại: trả lỗi luôn thay vì treo mãi.
                         if (Lost == null) return result;
-                        await WaitForRetryAsync();
+                        await WaitForRetryAsync(abort.Task);
+                        if (abort.Task.IsCompleted) return OnlineResult<CommandResponse>.Fail(OnlineStatus.OtherDevice);
                         continue;
                     }
 
@@ -61,19 +65,22 @@ namespace BunDauPeo.Core
             }
             finally
             {
+                if (_abort == abort) _abort = null;
                 Busy = false;
                 SetWaiting(false);
             }
         }
 
-        private async Task<OnlineResult<CommandResponse>> AttemptAsync(Func<string, Task<OnlineResult<CommandResponse>>> call, string requestId)
+        // Phiên bị bỏ (Về Tiêu đề, Shutdown) khi lệnh còn chờ: nhả cổng, nếu không Busy kẹt và mọi lệnh sau bị bỏ im lặng.
+        public void Abort() => _abort?.TrySetResult(true);
+
+        private async Task<OnlineResult<CommandResponse>> AttemptAsync(Func<string, Task<OnlineResult<CommandResponse>>> call, string requestId, Task abort)
         {
             var sending = SafeCall(call, requestId);
             var timer = _delay(Timeout);
             // Hết giờ thì bỏ câu trả lời muộn của lượt này; server vẫn có thể đã ghi, Thử lại cùng RequestId lấy lại kết quả đó.
-            return await Task.WhenAny(sending, timer) == sending
-                ? await sending
-                : OnlineResult<CommandResponse>.Fail(OnlineStatus.NetworkError);
+            var first = await Task.WhenAny(sending, timer, abort);
+            return first == sending ? await sending : OnlineResult<CommandResponse>.Fail(OnlineStatus.NetworkError);
         }
 
         // IGameServer hứa không ném; nếu vẫn ném thì coi như lỗi server, không để Task lỗi không ai đọc.
@@ -90,19 +97,19 @@ namespace BunDauPeo.Core
             }
         }
 
-        private async Task WaitForRetryAsync()
+        private async Task WaitForRetryAsync(Task abort)
         {
             var retried = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             SetWaiting(false);
             var used = false;
             Lost.SafeInvoke(() =>
             {
-                if (used) return;
+                if (used || abort.IsCompleted) return;
                 used = true;
                 SetWaiting(true);
-                retried.SetResult(true);
+                retried.TrySetResult(true);
             });
-            await retried.Task;
+            await Task.WhenAny(retried.Task, abort);
         }
 
         // Mã từ chối theo luật (không đủ Gem…) trả Success để service đổi sang trạng thái của nó; chỉ ba mã hỏng phiên được xử lý ở đây.

@@ -2195,11 +2195,13 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp Mất kết nối của Reset"));
             Assert.AreEqual(0, resets, Where("chưa reset"));
 
-            _step = "R2 đẩy save lỗi quá 30 giây";
+            // O2-d: Reset mất mạng có thể đã xoá trên server mà trả lời mất, nên đẩy save dừng tới khi Thử lại xong
+            // (đẩy save cũ lúc này sẽ dựng lại dữ liệu vừa Reset): CloudSync không đẩy, không báo Lost, hộp Thử lại ở yên.
+            _step = "R2 chờ quá 30 giây, đẩy save đã dừng";
             sync.Tick(CloudSync.DebounceSeconds);
             sync.Tick(CloudSync.LostAfterSeconds);
             yield return null;
-            Assert.IsTrue(sync.IsLost, Where("CloudSync đã báo mất kết nối"));
+            Assert.IsFalse(sync.IsLost, Where("CloudSync dừng nên không báo mất kết nối"));
             Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp còn"));
 
             _step = "R3 có mạng, Thử lại";
