@@ -13,13 +13,13 @@ _Cập nhật 2026-11-16 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **không ai**. (O2-a xong, `b34453b` trên `origin/feature/online-2`, nhả 2026-11-16; 🧭 Online xin lại cho O2-b.)
+Đang giữ: **không ai**. (O2-d xong `724ffc6`, Editor đã đóng, nhả 2026-11-18.)
 
 ## Luồng
 
 | Luồng | File | Leader | Bước kế |
 |---|---|---|---|
-| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | O2-a xong (`b34453b`); kế tiếp 🔨 O2-b (Task 6–9) |
+| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | Review xhigh xong: 1 Major (`CommandGate` kẹt Busy) + Minor + GC; [PR #22](https://github.com/Sweet-Yuu/BunDauPeo2/pull/22) Online 2 → `main` chờ merge (user chọn mở trước playtest). Còn: playtest, đo Android thật, deploy production |
 | 🚀 Phát hành | [streams/release.md](streams/release.md) | chưa mở | R2 khi có khoá upload + icon |
 | 🍜 Nội dung game | [streams/content.md](streams/content.md) | chưa mở | sau Online đợt 2 |
 | 💰 Kiếm tiền | chưa có | chưa mở | sau 31/12 |
