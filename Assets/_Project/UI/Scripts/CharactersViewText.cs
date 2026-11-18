@@ -33,6 +33,7 @@ namespace BunDauPeo.UI
             StarUpStatus.Success => result.Saved ? UiText.Format("characters.done", result.StarsAfter) : UiText.Get("characters.not_saved"),
             StarUpStatus.NotEnoughFragments => UiText.Get("characters.not_enough"),
             StarUpStatus.MaxStars => UiText.Get("characters.star_up_max"),
+            StarUpStatus.Offline => "",
             _ => UiText.Get("characters.error"),
         };
     }

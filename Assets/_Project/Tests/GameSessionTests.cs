@@ -183,26 +183,14 @@ namespace BunDauPeo.Tests
         [Test]
         public void GachaService_AfterReset_SeesClearedPityAndFragments()
         {
-            // Nhân vật khởi đầu `a` là R duy nhất của banner, nên mọi lượt quay đều là mảnh của `a`.
+            // Pity và mảnh nằm trong save (server giữ, áp vào máy); Reset phải xoá cả hai để service thấy bản mới.
             var session = new GameSession(_service, _catalog, _config);
             session.Roster.Add("a"); // nhân vật khởi đầu do server cấp
             _catalog.TryGet("a", out var a);
-            var banner = TestData.Banner("b", a);
-            TestData.Edit(banner, so =>
-            {
-                var weights = so.FindProperty("_rarityWeights");
-                weights.FindPropertyRelative("R").floatValue = 100;
-                weights.FindPropertyRelative("SR").floatValue = 0;
-                weights.FindPropertyRelative("SSR").floatValue = 0;
-                so.FindProperty("_ssrPityThreshold").intValue = 0;
-                so.FindProperty("_guaranteeSrInTen").boolValue = false;
-            });
-            session.Wallet.Add(CurrencyType.Gem, 1000);
-            var gacha = new GachaService(session.Save, session.Wallet, session.Roster, _catalog,
-                TestData.GachaCatalog(banner), new ScriptedRandom(), session.Persist);
-
-            gacha.PullSingle("b");
-            gacha.PullSingle("b");
+            session.Roster.AddFragments("a", 2);
+            session.Save.GachaPity.Add(new PityEntry { BannerId = "b", Pulls = 2 });
+            var gacha = new GachaService(session.Save, session.Wallet, _catalog, TestData.GachaCatalog(TestData.Banner("b", a)),
+                new LocalGameServer(), new CommandGate(_ => new System.Threading.Tasks.TaskCompletionSource<bool>().Task), _ => true);
             Assert.AreEqual(2, gacha.GetPity("b"));
             Assert.AreEqual(2, session.Roster.GetFragments("a"));
 
@@ -506,7 +494,8 @@ namespace BunDauPeo.Tests
             var sync = new CloudSync(server, () => ServerStateApplier.ToUploadJson(session.Save), () => session.Save.SaveRevision++,
                 () => boot.SessionId);
             session.Persisted += sync.MarkDirty;
-            session.Wallet.Add(CurrencyType.Gem, 50);
+            // Máy đang có Gem lệch với server: Reset phải lấy đúng Gem của server.
+            ServerStateApplier.Apply(session.Save, new ServerState { Gem = 400 });
             var resets = 0;
             session.ResetCompleted += () => resets++;
 

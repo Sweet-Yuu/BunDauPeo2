@@ -26,6 +26,7 @@ namespace BunDauPeo.Core
 
         public void Add(CurrencyType type, long amount)
         {
+            RejectGem(type);
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount), "Use TrySpend to remove currency.");
             if (amount == 0) return;
 
@@ -42,6 +43,9 @@ namespace BunDauPeo.Core
 
         public bool TrySpend(params CurrencyAmount[] costs)
         {
+            if (costs != null)
+                foreach (var cost in costs)
+                    if (cost.Amount != 0) RejectGem(cost.Type);
             var remaining = Plan(costs);
             if (remaining == null) return false;
             if (remaining.Count == 0) return true;
@@ -49,6 +53,13 @@ namespace BunDauPeo.Core
             foreach (var pair in remaining) Set(pair.Key, pair.Value);
             Changed.SafeInvoke();
             return true;
+        }
+
+        // Gem do server giữ (spec con 4.3): chỉ đổi khi áp ServerState (ServerStateApplier), không qua ví.
+        private static void RejectGem(CurrencyType type)
+        {
+            if (type == CurrencyType.Gem)
+                throw new ArgumentException("Gem is held by the server; it changes only through ServerStateApplier.", nameof(type));
         }
 
         // Trả null nếu không đủ, ngược lại là số dư còn lại của từng loại bị trừ (rỗng khi không có dòng nào > 0).

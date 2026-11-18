@@ -53,6 +53,8 @@ namespace BunDauPeo.UI
             EnterStageStatus.InvalidConfig => InvalidConfigLine(),
             EnterStageStatus.EmptyTeam => UiText.Get("combat.enter_empty_team"),
             EnterStageStatus.InvalidCharacter => UiText.Get("combat.enter_invalid_character"),
+            // Hộp Mất kết nối đã báo; không thêm dòng lỗi.
+            EnterStageStatus.Offline => "",
             _ => UiText.Get("combat.enter_unknown"),
         };
 
@@ -69,7 +71,8 @@ namespace BunDauPeo.UI
 
         // Chỉ trận chưa trả thể lực (NotPaid, từ dải DEV) là "trận thử"; trận đã trả mà không nhận được thưởng thì báo thẳng.
         public static string NoRewardLine(StageCompleteStatus status) =>
-            status == StageCompleteStatus.NotPaid ? TrialLine() : UiText.Get("combat.no_reward");
+            status == StageCompleteStatus.NotPaid ? TrialLine()
+            : status == StageCompleteStatus.Offline ? "" : UiText.Get("combat.no_reward");
 
         // Số giây tới khi đủ `cost`: phần hồi đang chạy dở, rồi các lần hồi tròn còn lại.
         public static double SecondsUntilAffordable(int current, int cost, double secondsToNext, int regenSeconds) =>

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
+using UnityEngine;
 
 namespace BunDauPeo.Combat
 {
@@ -8,7 +11,7 @@ namespace BunDauPeo.Combat
 
     public enum StageEnterStatus { Ready, Unknown, Invalid, WrongKind, Locked, EmptyTeam, NotEnoughStamina }
 
-    public enum StageCompleteStatus { Success, NotWon, AlreadyClaimed, AlreadyCleared, Unknown, Invalid, WrongKind, Locked, NotPaid }
+    public enum StageCompleteStatus { Success, NotWon, AlreadyClaimed, AlreadyCleared, Unknown, Invalid, WrongKind, Locked, NotPaid, Offline }
 
     public sealed class StageCompleteResult
     {
@@ -40,15 +43,21 @@ namespace BunDauPeo.Combat
         private readonly Wallet _wallet;
         private readonly StageCatalog _catalog;
         private readonly StaminaService _stamina;
-        private readonly Func<bool> _persist;
+        private readonly IGameServer _server;
+        private readonly CommandGate _gate;
+        private readonly Func<ServerState, bool> _apply;
 
-        public StageProgressService(PlayerSave save, Wallet wallet, StageCatalog catalog, StaminaService stamina, Func<bool> persist)
+        // apply chép state server vào PlayerSave và báo view; trả false khi lưu bản đệm thất bại.
+        public StageProgressService(PlayerSave save, Wallet wallet, StageCatalog catalog, StaminaService stamina,
+            IGameServer server, CommandGate gate, Func<ServerState, bool> apply)
         {
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
             _catalog = catalog;
             _stamina = stamina ?? throw new ArgumentNullException(nameof(stamina));
-            _persist = persist ?? throw new ArgumentNullException(nameof(persist));
+            _server = server ?? throw new ArgumentNullException(nameof(server));
+            _gate = gate ?? throw new ArgumentNullException(nameof(gate));
+            _apply = apply ?? throw new ArgumentNullException(nameof(apply));
         }
 
         public event Action Changed;
@@ -75,13 +84,14 @@ namespace BunDauPeo.Combat
             return _stamina.CanAfford(stage.StaminaCost) ? StageEnterStatus.Ready : StageEnterStatus.NotEnoughStamina;
         }
 
-        public StageCompleteResult CompleteBattle(BattleSession won)
+        // Server cộng Gem và đánh dấu màn qua; Material là phần máy giữ nên cộng vào ví một lần, sau khi lệnh thành công.
+        public async Task<StageCompleteResult> CompleteBattleAsync(BattleSession won)
         {
             if (won == null) throw new ArgumentNullException(nameof(won));
             if (won.State != BattleState.Won) return new StageCompleteResult(StageCompleteStatus.NotWon);
             if (won.RewardsClaimed) return new StageCompleteResult(StageCompleteStatus.AlreadyClaimed);
-            // Trận từ StartBattle của dải DEV chưa trả thể lực: thắng cũng không có thưởng.
-            if (!won.EntryPaid) return new StageCompleteResult(StageCompleteStatus.NotPaid);
+            // Trận từ StartBattle của dải DEV chưa trả thể lực và không có vé: thắng cũng không có thưởng, không gọi server.
+            if (!won.EntryPaid || string.IsNullOrEmpty(won.Ticket)) return new StageCompleteResult(StageCompleteStatus.NotPaid);
 
             var id = won.Stage.Id;
             if (!TryGetStage(id, out var stage)) return new StageCompleteResult(StageCompleteStatus.Unknown);
@@ -89,16 +99,48 @@ namespace BunDauPeo.Combat
             if (stage.Kind != StageKind.Battle) return new StageCompleteResult(StageCompleteStatus.WrongKind);
             if (GetStatus(id) == StageStatus.Locked) return new StageCompleteResult(StageCompleteStatus.Locked);
 
-            var firstClear = !_save.ClearedStages.Contains(id);
-            var rewards = firstClear ? stage.FirstClearReward : stage.RepeatReward;
-            foreach (var line in rewards) _wallet.Add(line.Type, line.Amount);
-            if (firstClear) _save.ClearedStages.Add(id);
+            var result = await _gate.RunAsync(requestId => _server.CompleteStageAsync(requestId, won.Ticket, true));
+            // Lỗi mạng cuối cùng (hộp mạng đã hiện) hoặc phiên hỏng: không đổi gì, bấm lại được.
+            if (!result.Ok) return new StageCompleteResult(StageCompleteStatus.Offline);
+
+            var response = result.Value;
+            switch ((CommandCode)response.Code)
+            {
+                case CommandCode.Ok:
+                    break;
+                case CommandCode.TicketMismatch:
+                    return new StageCompleteResult(StageCompleteStatus.NotPaid);
+                case CommandCode.Invalid:
+                    return new StageCompleteResult(StageCompleteStatus.Invalid);
+                default:
+                    return new StageCompleteResult(StageCompleteStatus.Unknown);
+            }
+
+            StageRewardPayload payload;
+            try
+            {
+                payload = JsonUtility.FromJson<StageRewardPayload>(response.ResultJson);
+            }
+            catch (ArgumentException e)
+            {
+                Debug.LogException(e);
+                return new StageCompleteResult(StageCompleteStatus.Offline);
+            }
+
+            if (payload == null || response.State == null) return new StageCompleteResult(StageCompleteStatus.Offline);
+
+            // Material trước, rồi áp state: lần lưu của áp state ghi cả hai.
+            if (payload.Material > 0) _wallet.Add(CurrencyType.Material, payload.Material);
             won.RewardsClaimed = true;
+            var saved = _apply(response.State);
+            var rewards = new List<CurrencyAmount>();
+            if (payload.Material > 0) rewards.Add(new CurrencyAmount(CurrencyType.Material, payload.Material));
+            if (payload.Gem > 0) rewards.Add(new CurrencyAmount(CurrencyType.Gem, payload.Gem));
             Changed.SafeInvoke();
-            return new StageCompleteResult(StageCompleteStatus.Success, firstClear, rewards, stage.StaminaCost, _persist());
+            return new StageCompleteResult(StageCompleteStatus.Success, payload.FirstClear, rewards, stage.StaminaCost, saved);
         }
 
-        public StageCompleteResult CompleteStory(string id)
+        public async Task<StageCompleteResult> CompleteStoryAsync(string id)
         {
             if (!TryGetStage(id, out var stage)) return new StageCompleteResult(StageCompleteStatus.Unknown);
             if (stage.Validate().Count > 0) return new StageCompleteResult(StageCompleteStatus.Invalid);
@@ -107,9 +149,30 @@ namespace BunDauPeo.Combat
             if (status == StageStatus.Cleared) return new StageCompleteResult(StageCompleteStatus.AlreadyCleared);
             if (status == StageStatus.Locked) return new StageCompleteResult(StageCompleteStatus.Locked);
 
-            _save.ClearedStages.Add(id);
+            var result = await _gate.RunAsync(requestId => _server.CompleteStoryAsync(requestId, id));
+            if (!result.Ok) return new StageCompleteResult(StageCompleteStatus.Offline);
+
+            var response = result.Value;
+            switch ((CommandCode)response.Code)
+            {
+                case CommandCode.Ok:
+                    break;
+                case CommandCode.AlreadyCleared:
+                    return new StageCompleteResult(StageCompleteStatus.AlreadyCleared);
+                case CommandCode.Locked:
+                    return new StageCompleteResult(StageCompleteStatus.Locked);
+                case CommandCode.WrongKind:
+                    return new StageCompleteResult(StageCompleteStatus.WrongKind);
+                case CommandCode.Invalid:
+                    return new StageCompleteResult(StageCompleteStatus.Invalid);
+                default:
+                    return new StageCompleteResult(StageCompleteStatus.Unknown);
+            }
+
+            if (response.State == null) return new StageCompleteResult(StageCompleteStatus.Offline);
+            var saved = _apply(response.State);
             Changed.SafeInvoke();
-            return new StageCompleteResult(StageCompleteStatus.Success, saved: _persist());
+            return new StageCompleteResult(StageCompleteStatus.Success, saved: saved);
         }
 
         private int IndexOf(string id)

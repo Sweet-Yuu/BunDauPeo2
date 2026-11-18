@@ -60,12 +60,31 @@ namespace BunDauPeo.UI
             return ok;
         }
 
-        private void Continue()
+        private async void Continue()
         {
             if (_service == null || _stage == null) return;
 
             _continueButton.interactable = false;
-            var result = _service.Progress.CompleteStory(_stage.Id);
+            StageCompleteResult result;
+            try
+            {
+                result = await _service.Progress.CompleteStoryAsync(_stage.Id);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e, this);
+                if (this != null) _continueButton.interactable = true;
+                return;
+            }
+
+            if (this == null) return;
+            // Mất kết nối: hộp mạng đã báo, bật lại nút để bấm tiếp sau khi kết nối lại.
+            if (result.Status == StageCompleteStatus.Offline)
+            {
+                _continueButton.interactable = true;
+                return;
+            }
+
             if (result.Status == StageCompleteStatus.AlreadyCleared || (result.Status == StageCompleteStatus.Success && result.Saved))
             {
                 Close();

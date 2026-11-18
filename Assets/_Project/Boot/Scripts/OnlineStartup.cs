@@ -222,8 +222,9 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(new RestaurantBarPref(() => session.Save.RestaurantBarOpen, session.SetRestaurantBarOpen));
             ServiceLocator.Register(new PlayerProfile(() => session.Save.PlayerName, () => session.Save.AvatarCharacterId,
                 session.SetPlayerName, session.SetAvatar));
-            ServiceLocator.Register(new GachaService(session.Save, session.Wallet, session.Roster, _catalog,
-                _banners, new System.Random(), session.Persist));
+            ServiceLocator.Register(new DevCommands(_server, _gate, session.ApplyServerState));
+            ServiceLocator.Register(new GachaService(session.Save, session.Wallet, _catalog, _banners,
+                _server, _gate, session.ApplyServerState));
 
             var restaurant = new RestaurantService(_restaurantConfig, session.Save, session.Wallet, session.Roster,
                 new System.Random(), new ServerClock(_time), session.Persist);
@@ -232,12 +233,15 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(restaurant);
             session.ResetCompleted += restaurant.ResetRuntime;
 
-            var stars = new StarService(session.Save, session.Roster, _catalog, _starConfig, session.Persist);
+            var stars = new StarService(session.Save, session.Roster, _catalog, _starConfig,
+                _server, _gate, session.ApplyServerState);
             ServiceLocator.Register(stars);
 
             var stamina = new StaminaService(session.Save, _combatConfig, () => _time.UtcNow);
-            var progress = new StageProgressService(session.Save, session.Wallet, _combatConfig.Stages, stamina, session.Persist);
-            var combat = new CombatService(_combatConfig, session.Roster, stars, stamina, progress, new System.Random(), session.Persist);
+            var progress = new StageProgressService(session.Save, session.Wallet, _combatConfig.Stages, stamina,
+                _server, _gate, session.ApplyServerState);
+            var combat = new CombatService(_combatConfig, session.Roster, stars, stamina, progress, new System.Random(),
+                session.Persist, _server, _gate, session.ApplyServerState);
             ServiceLocator.Register(combat);
             session.ResetCompleted += combat.ResetRuntime;
 

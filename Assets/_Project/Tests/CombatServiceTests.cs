@@ -295,7 +295,8 @@ namespace BunDauPeo.Tests
         public void Progress_IsExposedByService()
         {
             var progress = new StageProgressService(new PlayerSave(), new Wallet(new PlayerSave()), null,
-                new StaminaService(new PlayerSave(), CombatTestData.Config(), () => DateTime.UtcNow), () => true);
+                new StaminaService(new PlayerSave(), CombatTestData.Config(), () => DateTime.UtcNow), new LocalGameServer(),
+                new CommandGate(_ => new System.Threading.Tasks.TaskCompletionSource<bool>().Task), _ => true);
 
             Assert.AreSame(progress, CombatTestData.Service(progress: progress).Progress);
             Assert.IsNotNull(CombatTestData.Service().Progress, "the helper supplies one when a test does not care");
@@ -311,7 +312,7 @@ namespace BunDauPeo.Tests
         {
             var rig = new CombatRig(new[] { Battle1Hp("b1") });
 
-            var result = rig.Service.EnterStage("b1");
+            var result = rig.Service.EnterStageAsync("b1").Sync();
 
             Assert.AreEqual(EnterStageStatus.Entered, result.Status);
             Assert.AreSame(result.Session, rig.Service.Current);
@@ -326,12 +327,86 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void EnterStageAsync_Ok_TicketSet_StaminaFromServer()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+
+            var result = rig.Service.EnterStageAsync("b1").Sync();
+
+            Assert.AreEqual(EnterStageStatus.Entered, result.Status);
+            Assert.IsNotEmpty(result.Session.Ticket);
+            Assert.AreEqual(rig.Server.State.PendingTicket, result.Session.Ticket, "the ticket is the one the server holds");
+            Assert.AreEqual(90, rig.Server.State.Stamina.Current, "the server charged the stamina");
+            Assert.AreEqual(90, rig.Save.Stamina.Current, "the device shows what the server returned");
+            Assert.AreEqual(1, rig.Server.CommandCalls);
+        }
+
+        [Test]
+        public void EnterStageAsync_NotEnoughStamina_NoServerCall()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            rig.SetStamina(9);
+
+            var result = rig.Service.EnterStageAsync("b1").Sync();
+
+            Assert.AreEqual(EnterStageStatus.NotEnoughStamina, result.Status);
+            Assert.AreEqual(0, rig.Server.CommandCalls);
+            Assert.IsNull(rig.Service.Current);
+        }
+
+        [Test]
+        public void EnterStageAsync_BattleInProgress_NoServerCall()
+        {
+            var rig = new CombatRig(new[] { CombatTestData.Stage("b1", new[] { CombatTestData.Enemy(hp: 100000) }) });
+            rig.Service.EnterStageAsync("b1").Sync();
+            var calls = rig.Server.CommandCalls;
+
+            Assert.AreEqual(EnterStageStatus.BattleInProgress, rig.Service.EnterStageAsync("b1").Sync().Status);
+
+            Assert.AreEqual(calls, rig.Server.CommandCalls);
+        }
+
+        [Test]
+        public void EnterStageAsync_ServerRejectsNotOwned_MapsStatus_NoSession()
+        {
+            // Máy tưởng đã có nhân vật, server không: server là bản chính.
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            rig.Server.State.OwnedCharacterIds.Clear();
+            var before = rig.State();
+
+            var result = rig.Service.EnterStageAsync("b1").Sync();
+
+            Assert.AreEqual(1, rig.Server.CommandCalls);
+            Assert.AreEqual(EnterStageStatus.InvalidCharacter, result.Status);
+            Assert.IsNull(result.Session);
+            Assert.IsNull(rig.Service.Current);
+            Assert.AreEqual(before, rig.State());
+            Assert.AreEqual(0L, rig.Server.State.Stamina.AnchorUtcTicks, "nothing was charged: the bar is still full");
+        }
+
+        [Test]
+        public void EnterStageAsync_Offline_NoSession_NoChange()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            var before = rig.State();
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+
+            var result = rig.Service.EnterStageAsync("b1").Sync();
+
+            Assert.AreEqual(EnterStageStatus.Offline, result.Status);
+            Assert.IsNull(result.Session);
+            Assert.IsNull(rig.Service.Current);
+            Assert.AreEqual(before, rig.State());
+            Assert.AreEqual(0, rig.PersistCalls);
+        }
+
+        [Test]
         public void EnterStage_StarredCharacter_HasScaledStats()
         {
             var rig = EnterRig();
-            rig.Save.StarUps.Add(new StarUpEntry { CharacterId = "a", Count = 1 });
+            rig.StarUp("a", 1);
 
-            var ally = rig.Service.EnterStage("b1").Session.Allies[0];
+            var ally = rig.Service.EnterStageAsync("b1").Sync().Session.Allies[0];
             Assert.AreEqual((1100, 1100, 110, 0, 100), (ally.MaxHp, ally.Hp, ally.Attack, ally.Defense, ally.Speed));
 
             // Dải DEV (StartBattle) là chỗ dựng trận thứ hai, cũng phải dùng chỉ số theo sao.
@@ -343,18 +418,18 @@ namespace BunDauPeo.Tests
         public void StarUp_DuringBattle_DoesNotChangeCurrentUnits()
         {
             var rig = new CombatRig(new[] { Battle1Hp("b1") });
-            rig.Roster.AddFragments("a", 2);
-            var first = rig.Service.EnterStage("b1").Session;
+            var first = rig.Service.EnterStageAsync("b1").Sync().Session;
             Assert.AreEqual(1000, first.Allies[0].MaxHp);
 
-            Assert.AreEqual(StarUpStatus.Success, rig.Service.Stars.TryStarUp("a").Status);
+            // Nâng sao do server làm rồi áp vào save (StarServiceTests); ở đây chỉ cần save đổi giữa trận.
+            rig.StarUp("a", 1);
 
             Assert.AreSame(first, rig.Service.Current);
             Assert.AreEqual(1000, first.Allies[0].MaxHp);
             Assert.AreEqual(1000, first.Allies[0].Hp);
 
             first.Surrender();
-            var next = rig.Service.EnterStage("b1").Session;
+            var next = rig.Service.EnterStageAsync("b1").Sync().Session;
             Assert.AreEqual(1100, next.Allies[0].MaxHp);
         }
 
@@ -369,7 +444,7 @@ namespace BunDauPeo.Tests
 
             void Check(string name, string id, EnterStageStatus expected)
             {
-                var result = rig.Service.EnterStage(id);
+                var result = rig.Service.EnterStageAsync(id).Sync();
                 Assert.AreEqual(expected, result.Status, name);
                 Assert.IsNull(result.Session, name);
                 Assert.IsFalse(result.Saved, name);
@@ -388,6 +463,7 @@ namespace BunDauPeo.Tests
             before = rig.State();
             Check("broken stage", "bad", EnterStageStatus.Invalid);
             rig.Save.ClearedStages.Clear();
+            rig.Server.State.ClearedStages.Clear();
             before = rig.State();
             Check("locked stage", "b2", EnterStageStatus.Locked);
 
@@ -407,7 +483,7 @@ namespace BunDauPeo.Tests
             var rig = EnterRig(team: new[] { Hero("good"), TestData.Character("plain") });
             var before = rig.State();
 
-            var result = rig.Service.EnterStage("b1");
+            var result = rig.Service.EnterStageAsync("b1").Sync();
 
             Assert.AreEqual(EnterStageStatus.InvalidCharacter, result.Status);
             Assert.IsNull(result.Session);
@@ -424,59 +500,13 @@ namespace BunDauPeo.Tests
             var rig = EnterRig(so => so.FindProperty("_maxEnergy").intValue = 0);
             var before = rig.State();
 
-            var result = rig.Service.EnterStage("b1");
+            var result = rig.Service.EnterStageAsync("b1").Sync();
 
             Assert.IsFalse(rig.Service.IsRunning);
             Assert.AreEqual(EnterStageStatus.InvalidConfig, result.Status);
             Assert.AreEqual(before, rig.State());
             Assert.AreEqual(0, rig.PersistCalls);
             Assert.IsNull(rig.Service.Current);
-        }
-
-        [Test]
-        public void EnterStage_SaveFails_RestoresStamina_NoSession_CurrentUnchanged()
-        {
-            foreach (var secondsAgo in new double?[] { null, 100d })
-            {
-                var rig = new CombatRig(new[] { Battle1Hp("b1") });
-                if (secondsAgo != null) rig.SetStamina(70, secondsAgo.Value);
-                var trial = rig.Service.StartBattle("b1").Session;
-                CombatTestData.PlayToWin(trial);
-                _ = rig.Stamina.Current; // đọc là chốt phần hồi; từ đây số thô là số trước khi trừ
-                var rawBefore = (rig.Save.Stamina.Current, rig.Save.Stamina.AnchorUtcTicks);
-                var expectedCurrent = secondsAgo == null ? 100 : 70;
-                rig.PersistResult = false;
-
-                var result = rig.Service.EnterStage("b1");
-
-                var label = secondsAgo == null ? "from full" : "mid-regen";
-                Assert.AreEqual(EnterStageStatus.SaveFailed, result.Status, label);
-                Assert.IsNull(result.Session, label);
-                Assert.IsFalse(result.Saved, label);
-                Assert.AreSame(trial, rig.Service.Current, label);
-                Assert.AreEqual(rawBefore, (rig.Save.Stamina.Current, rig.Save.Stamina.AnchorUtcTicks), $"{label}: both raw numbers restored");
-                Assert.AreEqual(1, rig.PersistCalls, label);
-                Assert.AreEqual(expectedCurrent, rig.Stamina.Current, label);
-                Assert.IsFalse(trial.EntryPaid, label);
-            }
-        }
-
-        [Test]
-        public void EnterStage_PersistThrows_RestoresStamina_NoSession_ExceptionPropagates()
-        {
-            var rig = new CombatRig(new[] { Battle1Hp("b1") });
-            var trial = rig.Service.StartBattle("b1").Session;
-            CombatTestData.PlayToWin(trial);
-            _ = rig.Stamina.Current; // chốt phần hồi: từ đây số thô là số trước khi trừ
-            var rawBefore = (rig.Save.Stamina.Current, rig.Save.Stamina.AnchorUtcTicks);
-            rig.PersistThrows = true;
-
-            Assert.Throws<InvalidOperationException>(() => rig.Service.EnterStage("b1"));
-
-            Assert.AreEqual(1, rig.PersistCalls);
-            Assert.AreEqual(rawBefore, (rig.Save.Stamina.Current, rig.Save.Stamina.AnchorUtcTicks), "exact raw numbers restored");
-            Assert.AreSame(trial, rig.Service.Current, "no new session");
-            Assert.AreEqual(100, rig.Stamina.Current);
         }
 
         [Test]
@@ -489,7 +519,7 @@ namespace BunDauPeo.Tests
                 Assert.DoesNotThrow(() => rig = EnterRig(so => so.FindProperty(field).intValue = 0), $"{field} = 0");
 
                 Assert.IsFalse(rig.Service.IsRunning, $"{field} = 0");
-                Assert.AreEqual(EnterStageStatus.InvalidConfig, rig.Service.EnterStage("b1").Status, $"{field} = 0");
+                Assert.AreEqual(EnterStageStatus.InvalidConfig, rig.Service.EnterStageAsync("b1").Sync().Status, $"{field} = 0");
                 Assert.AreEqual(0, rig.PersistCalls, $"{field} = 0");
             }
         }
@@ -498,16 +528,16 @@ namespace BunDauPeo.Tests
         public void EnterStage_WhileBattleInProgress_Rejected_NoSecondCharge()
         {
             var rig = new CombatRig(new[] { CombatTestData.Stage("b1", new[] { CombatTestData.Enemy(hp: 100000) }) });
-            var first = rig.Service.EnterStage("b1").Session;
+            var first = rig.Service.EnterStageAsync("b1").Sync().Session;
             Assert.AreEqual(BattleState.PlayerTurn, first.State);
 
-            var second = rig.Service.EnterStage("b1");
+            var second = rig.Service.EnterStageAsync("b1").Sync();
             Assert.AreEqual(EnterStageStatus.BattleInProgress, second.Status, "PlayerTurn");
             Assert.IsNull(second.Session);
 
             first.PlayerAct(BattleActionKind.Basic, first.DefaultTarget(BattleActionKind.Basic));
             Assert.AreEqual(BattleState.EnemyTurn, first.State);
-            Assert.AreEqual(EnterStageStatus.BattleInProgress, rig.Service.EnterStage("b1").Status, "EnemyTurn");
+            Assert.AreEqual(EnterStageStatus.BattleInProgress, rig.Service.EnterStageAsync("b1").Sync().Status, "EnemyTurn");
 
             Assert.AreEqual(90, rig.Stamina.Current);
             Assert.AreEqual(1, rig.PersistCalls);
@@ -518,10 +548,10 @@ namespace BunDauPeo.Tests
         public void EnterStage_AfterLostBattle_ChargesAgain_NewSession()
         {
             var rig = new CombatRig(new[] { Battle1Hp("b1") });
-            var first = rig.Service.EnterStage("b1").Session;
+            var first = rig.Service.EnterStageAsync("b1").Sync().Session;
             first.Surrender();
 
-            var again = rig.Service.EnterStage("b1");
+            var again = rig.Service.EnterStageAsync("b1").Sync();
 
             Assert.AreEqual(EnterStageStatus.Entered, again.Status);
             Assert.AreNotSame(first, again.Session);
@@ -530,7 +560,7 @@ namespace BunDauPeo.Tests
 
             CombatTestData.PlayToWin(again.Session);
             rig.Service.EndBattle();
-            var third = rig.Service.EnterStage("b1");
+            var third = rig.Service.EnterStageAsync("b1").Sync();
 
             Assert.AreEqual(EnterStageStatus.Entered, third.Status, "after Won and EndBattle");
             Assert.AreEqual(70, rig.Stamina.Current);
@@ -544,7 +574,7 @@ namespace BunDauPeo.Tests
             TestData.Edit(stage, so => so.FindProperty("_staminaCost").intValue = 25);
             var rig = new CombatRig(new[] { stage });
 
-            var result = rig.Service.EnterStage("big");
+            var result = rig.Service.EnterStageAsync("big").Sync();
 
             Assert.AreEqual(EnterStageStatus.Entered, result.Status);
             Assert.AreEqual(25, result.StaminaSpent);

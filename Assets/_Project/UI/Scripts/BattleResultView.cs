@@ -64,26 +64,43 @@ namespace BunDauPeo.UI
             _backButton.gameObject.SetActive(!won);
             if (won)
             {
-                // Đúng một lần cho trận này (Show không chạy lại): kết quả giữ trong chữ trên màn.
-                var result = service.Progress.CompleteBattle(session);
-                if (result.Status == StageCompleteStatus.Success)
-                {
-                    _rewardRow.Show(result.Rewards, result.FirstClear ? UiText.Get("combat.first_clear_tag") : "");
-                    _staminaText.text = CombatViewText.StaminaUsed(result.StaminaSpent);
-                    _warningText.text = RestaurantViewText.SaveWarning(result.Saved);
-                }
-                else
-                {
-                    // NotPaid (trận vào thẳng từ dải DEV): vẫn CLEAR, ghi "trận thử". Trận đã trả mà không nhận được thưởng vẫn hiện thể lực đã dùng.
-                    _rewardText.text = CombatViewText.NoRewardLine(result.Status);
-                    _staminaText.text = session.EntryPaid ? CombatViewText.StaminaUsed(session.Stage.StaminaCost) : "";
-                }
+                Claim(service, session);
             }
             else
             {
                 _rewardText.text = CombatViewText.FailHint();
                 _staminaText.text = session.EntryPaid ? CombatViewText.FailStamina(session.Stage.StaminaCost) : "";
                 RefreshRetry(session);
+            }
+        }
+
+        // Đúng một lần cho trận này (Show không chạy lại): server cộng thưởng, kết quả giữ trong chữ trên màn.
+        private async void Claim(CombatService service, BattleSession session)
+        {
+            StageCompleteResult result;
+            try
+            {
+                result = await service.Progress.CompleteBattleAsync(session);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e, this);
+                return;
+            }
+
+            // Trận khác đã thay trận này trong lúc chờ (Thử lại, Reset): bỏ kết quả.
+            if (this == null || !ReferenceEquals(_shown, session)) return;
+            if (result.Status == StageCompleteStatus.Success)
+            {
+                _rewardRow.Show(result.Rewards, result.FirstClear ? UiText.Get("combat.first_clear_tag") : "");
+                _staminaText.text = CombatViewText.StaminaUsed(result.StaminaSpent);
+                _warningText.text = RestaurantViewText.SaveWarning(result.Saved);
+            }
+            else
+            {
+                // NotPaid (trận vào thẳng từ dải DEV): vẫn CLEAR, ghi "trận thử". Trận đã trả mà không nhận được thưởng vẫn hiện thể lực đã dùng.
+                _rewardText.text = CombatViewText.NoRewardLine(result.Status);
+                _staminaText.text = session.EntryPaid ? CombatViewText.StaminaUsed(session.Stage.StaminaCost) : "";
             }
         }
 
@@ -167,7 +184,7 @@ namespace BunDauPeo.UI
         }
 
         // Một lần mỗi lần bấm: tắt nút ngay; vào được thì BattleView thấy trận mới và vẽ lại (Hide), không thì bật lại kèm lý do.
-        private void Retry()
+        private async void Retry()
         {
             if (_busy || _shown == null || _service == null) return;
 
@@ -179,16 +196,18 @@ namespace BunDauPeo.UI
                 EnterStageResult result;
                 try
                 {
-                    result = _service.EnterStage(stageId);
+                    result = await _service.EnterStageAsync(stageId);
                 }
-                catch
+                catch (Exception e)
                 {
-                    // Lưu ném lỗi: thể lực đã được hoàn, bật lại nút rồi để lỗi nổi lên.
+                    // Lỗi ngoài ý muốn: bật lại nút, không treo màn.
+                    Debug.LogException(e, this);
                     _busy = false;
-                    _retryButton.interactable = true;
-                    throw;
+                    if (this != null) _retryButton.interactable = true;
+                    return;
                 }
 
+                if (this == null) return;
                 if (result.Status == EnterStageStatus.Entered) return;
 
                 _busy = false;

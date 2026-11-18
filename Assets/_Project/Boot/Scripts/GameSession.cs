@@ -134,12 +134,13 @@ namespace BunDauPeo.Boot
         }
 
         // Server là bản chính của 8 field nó giữ (spec con 4.3): chép vào save, lưu bản đệm, báo view.
-        public void ApplyServerState(ServerState state)
+        public bool ApplyServerState(ServerState state)
         {
             ServerStateApplier.Apply(Save, state);
-            Persist();
+            var saved = Persist();
             Wallet.NotifyChanged();
             Roster.NotifyChanged();
+            return saved;
         }
 
         // Gem và nhân vật khởi đầu do server cấp (ServerState.NewGame); máy chỉ cấp phần nó giữ (Coin, Material).

@@ -49,6 +49,8 @@ namespace BunDauPeo.Combat
         public bool RewardsClaimed { get; internal set; }
         // Chỉ CombatService.EnterStage đặt, sau khi thể lực đã trừ và lưu; trận từ StartBattle (dải DEV) luôn false.
         public bool EntryPaid { get; internal set; }
+        // Vé server cấp lúc vào trận, gửi lại khi thắng; "" cho trận DEV (StartBattle không gọi server).
+        public string Ticket { get; internal set; } = "";
 
         private bool IsEnded => State == BattleState.Won || State == BattleState.Lost;
 

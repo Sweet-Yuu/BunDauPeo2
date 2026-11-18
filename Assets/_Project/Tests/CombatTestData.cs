@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using UnityEditor;
 using UnityEngine;
 
@@ -86,17 +87,22 @@ namespace BunDauPeo.Tests
 
         // Mọi test tạo CombatService qua đây, để task thể lực và tiến độ đổi chữ ký ở một chỗ.
         public static CombatService Service(CombatConfig config = null, Roster roster = null, Func<bool> persist = null,
-            StaminaService stamina = null, StageProgressService progress = null, StarService stars = null)
+            StaminaService stamina = null, StageProgressService progress = null, StarService stars = null,
+            IGameServer server = null, CommandGate gate = null, Func<ServerState, bool> apply = null)
         {
             config ??= Config();
             persist ??= () => true;
+            // Không truyền server: lệnh nào gửi đi thì thất bại (server trống chưa đăng nhập); ca không gửi lệnh vẫn chạy.
+            server ??= new LocalGameServer();
+            gate ??= new CommandGate(_ => new System.Threading.Tasks.TaskCompletionSource<bool>().Task);
+            apply ??= _ => true;
             var save = new PlayerSave();
             stamina ??= new StaminaService(save, config, () => DateTime.UtcNow);
-            progress ??= new StageProgressService(save, new Wallet(save), config.Stages, stamina, persist);
+            progress ??= new StageProgressService(save, new Wallet(save), config.Stages, stamina, server, gate, apply);
             roster ??= new Roster(new PlayerSave(), TestData.Catalog());
             // Mặc định: catalog rỗng nên không nhân vật nào được cộng sao, chỉ số trận bằng chỉ số SO.
-            stars ??= new StarService(new PlayerSave(), roster, TestData.Catalog(), ScriptableObject.CreateInstance<StarConfig>(), persist);
-            return new CombatService(config, roster, stars, stamina, progress, new ScriptedRandom(), persist);
+            stars ??= ServerRig.IdleStars(new PlayerSave(), roster, TestData.Catalog(), ScriptableObject.CreateInstance<StarConfig>());
+            return new CombatService(config, roster, stars, stamina, progress, new ScriptedRandom(), persist, server, gate, apply);
         }
 
         // Đánh tới Won bằng đòn thường (quái trong test có 1 HP, nhân vật nhanh hơn).
@@ -116,7 +122,7 @@ namespace BunDauPeo.Tests
         // Vào trận bằng đường thật (EnterStage, có trả thể lực) rồi thắng: dựng được trận EntryPaid dù ở assembly khác.
         public static BattleSession PaidWin(CombatService service, string stageId)
         {
-            var entered = service.EnterStage(stageId);
+            var entered = service.EnterStageAsync(stageId).Sync();
             NUnit.Framework.Assert.AreEqual(EnterStageStatus.Entered, entered.Status, $"stage '{stageId}'");
             PlayToWin(entered.Session);
             return entered.Session;

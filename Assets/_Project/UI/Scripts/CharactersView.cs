@@ -93,11 +93,23 @@ namespace BunDauPeo.UI
             Redraw();
         }
 
-        private void StarUp()
+        private async void StarUp()
         {
             if (_selectedId == null) return;
-            var result = _stars.TryStarUp(_selectedId);
-            // TryStarUp đã bắn Roster.Changed (vẽ lại) khi thành công; đặt chữ sau cùng để Redraw không xoá nó.
+            StarUpResult result;
+            try
+            {
+                result = await _stars.TryStarUpAsync(_selectedId);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e, this);
+                return;
+            }
+
+            // Panel bị tắt trong lúc chờ: state đã áp, không còn gì để vẽ.
+            if (this == null || !isActiveAndEnabled) return;
+            // Áp state đã bắn Roster.Changed (vẽ lại) khi thành công; đặt chữ sau cùng để Redraw không xoá nó.
             Redraw();
             _statusText.text = CharactersViewText.StatusText(result);
         }

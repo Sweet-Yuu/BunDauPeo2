@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using UnityEditor;
 using UnityEngine;
 
@@ -58,11 +60,62 @@ namespace BunDauPeo.Tests
                 so.FindProperty("_stages").objectReferenceValue = CombatTestData.Catalog(stages);
                 configEdit?.Invoke(so);
             });
+            // Server trong bộ nhớ chạy lệnh thật, đồng hồ theo Now; mốc ban đầu là save của rig (đội, thể lực, màn đã qua).
+            Server = new LocalGameServer(() => Now, ServerData(catalog, Config));
+            Gate = new CommandGate(_ => new TaskCompletionSource<bool>().Task);
+            Server.SignInAsync().Sync();
+            Server.Seed(JsonUtility.ToJson(Save));
+            Server.BootstrapAsync().Sync();
             Stamina = new StaminaService(Save, Config, () => Now);
-            Progress = new StageProgressService(Save, Wallet, Config.Stages, Stamina, Persist);
-            Stars = new StarService(Save, Roster, catalog, ScriptableObject.CreateInstance<StarConfig>(), Persist);
-            Service = CombatTestData.Service(Config, Roster, Persist, Stamina, Progress, Stars);
+            Progress = new StageProgressService(Save, Wallet, Config.Stages, Stamina, Server, Gate, Apply);
+            Stars = ServerRig.IdleStars(Save, Roster, catalog, ScriptableObject.CreateInstance<StarConfig>());
+            Service = CombatTestData.Service(Config, Roster, Persist, Stamina, Progress, Stars, Server, Gate, Apply);
         }
+
+        public LocalGameServer Server { get; }
+        public CommandGate Gate { get; }
+
+        // Giống GameSession.ApplyServerState: chép state server vào save, báo view, lưu một lần.
+        public bool Apply(ServerState state)
+        {
+            ServerStateApplier.Apply(Save, state);
+            Wallet.NotifyChanged();
+            Roster.NotifyChanged();
+            return Persist();
+        }
+
+        private static GameData ServerData(CharacterCatalog characters, CombatConfig config)
+        {
+            var data = new GameData
+            {
+                MaxStars = 5,
+                MaxTeamSize = 5,
+                StarCosts = new List<int> { 2, 4, 6, 8 },
+                Stamina = new StaminaData { Max = config.MaxStamina, RegenSeconds = config.StaminaRegenSeconds },
+            };
+            foreach (var c in characters.Items) data.Characters.Add(new CharacterData { Id = c.Id, BaseStars = Math.Max(c.Stars, 1) });
+            if (config.Stages != null)
+                foreach (var s in config.Stages.Items)
+                {
+                    if (s == null) continue;
+                    data.Stages.Add(new StageData
+                    {
+                        Id = s.Id,
+                        Kind = (int)s.Kind,
+                        StaminaCost = s.StaminaCost,
+                        FirstClear = Reward(s.FirstClearReward),
+                        Repeat = Reward(s.RepeatReward),
+                    });
+                }
+
+            return data;
+        }
+
+        private static RewardData Reward(IReadOnlyList<CurrencyAmount> lines) => new()
+        {
+            Gem = lines.Where(l => l.Type == CurrencyType.Gem).Sum(l => l.Amount),
+            Material = lines.Where(l => l.Type == CurrencyType.Material).Sum(l => l.Amount),
+        };
 
         public DateTime Now { get; set; }
         public PlayerSave Save { get; }
@@ -96,6 +149,7 @@ namespace BunDauPeo.Tests
         {
             Save.Stamina.Current = current;
             Save.Stamina.AnchorUtcTicks = Now.Ticks - (long)(secondsAgo * TimeSpan.TicksPerSecond);
+            Server.State.Stamina = new StaminaState { Current = Save.Stamina.Current, AnchorUtcTicks = Save.Stamina.AnchorUtcTicks };
         }
 
         // Mọi thứ một lần thử có thể làm đổi (trừ trận hiện tại và số lần persist): so hai chuỗi này để chứng minh "không đổi gì".
@@ -106,6 +160,17 @@ namespace BunDauPeo.Tests
                 string.Join(",", Save.ClearedStages), Save.Stamina.Current, Save.Stamina.AnchorUtcTicks, PersistCalls);
         }
 
-        public void Clear(params string[] ids) => Save.ClearedStages.AddRange(ids.Where(id => !Save.ClearedStages.Contains(id)));
+        // Nâng sao do server làm: ghi ở cả hai nơi, vì mỗi lệnh áp state server đè lên save của máy.
+        public void StarUp(string id, int count)
+        {
+            Save.StarUps.Add(new StarUpEntry { CharacterId = id, Count = count });
+            Server.State.StarUps.Add(new StarUpEntry { CharacterId = id, Count = count });
+        }
+
+        public void Clear(params string[] ids)
+        {
+            Save.ClearedStages.AddRange(ids.Where(id => !Save.ClearedStages.Contains(id)));
+            Server.State.ClearedStages = new List<string>(Save.ClearedStages);
+        }
     }
 }

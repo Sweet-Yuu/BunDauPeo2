@@ -97,6 +97,9 @@ namespace BunDauPeo.Core
         public void LoseNextReply() => _loseNextCommandReply = true;
 
         // Lệnh game kế tiếp chờ cổng mở rồi mới chạy (test màn chờ).
+        // Như server môi trường phát hành: lệnh DEV trả DevOnly và không đổi gì.
+        public bool RejectDev { get; set; }
+
         public void DelayNext(TaskCompletionSource<bool> gate) => _delayNext = gate;
 
         // Máy khác Bootstrap: phiên đang giữ đổi, lệnh kế tiếp của máy này nhận OtherDevice.
@@ -237,10 +240,12 @@ namespace BunDauPeo.Core
             Command(nameof(StarUpAsync), requestId, (s, c) => ServerHandlers.StarUp(s, _data, characterId));
 
         public Task<OnlineResult<CommandResponse>> DevAddGemAsync(string requestId, long amount) =>
-            Command(nameof(DevAddGemAsync), requestId, (s, c) => ServerHandlers.DevAddGem(s, amount));
+            Command(nameof(DevAddGemAsync), requestId,
+                (s, c) => RejectDev ? HandlerOutcome.Reject(CommandCode.DevOnly) : ServerHandlers.DevAddGem(s, amount));
 
         public Task<OnlineResult<CommandResponse>> DevRefillStaminaAsync(string requestId) =>
-            Command(nameof(DevRefillStaminaAsync), requestId, (s, c) => ServerHandlers.DevRefillStamina(s, _data));
+            Command(nameof(DevRefillStaminaAsync), requestId,
+                (s, c) => RejectDev ? HandlerOutcome.Reject(CommandCode.DevOnly) : ServerHandlers.DevRefillStamina(s, _data));
 
         private async Task<OnlineResult<CommandResponse>> Command(string name, string requestId,
             Func<ServerState, ServerContext, HandlerOutcome> handler)

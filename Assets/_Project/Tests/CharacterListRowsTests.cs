@@ -22,7 +22,7 @@ namespace BunDauPeo.Tests
             _roster = new Roster(_save, catalog);
             _roster.Add("a");
             _roster.Add("b");
-            _stars = new StarService(_save, _roster, catalog, ScriptableObject.CreateInstance<StarConfig>(), () => true);
+            _stars = ServerRig.IdleStars(_save, _roster, catalog, ScriptableObject.CreateInstance<StarConfig>());
         }
 
         [Test]

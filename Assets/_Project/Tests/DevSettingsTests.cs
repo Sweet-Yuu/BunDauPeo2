@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using BunDauPeo.Boot;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using BunDauPeo.UI;
 using NUnit.Framework;
 
@@ -22,20 +23,85 @@ namespace BunDauPeo.Tests
         [TearDown]
         public void TearDown()
         {
-            // GrantGemsThenResetViaResetter...: ResetToDefaults đưa GameLanguage.Current về En.
+            // ServerGrantThenResetViaResetter...: ResetToDefaults đưa GameLanguage.Current về En.
             GameLanguage.Current = Language.Vi;
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
         }
 
-        [Test]
-        public void GrantGems_AddsGemAmount_AndNothingElse()
+        // Server mới có Gem 100 và thể lực đã hao; save của máy khớp server, apply chép state vào save như GameSession.
+        private async Task<(ServerRig Rig, PlayerSave Save, DevCommands Dev, Func<int> Applied)> DevRigAsync()
         {
-            var wallet = new Wallet(new PlayerSave());
-            DevOverlay.GrantGems(wallet);
-            DevOverlay.GrantGems(wallet);
-            Assert.AreEqual(2 * DevOverlay.GemGrant, wallet.Get(CurrencyType.Gem), "cộng dồn, không đặt lại");
-            Assert.AreEqual(0, wallet.Get(CurrencyType.Coin));
-            Assert.AreEqual(0, wallet.Get(CurrencyType.Material));
+            var rig = await ServerRig.CreateAsync(GachaRulesTests.Data(), s =>
+            {
+                s.Balances.Add(new CurrencyAmount(CurrencyType.Gem, 100));
+                s.Stamina = new StaminaState { Current = 20, AnchorUtcTicks = DateTime.UtcNow.Ticks };
+            });
+            var save = new PlayerSave();
+            rig.ApplyTo(save);
+            var applied = 0;
+            var dev = new DevCommands(rig.Server, rig.Gate, state =>
+            {
+                applied++;
+                ServerStateApplier.Apply(save, state);
+                return true;
+            });
+            return (rig, save, dev, () => applied);
+        }
+
+        [Test]
+        public async Task AddGem_CallsServer_AppliesState()
+        {
+            var (rig, save, dev, applied) = await DevRigAsync();
+
+            Assert.IsTrue(await dev.AddGemAsync(DevOverlay.GemGrant));
+            Assert.IsTrue(await dev.AddGemAsync(DevOverlay.GemGrant));
+
+            Assert.AreEqual(100 + 2 * DevOverlay.GemGrant, rig.Server.State.Gem, "the server holds the Gem");
+            Assert.AreEqual(100 + 2 * DevOverlay.GemGrant, new Wallet(save).Get(CurrencyType.Gem), "the device shows what the server returned");
+            Assert.AreEqual(2, rig.Server.CommandCalls);
+            Assert.AreEqual(2, applied());
+            Assert.AreEqual(0, new Wallet(save).Get(CurrencyType.Coin));
+            Assert.AreEqual(0, new Wallet(save).Get(CurrencyType.Material));
+        }
+
+        [Test]
+        public async Task RefillStamina_CallsServer()
+        {
+            var (rig, save, dev, applied) = await DevRigAsync();
+            Assert.AreEqual(20, save.Stamina.Current, "setup: stamina is low");
+
+            Assert.IsTrue(await dev.RefillStaminaAsync());
+
+            Assert.AreEqual(1, rig.Server.CommandCalls);
+            Assert.AreEqual(100, rig.Server.State.Stamina.Current);
+            Assert.AreEqual((100, 0L), (save.Stamina.Current, save.Stamina.AnchorUtcTicks), "the device got the server's full bar");
+            Assert.AreEqual(1, applied());
+        }
+
+        [Test]
+        public async Task AddGem_DevOnly_NoChange()
+        {
+            var (rig, save, dev, applied) = await DevRigAsync();
+            rig.Server.RejectDev = true;
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("DevOnly"));
+
+            Assert.IsFalse(await dev.AddGemAsync(DevOverlay.GemGrant));
+
+            Assert.AreEqual(100, rig.Server.State.Gem);
+            Assert.AreEqual(100, new Wallet(save).Get(CurrencyType.Gem));
+            Assert.AreEqual(0, applied());
+        }
+
+        [Test]
+        public async Task AddGem_Offline_NoChange_NoWarning()
+        {
+            var (rig, save, dev, applied) = await DevRigAsync();
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+
+            Assert.IsFalse(await dev.AddGemAsync(DevOverlay.GemGrant));
+
+            Assert.AreEqual(100, new Wallet(save).Get(CurrencyType.Gem));
+            Assert.AreEqual(0, applied());
         }
 
         [Test]
@@ -85,7 +151,7 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void GrantGemsThenResetViaResetter_GemsBackToStarting_AndFileHasNoGrant()
+        public void ServerGrantThenResetViaResetter_GemsBackToStarting_AndFileHasNoGrant()
         {
             var path = Path.Combine(_dir, "save.json");
             var service = new SaveService(path);
@@ -93,9 +159,9 @@ namespace BunDauPeo.Tests
             var config = TestData.Config(new[] { new CurrencyAmount(CurrencyType.Gem, 30) }, a);
             var session = new GameSession(service, TestData.Catalog(a), config);
 
-            DevOverlay.GrantGems(session.Wallet);
-            session.Persist();
-            Assert.AreEqual(DevOverlay.GemGrant, session.Wallet.Get(CurrencyType.Gem), "the device grants no starting Gem");
+            // Gem do server giữ: máy áp state server có thêm quà DEV, rồi ghi bản đệm.
+            session.ApplyServerState(new ServerState { Gem = 30 + DevOverlay.GemGrant });
+            Assert.AreEqual(30 + DevOverlay.GemGrant, session.Wallet.Get(CurrencyType.Gem), "the server grants the Gem");
 
             // Gem khởi đầu là của server: Reset trả về đúng số đó.
             var server = new LocalGameServer(new BunDauPeo.Rules.GameData { NewGame = { StartingGem = 30 } });

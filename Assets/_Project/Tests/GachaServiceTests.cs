@@ -1,16 +1,18 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
+using BunDauPeo.Rules;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Random = System.Random;
 
 namespace BunDauPeo.Tests
 {
+    // Roll, pity và lịch sử do server tính (HandlerGachaTests); ở đây là phần máy: kiểm trước khi gửi, áp state, ánh xạ mã.
     public class GachaServiceTests
     {
         private CharacterDefinition[] _chars;
@@ -20,8 +22,8 @@ namespace BunDauPeo.Tests
         private PlayerSave _save;
         private Wallet _wallet;
         private Roster _roster;
-        private int _persistCalls;
-        private bool _persistResult;
+        private bool _applyResult;
+        private int _applyCalls;
 
         [SetUp]
         public void SetUp()
@@ -32,168 +34,62 @@ namespace BunDauPeo.Tests
             _bannerCatalog = TestData.GachaCatalog(_banner);
             _save = new PlayerSave();
             _wallet = new Wallet(_save);
-            _wallet.Add(CurrencyType.Gem, 2000);
             _roster = new Roster(_save, _characters);
-            _persistCalls = 0;
-            _persistResult = true;
+            _applyResult = true;
+            _applyCalls = 0;
         }
 
-        private GachaService Make(Random random, GachaBannerCatalog banners = null, CharacterCatalog characters = null) =>
-            new(_save, _wallet, _roster, characters ?? _characters, banners ?? _bannerCatalog, random, () =>
-            {
-                _persistCalls++;
-                return _persistResult;
-            });
+        private static void SeedGem(PlayerSave save, long gem) => save.Balances.Add(new CurrencyAmount(CurrencyType.Gem, gem));
+
+        // Server có đúng Gem đã seed; máy khớp server như lúc mở app.
+        private async Task<(ServerRig Rig, GachaService Service)> MakeAsync(long gem = 2000, GameData data = null,
+            GachaBannerCatalog banners = null, CharacterCatalog characters = null)
+        {
+            var rig = await ServerRig.CreateAsync(data ?? GachaRulesTests.Data(), s => SeedGem(s, gem));
+            rig.ApplyTo(_save);
+            var service = new GachaService(_save, _wallet, characters ?? _characters, banners ?? _bannerCatalog,
+                rig.Server, rig.Gate, state =>
+                {
+                    _applyCalls++;
+                    ServerStateApplier.Apply(_save, state);
+                    _wallet.NotifyChanged();
+                    _roster.NotifyChanged();
+                    return _applyResult;
+                });
+            return (rig, service);
+        }
 
         private long Gem => _wallet.Get(CurrencyType.Gem);
 
         [Test]
-        public void PullSingle_NewCharacter_SpendsGemAndAddsToRoster()
+        public async Task Pull_NotEnoughGem_NoServerCall()
         {
-            var rosterChanged = 0;
-            _roster.Changed += () => rosterChanged++;
+            var (rig, service) = await MakeAsync(gem: 50);
+            var calls = rig.Server.CommandCalls;
 
-            var result = Make(new ScriptedRandom()).PullSingle("b");
-
-            Assert.AreEqual(GachaPullStatus.Success, result.Status);
-            Assert.IsTrue(result.Saved);
-            Assert.AreEqual(1, result.Entries.Count);
-            Assert.AreEqual("r0", result.Entries[0].Character.Id);
-            Assert.IsTrue(result.Entries[0].IsNew);
-            Assert.AreEqual(1900, Gem);
-            Assert.IsTrue(_roster.IsOwned("r0"));
-            Assert.AreEqual(1, _persistCalls);
-            Assert.GreaterOrEqual(rosterChanged, 1);
-        }
-
-        [Test]
-        public void PullSingle_Duplicate_AddsFragmentsNotCharacter()
-        {
-            _roster.Add("r0");
-
-            var result = Make(new ScriptedRandom()).PullSingle("b");
-
-            Assert.IsFalse(result.Entries[0].IsNew);
-            Assert.AreEqual(1, result.Entries[0].FragmentsGained);
-            Assert.AreEqual(1, _roster.GetFragments("r0"));
-            Assert.AreEqual(1, _roster.GetOwned().Count);
-            Assert.AreEqual(1900, Gem);
-        }
-
-        [Test]
-        public void PullSingle_DuplicateFragmentsFollowRarity()
-        {
-            TestData.Edit(_banner, so =>
-            {
-                var counts = so.FindProperty("_duplicateFragments");
-                counts.FindPropertyRelative("R").intValue = 2;
-                counts.FindPropertyRelative("SR").intValue = 3;
-                counts.FindPropertyRelative("SSR").intValue = 4;
-            });
-            _roster.Add("x0");
-
-            var result = Make(new ScriptedRandom(0.0, 0.99, 0.0)).PullSingle("b");
-
-            Assert.AreEqual("x0", result.Entries[0].Character.Id);
-            Assert.AreEqual(4, _roster.GetFragments("x0"));
-            Assert.AreEqual(4, result.Entries[0].FragmentsGained);
-        }
-
-        [Test]
-        public void PullTen_SameCharacterTwice_SecondIsDuplicate()
-        {
-            var result = Make(new ScriptedRandom()).PullTen("b");
-
-            Assert.AreEqual(GachaPullStatus.Success, result.Status);
-            Assert.AreEqual(10, result.Entries.Count);
-            Assert.IsTrue(result.Entries[0].IsNew);
-            Assert.IsTrue(result.Entries.Skip(1).Take(8).All(e => !e.IsNew && e.Character.Id == "r0"));
-            Assert.AreEqual(8, _roster.GetFragments("r0"));
-            Assert.AreEqual("s0", result.Entries[9].Character.Id);
-            Assert.IsTrue(result.Entries[9].IsNew);
-            Assert.AreEqual(1100, Gem);
-        }
-
-        [Test]
-        public void PullTen_PersistsOnce()
-        {
-            Make(new ScriptedRandom()).PullTen("b");
-            Assert.AreEqual(1, _persistCalls);
-        }
-
-        [Test]
-        public void PullTen_PityContinuesAcrossCalls_AndIsStoredInSave()
-        {
-            _wallet.Add(CurrencyType.Gem, 3000);
-            var service = Make(new ScriptedRandom());
-            for (var i = 0; i < 4; i++) Assert.AreEqual(GachaPullStatus.Success, service.PullTen("b").Status);
-            Assert.AreEqual(40, service.GetPity("b"));
-            Assert.AreEqual(40, Make(new ScriptedRandom()).GetPity("b"), "a fresh service on the same save must read the stored counter");
-
-            var fifth = service.PullTen("b");
-            Assert.AreEqual("x0", fifth.Entries[9].Character.Id);
-            Assert.AreEqual(0, service.GetPity("b"));
-        }
-
-        [Test]
-        public void GetPity_NoEntry_ReturnsZero()
-        {
-            var service = Make(new ScriptedRandom());
-            Assert.AreEqual(0, service.GetPity("b"));
-            Assert.AreEqual(0, service.GetPity("zzz"));
-        }
-
-        [Test]
-        public void Pity_IsPerBanner()
-        {
-            var other = TestData.Banner("c", _chars);
-            var service = Make(new ScriptedRandom(), TestData.GachaCatalog(_banner, other));
-            for (var i = 0; i < 3; i++) service.PullSingle("b");
-            Assert.AreEqual(3, service.GetPity("b"));
-            Assert.AreEqual(0, service.GetPity("c"));
-        }
-
-        [Test]
-        public void NotEnoughCurrency_ChangesNothing()
-        {
-            Assert.IsTrue(_wallet.TrySpend(new CurrencyAmount(CurrencyType.Gem, 1950)));
-            var walletChanged = 0;
-            var rosterChanged = 0;
-            _wallet.Changed += () => walletChanged++;
-            _roster.Changed += () => rosterChanged++;
-            var rng = new ScriptedRandom();
-
-            var result = Make(rng).PullSingle("b");
+            var result = await service.PullSingleAsync("b");
 
             Assert.AreEqual(GachaPullStatus.NotEnoughCurrency, result.Status);
-            Assert.IsNotNull(result.Entries);
             Assert.IsEmpty(result.Entries);
+            Assert.AreEqual(calls, rig.Server.CommandCalls);
+            Assert.AreEqual(0, _applyCalls);
             Assert.AreEqual(50, Gem);
-            Assert.IsEmpty(_roster.GetOwned());
-            Assert.AreEqual(0, _roster.GetFragments("r0"));
-            Assert.IsEmpty(_save.GachaPity);
-            Assert.AreEqual(0, rng.Calls);
-            Assert.AreEqual(0, _persistCalls);
-            Assert.AreEqual(0, walletChanged);
-            Assert.AreEqual(0, rosterChanged);
         }
 
         [Test]
-        public void UnknownBanner_ChangesNothing()
+        public async Task Pull_UnknownBanner_NoServerCall()
         {
-            var rng = new ScriptedRandom();
+            var (rig, service) = await MakeAsync();
 
-            var result = Make(rng).PullSingle("nope");
+            var result = await service.PullSingleAsync("nope");
 
             Assert.AreEqual(GachaPullStatus.UnknownBanner, result.Status);
-            Assert.IsEmpty(result.Entries);
+            Assert.AreEqual(0, rig.Server.CommandCalls);
             Assert.AreEqual(2000, Gem);
-            Assert.AreEqual(0, rng.Calls);
-            Assert.AreEqual(0, _persistCalls);
         }
 
         [Test]
-        public void InvalidBanner_ZeroCost_ChangesNothing()
+        public async Task Pull_InvalidBanner_ZeroCost_NoServerCall()
         {
             TestData.Edit(_banner, so =>
             {
@@ -203,136 +99,182 @@ namespace BunDauPeo.Tests
                 line.FindPropertyRelative("Type").enumValueIndex = (int)CurrencyType.Gem;
                 line.FindPropertyRelative("Amount").longValue = 0;
             });
-            var rng = new ScriptedRandom();
+            var (rig, service) = await MakeAsync();
 
-            var result = Make(rng).PullSingle("b");
-
-            Assert.AreEqual(GachaPullStatus.InvalidBanner, result.Status);
-            Assert.AreEqual(2000, Gem);
-            Assert.AreEqual(0, rng.Calls);
-            Assert.IsEmpty(_roster.GetOwned());
-        }
-
-        [Test]
-        public void BannerCharacterMissingFromCharacterCatalog_IsInvalidBanner()
-        {
-            var withoutSsr = TestData.Catalog(_chars.Take(5).ToArray());
-
-            var result = Make(new ScriptedRandom(), characters: withoutSsr).PullSingle("b");
+            var result = await service.PullSingleAsync("b");
 
             Assert.AreEqual(GachaPullStatus.InvalidBanner, result.Status);
+            Assert.AreEqual(0, rig.Server.CommandCalls);
             Assert.AreEqual(2000, Gem);
         }
 
         [Test]
-        public void RngThrows_ChangesNothing()
+        public async Task Pull_BannerCharacterMissingFromCatalog_IsInvalidBanner_NoServerCall()
         {
-            // Lần gọi RNG thứ 7 là giữa lượt 4 của PullTen: các lượt trước đã roll xong mà chưa được phép đổi gì.
-            var service = Make(new ThrowingRandom(throwOnCall: 7));
+            var (rig, service) = await MakeAsync(characters: TestData.Catalog(_chars.Take(5).ToArray()));
+
+            var result = await service.PullSingleAsync("b");
+
+            Assert.AreEqual(GachaPullStatus.InvalidBanner, result.Status);
+            Assert.AreEqual(0, rig.Server.CommandCalls);
+        }
+
+        [Test]
+        public async Task Pull_Ok_AppliesStateAndRaisesChanged()
+        {
+            var (rig, service) = await MakeAsync();
             var walletChanged = 0;
             var rosterChanged = 0;
             _wallet.Changed += () => walletChanged++;
             _roster.Changed += () => rosterChanged++;
 
-            Assert.Throws<InvalidOperationException>(() => service.PullTen("b"));
+            var result = await service.PullSingleAsync("b");
 
-            Assert.AreEqual(2000, Gem);
-            Assert.IsEmpty(_roster.GetOwned());
-            Assert.IsEmpty(_save.Fragments);
-            Assert.IsEmpty(_save.GachaPity);
-            Assert.AreEqual(0, _persistCalls);
-            Assert.AreEqual(0, walletChanged);
-            Assert.AreEqual(0, rosterChanged);
+            Assert.AreEqual(GachaPullStatus.Success, result.Status);
+            Assert.IsTrue(result.Saved);
+            Assert.AreEqual(1, result.Entries.Count);
+            var entry = result.Entries[0];
+            Assert.IsTrue(entry.IsNew);
+            Assert.IsTrue(_roster.IsOwned(entry.Character.Id), "the character from the server payload is now owned on the device");
+            Assert.AreEqual(1900, Gem);
+            Assert.AreEqual(rig.Server.State.Gem, Gem, "the device shows exactly what the server holds");
+            Assert.AreEqual(1, service.History.Count);
+            // Quay trúng SSR thì pity về 0: so với bản server, không đoán kết quả quay.
+            Assert.AreEqual(rig.Server.State.GachaPity.Single(p => p.BannerId == "b").Pulls, service.GetPity("b"));
+            Assert.AreEqual(1, _applyCalls);
+            Assert.GreaterOrEqual(walletChanged, 1);
+            Assert.GreaterOrEqual(rosterChanged, 1);
         }
 
         [Test]
-        public void ChangedHandlerThrows_PullStillCompletes()
+        public async Task PullTen_Ok_TenEntriesFromPayload()
         {
+            var (rig, service) = await MakeAsync();
+
+            var result = await service.PullTenAsync("b");
+
+            Assert.AreEqual(GachaPullStatus.Success, result.Status);
+            Assert.AreEqual(10, result.Entries.Count);
+            Assert.AreEqual(1100, Gem);
+            Assert.AreEqual(1, service.History.Count);
+            Assert.AreEqual(10, service.History[0].Count);
+            // Mỗi dòng kết quả khớp state đã áp: nhân vật mới thì đang sở hữu, trùng thì mảnh nằm trong save.
+            foreach (var entry in result.Entries)
+                Assert.IsTrue(_roster.IsOwned(entry.Character.Id));
+            Assert.AreEqual(rig.Server.State.OwnedCharacterIds.Count, _roster.GetOwned().Count);
+        }
+
+        // Review Focus 1: mất trả lời đúng lúc quay ×10, bấm Thử lại thì Gem trừ một lần và kết quả là bản server đã ghi.
+        [Test]
+        public async Task PullTen_LostReplyThenRetry_SpendsOnce()
+        {
+            var (rig, service) = await MakeAsync();
+            var lost = 0;
+            rig.Gate.Lost += retry =>
+            {
+                lost++;
+                retry();
+            };
+            rig.Server.LoseNextReply();
+
+            var result = await service.PullTenAsync("b");
+
+            Assert.AreEqual(1, lost, "the player saw the Lost box once and pressed Retry");
+            Assert.AreEqual(GachaPullStatus.Success, result.Status);
+            Assert.AreEqual(10, result.Entries.Count);
+            Assert.AreEqual(1100, rig.Server.State.Gem, "server charged 900 once");
+            Assert.AreEqual(1100, Gem);
+            Assert.AreEqual(1, service.History.Count, "one pull in the history, not two");
+            Assert.AreEqual(1, _applyCalls, "the state is applied once, after the retry succeeded");
+            var ids = result.Entries.Select(e => e.Character.Id).ToList();
+            CollectionAssert.AreEqual(rig.Server.State.GachaHistory[0].CharacterIds, ids, "the result shown is what the server wrote");
+        }
+
+        [Test]
+        public async Task Pull_ServerRejectsNotEnoughGem_MapsStatus_NoChange()
+        {
+            // Máy tưởng đủ Gem (2000) nhưng server chỉ có 50: server là bản chính.
+            var (rig, service) = await MakeAsync(gem: 50);
+            ServerStateApplier.Apply(_save, new ServerState { Gem = 2000 });
+
+            var result = await service.PullSingleAsync("b");
+
+            Assert.AreEqual(1, rig.Server.CommandCalls);
+            Assert.AreEqual(GachaPullStatus.NotEnoughCurrency, result.Status);
+            Assert.IsEmpty(result.Entries);
+            Assert.AreEqual(0, _applyCalls);
+            Assert.AreEqual(2000, Gem, "a rejected command changes nothing on the device");
+            Assert.AreEqual(50, rig.Server.State.Gem);
+        }
+
+        [Test]
+        public async Task Pull_ServerRejectsUnknownBanner_MapsToInvalidBanner_NoChange()
+        {
+            var data = GachaRulesTests.Data();
+            data.Banners.Clear();
+            var (rig, service) = await MakeAsync(data: data);
+
+            var result = await service.PullSingleAsync("b");
+
+            Assert.AreEqual(1, rig.Server.CommandCalls);
+            Assert.AreEqual(GachaPullStatus.InvalidBanner, result.Status);
+            Assert.AreEqual(0, _applyCalls);
+            Assert.AreEqual(2000, Gem);
+        }
+
+        [Test]
+        public async Task Pull_Offline_NoChange()
+        {
+            var (rig, service) = await MakeAsync();
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+
+            var result = await service.PullSingleAsync("b");
+
+            Assert.AreEqual(GachaPullStatus.Offline, result.Status);
+            Assert.IsEmpty(result.Entries);
+            Assert.AreEqual(0, _applyCalls);
+            Assert.AreEqual(2000, Gem);
+            Assert.IsEmpty(_roster.GetOwned());
+            Assert.AreEqual(2000, rig.Server.State.Gem, "the failed command wrote nothing");
+        }
+
+        // L-003: handler của view ném lỗi thì state server đã trả vẫn phải vào bộ nhớ.
+        [Test]
+        public async Task Pull_ChangedHandlerThrows_StateStillApplied()
+        {
+            var (_, service) = await MakeAsync();
             _wallet.Changed += () => throw new InvalidOperationException("boom");
             LogAssert.Expect(LogType.Exception, new Regex("boom"));
 
-            var result = Make(new ScriptedRandom()).PullSingle("b");
+            var result = await service.PullSingleAsync("b");
 
             Assert.AreEqual(GachaPullStatus.Success, result.Status);
             Assert.AreEqual(1900, Gem);
-            Assert.IsTrue(_roster.IsOwned("r0"));
-            Assert.AreEqual(1, Make(new ScriptedRandom()).GetPity("b"));
-            Assert.AreEqual(1, _persistCalls);
+            Assert.AreEqual(1, _roster.GetOwned().Count);
+            Assert.AreEqual(1, service.History.Count);
         }
 
         [Test]
-        public void PersistFails_ReturnsSavedFalse_AndKeepsState()
+        public async Task Pull_ApplyReportsNotSaved_ReturnsSavedFalse_AndKeepsState()
         {
-            _persistResult = false;
+            _applyResult = false;
+            var (_, service) = await MakeAsync();
 
-            var result = Make(new ScriptedRandom()).PullSingle("b");
+            var result = await service.PullSingleAsync("b");
 
             Assert.AreEqual(GachaPullStatus.Success, result.Status);
             Assert.IsFalse(result.Saved);
             Assert.AreEqual(1900, Gem);
-            Assert.IsTrue(_roster.IsOwned("r0"));
         }
 
         [Test]
-        public void PullSingle_AppendsOneHistoryEntry()
+        public async Task GetPity_NoEntry_ReturnsZero()
         {
-            Make(new ScriptedRandom()).PullSingle("b");
+            var (_, service) = await MakeAsync();
 
-            Assert.AreEqual(1, _save.GachaHistory.Count);
-            var entry = _save.GachaHistory[0];
-            Assert.AreEqual("b", entry.BannerId);
-            Assert.AreEqual(1, entry.Count);
-            CollectionAssert.AreEqual(new[] { "r0" }, entry.CharacterIds);
-        }
-
-        [Test]
-        public void PullTen_AppendsOneEntryWithTenIdsInRollOrder()
-        {
-            Make(new ScriptedRandom()).PullTen("b");
-
-            Assert.AreEqual(1, _save.GachaHistory.Count);
-            var entry = _save.GachaHistory[0];
-            Assert.AreEqual(10, entry.Count);
-            Assert.AreEqual(10, entry.CharacterIds.Length);
-            Assert.AreEqual("s0", entry.CharacterIds[9]);
-        }
-
-        [Test]
-        public void RejectedPull_AddsNoHistory()
-        {
-            Make(new ScriptedRandom()).PullSingle("nope");
-            Assert.IsEmpty(_save.GachaHistory);
-
-            Assert.IsTrue(_wallet.TrySpend(new CurrencyAmount(CurrencyType.Gem, 1950)));
-            Make(new ScriptedRandom()).PullSingle("b");
-            Assert.IsEmpty(_save.GachaHistory);
-
-            _wallet.Add(CurrencyType.Gem, 1950);
-            Assert.Throws<InvalidOperationException>(() => Make(new ThrowingRandom()).PullSingle("b"));
-            Assert.IsEmpty(_save.GachaHistory);
-
-            TestData.Edit(_banner, so =>
-            {
-                var cost = so.FindProperty("_singleCost");
-                cost.arraySize = 1;
-                cost.GetArrayElementAtIndex(0).FindPropertyRelative("Amount").longValue = 0;
-            });
-            Assert.AreEqual(GachaPullStatus.InvalidBanner, Make(new ScriptedRandom()).PullSingle("b").Status);
-            Assert.IsEmpty(_save.GachaHistory);
-        }
-
-        [Test]
-        public void History_KeepsLast50()
-        {
-            _wallet.Add(CurrencyType.Gem, 5000);
-            var service = Make(new ScriptedRandom());
-            for (var i = 0; i < 51; i++) service.PullSingle("b");
-
-            // Lượt thứ 50 ép SSR (x0). Nếu không bỏ mục cũ nhất thì x0 nằm ở chỉ số 49, không phải 48.
-            Assert.AreEqual(GachaService.MaxHistoryEntries, _save.GachaHistory.Count);
-            Assert.AreEqual(50, GachaService.MaxHistoryEntries);
-            Assert.AreEqual("x0", _save.GachaHistory[48].CharacterIds[0]);
-            Assert.AreEqual(1, service.History[49].Count);
+            Assert.AreEqual(0, service.GetPity("b"));
+            Assert.AreEqual(0, service.GetPity("other"));
+            Assert.AreEqual(0, service.GetPity(null));
         }
     }
 }

@@ -26,6 +26,16 @@
 
 ## Đang hiệu lực
 
+### L-042 — Sửa .cs khi `unity test` đang biên dịch làm lượt chạy hỏng (2026-11-17)  #process #script
+- Triệu chứng: lệnh `unity test` chạy nền báo `CS0103/CS1061` ở file tôi đang sửa dở, mất cả lượt (vài phút) mà chẳng kiểm được gì.
+- Nguyên nhân gốc: Unity đọc nguồn lúc biên dịch đầu lượt; sửa tiếp trong lúc đó cho nó thấy bản nửa vời.
+- Luật từ nay: đã bắt đầu `unity test`/`unity run` thì không sửa `.cs` cho tới khi nó xong (sửa docs thì được); gom xong cả nhóm sửa rồi mới chạy một lần.
+
+### L-041 — Test service qua LocalGameServer không được khẳng định kết quả roll (2026-11-17)  #script
+- Triệu chứng: `Pull_Ok_AppliesStateAndRaisesChanged` đỏ ngẫu nhiên (pity mong 1, thực 0).
+- Nguyên nhân gốc: `LocalGameServer` roll bằng `System.Random` thật; 5% quay trúng SSR thì pity về 0.
+- Luật từ nay: test service (Gacha) chỉ khẳng định thứ không phụ thuộc roll (Gem, số dòng, khớp với `server.State`); ca cần roll cụ thể thuộc `HandlerGachaTests` (random giả có kịch bản, L-006).
+
 ### L-040 — Trả cài đặt ký bằng setter làm Unity ghi rác vào ProjectSettings.asset (2026-11-16)  #build #editor
 - Triệu chứng: sau `BuildRelease` thật, `AndroidKeystoreName` trong `ProjectSettings.asset` thành `'{inproject}: '` dù `Restore()` đã gán lại giá trị cũ (rỗng, kể cả `null`); test đọc file đỏ.
 - Nguyên nhân gốc: setter `PlayerSettings.Android.keystoreName` luôn chuẩn hoá đường dẫn, không giữ được chuỗi rỗng.

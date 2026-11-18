@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using BunDauPeo.Characters;
+using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using UnityEngine;
 
 namespace BunDauPeo.Combat
@@ -21,7 +24,7 @@ namespace BunDauPeo.Combat
 
     public enum EnterStageStatus
     {
-        Entered, InvalidConfig, BattleInProgress, Unknown, Invalid, WrongKind, Locked, EmptyTeam, NotEnoughStamina, InvalidCharacter, SaveFailed
+        Entered, InvalidConfig, BattleInProgress, Unknown, Invalid, WrongKind, Locked, EmptyTeam, NotEnoughStamina, InvalidCharacter, SaveFailed, Offline
     }
 
     public readonly struct EnterStageResult
@@ -47,10 +50,18 @@ namespace BunDauPeo.Combat
         private readonly Roster _roster;
         private readonly System.Random _random;
         private readonly Func<bool> _persist;
+        private readonly IGameServer _server;
+        private readonly CommandGate _gate;
+        private readonly Func<ServerState, bool> _apply;
 
+        // apply chép state server vào PlayerSave và báo view; trả false khi lưu bản đệm thất bại.
         public CombatService(CombatConfig config, Roster roster, StarService stars, StaminaService stamina,
-            StageProgressService progress, System.Random random, Func<bool> persist)
+            StageProgressService progress, System.Random random, Func<bool> persist,
+            IGameServer server, CommandGate gate, Func<ServerState, bool> apply)
         {
+            _server = server ?? throw new ArgumentNullException(nameof(server));
+            _gate = gate ?? throw new ArgumentNullException(nameof(gate));
+            _apply = apply ?? throw new ArgumentNullException(nameof(apply));
             Config = config ?? throw new ArgumentNullException(nameof(config));
             _roster = roster ?? throw new ArgumentNullException(nameof(roster));
             Stars = stars ?? throw new ArgumentNullException(nameof(stars));
@@ -90,8 +101,9 @@ namespace BunDauPeo.Combat
             return new StartBattleResult(StartBattleStatus.Success, Current);
         }
 
-        // Mọi bước từ chối đứng trước bước trừ thể lực (spec 4.7): thất bại thì thể lực, ví, save và Current đều nguyên.
-        public EnterStageResult EnterStage(string stageId)
+        // Máy kiểm trước để không gửi lệnh thừa; server tính lại, trừ thể lực và cấp vé (spec con 6.2). Thất bại thì
+        // thể lực, ví, save và Current đều nguyên.
+        public async Task<EnterStageResult> EnterStageAsync(string stageId)
         {
             if (!IsRunning) return new EnterStageResult(EnterStageStatus.InvalidConfig);
             // Trận đã Won/Lost không chặn (Thử lại); đang đánh dở thì bấm đôi sẽ không trừ hai lần.
@@ -104,19 +116,51 @@ namespace BunDauPeo.Combat
 
             if (team.Any(c => !IsBattleReady(c))) return new EnterStageResult(EnterStageStatus.InvalidCharacter);
 
-            // CanEnter vừa tra được màn này; nếu hai danh mục lệch nhau thì dừng trước bước trừ.
+            // CanEnter vừa tra được màn này; nếu hai danh mục lệch nhau thì dừng trước khi gửi.
             if (!Config.Stages.TryGet(stageId, out var stage)) return new EnterStageResult(EnterStageStatus.Unknown);
+            // Dựng trận trước lệnh: dựng ném lỗi thì server chưa trừ gì.
             var session = new BattleSession(team, stage, Config, _random, Stars.GetCombatStats);
-            switch (Stamina.TrySpend(stage.StaminaCost, _persist))
+            var ids = team.Select(c => c.Id).ToList();
+
+            var result = await _gate.RunAsync(id => _server.EnterStageAsync(id, stageId, ids));
+            // Lỗi mạng cuối cùng (hộp mạng đã hiện) hoặc phiên hỏng: không đổi gì.
+            if (!result.Ok) return new EnterStageResult(EnterStageStatus.Offline);
+
+            var response = result.Value;
+            if ((CommandCode)response.Code != CommandCode.Ok) return new EnterStageResult(RejectionOf((CommandCode)response.Code));
+
+            EnterStagePayload payload;
+            try
             {
-                case StaminaSpendStatus.SaveFailed: return new EnterStageResult(EnterStageStatus.SaveFailed);
-                case StaminaSpendStatus.Rejected: return new EnterStageResult(EnterStageStatus.NotEnoughStamina);
+                payload = JsonUtility.FromJson<EnterStagePayload>(response.ResultJson);
+            }
+            catch (ArgumentException e)
+            {
+                Debug.LogException(e);
+                return new EnterStageResult(EnterStageStatus.Offline);
             }
 
+            if (payload == null || response.State == null || string.IsNullOrEmpty(payload.Ticket))
+                return new EnterStageResult(EnterStageStatus.Offline);
+
+            session.Ticket = payload.Ticket;
             session.EntryPaid = true;
+            // Lưu trước, rồi mới có trận (như cũ): lưu ném lỗi thì không có trận nửa vời.
+            var saved = _apply(response.State);
             Current = session;
-            return new EnterStageResult(EnterStageStatus.Entered, session, stage.StaminaCost, true);
+            return new EnterStageResult(EnterStageStatus.Entered, session, stage.StaminaCost, saved);
         }
+
+        private static EnterStageStatus RejectionOf(CommandCode code) => code switch
+        {
+            CommandCode.Invalid => EnterStageStatus.Invalid,
+            CommandCode.WrongKind => EnterStageStatus.WrongKind,
+            CommandCode.Locked => EnterStageStatus.Locked,
+            CommandCode.EmptyTeam => EnterStageStatus.EmptyTeam,
+            CommandCode.NotEnoughStamina => EnterStageStatus.NotEnoughStamina,
+            CommandCode.NotOwned => EnterStageStatus.InvalidCharacter,
+            _ => EnterStageStatus.Unknown,
+        };
 
         // Trạng thái nào CanEnter thêm về sau mà chưa ánh xạ thì bị từ chối (Unknown), không rơi xuống bước trừ thể lực.
         private static EnterStageStatus RejectionOf(StageEnterStatus status) => status switch
