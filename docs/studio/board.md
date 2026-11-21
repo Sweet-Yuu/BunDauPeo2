@@ -19,9 +19,9 @@ _Cập nhật 2026-11-16 bởi 👑 CEO #1._
 
 | Luồng | File | Leader | Bước kế |
 |---|---|---|---|
-| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | Review xhigh xong: 1 Major (`CommandGate` kẹt Busy) + Minor + GC; [PR #22](https://github.com/Sweet-Yuu/BunDauPeo2/pull/22) Online 2 → `main` chờ merge (user chọn mở trước playtest). Còn: playtest, đo Android thật, deploy production |
+| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | [PR #22](https://github.com/Sweet-Yuu/BunDauPeo2/pull/22) Online 2 (đã sửa review + GC) chờ user playtest + merge; 🎨 spec Online đợt 3 (Google + Nhiệm vụ) mở song song (user chốt 2026-11-21). Còn: đo Android thật, deploy production |
 | 🚀 Phát hành | [streams/release.md](streams/release.md) | chưa mở | R2 khi có khoá upload + icon |
-| 🍜 Nội dung game | [streams/content.md](streams/content.md) | chưa mở | sau Online đợt 2 |
+| 🍜 Nội dung game | [streams/content.md](streams/content.md) | 🧭 Nội dung game #1 `local_95aae363-67d6-40fa-8849-673dbe1f854c` (mở 2026-11-21) | Thời tiết: spec + kế hoạch user duyệt (`4abe294` trên `docs/thoi-tiet-spec`, 4 task, 2 phiên 🔨), 🔨 chờ PR #22 merge + khoá Unity. 🎨 Spec Cốt truyện Ch1 đang chạy. Thứ tự user chốt: Thời tiết → Cốt truyện → Shipper → Nội thất; trễ thì cắt Nội thất, rồi Shipper |
 | 💰 Kiếm tiền | chưa có | chưa mở | sau 31/12 |
 
 ## Kênh đứng lâu
