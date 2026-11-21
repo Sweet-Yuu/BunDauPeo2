@@ -20,6 +20,10 @@
 - Spec `docs/superpowers/specs/2026-11-21-character-level-design.md`, kế hoạch `docs/superpowers/plans/2026-11-21-character-level.md` (nhánh `docs/cap-nhan-vat-spec`). 8 task, 2 phiên 🔨 (#1 Task 1–5, #2 Task 6–8), +77 EditMode +1 .NET +3 PlayMode. Cần khoá Unity cả hai phiên.
 - **Phối hợp:** server dựng lại + triển khai lại (`ExpPotion`, ProtocolVersion 3, Min giữ 2) xếp cùng Online O3 (🧭 Online); phiên #1 chạm CombatService/RestaurantService/AfkService/StageProgressService; ảnh mô phỏng UI (spec mục 8) phải được user duyệt trước Task 7, 🔨 dừng sau Task 6 nếu chưa; `ideas.md` chưa ghi trang bị và nâng skill.
 
+- 2026-11-21 — Thứ tự khoá Unity (user chốt, qua CEO): O3-a → O3-b → O3-c → **Cấp nhân vật #1 → #2** → Thời tiết → Cốt truyện → Vẽ lại quán. 🔨 #1 cắt nhánh từ nhánh code O3 sau O3-c (hoặc `main` nếu O3 đã merge) vì sửa cùng CompleteStage/GameData. `ProtocolVersion` giữ 3 do O3 đặt; deploy development lại sau Task 6 khi user cho phép. CEO nhắn khi tới lượt khoá.
+
+- 2026-11-21 — User duyệt ảnh mô phỏng UI (bản v2), đã ghi vào spec mục 8; không còn cổng chờ duyệt trước Task 7. Kế hoạch sửa theo lịch khoá: Task 2 chỉ còn test `Version` không đổi; test mới **86 EditMode** + 1 .NET + 3 PlayMode. UI: danh sách nhân vật → bấm thẻ mở panel chi tiết trong scene Nhân vật (tab Cấp, tab Sao, mũi tên chuyển nhân vật, Quay lại); nâng sao chuyển vào tab Sao; không scene mới.
+
 ## Nhật ký
 
 - 2026-11-21 — Lập luồng, mở Leader #1, tạo file luồng.
