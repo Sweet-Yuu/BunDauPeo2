@@ -19,10 +19,10 @@
 - Công thức chỉ số (mục 3.1): `HP/Attack/Defense = (gốc × (100 + StatPercentPerStar × lầnNângSao + StatPercentPerLevel × (cấp − 1)) + 50) / 100`, số nguyên `long`, Speed giữ gốc. Config lỗi trả chỉ số gốc.
 - *Khởi điểm* (user chốt tính lại cuối tháng 12): `MaxPlayerLevel` 20; EXP lên cấp L→L+1 = `100 + 20 × L`; `StatPercentPerLevel` 2; giá nâng lên cấp đích T = `2 × T` thuốc + `100 × T` Coin; thưởng lên cấp người chơi `200 × cấp mới` Coin và `5` thuốc; thuốc từ màn: thắng lần đầu 10, đánh lại 3; quán `3`% mỗi khách trả tiền; `AfkCoinPerPotion` 500.
 - Cấp hiệu lực của nhân vật = `min(cấp đã lưu, cấp người chơi, MaxPlayerLevel)`, tối thiểu 1; không ghi đè cấp đã lưu.
-- Server: `ServerProtocol.Version = 3`, `MinProtocolVersion` giữ **2**. Thưởng màn vẫn không có Coin; màn cốt truyện không có thưởng. Server không biết cấp, EXP hay Coin.
+- Server: `ServerProtocol.Version` do Online O3 đặt (3), đợt này **không nâng thêm**; `MinProtocolVersion` giữ **2**. Thưởng màn vẫn không có Coin; màn cốt truyện không có thưởng. Server không biết cấp, EXP hay Coin.
 - Service ghi theo mẫu `StarService`: mọi bước từ chối đứng trước bước đổi; `persist()` đúng một lần; `persist` trả `false` thì `Saved = false` và giữ nguyên bộ nhớ.
 - Không thêm nút DEV cộng thuốc hay EXP. Hình tạm chỉ dùng hình có sẵn của Unity; object chưa có hình đặt tên `<Tên>_PH_<rộng>x<cao>`.
-- Test đếm theo kế hoạch: **77 EditMode mới + 1 test .NET (`ServerModule`) + 3 PlayMode mới**; toàn bộ test cũ vẫn xanh.
+- Test đếm theo kế hoạch: **86 EditMode mới + 1 test .NET (`ServerModule`) + 3 PlayMode mới**; toàn bộ test cũ vẫn xanh.
 
 ## Review Focus
 
@@ -44,7 +44,7 @@ Tạo mới:
 - `Assets/_Project/Characters/Scripts/PlayerLevelService.cs`, `CharacterLevelService.cs`, `LevelUpStatus.cs` (enum + struct kết quả).
 - `Assets/_Project/Characters/Data/LevelConfig.asset` (tạo bằng `ProjectSetup`).
 - `Assets/_Project/UI/Scripts/PlayerLevelBarRule.cs`, `PlayerLevelBarView.cs`, `LevelUpPopupView.cs`.
-- Test mới: `LevelConfigTests`, `GrowthStatsTests`, `PlayerLevelServiceTests`, `CharacterLevelServiceTests`, `RestaurantPotionTests`, `PlayerLevelBarRuleTests` trong `Assets/_Project/Tests/`; `Tests/PlayMode/LevelFlowPlayTests.cs`.
+- Test mới: `LevelConfigTests`, `GrowthStatsTests`, `PlayerLevelServiceTests`, `CharacterLevelServiceTests`, `RestaurantPotionTests`, `PlayerLevelBarRuleTests` trong `Assets/_Project/Tests/`; `Tests/PlayMode/LevelFlowPlayTests.cs`; `UI/Scripts/CharacterDetailView.cs`, `CharacterDetailNav.cs`, `CharacterUpgradePreview.cs` (Task 7).
 
 Sửa: `Rules/CurrencyType.cs`, `Rules/GameData.cs`, `Rules/ServerHandlers.Stage.cs`, `Rules/ServerProtocol.cs`, `Core/Scripts/PlayerSave.cs`, `Core/Scripts/ServerStateApplier.cs`, `Boot/Scripts/GameDataBuilder.cs`, `Boot/Scripts/OnlineStartup.cs`, `Combat/Scripts/StageDefinition.cs`, `StageProgressService.cs`, `CombatService.cs`, `Restaurant/Scripts/AfkService.cs`, `RestaurantService.cs`, `Editor/ProjectSetup.cs`, `UI/Scripts/CharactersView.cs`, `CharactersViewText.cs`, `CharacterListRows.cs`, `CharacterCardView.cs`, `CombatViewText.cs`, `ResourceBarView.cs` hoặc nơi hiện tên người chơi, `UiText` (file `partial` mới `UiText.Level.cs`), `Editor/ServerDataExport.cs` (chỉ kiểm). Dữ liệu `Assets/_Project/Combat/Data/Stages/st_1_1..5.asset` thêm dòng thuốc.
 
@@ -55,7 +55,9 @@ Sửa: `Rules/CurrencyType.cs`, `Rules/GameData.cs`, `Rules/ServerHandlers.Stage
 | **#1 "Lõi cấp"** | 1, 2, 3, 4, 5 | Sau Task 1: Task 2, 3, 5 độc lập (file khác nhau); Task 4 sau Task 3 | Cần (chạy EditMode) |
 | **#2 "Nối và UI"** | 6, 7, 8 | Không | Cần (scene, PlayMode) |
 
-Cổng bắt buộc: **ảnh mô phỏng (mục 8 của spec) phải được user duyệt trước Task 7**; chưa duyệt thì 🔨 dừng sau Task 6 và báo Leader. Nếu server chưa triển khai lại, Task 2 vẫn xong được phía máy và Local; phần thuốc từ màn thử trên server thật chờ 🧭 Online triển khai (không chặn các task khác). Playtest dừng giữa hai phiên: sau phiên #1 chỉ có test EditMode (chưa có UI) nên chưa cần user chơi; user chơi thử sau phiên #2.
+Thứ tự khoá Unity (user chốt 2026-11-21): O3-a → O3-b → O3-c → Cấp nhân vật #1 → #2 → Thời tiết → Cốt truyện → Vẽ lại quán. **Phiên #1 cắt từ nhánh code O3 sau O3-c**; nhánh gốc ghi trong prompt mở phiên.
+
+Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, mục 8 của spec)**; không cần dừng trước Task 7. Nếu server chưa triển khai lại, Task 2 vẫn xong được phía máy và Local; phần thuốc từ màn thử trên server thật chờ 🧭 Online triển khai (không chặn các task khác). Playtest dừng giữa hai phiên: sau phiên #1 chỉ có test EditMode (chưa có UI) nên chưa cần user chơi; user chơi thử sau phiên #2.
 
 ---
 
@@ -92,14 +94,14 @@ Cổng bắt buộc: **ảnh mô phỏng (mục 8 của spec) phải được us
 
 **Interfaces:**
 - Consumes: `CurrencyType.ExpPotion` (Task 1).
-- Produces: `RewardData.ExpPotion` (`long`), `StageRewardPayload.ExpPotion` (`long`); `StageCompleteResult.Rewards` có thêm dòng `CurrencyAmount(ExpPotion, n)` khi `n > 0`; `ServerProtocol.Version == 3`, `MinProtocolVersion == 2`.
+- Produces: `RewardData.ExpPotion` (`long`), `StageRewardPayload.ExpPotion` (`long`); `StageCompleteResult.Rewards` có thêm dòng `CurrencyAmount(ExpPotion, n)` khi `n > 0`; `ServerProtocol.Version` không đổi (O3 đặt 3), `MinProtocolVersion == 2`.
 
 - [ ] **Step 1: Viết test (đỏ)**
   - `HandlerStageTests`: `CompleteStage_FirstClear_ReturnsExpPotion`, `CompleteStage_Repeat_ReturnsExpPotion`, `CompleteStage_Lost_ReturnsNoPotion` (dữ liệu màn có `FirstClear{Gem:150,Material:30,ExpPotion:10}`, `Repeat{…ExpPotion:3}`; `ServerState` không đổi ngoài Gem và `ClearedStages`).
   - `GameDataBuilderTests`: `Build_MapsExpPotionLine` (dòng `ExpPotion` trong SO → `RewardData.ExpPotion`); `Validate_AllowsExpPotionInStageReward`; `Validate_StillRejectsCoinInStageReward`.
   - `StageDefinitionTests`: `ExpPotionRewardLine_IsAllowed`; `CoinRewardLine_StillRejected`.
   - `StageProgressServiceTests`: `CompleteStage_AddsExpPotionToWallet`; `CompleteStage_ResultListsExpPotionLine`; `CompleteStage_ReplyWithoutExpPotionField_AddsNothing` (JSON trả lời không có trường).
-  - `ServerProtocolTests.Version_Is3_MinProtocolStays2`.
+  - `ServerProtocolTests.Version_IsNotRaisedByThisFeature_MinProtocolStays2` (Version bằng giá trị O3 đang đặt, Min vẫn 2).
   - `ServerModuleTests.ReadsGameDataWithoutExpPotionField_DefaultsToZero` (.NET, `dotnet test ServerModule/BunDauPeoServer.sln`).
 - [ ] **Step 2: Chạy, xác nhận đỏ.**
 - [ ] **Step 3: Cài đặt.**
@@ -107,7 +109,7 @@ Cổng bắt buộc: **ảnh mô phỏng (mục 8 của spec) phải được us
   - `GameDataBuilder.Reward` thêm `ExpPotion = Sum(lines, CurrencyType.ExpPotion)`; `CheckReward` cho phép `ExpPotion` (comment "Server chỉ biết Gem, Material, ExpPotion" cập nhật).
   - `StageDefinition.CheckRewardLines` vẫn chặn Coin, không chặn `ExpPotion`.
   - `StageProgressService.CompleteStageAsync` cộng `payload.ExpPotion` vào `_wallet` cạnh dòng Material, trước `_apply`, và thêm dòng vào `rewards`.
-  - `ServerProtocol.Version = 3`, `MinProtocolVersion` giữ 2.
+  - `ServerProtocol.Version` không đổi (O3 đã đặt 3), `MinProtocolVersion` giữ 2.
 - [ ] **Step 4: Chạy lại, xác nhận xanh** (12 EditMode + 1 .NET).
 
 ---
@@ -211,21 +213,33 @@ Cổng bắt buộc: **ảnh mô phỏng (mục 8 của spec) phải được us
 
 ---
 
-### Task 7: Giao diện (chỉ làm khi ảnh mô phỏng đã duyệt)
+### Task 7: Giao diện (ảnh mô phỏng v2 đã được user duyệt 2026-11-21)
 
 **Files:**
-- Create: `UI/Scripts/PlayerLevelBarRule.cs`, `PlayerLevelBarView.cs`, `LevelUpPopupView.cs`, `UiText.Level.cs`
-- Modify: `UI/Scripts/CharactersView.cs`, `CharactersViewText.cs`, `CharacterListRows.cs`, `CharacterCardView.cs`, `CombatViewText.cs`, nơi hiện tên người chơi ở thanh trên, và builder màn Nhân vật (`CharactersSceneBuilder`)
-- Test: `Tests/CharactersViewTextTests.cs`, `Tests/CharacterListRowsTests.cs`, `Tests/PlayerLevelBarRuleTests.cs`, `Tests/CharactersSceneTests.cs`, `Tests/RewardRowTests.cs`
+- Create: `UI/Scripts/PlayerLevelBarRule.cs`, `PlayerLevelBarView.cs`, `LevelUpPopupView.cs`, `CharacterDetailView.cs`, `CharacterDetailNav.cs`, `CharacterUpgradePreview.cs`, `UiText.Level.cs`
+- Modify: `UI/Scripts/CharactersView.cs` (chỉ còn danh sách, bấm thẻ mở panel chi tiết), `CharactersViewText.cs`, `CharacterListRows.cs`, `CharacterCardView.cs`, `CombatViewText.cs`, nơi hiện tên người chơi ở thanh trên, `Editor/CharactersSceneBuilder.cs` (dựng panel chi tiết, tab, mũi tên, nút Quay lại)
+- Test: `Tests/CharactersViewTextTests.cs`, `Tests/CharacterListRowsTests.cs`, `Tests/PlayerLevelBarRuleTests.cs`, `Tests/CharacterDetailNavTests.cs`, `Tests/CharacterUpgradePreviewTests.cs`, `Tests/CharactersSceneTests.cs`, `Tests/RewardRowTests.cs`
 
 **Interfaces:**
-- Consumes: `PlayerLevelService`, `CharacterLevelService`, `LevelUpResult`, `Wallet`.
-- Produces: `PlayerLevelBarRule.Fill(long exp, long toNext, bool isMax) → float` (0..1; max → 1); `CharactersViewText.LevelLine(int level, int max)`, `UpgradeButtonLabel(int potion, int coin)`, `UpgradeDisabledReason(LevelUpStatus s)`; `CharacterListRows.Row` thêm `Level`; `CombatViewText.CurrencyCell` hiện tên đã dịch cho `ExpPotion`; khoá `UiText` Việt + Anh cho mọi chữ mới (cấp, thuốc EXP, "Nâng cấp", lý do mờ nút, popup lên cấp, chưa lưu được).
+- Consumes: `PlayerLevelService`, `CharacterLevelService`, `StarService`, `GrowthStats`, `LevelUpResult`, `Wallet`.
+- Produces:
+  - `PlayerLevelBarRule.Fill(long exp, long toNext, bool isMax) → float` (0..1; max → 1).
+  - `CharacterDetailNav.Neighbor(IReadOnlyList<string> ids, string currentId, int step) → string` (vòng tròn; `ids` rỗng → `""`; `currentId` không có trong `ids` → phần tử đầu).
+  - `CharacterUpgradePreview.Build(CharacterDefinition c, int starUps, int level, int maxLevel, LevelConfig lc, int statPercentPerStar) → { bool HasNext; CombatStats Before, After; }` (`HasNext = false` khi `level >= maxLevel`).
+  - `CharactersViewText.LevelLine(int level, int max)`, `UpgradeButtonLabel(int potion, int coin)`, `UpgradeDisabledReason(LevelUpStatus s)`; `CharacterListRows.Row` thêm `Level`; `CombatViewText.CurrencyCell` hiện tên đã dịch cho `ExpPotion`; khoá `UiText` Việt + Anh cho mọi chữ mới.
 
-- [ ] **Step 1: Viết test (đỏ).** `CharactersViewTextTests`: `LevelLine_ShowsLevelOverMax`; `UpgradeButtonLabel_ShowsPotionAndCoin`; `UpgradeDisabledReason_AtPlayerLevel_MentionsPlayerLevel`; `UpgradeDisabledReason_NotEnoughPotion`; `UpgradeDisabledReason_NotEnoughCoin`. `CharacterListRowsTests.Rows_IncludeEffectiveLevel`. `PlayerLevelBarRuleTests`: `Fill_IsExpOverToNext`; `Fill_AtMaxLevel_IsOne`. `CharactersSceneTests.Scene_HasLevelTextUpgradeButtonAndPotionLabel`. `RewardRowTests.CurrencyCell_ExpPotion_UsesLocalizedName`. (`UiTextTests` và `HardcodedTextTests` hiện có phải vẫn xanh; thêm khoá mới đủ Việt và Anh.)
+- [ ] **Step 1: Viết test (đỏ).**
+  - `CharactersViewTextTests` (5): `LevelLine_ShowsLevelOverMax`; `UpgradeButtonLabel_ShowsPotionAndCoin`; `UpgradeDisabledReason_AtPlayerLevel_MentionsPlayerLevel`; `UpgradeDisabledReason_NotEnoughPotion`; `UpgradeDisabledReason_NotEnoughCoin`.
+  - `CharacterListRowsTests.Rows_IncludeEffectiveLevel` (1).
+  - `PlayerLevelBarRuleTests` (2): `Fill_IsExpOverToNext`; `Fill_AtMaxLevel_IsOne`.
+  - `CharacterDetailNavTests` (4): `Next_WrapsAroundList`; `Prev_WrapsAroundList`; `SingleCharacter_StaysSame`; `CurrentMissing_FallsBackToFirst`.
+  - `CharacterUpgradePreviewTests` (2): `Preview_ShowsBeforeAndAfterStats` (Mắm Tôm một lần nâng sao, Lv5 → Lv6: HP 1180 → 1200, Attack 130 → 132, Defense 59 → 60); `Preview_AtMaxLevel_HasNoNext`.
+  - `CharactersSceneTests` (4, các ca cũ kiểm nút Nâng sao trên danh sách phải sửa theo luồng mới): `Scene_ClickingCard_OpensDetailPanelOfThatCharacter`; `Detail_BackButton_ReturnsToList`; `Detail_HasLevelAndStarTabs_StarUpButtonOnlyInStarTab`; `Detail_ArrowsSwitchToNeighborCharacter`.
+  - `RewardRowTests.CurrencyCell_ExpPotion_UsesLocalizedName` (1).
+  - `UiTextTests` và `HardcodedTextTests` hiện có phải vẫn xanh; thêm khoá mới đủ Việt và Anh.
 - [ ] **Step 2: Chạy, xác nhận đỏ.**
-- [ ] **Step 3: Cài đặt** theo phác thảo mục 8 của spec và ảnh mô phỏng đã duyệt: thanh Lv + EXP ở thanh trên; thẻ "Lv n"; panel nâng cấp (nút kèm giá thuốc và Coin, mờ kèm lý do, số thuốc đang có); popup lên cấp người chơi (cấp mới + thưởng); dòng thuốc ở popup kết quả trận. Nút Nâng cấp gọi `CharacterLevelService.TryLevelUp`; `Saved == false` thì báo "chưa lưu được dữ liệu" như nâng sao. Dùng hình tạm Unity, `Image` trên Canvas; không thêm file ảnh. Bám pattern `CharactersView` hiện có (đăng ký `Changed`, huỷ đăng ký khi tắt).
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (10 test) và mở màn Nhân vật trong Play kiểm bằng mắt rồi chụp bằng công cụ `ScreenCapture1080` để đính kèm báo cáo.
+- [ ] **Step 3: Cài đặt** theo mục 8 của spec và ảnh mô phỏng v2 đã duyệt. Danh sách chỉ chọn nhân vật; panel chi tiết có tab Cấp (xem trước trước → sau, nút Nâng cấp gọi `CharacterLevelService.TryLevelUp`) và tab Sao (nút Nâng sao gọi `StarService.TryStarUpAsync`, hành vi cũ giữ nguyên); `Saved == false` thì báo "chưa lưu được dữ liệu" như nâng sao. Thanh Lv + EXP, popup lên cấp người chơi, dòng thuốc ở popup kết quả trận. Dùng hình tạm Unity, `Image` trên Canvas; không thêm file ảnh. Bám pattern `CharactersView` (đăng ký `Changed`, huỷ đăng ký khi tắt). Không thêm lọc/sắp xếp.
+- [ ] **Step 4: Chạy lại, xác nhận xanh** (19 test) và mở màn Nhân vật trong Play kiểm bằng mắt rồi chụp bằng công cụ `ScreenCapture1080` để đính kèm báo cáo.
 
 ---
 
@@ -238,10 +252,10 @@ Cổng bắt buộc: **ảnh mô phỏng (mục 8 của spec) phải được us
 
 **Interfaces:** Consumes mọi task trước. Produces: không có kiểu mới.
 
-- [ ] **Step 1: Viết test PlayMode (đỏ).** `LevelFlowPlayTests` (3): `EnterStage_GivesExp_AndLevelsUpPlayer` (vào màn 10 lần → người chơi Lv2, popup xuất hiện, thưởng vào ví); `UpgradeCharacter_RaisesStatsAndSpendsCost` (cấp thuốc và Coin qua `Wallet`, bấm Nâng cấp trên màn Nhân vật → cấp +1, panel hiện chỉ số mới); `FullLoop_EnterStageWinCollectPotionUpgradeEnterAgain` (vào màn → thắng → thuốc về ví → nâng nhân vật → vào lại, chỉ số đồng minh của `BattleSession` tăng đúng; Reset xoá hết).
+- [ ] **Step 1: Viết test PlayMode (đỏ).** `LevelFlowPlayTests` (3): `EnterStage_GivesExp_AndLevelsUpPlayer` (vào màn 10 lần → người chơi Lv2, popup xuất hiện, thưởng vào ví); `UpgradeCharacter_RaisesStatsAndSpendsCost` (cấp thuốc và Coin qua `Wallet`, bấm thẻ nhân vật để mở panel chi tiết rồi bấm Nâng cấp ở tab Cấp → cấp +1, panel hiện chỉ số mới); `FullLoop_EnterStageWinCollectPotionUpgradeEnterAgain` (vào màn → thắng → thuốc về ví → nâng nhân vật → vào lại, chỉ số đồng minh của `BattleSession` tăng đúng; Reset xoá hết).
 - [ ] **Step 2: Chạy, xác nhận đỏ rồi xanh** sau khi sửa lỗi nối còn sót.
 - [ ] **Step 3: Docs** (mục 10 của spec): `game-design.md` (thay "Chưa thiết kế: cấp nhân vật"; thêm Thuốc EXP vào bảng tài nguyên; mục Quán có thuốc; mục Online ghi cấp phía máy; mục "Cấp người chơi", "Cấp nhân vật"); `decisions.md` thêm D-xxx (cấp phía máy cho 31/12, chuyển lên server là việc bắt buộc sau 31/12; ghi lý do và đánh đổi mục 11 của spec); `ideas.md` chuyển ý Coin → **Đã làm**, thêm ý trang bị (sau 31/12) và nâng skill (dùng quy tắc "chi phí chính + Coin phụ"); `roadmap.md` tick mục. Bài học mới (nếu có sai sót khi làm) ghi vào `docs/lessons/lesson.md` ngay trong task đó.
-- [ ] **Step 4: Chạy toàn bộ EditMode + PlayMode + `dotnet test ServerModule/BunDauPeoServer.sln`**, đo hiệu năng màn Nhân vật và màn quán theo `docs/studio/performance.md` (không vượt ngưỡng), kiểm console không lỗi. Gửi "Báo cáo cuối kênh" (mẫu `docs/studio/brief.md`): test 77/77 EditMode mới + 1 .NET + 3/3 PlayMode, đường dẫn dữ liệu server cần triển khai, ảnh chụp màn.
+- [ ] **Step 4: Chạy toàn bộ EditMode + PlayMode + `dotnet test ServerModule/BunDauPeoServer.sln`**, đo hiệu năng màn Nhân vật và màn quán theo `docs/studio/performance.md` (không vượt ngưỡng), kiểm console không lỗi. Gửi "Báo cáo cuối kênh" (mẫu `docs/studio/brief.md`): test 86/86 EditMode mới + 1 .NET + 3/3 PlayMode, đường dẫn dữ liệu server cần triển khai, ảnh chụp màn.
 
 ---
 
@@ -255,9 +269,9 @@ Cổng bắt buộc: **ảnh mô phỏng (mục 8 của spec) phải được us
 | 4 | 6 | 0 | 0 |
 | 5 | 9 | 0 | 0 |
 | 6 | 6 | 0 | 0 |
-| 7 | 10 | 0 | 0 |
+| 7 | 19 | 0 | 0 |
 | 8 | 0 | 0 | 3 |
-| **Tổng** | **77** | **1** | **3** |
+| **Tổng** | **86** | **1** | **3** |
 
 
 ## Self-review (đã chạy)

@@ -40,7 +40,7 @@ Tiêu chí xong (người chơi thấy được):
 7. **Thuốc từ màn** *khởi điểm* thắng lần đầu **10**, đánh lại **3**; thuốc từ quán mỗi khách trả tiền **3%** rơi 1. Tính lại khi cân bằng.
 8. **Cấp hiệu lực** của một nhân vật = `min(cấp đã lưu, cấp người chơi, cấp tối đa)`, nên chỉ số không bao giờ vượt trần dù save bị sửa hay cấp người chơi tụt khi reset. UI hiện **cấp hiệu lực**; cấp đã lưu **không bị ghi đè** (không clamp rồi lưu). Reset Save Data xoá cả `PlayerExp` lẫn `CharacterLevels`, nên trường hợp cấp lưu cao hơn cấp người chơi chỉ xảy ra khi save bị sửa tay.
 11. **Cộng thưởng lên cấp cho từng cấp đạt được:** lên 3 cấp trong một lần `AddExp` thì nhận thưởng 3 lần (mỗi cấp mới một phần).
-9. **`MinProtocolVersion` giữ 2, `ProtocolVersion` lên 3.** Bản cũ vẫn chơi được, chỉ không nhận thuốc (`JsonUtility` bỏ qua trường lạ). Người thử bản cũ không bị ép cập nhật.
+9. **`MinProtocolVersion` giữ 2, `ProtocolVersion` do Online O3 đặt (3), đợt này không nâng thêm (Leader, 2026-11-21).** Bản cũ vẫn chơi được, chỉ không nhận thuốc (`JsonUtility` bỏ qua trường lạ). Người thử bản cũ không bị ép cập nhật.
 10. **Không thêm màn mới.** Cấp người chơi hiện ở thanh trên; nâng cấp nhân vật nằm trong panel màn Nhân vật. Thuốc hiện trong panel đó, **không** thêm vào thanh tài nguyên (đợt B UI hub đã chốt thanh này).
 
 ## 4. Phương án đã cân
@@ -100,7 +100,7 @@ public long AfkPotionRemainderCoin = 0;                 // phần Coin AFK lẻ 
 - `StageRewardPayload` (`Rules/ServerHandlers.Stage.cs`) thêm `long ExpPotion`; `CompleteStage` trả đúng `reward.ExpPotion` (không đổi `ServerState`, vì thuốc là số dư của máy).
 - `StageDefinition` (SO của máy): các dòng thưởng `CurrencyAmount` được phép có `ExpPotion` (hiện `CheckRewardLines` chặn loại tiền lạ và Coin); `GameDataBuilder.Reward(...)` map thêm. Thưởng màn vẫn **không** được có Coin; màn cốt truyện vẫn không có thưởng.
 - Máy cộng thuốc vào `Wallet` ở `StageProgressService.CompleteStageAsync`, ngay cạnh dòng cộng Material, và thêm dòng thuốc vào danh sách `rewards` để popup kết quả hiện.
-- `ServerProtocol.Version` = 3, `MinProtocolVersion` giữ 2.
+- `ServerProtocol.Version` do Online O3 đặt (3), không nâng thêm; `MinProtocolVersion` giữ 2.
 
 ## 6. Phía máy
 
@@ -140,7 +140,7 @@ Thể lực do server trừ (D-008). Máy chỉ cộng EXP **một lần**, tron
 
 ## 7. Server
 
-- Đổi: `RewardData.ExpPotion`, `StageRewardPayload.ExpPotion`, `GameDataBuilder` đọc dòng `ExpPotion`, `Validate` từ chối `ExpPotion` âm, `ServerProtocol.Version = 3`.
+- Đổi: `RewardData.ExpPotion`, `StageRewardPayload.ExpPotion`, `GameDataBuilder` đọc dòng `ExpPotion`, `Validate` từ chối `ExpPotion` âm, (`ServerProtocol.Version` không đổi, O3 đặt 3).
 - **Phải dựng lại và triển khai lại server** (`ServerModule`). Mốc này xếp vào cùng đợt với Online đợt 3 theo lịch của 🧭 Nhân vật và 🧭 Online.
 - Không đổi `ServerState`, không thêm lệnh mới. Server không biết cấp nhân vật, cấp người chơi hay Coin.
 - `LocalGameServer` (chế độ Local trong Editor) dùng cùng `GameData` nên tự nhận thuốc.
@@ -148,29 +148,37 @@ Thể lực do server trừ (D-008). Máy chỉ cộng EXP **một lần**, tron
 
 ## 8. Màn hình
 
-Chỉ lấy bố cục từ `ReferenceImages/character-upgrade.png` và `character-list-en.png`; không lấy tab Lv/trang bị/kỹ năng. **Phác thảo bằng chữ, cần user duyệt trước khi 🔨 dựng UI** (ảnh mô phỏng thật làm ở bước riêng của kế hoạch, chỉ dùng hình tạm có sẵn của Unity).
+> **Ảnh mô phỏng đã được user duyệt 2026-11-21** (bản v2, sau một lần chỉnh theo lời user: "bắt đầu từ danh sách nhân vật, bấm vào một nhân vật thì hiện panel mới của nhân vật đó, rồi như ảnh tham khảo"). Chỉ lấy bố cục từ `ReferenceImages/character-list-en.png` (lưới thẻ) và `character-upgrade.png` (ảnh trái, tab phải, mũi tên chuyển nhân vật, nút quay lại); không lấy ô trang bị, tab Kỹ năng/Tài năng, nút nâng cấp tự động. Hình tạm chỉ dùng hình có sẵn của Unity.
 
 ```
-Thanh trên:   [Lv 7  ▓▓▓▓░░ 340/520]  Tên người chơi          Coin  Material  Gem
-Màn Nhân vật:
-┌──────────────────────────────────────────────────────────────┐
-│ Nhân vật                                           [Cài đặt] │
-│ ┌────┐┌────┐┌────┐┌────┐   │  Mắm Tôm   SR  ★★★☆☆           │
-│ │ Lv5││ Lv3││ Lv1││ Lv1│   │  Lv 5 / 7   (trần = cấp người   │
-│ └────┘└────┘└────┘└────┘   │  chơi)                          │
-│                            │  HP 1210   Tấn công 133  Thủ 61  │
-│                            │  Tốc độ 95                       │
-│                            │  [Nâng sao: 4 mảnh]  (có sẵn)   │
-│                            │  [Nâng cấp: 12 thuốc · 600 Coin] │
-│                            │  Thuốc EXP: 40    Mảnh: 6        │
-└──────────────────────────────┴───────────────────────────────┘
+1. Danh sách nhân vật (màn Nhân vật hiện có)
+[‹ Lobby]        Danh sách nhân vật        Lv 7 ▓▓▓▓░░ 340/520
+┌────────┐┌────────┐┌────────┐┌────────┐
+│ Lv5    ││ Lv3    ││ Lv1    ││ Lv1    │   thẻ có nhãn Lv cạnh sao
+│Mắm Tôm ││Nem Chua││Chả Cốm ││Rau Sống│
+│★★★☆☆  ││★★☆☆☆  ││★☆☆☆☆  ││★☆☆☆☆  │
+└────────┘└────────┘└────────┘└────────┘
+                    ↓ bấm một thẻ
+2. Panel chi tiết nhân vật (mới, phủ lên danh sách; ‹ › chuyển nhân vật)
+[‹ Quay lại]      Nâng cấp nhân vật         Lv 7 ▓▓▓▓░░
+ ┌──────────────┐  [ Cấp ] [ Sao ]
+ │ ảnh nhân vật │  Cấp nhân vật      5 → 6
+ │ (hình tạm)   │  HP 1180 → 1200   Tấn công 130 → 132   Thủ 59 → 60
+ │ Mắm Tôm      │  Trần cấp (= cấp người chơi)  7
+ │ SR ★★★☆☆    │  Thuốc EXP  cần 12 · có 40
+ └──────────────┘  Coin       cần 600 · có 3.200
+ Lv 5/7 HP 1180    [ Nâng cấp ]
+ Tấn công 130 Thủ 59 Tốc độ 95
+Tab Sao: Sao 3★ → 4★ · Mảnh cần 6 · có 6 · [ Nâng sao ]
 ```
 
-- Thẻ nhân vật thêm nhãn "Lv n" cạnh sao.
-- Nút Nâng cấp mờ kèm lý do khi: thiếu thuốc, thiếu Coin, hoặc cấp nhân vật đã bằng cấp người chơi ("Cần nâng cấp người chơi").
-- Popup khi lên cấp người chơi hiện cấp mới và thưởng.
-- Popup kết quả trận thêm dòng thuốc ngoài Gem và Material.
-- Chữ mới vào `UiText` (Việt + Anh) theo [D-009](../../decisions/decisions.md), một file `partial` cho khu "Cấp" (tên key theo `khu.tên`).
+- **Panel chi tiết nằm trong scene Nhân vật** (không scene mới, không đăng ký thêm ở thanh điều hướng), có nút Quay lại về danh sách; mũi tên ‹ › chuyển sang nhân vật kế trước/sau trong danh sách (vòng tròn).
+- **Nâng sao chuyển vào tab "Sao"** của panel chi tiết; danh sách chỉ còn để chọn nhân vật. Hành vi và luật nâng sao không đổi.
+- Tab "Cấp" hiện số trước → sau của cấp và ba chỉ số (công thức mục 3.1), trần cấp, thuốc EXP và Coin cần/có; nút mờ kèm lý do khi: thiếu thuốc, thiếu Coin, hoặc cấp nhân vật đã bằng cấp người chơi ("Cần nâng cấp người chơi").
+- Thanh Lv + EXP người chơi ở thanh trên của màn Nhân vật (và chỗ hiện tên người chơi ở thanh trên hiện có; builder chọn chỗ khớp).
+- Popup khi lên cấp người chơi hiện cấp mới, trần cấp mới và thưởng. Popup kết quả trận thêm dòng thuốc EXP và EXP người chơi nhận.
+- Lọc Front/Middle/Back và sắp xếp (vẽ trong ảnh tham khảo) **ngoài phạm vi** nếu màn hiện chưa có; không thêm trong đợt này.
+- Chữ mới vào `UiText` (Việt + Anh) theo [D-009](../../decisions/decisions.md), một file `partial` cho khu "Cấp".
 
 ## 9. Test
 
