@@ -1,10 +1,12 @@
 using System.IO;
+using System.Linq;
 using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.EditorTools;
 using BunDauPeo.Gacha;
+using BunDauPeo.Missions;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -147,6 +149,137 @@ namespace BunDauPeo.Tests
             errors = GameDataBuilder.Validate(badStage.Characters, badStage.Banners, badStage.Stars, badStage.Combat, badStage.NewGame);
             Assert.AreEqual(1, errors.Count);
             StringAssert.Contains("s1", errors[0]);
+        }
+
+        private static MissionDefinition Mission(string id, MissionTab tab = MissionTab.Daily, MissionCounter counter = MissionCounter.Wins,
+            int target = 1, bool locked = false, long gem = 10, int stamina = 0, int from = 0, int to = 0)
+        {
+            var m = ScriptableObject.CreateInstance<MissionDefinition>();
+            TestData.Edit(m, so =>
+            {
+                so.FindProperty("_id").stringValue = id;
+                so.FindProperty("_tab").enumValueIndex = (int)tab;
+                so.FindProperty("_counter").enumValueIndex = (int)counter;
+                so.FindProperty("_target").intValue = target;
+                so.FindProperty("_locked").boolValue = locked;
+                so.FindProperty("_rewardGem").longValue = gem;
+                so.FindProperty("_rewardStamina").intValue = stamina;
+                so.FindProperty("_windowStartHour").intValue = from;
+                so.FindProperty("_windowEndHour").intValue = to;
+            });
+            return m;
+        }
+
+        private static MissionCatalog MissionCat(params MissionDefinition[] missions)
+        {
+            var catalog = ScriptableObject.CreateInstance<MissionCatalog>();
+            TestData.Edit(catalog, so =>
+            {
+                var array = so.FindProperty("_items");
+                array.arraySize = missions.Length;
+                for (var i = 0; i < missions.Length; i++) array.GetArrayElementAtIndex(i).objectReferenceValue = missions[i];
+            });
+            return catalog;
+        }
+
+        private static System.Collections.Generic.List<string> Validate(Rig r, MissionCatalog missions) =>
+            GameDataBuilder.Validate(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame, missions);
+
+        [Test]
+        public void Build_IncludesMissions_InSpecOrder()
+        {
+            var r = MakeRig();
+            var catalog = UnityEditor.AssetDatabase.LoadAssetAtPath<MissionCatalog>(ProjectSetup.MissionCatalogPath);
+            Assert.IsNotNull(catalog, "chạy ProjectSetup.CreateMissionData để tạo MissionCatalog");
+
+            var data = GameDataBuilder.Build(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame, catalog);
+
+            CollectionAssert.AreEqual(new[]
+            {
+                "daily_win_5", "daily_pull_1", "daily_level_1", "daily_login_am", "daily_login_pm",
+                "new_link", "new_name", "new_staff", "new_first_win", "new_first_pull", "new_upgrade", "new_afk", "new_star_up", "new_win_10",
+            }, data.Missions.ConvertAll(m => m.Id));
+            Assert.IsTrue(data.Missions.Find(m => m.Id == "daily_level_1").Locked);
+            Assert.AreEqual(1, data.Missions.Find(m => m.Id == "new_link").Tab);
+            Assert.AreEqual(5, data.Missions.FindIndex(m => m.Id == "new_link"), "new_link opens the newbie tab");
+            var pm = data.Missions.Find(m => m.Id == "daily_login_pm");
+            Assert.AreEqual((12, 24, 100), (pm.WindowStartHour, pm.WindowEndHour, pm.RewardStamina));
+            Assert.AreEqual(750, data.Missions.FindAll(m => m.Tab == 1).ConvertAll(m => m.RewardGem).Sum(), "newbie total is 750 Gem");
+            Assert.AreEqual(40, data.Missions.FindAll(m => m.Tab == 0).ConvertAll(m => m.RewardGem).Sum(), "daily Gem per day");
+            Assert.IsEmpty(GameDataBuilder.Validate(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame, catalog));
+        }
+
+        [Test]
+        public void Build_BannerFreePull_FlagCopied()
+        {
+            var r = MakeRig();
+            Assert.IsFalse(GameDataBuilder.Build(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame).Banners[0].FreePullDaily);
+
+            TestData.Edit(r.Banners.Items[0], so => so.FindProperty("_freePullDaily").boolValue = true);
+            Assert.IsTrue(GameDataBuilder.Build(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame).Banners[0].FreePullDaily);
+
+            var project = UnityEditor.AssetDatabase.LoadAssetAtPath<GachaBannerDefinition>(ProjectSetup.BannerPath);
+            Assert.IsTrue(project.FreePullDaily, "the current banner is set to a daily free pull by CreateMissionData");
+        }
+
+        [Test]
+        public void Build_StaminaRewardCap_999()
+        {
+            var r = MakeRig();
+
+            var data = GameDataBuilder.Build(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame);
+
+            Assert.AreEqual(999, data.Stamina.RewardCap);
+            Assert.AreEqual(100, data.Stamina.Max);
+        }
+
+        [Test]
+        public void Validate_Mission_BadRewardOrTarget()
+        {
+            var r = MakeRig();
+            Assert.IsEmpty(Validate(r, MissionCat(Mission("a"), Mission("lk", locked: true, target: 0, gem: 0))));
+
+            var negGem = Validate(r, MissionCat(Mission("neg", gem: -1)));
+            Assert.AreEqual(1, negGem.Count);
+            StringAssert.Contains("neg", negGem[0]);
+            Assert.AreEqual(1, Validate(r, MissionCat(Mission("negs", stamina: -5))).Count);
+            var zeroTarget = Validate(r, MissionCat(Mission("zero", target: 0)));
+            Assert.AreEqual(1, zeroTarget.Count);
+            StringAssert.Contains("Target", zeroTarget[0]);
+        }
+
+        [Test]
+        public void Validate_Mission_DuplicateId()
+        {
+            var errors = Validate(MakeRig(), MissionCat(Mission("same"), Mission("same")));
+
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("duplicate", errors[0]);
+        }
+
+        [Test]
+        public void Validate_Mission_BadWindow()
+        {
+            var r = MakeRig();
+            Assert.IsEmpty(Validate(r, MissionCat(Mission("w", from: 12, to: 24))));
+            Assert.AreEqual(1, Validate(r, MissionCat(Mission("rev", from: 12, to: 6))).Count, "reversed");
+            Assert.AreEqual(1, Validate(r, MissionCat(Mission("hi", from: 0, to: 25))).Count, "past 24");
+            Assert.AreEqual(1, Validate(r, MissionCat(Mission("lo", from: -1, to: 5))).Count, "before 0");
+        }
+
+        [Test]
+        public void Validate_RewardCap_BelowMax_Rejected()
+        {
+            var r = MakeRig();
+            TestData.Edit(r.Combat, so => so.FindProperty("_rewardStaminaCap").intValue = 50);
+
+            var errors = Validate(r, MissionCat(Mission("login", stamina: 100, from: 0, to: 12)));
+
+            Assert.AreEqual(1, errors.Count, "cap 50 is below Max 100");
+            StringAssert.Contains("RewardStaminaCap", errors[0]);
+
+            TestData.Edit(r.Combat, so => so.FindProperty("_rewardStaminaCap").intValue = 0);
+            Assert.AreEqual(2, Validate(r, MissionCat(Mission("login", stamina: 100, from: 0, to: 12))).Count, "cap 0 also fails the stamina mission");
         }
 
         [Test]

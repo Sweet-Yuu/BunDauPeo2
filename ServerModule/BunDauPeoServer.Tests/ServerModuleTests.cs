@@ -244,6 +244,7 @@ public class ServerModuleTests
             GachaHistory = { new BunDauPeo.Core.GachaHistoryEntry { Utc = 5, BannerId = "b", Count = 1, CharacterIds = new[] { "a" } } },
             Stamina = new BunDauPeo.Core.StaminaState { Current = 40, AnchorUtcTicks = 638_700_000_000_000_123 },
             ClearedStages = { "s1" },
+            Missions = { DailyDay = 740_000, DailyWins = 2, DailyPulls = 1, DailyClaimed = { "d" }, FreePullDay = 739_999, NewbieClaimed = { "n" } },
             PendingTicket = "t",
             PendingStageId = "s2",
             ActiveSessionId = "sess",
@@ -254,6 +255,89 @@ public class ServerModuleTests
         Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(ServerStateJsonSample.Expected));
         Assert.That(JsonConvert.DeserializeObject<ServerState>(ServerStateJsonSample.Expected)!.Stamina.AnchorUtcTicks,
             Is.EqualTo(638_700_000_000_000_123));
+    }
+
+    [Test]
+    public void Missions_NewtonsoftRoundTrip_KeepsDaysAndLists()
+    {
+        var state = new ServerState { Missions = { DailyDay = 740_000, FreePullDay = 739_999, DailyClaimed = { "d" }, NewbieClaimed = { "n" } } };
+
+        var back = JsonConvert.DeserializeObject<ServerState>(JsonConvert.SerializeObject(state))!;
+
+        Assert.That(back.Missions.DailyDay, Is.EqualTo(740_000));
+        Assert.That(back.Missions.FreePullDay, Is.EqualTo(739_999));
+        Assert.That(back.Missions.DailyClaimed, Is.EqualTo(new[] { "d" }));
+        Assert.That(back.Missions.NewbieClaimed, Is.EqualTo(new[] { "n" }));
+
+        // State đợt 2 (không có Missions) mở bằng bản này: mặc định, không lỗi.
+        var old = JsonConvert.DeserializeObject<ServerState>("{\"Version\":1,\"Gem\":5}")!;
+        Assert.That(old.Missions, Is.Not.Null);
+        Assert.That(old.Missions.DailyDay, Is.EqualTo(0));
+        Assert.That(old.Missions.NewbieClaimed, Is.Empty);
+    }
+
+    [Test]
+    public void Module_HasEndpointForEveryMissionCommand()
+    {
+        var names = typeof(ServerModule).GetMethods()
+            .SelectMany(m => m.CustomAttributes.Where(a => a.AttributeType.Name == "CloudCodeFunctionAttribute"))
+            .Select(a => (string?)a.ConstructorArguments[0].Value)
+            .ToList();
+
+        foreach (var expected in new[]
+                 {
+                     ServerProtocol.ClaimMission, ServerProtocol.ClaimAllMissions, ServerProtocol.GachaFreePull,
+                     ServerProtocol.DevResetMissions, ServerProtocol.DevAddStamina,
+                 })
+            Assert.That(names, Does.Contain(expected));
+        Assert.That(ServerProtocol.Version, Is.EqualTo(3));
+        Assert.That(ServerProtocol.MinProtocolVersion, Is.EqualTo(2), "the phase-2 client keeps working");
+    }
+
+    [Test]
+    public async Task DevMissionCommands_OutsideDevelopment_DevOnly()
+    {
+        foreach (var env in new string?[] { "production", null })
+        {
+            var store = new FakeStore { State = new ServerState { ActiveSessionId = "sess", Missions = { DailyWins = 3 } } };
+
+            var reset = await ServerModule.ExecuteDev(store, env, Req("r1"), s => ServerHandlers.DevResetMissions(s), () => Now);
+            var stamina = await ServerModule.ExecuteDev(store, env, Req("r2"),
+                s => ServerHandlers.DevAddStamina(s, GameDataSource.Data, ServerModule.NewContext(Now), 50), () => Now);
+
+            Assert.That(reset.Code, Is.EqualTo((int)CommandCode.DevOnly), env);
+            Assert.That(stamina.Code, Is.EqualTo((int)CommandCode.DevOnly), env);
+            Assert.That(store.State!.Missions.DailyWins, Is.EqualTo(3), env);
+        }
+    }
+
+    [Test]
+    public async Task ClaimMission_ThroughExecute_WritesOnce_ReplayReturnsStoredResult()
+    {
+        var data = new GameData();
+        data.Missions.Add(new MissionData { Id = "m", Tab = 1, Counter = MissionRules.CounterClientFlag, Target = 1, RewardGem = 100 });
+        var store = StoreWithGem(5);
+        var ctx = ServerModule.NewContext(Now);
+
+        var first = await ServerModule.Execute(store, Req("r1"),
+            s => ServerHandlers.ClaimMission(s, data, ctx, "m", new List<string> { "m" }), () => Now);
+        var replay = await ServerModule.Execute(store, Req("r1"),
+            s => ServerHandlers.ClaimMission(s, data, ctx, "m", new List<string> { "m" }), () => Now);
+
+        Assert.That(first.Code, Is.EqualTo((int)CommandCode.Ok));
+        Assert.That(replay.Code, Is.EqualTo((int)CommandCode.Ok), "the same requestId is not AlreadyClaimed");
+        Assert.That(replay.ResultJson, Is.EqualTo(first.ResultJson));
+        Assert.That(store.State!.Gem, Is.EqualTo(105));
+        Assert.That(store.Saves, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void GameData_Embedded_HasMissionsAndRewardCap()
+    {
+        Assert.That(GameDataSource.Data.Missions, Has.Count.EqualTo(14));
+        Assert.That(GameDataSource.Data.Missions.First().Id, Is.EqualTo("daily_win_5"));
+        Assert.That(GameDataSource.Data.Stamina.RewardCap, Is.EqualTo(999));
+        Assert.That(GameDataSource.Data.Banners.Any(b => b.FreePullDaily), Is.True);
     }
 }
 
@@ -266,5 +350,6 @@ public static class ServerStateJsonSample
         + "\"GachaPity\":[{\"BannerId\":\"b\",\"Pulls\":4}],"
         + "\"GachaHistory\":[{\"Utc\":5,\"BannerId\":\"b\",\"Count\":1,\"CharacterIds\":[\"a\"]}],"
         + "\"Stamina\":{\"Current\":40,\"AnchorUtcTicks\":638700000000000123},\"ClearedStages\":[\"s1\"],"
+        + "\"Missions\":{\"DailyDay\":740000,\"DailyWins\":2,\"DailyPulls\":1,\"DailyClaimed\":[\"d\"],\"FreePullDay\":739999,\"NewbieClaimed\":[\"n\"]},"
         + "\"PendingTicket\":\"t\",\"PendingStageId\":\"s2\",\"ActiveSessionId\":\"sess\",\"LastRequestId\":\"r\",\"LastResultJson\":\"{}\"}";
 }

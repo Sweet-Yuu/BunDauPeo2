@@ -174,9 +174,9 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(100 - 10 - 20, s.Stamina.Current, "both entries paid");
 
             var snap = Snap(s);
-            var stale = ServerHandlers.CompleteStage(s, data, oldTicket, true);
+            var stale = ServerHandlers.CompleteStage(s, data, Ctx(), oldTicket, true);
             AssertRejected(stale, CommandCode.TicketMismatch, s, snap, "the replaced ticket");
-            Assert.AreEqual(CommandCode.Ok, ServerHandlers.CompleteStage(s, data, newTicket, true).Code);
+            Assert.AreEqual(CommandCode.Ok, ServerHandlers.CompleteStage(s, data, Ctx(), newTicket, true).Code);
         }
 
         [Test]
@@ -189,7 +189,7 @@ namespace BunDauPeo.Tests
             foreach (var ticket in new[] { "", null, "t1" })
             {
                 var snap = Snap(none);
-                AssertRejected(ServerHandlers.CompleteStage(none, data, ticket, true), CommandCode.TicketMismatch, none, snap, $"no pending, ticket '{ticket}'");
+                AssertRejected(ServerHandlers.CompleteStage(none, data, Ctx(), ticket, true), CommandCode.TicketMismatch, none, snap, $"no pending, ticket '{ticket}'");
             }
 
             var pending = State();
@@ -198,14 +198,14 @@ namespace BunDauPeo.Tests
             foreach (var ticket in new[] { "", null, "t4", "T5", "t5 " })
             {
                 var snap = Snap(pending);
-                AssertRejected(ServerHandlers.CompleteStage(pending, data, ticket, true), CommandCode.TicketMismatch, pending, snap, $"ticket '{ticket}'");
-                AssertRejected(ServerHandlers.CompleteStage(pending, data, ticket, false), CommandCode.TicketMismatch, pending, snap, $"lost, ticket '{ticket}'");
+                AssertRejected(ServerHandlers.CompleteStage(pending, data, Ctx(), ticket, true), CommandCode.TicketMismatch, pending, snap, $"ticket '{ticket}'");
+                AssertRejected(ServerHandlers.CompleteStage(pending, data, Ctx(), ticket, false), CommandCode.TicketMismatch, pending, snap, $"lost, ticket '{ticket}'");
             }
 
             // Ticket đúng nhưng màn đã biến khỏi dữ liệu: từ chối, không ghi gì.
             pending.PendingStageId = "gone";
             var goneSnap = Snap(pending);
-            AssertRejected(ServerHandlers.CompleteStage(pending, data, "t5", true), CommandCode.Invalid, pending, goneSnap, "stage missing from data");
+            AssertRejected(ServerHandlers.CompleteStage(pending, data, Ctx(), "t5", true), CommandCode.Invalid, pending, goneSnap, "stage missing from data");
         }
 
         [Test]
@@ -217,7 +217,7 @@ namespace BunDauPeo.Tests
             var ctx = Ctx();
 
             var enter = ServerHandlers.EnterStage(s, data, ctx, "s1", Team("a"));
-            var first = ServerHandlers.CompleteStage(s, data, ((EnterStagePayload)enter.Payload).Ticket, true);
+            var first = ServerHandlers.CompleteStage(s, data, Ctx(), ((EnterStagePayload)enter.Payload).Ticket, true);
 
             Assert.AreEqual(CommandCode.Ok, first.Code);
             var p1 = (StageRewardPayload)first.Payload;
@@ -227,7 +227,7 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(("", ""), (s.PendingTicket, s.PendingStageId), "the ticket is spent");
 
             var again = ServerHandlers.EnterStage(s, data, ctx, "s1", Team("a"));
-            var repeat = ServerHandlers.CompleteStage(s, data, ((EnterStagePayload)again.Payload).Ticket, true);
+            var repeat = ServerHandlers.CompleteStage(s, data, Ctx(), ((EnterStagePayload)again.Payload).Ticket, true);
 
             var p2 = (StageRewardPayload)repeat.Payload;
             Assert.AreEqual((false, 10L, 1L), (p2.FirstClear, p2.Gem, p2.Material));
@@ -236,7 +236,7 @@ namespace BunDauPeo.Tests
 
             // Màn khác có số khác: thưởng lấy đúng màn đã vào, không phải màn đầu danh sách.
             var s2 = ServerHandlers.EnterStage(s, data, ctx, "s2", Team("a"));
-            var p3 = (StageRewardPayload)ServerHandlers.CompleteStage(s, data, ((EnterStagePayload)s2.Payload).Ticket, true).Payload;
+            var p3 = (StageRewardPayload)ServerHandlers.CompleteStage(s, data, Ctx(), ((EnterStagePayload)s2.Payload).Ticket, true).Payload;
             Assert.AreEqual((true, 200L, 7L), (p3.FirstClear, p3.Gem, p3.Material));
             Assert.AreEqual(1310, s.Gem);
         }
@@ -250,7 +250,7 @@ namespace BunDauPeo.Tests
             var enter = ServerHandlers.EnterStage(s, data, Ctx(), "s1", Team("a"));
             var stamina = (s.Stamina.Current, s.Stamina.AnchorUtcTicks);
 
-            var lost = ServerHandlers.CompleteStage(s, data, ((EnterStagePayload)enter.Payload).Ticket, false);
+            var lost = ServerHandlers.CompleteStage(s, data, Ctx(), ((EnterStagePayload)enter.Payload).Ticket, false);
 
             Assert.AreEqual(CommandCode.Ok, lost.Code);
             var p = (StageRewardPayload)lost.Payload;
@@ -268,10 +268,10 @@ namespace BunDauPeo.Tests
             var s = State();
             s.Gem = 1000;
             var ticket = ((EnterStagePayload)ServerHandlers.EnterStage(s, data, Ctx(), "s1", Team("a")).Payload).Ticket;
-            Assert.AreEqual(CommandCode.Ok, ServerHandlers.CompleteStage(s, data, ticket, true).Code);
+            Assert.AreEqual(CommandCode.Ok, ServerHandlers.CompleteStage(s, data, Ctx(), ticket, true).Code);
             var snap = Snap(s);
 
-            var second = ServerHandlers.CompleteStage(s, data, ticket, true);
+            var second = ServerHandlers.CompleteStage(s, data, Ctx(), ticket, true);
 
             AssertRejected(second, CommandCode.TicketMismatch, s, snap, "the same ticket again");
             Assert.AreEqual(1100, s.Gem, "paid once");
@@ -331,6 +331,46 @@ namespace BunDauPeo.Tests
             var again = ServerHandlers.ResetState(data, "other");
             CollectionAssert.AreEqual(new[] { "a", "b" }, again.OwnedCharacterIds, "each reset is a fresh state");
             CollectionAssert.AreEqual(new[] { "a", "b" }, data.NewGame.StarterCharacterIds, "the data is not shared with the state");
+        }
+    
+
+        [Test]
+        public void CompleteStage_Won_CountsDailyWins()
+        {
+            var data = Data();
+            var s = State();
+            var ctx = Ctx();
+
+            foreach (var stage in new[] { "s1", "s1" })
+            {
+                var enter = ServerHandlers.EnterStage(s, data, ctx, stage, Team("a"));
+                Assert.AreEqual(CommandCode.Ok, ServerHandlers.CompleteStage(s, data, ctx, ((EnterStagePayload)enter.Payload).Ticket, true).Code);
+            }
+            Assert.AreEqual(2, s.Missions.DailyWins, "a repeated stage still counts");
+            Assert.AreEqual(MissionRules.DayIndex(T0), s.Missions.DailyDay);
+
+            var lost = ServerHandlers.EnterStage(s, data, ctx, "s1", Team("a"));
+            ServerHandlers.CompleteStage(s, data, ctx, ((EnterStagePayload)lost.Payload).Ticket, false);
+            Assert.AreEqual(2, s.Missions.DailyWins, "a loss does not count");
+        }
+
+        [Test]
+        public void CompleteStage_NewDay_ResetsWinsThenCounts()
+        {
+            var data = Data();
+            var s = State();
+            s.Missions.DailyDay = MissionRules.DayIndex(T0);
+            s.Missions.DailyWins = 4;
+            s.Missions.DailyClaimed.Add("daily_win_5");
+            var nextDay = T0.AddDays(1);
+            var ctx = Ctx(nextDay);
+
+            var enter = ServerHandlers.EnterStage(s, data, ctx, "s1", Team("a"));
+            ServerHandlers.CompleteStage(s, data, ctx, ((EnterStagePayload)enter.Payload).Ticket, true);
+
+            Assert.AreEqual(1, s.Missions.DailyWins, "the old 4 are gone, today's win is 1");
+            CollectionAssert.IsEmpty(s.Missions.DailyClaimed);
+            Assert.AreEqual(MissionRules.DayIndex(nextDay), s.Missions.DailyDay);
         }
     }
 }

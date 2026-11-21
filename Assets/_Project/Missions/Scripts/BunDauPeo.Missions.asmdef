@@ -1,0 +1,6 @@
+{
+  "name": "BunDauPeo.Missions",
+  "rootNamespace": "BunDauPeo.Missions",
+  "references": ["BunDauPeo.Core", "BunDauPeo.Rules"],
+  "autoReferenced": true
+}

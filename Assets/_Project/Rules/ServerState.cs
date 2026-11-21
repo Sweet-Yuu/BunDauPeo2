@@ -19,6 +19,7 @@ namespace BunDauPeo.Rules
         public List<GachaHistoryEntry> GachaHistory = new();
         public StaminaState Stamina = new();
         public List<string> ClearedStages = new();
+        public MissionState Missions = new();
         public string PendingTicket = "";
         public string PendingStageId = "";
         public string ActiveSessionId = "";
@@ -42,6 +43,7 @@ namespace BunDauPeo.Rules
             }
             c.Stamina = new StaminaState { Current = Stamina.Current, AnchorUtcTicks = Stamina.AnchorUtcTicks };
             c.ClearedStages = new List<string>(ClearedStages);
+            c.Missions = Missions.Clone();
             return c;
         }
 

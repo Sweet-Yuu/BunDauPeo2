@@ -11,13 +11,21 @@ namespace BunDauPeo.Rules
         public static void Settle(StaminaState state, long nowTicks, int max, long regenTicks)
         {
             max = Math.Max(0, max);
+            // Anchor 0 = không đang hồi: thiếu so với Max thì coi là đầy, vượt Max (nhận thêm) thì giữ nguyên.
             if (state.AnchorUtcTicks == 0)
             {
-                state.Current = max;
+                state.Current = Math.Max(state.Current, max);
                 return;
             }
 
             var current = Math.Max(0, state.Current);
+            if (current >= max)
+            {
+                state.Current = current;
+                state.AnchorUtcTicks = 0;
+                return;
+            }
+
             if (nowTicks < state.AnchorUtcTicks)
             {
                 // Đồng hồ lùi: không hồi và không trừ, chỉ dời mốc về hiện tại.
@@ -48,9 +56,21 @@ namespace BunDauPeo.Rules
             if (state.Current < cost) return false;
 
             state.Current -= cost;
-            // Từ đầy thì bắt đầu hồi từ bây giờ; chưa đầy thì giữ mốc, phần hồi dở không mất.
-            if (state.AnchorUtcTicks == 0) state.AnchorUtcTicks = nowTicks;
+            // Rơi xuống dưới Max từ đầy thì bắt đầu hồi từ bây giờ; còn ≥ Max (vượt trần) thì chưa hồi; đang hồi thì giữ mốc.
+            if (state.AnchorUtcTicks == 0 && state.Current < max) state.AnchorUtcTicks = nowTicks;
             return true;
+        }
+
+        // Cộng thể lực thưởng, tối đa tới cap (có thể > max). Trả phần thực cộng; mất = amount - granted.
+        public static int Add(StaminaState state, int amount, long nowTicks, int max, long regenTicks, int cap)
+        {
+            Settle(state, nowTicks, max, regenTicks);
+            if (amount <= 0) return 0;
+            var before = state.Current;
+            var after = (int)Math.Max(before, Math.Min((long)cap, (long)before + amount));
+            state.Current = after;
+            if (after >= max) state.AnchorUtcTicks = 0;
+            return after - before;
         }
     }
 }

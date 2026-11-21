@@ -366,5 +366,45 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, s.Stamina.AnchorUtcTicks, "anchor 0 = đầy");
             Assert.AreEqual(42, s.Gem);
         }
+    
+
+        [Test]
+        public void Pull_Ten_CountsTenDailyPulls()
+        {
+            var s = State();
+
+            Payload(ServerHandlers.GachaPull(s, _data, Ctx(new ScriptedRandom()), "b", 10));
+            Assert.AreEqual(10, s.Missions.DailyPulls);
+
+            Payload(ServerHandlers.GachaPull(s, _data, Ctx(new ScriptedRandom()), "b", 1));
+            Assert.AreEqual(11, s.Missions.DailyPulls);
+        }
+
+        [Test]
+        public void Pull_NewDay_ResetsPullsThenCounts()
+        {
+            var s = State();
+            s.Missions.DailyDay = 1;
+            s.Missions.DailyPulls = 7;
+            s.Missions.DailyClaimed.Add("daily_pull_1");
+
+            Payload(ServerHandlers.GachaPull(s, _data, Ctx(new ScriptedRandom()), "b", 1));
+
+            Assert.AreEqual(1, s.Missions.DailyPulls);
+            CollectionAssert.IsEmpty(s.Missions.DailyClaimed);
+        }
+
+        [Test]
+        public void Pull_Rejected_DoesNotCountOrRollDay()
+        {
+            var s = State(gem: 5);
+            s.Missions.DailyDay = 1;
+            s.Missions.DailyPulls = 7;
+            var before = Json(s);
+
+            AssertRejected(ServerHandlers.GachaPull(s, _data, Ctx(new ScriptedRandom()), "b", 1), CommandCode.NotEnoughGem, "no gem");
+
+            Assert.AreEqual(before, Json(s));
+        }
     }
 }

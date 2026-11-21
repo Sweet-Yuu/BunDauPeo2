@@ -139,7 +139,7 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void MaxLowered_CurrentClampedOnRead()
+        public void MaxLowered_CurrentKeptOnRead()
         {
             var full = Service(so => so.FindProperty("_maxStamina").intValue = 80);
             Assert.AreEqual(80, full.Current, "full stays full at the lower Max");
@@ -147,8 +147,8 @@ namespace BunDauPeo.Tests
 
             _save = new PlayerSave { Stamina = new StaminaState { Current = 90, AnchorUtcTicks = T0.Ticks } };
             var partial = Service(so => so.FindProperty("_maxStamina").intValue = 50);
-            Assert.AreEqual(50, partial.Current, "90 is clamped to 50");
-            Assert.AreEqual(0d, partial.SecondsToNext, "clamped to Max means full, no regen pending");
+            Assert.AreEqual(90, partial.Current, "over the lowered Max: kept (spec 5.4)");
+            Assert.AreEqual(0d, partial.SecondsToNext, "at or over Max nothing regenerates");
         }
 
         [Test]

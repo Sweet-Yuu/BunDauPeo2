@@ -28,6 +28,7 @@ namespace BunDauPeo.Rules
         public long DupFragmentsSR;
         public long DupFragmentsSSR;
         public List<string> CharacterIds = new();
+        public bool FreePullDaily;
     }
 
     [Serializable]
@@ -52,6 +53,22 @@ namespace BunDauPeo.Rules
     {
         public int Max;
         public int RegenSeconds;
+        public int RewardCap = 999;   // trần khi nhận thể lực thưởng (vượt Max được)
+    }
+
+    // Counter: 0 Wins, 1 Pulls, 2 LoginWindow, 3 BattleStagesCleared, 4 GachaEver, 5 StarUpEver, 6 ClientFlag, 7 None (spec đợt 3 mục 6.3). Tab: 0 ngày, 1 tân thủ.
+    [Serializable]
+    public class MissionData
+    {
+        public string Id = "";
+        public int Tab;
+        public int Counter;
+        public int Target;
+        public bool Locked;
+        public long RewardGem;
+        public int RewardStamina;
+        public int WindowStartHour;
+        public int WindowEndHour;
     }
 
     [Serializable]
@@ -73,5 +90,6 @@ namespace BunDauPeo.Rules
         public int MaxTeamSize;
         public List<StageData> Stages = new();
         public NewGameData NewGame = new();
+        public List<MissionData> Missions = new();
     }
 }

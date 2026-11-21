@@ -25,6 +25,11 @@ namespace BunDauPeo.Tests
             },
             Stamina = new StaminaState { Current = 40, AnchorUtcTicks = 99 },
             ClearedStages = new List<string> { "s1" },
+            Missions = new MissionState
+            {
+                DailyDay = 740_000, DailyWins = 3, DailyPulls = 2, DailyClaimed = { "d1" },
+                FreePullDay = 740_000, NewbieClaimed = { "n1" },
+            },
             PendingTicket = "t",
             PendingStageId = "s2",
             ActiveSessionId = "sess",
@@ -56,6 +61,28 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Defaults_HaveEmptyMissions()
+        {
+            var m = new ServerState().Missions;
+            Assert.IsNotNull(m);
+            Assert.AreEqual(0, m.DailyDay);
+            Assert.AreEqual(0, m.FreePullDay);
+            Assert.AreEqual(0, m.DailyClaimed.Count);
+            Assert.AreEqual(0, m.NewbieClaimed.Count);
+        }
+
+        [Test]
+        public void JsonUtility_RoundTrip_KeepsMissionDays()
+        {
+            var orig = Filled();
+            var back = JsonUtility.FromJson<ServerState>(JsonUtility.ToJson(orig));
+            Assert.AreEqual(740_000, back.Missions.DailyDay);
+            Assert.AreEqual(740_000, back.Missions.FreePullDay);
+            CollectionAssert.AreEqual(new[] { "d1" }, back.Missions.DailyClaimed);
+            CollectionAssert.AreEqual(new[] { "n1" }, back.Missions.NewbieClaimed);
+        }
+
+        [Test]
         public void Clone_IsDeep_ForEveryListField()
         {
             var orig = Filled();
@@ -71,6 +98,9 @@ namespace BunDauPeo.Tests
                 checkedFields++;
             }
             Assert.AreEqual(7, checkedFields, "đổi số field List/StaminaState thì cập nhật Clone và số này");
+            Assert.IsFalse(ReferenceEquals(orig.Missions, clone.Missions));
+            Assert.IsFalse(ReferenceEquals(orig.Missions.DailyClaimed, clone.Missions.DailyClaimed));
+            Assert.IsFalse(ReferenceEquals(orig.Missions.NewbieClaimed, clone.Missions.NewbieClaimed));
 
             // Mảng trong mục lịch sử cũng phải là bản riêng.
             clone.GachaHistory[0].CharacterIds[0] = "changed";
@@ -105,6 +135,7 @@ namespace BunDauPeo.Tests
                 GachaHistory = { new GachaHistoryEntry { Utc = 5, BannerId = "b", Count = 1, CharacterIds = new[] { "a" } } },
                 Stamina = new StaminaState { Current = 40, AnchorUtcTicks = 638_700_000_000_000_123 },
                 ClearedStages = { "s1" },
+                Missions = { DailyDay = 740_000, DailyWins = 2, DailyPulls = 1, DailyClaimed = { "d" }, FreePullDay = 739_999, NewbieClaimed = { "n" } },
                 PendingTicket = "t",
                 PendingStageId = "s2",
                 ActiveSessionId = "sess",
@@ -117,6 +148,7 @@ namespace BunDauPeo.Tests
                 + "\"GachaPity\":[{\"BannerId\":\"b\",\"Pulls\":4}],"
                 + "\"GachaHistory\":[{\"Utc\":5,\"BannerId\":\"b\",\"Count\":1,\"CharacterIds\":[\"a\"]}],"
                 + "\"Stamina\":{\"Current\":40,\"AnchorUtcTicks\":638700000000000123},\"ClearedStages\":[\"s1\"],"
+                + "\"Missions\":{\"DailyDay\":740000,\"DailyWins\":2,\"DailyPulls\":1,\"DailyClaimed\":[\"d\"],\"FreePullDay\":739999,\"NewbieClaimed\":[\"n\"]},"
                 + "\"PendingTicket\":\"t\",\"PendingStageId\":\"s2\",\"ActiveSessionId\":\"sess\",\"LastRequestId\":\"r\",\"LastResultJson\":\"{}\"}";
             Assert.AreEqual(expected, JsonUtility.ToJson(state));
         }

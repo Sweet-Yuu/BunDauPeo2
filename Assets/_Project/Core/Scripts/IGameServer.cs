@@ -40,5 +40,12 @@ namespace BunDauPeo.Core
         Task<OnlineResult<CommandResponse>> StarUpAsync(string requestId, string characterId);
         Task<OnlineResult<CommandResponse>> DevAddGemAsync(string requestId, long amount);
         Task<OnlineResult<CommandResponse>> DevRefillStaminaAsync(string requestId);
+
+        // Nhiệm vụ và quay miễn phí (đợt 3). clientDone: id việc tân thủ do máy báo (spec đợt 3 mục 6.1).
+        Task<OnlineResult<CommandResponse>> ClaimMissionAsync(string requestId, string missionId, IReadOnlyList<string> clientDone);
+        Task<OnlineResult<CommandResponse>> ClaimAllMissionsAsync(string requestId, int tab, IReadOnlyList<string> clientDone);
+        Task<OnlineResult<CommandResponse>> GachaFreePullAsync(string requestId, string bannerId);
+        Task<OnlineResult<CommandResponse>> DevResetMissionsAsync(string requestId);
+        Task<OnlineResult<CommandResponse>> DevAddStaminaAsync(string requestId, int amount);
     }
 }

@@ -51,7 +51,7 @@ namespace BunDauPeo.Rules
             return HandlerOutcome.Ok(s, new EnterStagePayload { Ticket = s.PendingTicket, StaminaCost = stage.StaminaCost });
         }
 
-        public static HandlerOutcome CompleteStage(ServerState s, GameData data, string ticket, bool won)
+        public static HandlerOutcome CompleteStage(ServerState s, GameData data, ServerContext ctx, string ticket, bool won)
         {
             // Hai chuỗi rỗng không được coi là khớp.
             if (string.IsNullOrEmpty(ticket) || ticket != s.PendingTicket) return HandlerOutcome.Reject(CommandCode.TicketMismatch);
@@ -67,6 +67,8 @@ namespace BunDauPeo.Rules
             var reward = first ? stage.FirstClear : stage.Repeat;
             s.Gem += reward.Gem;
             if (first) s.ClearedStages.Add(stage.Id);
+            MissionRules.RollDay(s.Missions, ctx.NowUtc);
+            s.Missions.DailyWins = Math.Min(s.Missions.DailyWins + 1, MissionRules.CounterCap(data, MissionRules.CounterWins));
             return HandlerOutcome.Ok(s, new StageRewardPayload { FirstClear = first, Gem = reward.Gem, Material = reward.Material });
         }
 

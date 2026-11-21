@@ -7,6 +7,7 @@ using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
+using BunDauPeo.Missions;
 using BunDauPeo.Restaurant;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -36,6 +37,8 @@ namespace BunDauPeo.EditorTools
         public const string UpgradeCatalogPath = "Assets/_Project/Restaurant/Data/UpgradeCatalog.asset";
         public const string CombatConfigPath = "Assets/_Project/Combat/Data/CombatConfig.asset";
         public const string StageCatalogPath = "Assets/_Project/Combat/Data/StageCatalog.asset";
+        public const string MissionCatalogPath = "Assets/_Project/Missions/Data/MissionCatalog.asset";
+        private const string MissionsFolder = "Assets/_Project/Missions/Data/Missions";
         public const string StarConfigPath = "Assets/_Project/Characters/Data/StarConfig.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
@@ -169,6 +172,7 @@ namespace BunDauPeo.EditorTools
 
             CreateRestaurantData();
             CreateCombatData();
+            CreateMissionData();
             FillEnglishNames();
 
             CreateBootScene();
@@ -391,6 +395,64 @@ namespace BunDauPeo.EditorTools
                 Apply(asset, so => so.FindProperty("_stages").objectReferenceValue = catalog));
 
             MigrateStaminaRule();
+        }
+
+        // Số khởi điểm theo spec đợt 3 mục 7: Id, Tab, Counter, Target, Locked, Gem, thể lực, giờ bắt đầu, giờ kết thúc.
+        private static readonly (string Id, MissionTab Tab, MissionCounter Counter, int Target, bool Locked, long Gem, int Stamina, int From, int To)[] MissionTable =
+        {
+            ("daily_win_5", MissionTab.Daily, MissionCounter.Wins, 5, false, 20, 0, 0, 0),
+            ("daily_pull_1", MissionTab.Daily, MissionCounter.Pulls, 1, false, 20, 0, 0, 0),
+            ("daily_level_1", MissionTab.Daily, MissionCounter.None, 0, true, 0, 0, 0, 0),
+            ("daily_login_am", MissionTab.Daily, MissionCounter.LoginWindow, 1, false, 0, 100, 0, 12),
+            ("daily_login_pm", MissionTab.Daily, MissionCounter.LoginWindow, 1, false, 0, 100, 12, 24),
+            ("new_link", MissionTab.Newbie, MissionCounter.ClientFlag, 1, false, 100, 0, 0, 0),
+            ("new_name", MissionTab.Newbie, MissionCounter.ClientFlag, 1, false, 50, 0, 0, 0),
+            ("new_staff", MissionTab.Newbie, MissionCounter.ClientFlag, 1, false, 50, 0, 0, 0),
+            ("new_first_win", MissionTab.Newbie, MissionCounter.BattleStagesCleared, 1, false, 100, 0, 0, 0),
+            ("new_first_pull", MissionTab.Newbie, MissionCounter.GachaEver, 1, false, 50, 0, 0, 0),
+            ("new_upgrade", MissionTab.Newbie, MissionCounter.ClientFlag, 1, false, 50, 0, 0, 0),
+            ("new_afk", MissionTab.Newbie, MissionCounter.ClientFlag, 1, false, 50, 0, 0, 0),
+            ("new_star_up", MissionTab.Newbie, MissionCounter.StarUpEver, 1, false, 100, 0, 0, 0),
+            ("new_win_10", MissionTab.Newbie, MissionCounter.BattleStagesCleared, 10, false, 200, 0, 0, 0),
+        };
+
+        // Tạo MissionCatalog + 14 MissionDefinition nếu chưa có; asset đã có thì giữ số user đã chỉnh.
+        // Lần tạo catalog đầu tiên cũng đặt banner hiện tại thành "quay miễn phí mỗi ngày" (spec 5.3).
+        public static void CreateMissionData()
+        {
+            EnsureFolder("Assets/_Project", "Missions");
+            EnsureFolder("Assets/_Project/Missions", "Data");
+            EnsureFolder("Assets/_Project/Missions/Data", "Missions");
+            var firstTime = AssetDatabase.LoadAssetAtPath<MissionCatalog>(MissionCatalogPath) == null;
+            var items = new Object[MissionTable.Length];
+            for (var i = 0; i < MissionTable.Length; i++)
+            {
+                var row = MissionTable[i];
+                items[i] = GetOrCreateAsset<MissionDefinition>($"{MissionsFolder}/{row.Id}.asset", asset => Apply(asset, so =>
+                {
+                    so.FindProperty("_id").stringValue = row.Id;
+                    so.FindProperty("_tab").enumValueIndex = (int)row.Tab;
+                    so.FindProperty("_counter").enumValueIndex = (int)row.Counter;
+                    so.FindProperty("_target").intValue = row.Target;
+                    so.FindProperty("_locked").boolValue = row.Locked;
+                    so.FindProperty("_rewardGem").longValue = row.Gem;
+                    so.FindProperty("_rewardStamina").intValue = row.Stamina;
+                    so.FindProperty("_windowStartHour").intValue = row.From;
+                    so.FindProperty("_windowEndHour").intValue = row.To;
+                }));
+            }
+            GetOrCreateAsset<MissionCatalog>(MissionCatalogPath, asset =>
+                Apply(asset, so => SetObjects(so.FindProperty("_items"), items)));
+
+            var banner = AssetDatabase.LoadAssetAtPath<GachaBannerDefinition>(BannerPath);
+            if (firstTime && banner != null)
+            {
+                var so = new SerializedObject(banner);
+                so.FindProperty("_freePullDaily").boolValue = true;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(banner);
+            }
+            AssetDatabase.SaveAssets();
         }
 
         // Tên tiếng Anh theo tên tiếng Việt của asset. Nhân vật và món: bỏ dấu, viết hoa chữ đầu; tên khác dịch nghĩa.

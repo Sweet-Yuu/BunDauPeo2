@@ -63,7 +63,7 @@ public class ServerModule
     public Task<CommandResponse> CompleteStage(IExecutionContext ctx, IGameApiClient api,
         int protocolVersion, string sessionId, string requestId, string ticket, bool won) =>
         Command(ctx, api, protocolVersion, sessionId, requestId,
-            (s, c) => ServerHandlers.CompleteStage(s, GameDataSource.Data, ticket, won));
+            (s, c) => ServerHandlers.CompleteStage(s, GameDataSource.Data, c, ticket, won));
 
     [CloudCodeFunction(ServerProtocol.CompleteStory)]
     public Task<CommandResponse> CompleteStory(IExecutionContext ctx, IGameApiClient api,
@@ -88,6 +88,36 @@ public class ServerModule
         int protocolVersion, string sessionId, string requestId) =>
         Command(ctx, api, protocolVersion, sessionId, requestId,
             (s, c) => ServerHandlers.DevRefillStamina(s, GameDataSource.Data), ctx.EnvironmentName);
+
+    [CloudCodeFunction(ServerProtocol.ClaimMission)]
+    public Task<CommandResponse> ClaimMission(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string requestId, string missionId, List<string> clientDone) =>
+        Command(ctx, api, protocolVersion, sessionId, requestId,
+            (s, c) => ServerHandlers.ClaimMission(s, GameDataSource.Data, c, missionId, clientDone ?? new List<string>()));
+
+    [CloudCodeFunction(ServerProtocol.ClaimAllMissions)]
+    public Task<CommandResponse> ClaimAllMissions(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string requestId, int tab, List<string> clientDone) =>
+        Command(ctx, api, protocolVersion, sessionId, requestId,
+            (s, c) => ServerHandlers.ClaimAllMissions(s, GameDataSource.Data, c, tab, clientDone ?? new List<string>()));
+
+    [CloudCodeFunction(ServerProtocol.GachaFreePull)]
+    public Task<CommandResponse> GachaFreePull(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string requestId, string bannerId) =>
+        Command(ctx, api, protocolVersion, sessionId, requestId,
+            (s, c) => ServerHandlers.GachaFreePull(s, GameDataSource.Data, c, bannerId));
+
+    [CloudCodeFunction(ServerProtocol.DevResetMissions)]
+    public Task<CommandResponse> DevResetMissions(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string requestId) =>
+        Command(ctx, api, protocolVersion, sessionId, requestId,
+            (s, c) => ServerHandlers.DevResetMissions(s), ctx.EnvironmentName);
+
+    [CloudCodeFunction(ServerProtocol.DevAddStamina)]
+    public Task<CommandResponse> DevAddStamina(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string requestId, int amount) =>
+        Command(ctx, api, protocolVersion, sessionId, requestId,
+            (s, c) => ServerHandlers.DevAddStamina(s, GameDataSource.Data, c, amount), ctx.EnvironmentName);
 
     // ---- Phần chạy được không cần Cloud Code (dotnet test dùng kho giả) ----
 

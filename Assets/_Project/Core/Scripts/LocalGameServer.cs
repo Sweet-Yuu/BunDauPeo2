@@ -241,7 +241,7 @@ namespace BunDauPeo.Core
                 (s, c) => ServerHandlers.EnterStage(s, _data, c, stageId, new List<string>(team ?? new List<string>())));
 
         public Task<OnlineResult<CommandResponse>> CompleteStageAsync(string requestId, string ticket, bool won) =>
-            Command(nameof(CompleteStageAsync), requestId, (s, c) => ServerHandlers.CompleteStage(s, _data, ticket, won));
+            Command(nameof(CompleteStageAsync), requestId, (s, c) => ServerHandlers.CompleteStage(s, _data, c, ticket, won));
 
         public Task<OnlineResult<CommandResponse>> CompleteStoryAsync(string requestId, string stageId) =>
             Command(nameof(CompleteStoryAsync), requestId, (s, c) => ServerHandlers.CompleteStory(s, _data, stageId));
@@ -256,6 +256,25 @@ namespace BunDauPeo.Core
         public Task<OnlineResult<CommandResponse>> DevRefillStaminaAsync(string requestId) =>
             Command(nameof(DevRefillStaminaAsync), requestId,
                 (s, c) => RejectDev ? HandlerOutcome.Reject(CommandCode.DevOnly) : ServerHandlers.DevRefillStamina(s, _data));
+
+        public Task<OnlineResult<CommandResponse>> ClaimMissionAsync(string requestId, string missionId, IReadOnlyList<string> clientDone) =>
+            Command(nameof(ClaimMissionAsync), requestId,
+                (s, c) => ServerHandlers.ClaimMission(s, _data, c, missionId, new List<string>(clientDone ?? new List<string>())));
+
+        public Task<OnlineResult<CommandResponse>> ClaimAllMissionsAsync(string requestId, int tab, IReadOnlyList<string> clientDone) =>
+            Command(nameof(ClaimAllMissionsAsync), requestId,
+                (s, c) => ServerHandlers.ClaimAllMissions(s, _data, c, tab, new List<string>(clientDone ?? new List<string>())));
+
+        public Task<OnlineResult<CommandResponse>> GachaFreePullAsync(string requestId, string bannerId) =>
+            Command(nameof(GachaFreePullAsync), requestId, (s, c) => ServerHandlers.GachaFreePull(s, _data, c, bannerId));
+
+        public Task<OnlineResult<CommandResponse>> DevResetMissionsAsync(string requestId) =>
+            Command(nameof(DevResetMissionsAsync), requestId,
+                (s, c) => RejectDev ? HandlerOutcome.Reject(CommandCode.DevOnly) : ServerHandlers.DevResetMissions(s));
+
+        public Task<OnlineResult<CommandResponse>> DevAddStaminaAsync(string requestId, int amount) =>
+            Command(nameof(DevAddStaminaAsync), requestId,
+                (s, c) => RejectDev ? HandlerOutcome.Reject(CommandCode.DevOnly) : ServerHandlers.DevAddStamina(s, _data, c, amount));
 
         private async Task<OnlineResult<CommandResponse>> Command(string name, string requestId,
             Func<ServerState, ServerContext, HandlerOutcome> handler)
