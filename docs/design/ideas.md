@@ -15,6 +15,10 @@ Mỗi ý ghi ngày và người đề xuất. Luồng màn ở [screen-flow.md](
 
 ## Để sau
 
+- **Thành tựu** (user, 2026-11-21, ảnh `hub-missions-title.jpg`): tab thứ ba của Nhiệm vụ, nhận quà khi đạt thành tựu. Không thuộc Online đợt 3; làm sau.
+- **Hệ thống cấp nhân vật và trang bị** (user, 2026-11-21, ảnh `character-upgrade-*.jpg`): nâng Lv bằng EXP, kỹ năng, nâng nhanh bằng trang bị lắp sẵn. Chưa có spec; Nhiệm vụ "Nâng lv" khoá "Sắp có" tới khi làm.
+- **Google ID token riêng, Unity Player Accounts, Facebook** (🎨, user 2026-11-21): thêm cách đăng nhập khác; user chọn dùng chung một nút Google (qua Play Games) cho đợt 3. Google ID token cần plugin bên thứ ba. Sau 31/12.
+- **Vẽ lại quán theo tilemap** (user, 2026-11-21, ảnh `restaurant-layout-target-en.png`): cất hình quán hiện tại vào `old`, vẽ lại theo cách tile map để dễ thay ảnh, hạn chế số hình. Ngoài luồng Online, chờ 👑 CEO chia luồng.
 - **Thông báo tin từ server** (🎨, user đồng ý 2026-11-09). Bỏ khỏi bản 31/12 (user chốt 2026-11-13), vẫn để sau.
 - **Hội (Clan)** (🎨, user đồng ý 2026-11-09). Sau 31/12 (user chốt 2026-11-13); nút tròn chưa dựng.
 - **Xếp hạng, PvP** (user, 2026-11-13): sau 31/12.
