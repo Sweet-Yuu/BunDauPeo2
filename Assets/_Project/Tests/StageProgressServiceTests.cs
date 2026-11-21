@@ -7,6 +7,7 @@ using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -42,14 +43,14 @@ namespace BunDauPeo.Tests
         {
             var rig = Rig();
 
-            Assert.AreEqual(StageCompleteStatus.Success, rig.Progress.CompleteStory("s1").Status);
+            Assert.AreEqual(StageCompleteStatus.Success, rig.Progress.CompleteStoryAsync("s1").Sync().Status);
 
             Assert.AreEqual(StageStatus.Cleared, rig.Progress.GetStatus("s1"));
             Assert.AreEqual(StageStatus.Available, rig.Progress.GetStatus("b1"));
             Assert.AreEqual(StageStatus.Locked, rig.Progress.GetStatus("b2"));
 
             CombatTestData.PaidWin(rig.Service, "b1");
-            rig.Progress.CompleteBattle(rig.Service.Current);
+            rig.Progress.CompleteBattleAsync(rig.Service.Current).Sync();
 
             Assert.AreEqual(StageStatus.Cleared, rig.Progress.GetStatus("b1"));
             Assert.AreEqual(StageStatus.Available, rig.Progress.GetStatus("b2"));
@@ -92,7 +93,7 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(StageStatus.Locked, rig.Progress.GetStatus("b2"));
 
             CombatTestData.PaidWin(rig.Service, "b1");
-            rig.Progress.CompleteBattle(rig.Service.Current);
+            rig.Progress.CompleteBattleAsync(rig.Service.Current).Sync();
 
             CollectionAssert.AreEqual(new[] { "zzz", "s1", "b1" }, rig.Save.ClearedStages, "the stale id survives for when the stage returns");
         }
@@ -106,12 +107,12 @@ namespace BunDauPeo.Tests
             var before = rig.State();
             StageProgressService progress = null;
 
-            Assert.DoesNotThrow(() => progress = new StageProgressService(rig.Save, rig.Wallet, null, rig.Stamina, rig.Persist));
+            Assert.DoesNotThrow(() => progress = new StageProgressService(rig.Save, rig.Wallet, null, rig.Stamina, rig.Server, rig.Gate, rig.Apply));
 
             Assert.AreEqual(StageStatus.Unknown, progress.GetStatus("s1"));
             Assert.AreEqual(StageEnterStatus.Unknown, progress.CanEnter("b1", 1));
-            Assert.AreEqual(StageCompleteStatus.Unknown, progress.CompleteStory("s1").Status);
-            Assert.AreEqual(StageCompleteStatus.Unknown, progress.CompleteBattle(won).Status);
+            Assert.AreEqual(StageCompleteStatus.Unknown, progress.CompleteStoryAsync("s1").Sync().Status);
+            Assert.AreEqual(StageCompleteStatus.Unknown, progress.CompleteBattleAsync(won).Sync().Status);
             Assert.IsFalse(won.RewardsClaimed);
             Assert.AreEqual(before, rig.State());
         }
@@ -163,7 +164,7 @@ namespace BunDauPeo.Tests
             var staminaAfterEnter = (rig.Save.Stamina.Current, rig.Save.Stamina.AnchorUtcTicks);
             Assert.AreEqual(90, staminaAfterEnter.Current);
 
-            var result = rig.Progress.CompleteBattle(won);
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(StageCompleteStatus.Success, result.Status);
             Assert.IsTrue(result.FirstClear);
@@ -184,9 +185,9 @@ namespace BunDauPeo.Tests
         {
             var rig = Rig();
             rig.Clear("s1");
-            rig.Progress.CompleteBattle(CombatTestData.PaidWin(rig.Service, "b1"));
+            rig.Progress.CompleteBattleAsync(CombatTestData.PaidWin(rig.Service, "b1")).Sync();
 
-            var result = rig.Progress.CompleteBattle(CombatTestData.PaidWin(rig.Service, "b1"));
+            var result = rig.Progress.CompleteBattleAsync(CombatTestData.PaidWin(rig.Service, "b1")).Sync();
 
             Assert.AreEqual(StageCompleteStatus.Success, result.Status);
             Assert.IsFalse(result.FirstClear);
@@ -209,10 +210,10 @@ namespace BunDauPeo.Tests
             var order = new List<string>();
             rig.Progress.Changed += () => order.Add($"changed:{rig.PersistCalls - persistBefore}");
 
-            rig.Progress.CompleteBattle(won);
+            rig.Progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(persistBefore + 1, rig.PersistCalls, "exactly one persist");
-            CollectionAssert.AreEqual(new[] { "changed:0" }, order, "Changed fires once, before persist");
+            CollectionAssert.AreEqual(new[] { "changed:1" }, order, "Changed fires once, after the single persist");
             var seen = rig.Snapshots.Last();
             Assert.AreEqual((30L, 150L, "s1,b1"), (seen.Material, seen.Gem, seen.Cleared), "everything was already changed when persist ran");
             Assert.AreEqual(true, seen.WatchedClaimed);
@@ -227,7 +228,7 @@ namespace BunDauPeo.Tests
             var won = CombatTestData.PaidWin(rig.Service, "b1");
             rig.PersistResult = false;
 
-            var result = rig.Progress.CompleteBattle(won);
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(StageCompleteStatus.Success, result.Status);
             Assert.IsFalse(result.Saved);
@@ -243,12 +244,12 @@ namespace BunDauPeo.Tests
             var rig = Rig();
             rig.Clear("s1");
             var won = CombatTestData.PaidWin(rig.Service, "b1");
-            rig.Progress.CompleteBattle(won);
+            rig.Progress.CompleteBattleAsync(won).Sync();
             var before = rig.State();
             var changed = 0;
             rig.Progress.Changed += () => changed++;
 
-            var result = rig.Progress.CompleteBattle(won);
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(StageCompleteStatus.AlreadyClaimed, result.Status);
             Assert.IsFalse(result.Saved);
@@ -262,13 +263,13 @@ namespace BunDauPeo.Tests
         {
             var rig = Rig();
             rig.Clear("s1");
-            var playing = rig.Service.EnterStage("b1").Session;
+            var playing = rig.Service.EnterStageAsync("b1").Sync().Session;
             var before = rig.State();
 
-            Assert.AreEqual(StageCompleteStatus.NotWon, rig.Progress.CompleteBattle(playing).Status, "still being fought");
+            Assert.AreEqual(StageCompleteStatus.NotWon, rig.Progress.CompleteBattleAsync(playing).Sync().Status, "still being fought");
             playing.Surrender();
             Assert.AreEqual(BattleState.Lost, playing.State);
-            var result = rig.Progress.CompleteBattle(playing);
+            var result = rig.Progress.CompleteBattleAsync(playing).Sync();
 
             Assert.AreEqual(StageCompleteStatus.NotWon, result.Status, "lost");
             CollectionAssert.IsEmpty(result.Rewards);
@@ -285,7 +286,7 @@ namespace BunDauPeo.Tests
             rig.Save.ClearedStages.Remove("s1");
             var before = rig.State();
 
-            var result = rig.Progress.CompleteBattle(won);
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(StageCompleteStatus.Locked, result.Status);
             Assert.AreEqual(before, rig.State());
@@ -303,12 +304,13 @@ namespace BunDauPeo.Tests
             var changed = 0;
             rig.Progress.Changed += () => changed++;
 
-            var result = rig.Progress.CompleteBattle(trial);
+            var result = rig.Progress.CompleteBattleAsync(trial).Sync();
 
             Assert.AreEqual(StageCompleteStatus.NotPaid, result.Status, "NotPaid is checked before the locked check");
             CollectionAssert.IsEmpty(result.Rewards);
             Assert.AreEqual(before, rig.State());
             Assert.AreEqual(0, rig.PersistCalls);
+            Assert.AreEqual(0, rig.Server.CommandCalls, "a DEV battle never reaches the server");
             Assert.AreEqual(0, changed);
             Assert.IsFalse(trial.RewardsClaimed);
             Assert.AreEqual(0, rig.Wallet.Get(CurrencyType.Material));
@@ -324,7 +326,7 @@ namespace BunDauPeo.Tests
             TestData.Edit(stage, so => so.FindProperty("_staminaCost").intValue = 0);
             var before = rig.State();
 
-            var result = rig.Progress.CompleteBattle(won);
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(StageCompleteStatus.Invalid, result.Status);
             Assert.AreEqual(before, rig.State());
@@ -338,10 +340,10 @@ namespace BunDauPeo.Tests
             rig.Clear("s1");
             var won = CombatTestData.PaidWin(rig.Service, "b1");
             var otherCatalog = CombatTestData.Catalog(CombatTestData.Story("s1"), Battle("b2"));
-            var progress = new StageProgressService(rig.Save, rig.Wallet, otherCatalog, rig.Stamina, rig.Persist);
+            var progress = new StageProgressService(rig.Save, rig.Wallet, otherCatalog, rig.Stamina, rig.Server, rig.Gate, rig.Apply);
             var before = rig.State();
 
-            var result = progress.CompleteBattle(won);
+            var result = progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(StageCompleteStatus.Unknown, result.Status);
             Assert.AreEqual(before, rig.State());
@@ -360,7 +362,7 @@ namespace BunDauPeo.Tests
             rig.Progress.Changed += () => later++;
             LogAssert.Expect(LogType.Exception, new Regex("boom"));
 
-            var result = rig.Progress.CompleteBattle(won);
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
 
             Assert.AreEqual(StageCompleteStatus.Success, result.Status);
             Assert.IsTrue(result.Saved);
@@ -375,7 +377,7 @@ namespace BunDauPeo.Tests
             var changed = 0;
             rig.Progress.Changed += () => changed++;
 
-            var result = rig.Progress.CompleteStory("s1");
+            var result = rig.Progress.CompleteStoryAsync("s1").Sync();
 
             Assert.AreEqual(StageCompleteStatus.Success, result.Status);
             Assert.IsTrue(result.Saved);
@@ -394,10 +396,10 @@ namespace BunDauPeo.Tests
         public void CompleteStory_Again_AlreadyCleared_NoPersist()
         {
             var rig = Rig();
-            rig.Progress.CompleteStory("s1");
+            rig.Progress.CompleteStoryAsync("s1").Sync();
             var before = rig.State();
 
-            var result = rig.Progress.CompleteStory("s1");
+            var result = rig.Progress.CompleteStoryAsync("s1").Sync();
 
             Assert.AreEqual(StageCompleteStatus.AlreadyCleared, result.Status);
             Assert.AreEqual(before, rig.State());
@@ -411,8 +413,8 @@ namespace BunDauPeo.Tests
             rig.Clear("s1");
             var before = rig.State();
 
-            Assert.AreEqual(StageCompleteStatus.WrongKind, rig.Progress.CompleteStory("b1").Status);
-            Assert.AreEqual(StageCompleteStatus.Unknown, rig.Progress.CompleteStory("nope").Status);
+            Assert.AreEqual(StageCompleteStatus.WrongKind, rig.Progress.CompleteStoryAsync("b1").Sync().Status);
+            Assert.AreEqual(StageCompleteStatus.Unknown, rig.Progress.CompleteStoryAsync("nope").Sync().Status);
 
             Assert.AreEqual(before, rig.State());
         }
@@ -423,9 +425,100 @@ namespace BunDauPeo.Tests
             var rig = new CombatRig(new[] { Battle("b1"), CombatTestData.Story("s2") });
             var before = rig.State();
 
-            var result = rig.Progress.CompleteStory("s2");
+            var result = rig.Progress.CompleteStoryAsync("s2").Sync();
 
             Assert.AreEqual(StageCompleteStatus.Locked, result.Status);
+            Assert.AreEqual(before, rig.State());
+            Assert.AreEqual(0, rig.PersistCalls);
+        }
+
+        // Review Focus 2: thắng, mất trả lời CompleteStage, bấm Thử lại: Gem vào một lần, Material cộng một lần, màn đã qua.
+        [Test]
+        public void CompleteBattle_LostReplyThenRetry_MaterialOnce()
+        {
+            var rig = Rig();
+            rig.Clear("s1");
+            var won = CombatTestData.PaidWin(rig.Service, "b1");
+            var lost = 0;
+            rig.Gate.Lost += retry =>
+            {
+                lost++;
+                retry();
+            };
+            rig.Server.LoseNextReply();
+
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
+
+            Assert.AreEqual(1, lost, "the player saw the Lost box once and pressed Retry");
+            Assert.AreEqual(StageCompleteStatus.Success, result.Status);
+            Assert.IsTrue(result.FirstClear);
+            Assert.AreEqual(30, rig.Wallet.Get(CurrencyType.Material), "Material added once, not twice");
+            Assert.AreEqual(150, rig.Wallet.Get(CurrencyType.Gem), "Gem added once");
+            Assert.AreEqual(150, rig.Server.State.Gem);
+            CollectionAssert.AreEqual(new[] { "s1", "b1" }, rig.Save.ClearedStages);
+            Assert.IsTrue(won.RewardsClaimed);
+        }
+
+        [Test]
+        public void CompleteBattle_Offline_NoChange_CanTryAgain()
+        {
+            var rig = Rig();
+            rig.Clear("s1");
+            var won = CombatTestData.PaidWin(rig.Service, "b1");
+            var before = rig.State();
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
+
+            Assert.AreEqual(StageCompleteStatus.Offline, result.Status);
+            Assert.AreEqual(before, rig.State());
+            Assert.IsFalse(won.RewardsClaimed);
+            Assert.AreEqual(StageCompleteStatus.Success, rig.Progress.CompleteBattleAsync(won).Sync().Status, "the ticket is still pending on the server");
+            Assert.AreEqual(30, rig.Wallet.Get(CurrencyType.Material));
+        }
+
+        [Test]
+        public void CompleteBattle_ServerTicketMismatch_NotPaid_NoChange()
+        {
+            var rig = Rig();
+            rig.Clear("s1");
+            var won = CombatTestData.PaidWin(rig.Service, "b1");
+            rig.Server.State.PendingTicket = "someone-else";
+            var before = rig.State();
+
+            var result = rig.Progress.CompleteBattleAsync(won).Sync();
+
+            Assert.AreEqual(StageCompleteStatus.NotPaid, result.Status);
+            Assert.AreEqual(before, rig.State());
+            Assert.IsFalse(won.RewardsClaimed);
+            Assert.AreEqual(0, rig.Wallet.Get(CurrencyType.Material));
+        }
+
+        // Máy tưởng chưa qua nhưng server đã ghi (phiên trước mất trả lời): server là bản chính.
+        [Test]
+        public void CompleteStory_AlreadyCleared_FromServer()
+        {
+            var rig = Rig();
+            rig.Server.State.ClearedStages.Add("s1");
+            var before = rig.State();
+
+            var result = rig.Progress.CompleteStoryAsync("s1").Sync();
+
+            Assert.AreEqual(StageCompleteStatus.AlreadyCleared, result.Status);
+            Assert.AreEqual(1, rig.Server.CommandCalls);
+            Assert.AreEqual(before, rig.State());
+        }
+
+        [Test]
+        public void CompleteStory_Offline_NoChange()
+        {
+            var rig = Rig();
+            var before = rig.State();
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+
+            var result = rig.Progress.CompleteStoryAsync("s1").Sync();
+
+            Assert.AreEqual(StageCompleteStatus.Offline, result.Status);
             Assert.AreEqual(before, rig.State());
             Assert.AreEqual(0, rig.PersistCalls);
         }
@@ -444,9 +537,11 @@ namespace BunDauPeo.Tests
                 var now = CombatRig.T0;
                 var stamina = new StaminaService(session.Save, config, () => now);
                 var catalog = CombatTestData.Catalog(CombatTestData.Story("s1"), Battle("b1"));
-                var progress = new StageProgressService(session.Save, session.Wallet, catalog, stamina, session.Persist);
-                progress.CompleteStory("s1");
-                Assert.AreEqual(StaminaSpendStatus.Spent, stamina.TrySpend(30, session.Persist));
+                var progress = new StageProgressService(session.Save, session.Wallet, catalog, stamina, new LocalGameServer(),
+                    new CommandGate(_ => new System.Threading.Tasks.TaskCompletionSource<bool>().Task), _ => true);
+                // Server giữ cả hai; ở đây chỉ cần save đang có tiến độ và thể lực dở dang để Reset xoá.
+                session.Save.ClearedStages.Add("s1");
+                session.Save.Stamina = new StaminaState { Current = 70, AnchorUtcTicks = now.Ticks };
                 Assert.AreEqual(StageStatus.Available, progress.GetStatus("b1"));
                 Assert.AreEqual(70, stamina.Current);
 

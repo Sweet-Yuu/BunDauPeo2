@@ -55,7 +55,10 @@ namespace BunDauPeo.UI
             get
             {
                 if (_pages == null) return false;
-                return LayoutPages(_pages.OfType<IHubPage>()).Any();
+                // Vòng lặp thường, không LINQ: HubNav.Update gọi mỗi khung.
+                for (var i = 0; i < _pages.Length; i++)
+                    if (_pages[i] is IHubPage page && page.IsOpen && page is not IHubOverlay) return true;
+                return false;
             }
         }
 
@@ -69,7 +72,8 @@ namespace BunDauPeo.UI
             {
                 _openPages.Clear();
                 if (_pages == null) return _openPages;
-                _openPages.AddRange(LayoutPages(_pages.OfType<IHubPage>()));
+                for (var i = 0; i < _pages.Length; i++)
+                    if (_pages[i] is IHubPage page && page.IsOpen && page is not IHubOverlay) _openPages.Add(page);
                 return _openPages;
             }
         }

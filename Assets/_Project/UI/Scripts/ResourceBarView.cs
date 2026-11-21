@@ -89,7 +89,7 @@ namespace BunDauPeo.UI
             var lobby = ResourceBarRule.IsLobbyLayout(_hub.State.Current, _hub.State.MenuOpen, _hub.AnyPageOpen);
             if (!_layoutDone || slots != _shownSlots || lobby != _shownLobby) ApplyLayout(slots, lobby);
 
-            if (slots.HasFlag(ResourceSlots.Stamina)) RedrawStamina();
+            if (((slots & ResourceSlots.Stamina) != 0)) RedrawStamina();
             RedrawAmount(1, slots, ResourceSlots.Coin, "Coin", CurrencyType.Coin);
             RedrawAmount(2, slots, ResourceSlots.Material, "Material", CurrencyType.Material);
             RedrawAmount(3, slots, ResourceSlots.Gem, "Gem", CurrencyType.Gem);
@@ -142,7 +142,7 @@ namespace BunDauPeo.UI
 
         private void RedrawAmount(int index, ResourceSlots slots, ResourceSlots flag, string name, CurrencyType type)
         {
-            if (!slots.HasFlag(flag)) return;
+            if ((slots & flag) == 0) return;
 
             var amount = _wallet.Get(type);
             if (amount == _shownAmounts[index]) return;

@@ -1,85 +1,89 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
+using UnityEngine;
 
 namespace BunDauPeo.Gacha
 {
+    // Server quay và ghi (spec con 6.2); máy chỉ kiểm banner và Gem để không gửi lệnh thừa, rồi áp state server trả về.
     public sealed class GachaService
     {
         private readonly PlayerSave _save;
         private readonly Wallet _wallet;
-        private readonly Roster _roster;
         private readonly CharacterCatalog _characters;
         private readonly GachaBannerCatalog _banners;
-        private readonly GachaRoller _roller;
-        private readonly Func<bool> _persist;
+        private readonly IGameServer _server;
+        private readonly CommandGate _gate;
+        private readonly Func<ServerState, bool> _apply;
 
-        public GachaService(PlayerSave save, Wallet wallet, Roster roster, CharacterCatalog characters,
-            GachaBannerCatalog banners, Random random, Func<bool> persist)
+        // apply chép state vào PlayerSave và báo view; trả false khi lưu bản đệm thất bại (bộ nhớ vẫn đúng).
+        public GachaService(PlayerSave save, Wallet wallet, CharacterCatalog characters, GachaBannerCatalog banners,
+            IGameServer server, CommandGate gate, Func<ServerState, bool> apply)
         {
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
-            _roster = roster ?? throw new ArgumentNullException(nameof(roster));
             _characters = characters ?? throw new ArgumentNullException(nameof(characters));
             _banners = banners ?? throw new ArgumentNullException(nameof(banners));
-            _roller = new GachaRoller(random);
-            _persist = persist ?? throw new ArgumentNullException(nameof(persist));
+            _server = server ?? throw new ArgumentNullException(nameof(server));
+            _gate = gate ?? throw new ArgumentNullException(nameof(gate));
+            _apply = apply ?? throw new ArgumentNullException(nameof(apply));
         }
-
-        public const int MaxHistoryEntries = 50;
 
         public IReadOnlyList<GachaHistoryEntry> History => _save.GachaHistory;
 
-        public GachaPullResult PullSingle(string bannerId) => Pull(bannerId, ten: false);
+        public Task<GachaPullResult> PullSingleAsync(string bannerId) => PullAsync(bannerId, 1);
 
-        public GachaPullResult PullTen(string bannerId) => Pull(bannerId, ten: true);
+        public Task<GachaPullResult> PullTenAsync(string bannerId) => PullAsync(bannerId, 10);
 
         public int GetPity(string bannerId)
         {
-            var index = PityIndex(bannerId);
+            var index = bannerId == null ? -1 : _save.GachaPity.FindIndex(p => p.BannerId == bannerId);
             return index < 0 ? 0 : Math.Max(0, _save.GachaPity[index].Pulls);
         }
 
-        // Thứ tự là hợp đồng: kiểm banner, kiểm tiền, roll, trừ tiền, áp, ghi pity, lưu. Mọi bước có thể ném hoặc
-        // thất bại (banner, tiền, RNG) đứng trước bước đầu tiên đổi trạng thái (trừ tiền).
-        private GachaPullResult Pull(string bannerId, bool ten)
+        private async Task<GachaPullResult> PullAsync(string bannerId, int count)
         {
             if (!_banners.TryGet(bannerId, out var banner)) return Failure(GachaPullStatus.UnknownBanner);
             if (!IsPlayable(banner)) return Failure(GachaPullStatus.InvalidBanner);
+            if (!_wallet.CanAfford(count == 10 ? banner.TenCost : banner.SingleCost)) return Failure(GachaPullStatus.NotEnoughCurrency);
 
-            var cost = ten ? banner.TenCost : banner.SingleCost;
-            if (!_wallet.CanAfford(cost)) return Failure(GachaPullStatus.NotEnoughCurrency);
+            var result = await _gate.RunAsync(id => _server.GachaPullAsync(id, banner.Id, count));
+            // Lỗi mạng cuối cùng (hộp mạng đã hiện) hoặc phiên hỏng: không đổi gì.
+            if (!result.Ok) return Failure(GachaPullStatus.Offline);
 
-            // Roll trên bản sao bộ đếm: RNG ném lỗi thì chưa có gì đổi để hoàn lại.
-            var pulls = GetPity(banner.Id);
-            IReadOnlyList<CharacterDefinition> drawn;
-            if (ten)
+            var response = result.Value;
+            switch ((CommandCode)response.Code)
             {
-                drawn = _roller.RollTen(banner, ref pulls);
+                case CommandCode.Ok:
+                    break;
+                case CommandCode.NotEnoughGem:
+                    return Failure(GachaPullStatus.NotEnoughCurrency);
+                default:
+                    return Failure(GachaPullStatus.InvalidBanner);
             }
-            else
+
+            GachaPullPayload payload;
+            try
             {
-                drawn = new[] { _roller.RollOne(banner, ref pulls) };
+                payload = JsonUtility.FromJson<GachaPullPayload>(response.ResultJson);
+            }
+            catch (ArgumentException e)
+            {
+                Debug.LogException(e);
+                return Failure(GachaPullStatus.Offline);
             }
 
-            if (!_wallet.TrySpend(cost)) return Failure(GachaPullStatus.NotEnoughCurrency);
+            if (response.State == null || payload == null) return Failure(GachaPullStatus.Offline);
 
-            var entries = new List<GachaPullEntry>(drawn.Count);
-            foreach (var character in drawn) entries.Add(Apply(banner, character));
-            SetPity(banner.Id, pulls);
-            AppendHistory(banner.Id, drawn);
-
-            return new GachaPullResult { Status = GachaPullStatus.Success, Saved = _persist(), Entries = entries };
-        }
-
-        // "Đã sở hữu" kiểm sau mỗi lần áp, nên bản thứ hai của cùng nhân vật trong lần quay 10 là trùng.
-        private GachaPullEntry Apply(GachaBannerDefinition banner, CharacterDefinition character)
-        {
-            if (!_roster.IsOwned(character.Id)) return new GachaPullEntry(character, _roster.Add(character.Id), 0);
-
-            var fragments = banner.DuplicateFragments.Get(character.Rarity);
-            return new GachaPullEntry(character, false, _roster.AddFragments(character.Id, fragments) ? fragments : 0);
+            var saved = _apply(response.State);
+            var entries = new List<GachaPullEntry>(payload.Pulls.Count);
+            foreach (var pulled in payload.Pulls)
+                if (_characters.TryGet(pulled.CharacterId, out var character))
+                    entries.Add(new GachaPullEntry(character, pulled.IsNew, pulled.Fragments));
+            return new GachaPullResult { Status = GachaPullStatus.Success, Saved = saved, Entries = entries };
         }
 
         private bool IsPlayable(GachaBannerDefinition banner)
@@ -90,34 +94,7 @@ namespace BunDauPeo.Gacha
             return true;
         }
 
-        private int PityIndex(string bannerId) =>
-            bannerId == null ? -1 : _save.GachaPity.FindIndex(p => p.BannerId == bannerId);
-
-        private void SetPity(string bannerId, int pulls)
-        {
-            var entry = new PityEntry { BannerId = bannerId, Pulls = pulls };
-            var index = PityIndex(bannerId);
-            if (index < 0) _save.GachaPity.Add(entry);
-            else _save.GachaPity[index] = entry;
-        }
-
-        // Ghi trước persist() để lượt quay và lịch sử nằm trong cùng một lần lưu.
-        private void AppendHistory(string bannerId, IReadOnlyList<CharacterDefinition> drawn)
-        {
-            var ids = new string[drawn.Count];
-            for (var i = 0; i < ids.Length; i++) ids[i] = drawn[i].Id;
-            _save.GachaHistory.Add(new GachaHistoryEntry
-            {
-                Utc = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                BannerId = bannerId,
-                Count = ids.Length,
-                CharacterIds = ids,
-            });
-            if (_save.GachaHistory.Count > MaxHistoryEntries)
-                _save.GachaHistory.RemoveRange(0, _save.GachaHistory.Count - MaxHistoryEntries);
-        }
-
         private static GachaPullResult Failure(GachaPullStatus status) =>
-            new() { Status = status, Saved = false, Entries = Array.Empty<GachaPullEntry>() };
+            new GachaPullResult { Status = status, Saved = true, Entries = Array.Empty<GachaPullEntry>() };
     }
 }

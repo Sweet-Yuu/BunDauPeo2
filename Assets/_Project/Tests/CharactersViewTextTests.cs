@@ -57,6 +57,11 @@ namespace BunDauPeo.Tests
             Assert.AreNotEqual(notEnough, error);
         }
 
+        // Mất kết nối đã có hộp riêng: không thêm dòng lỗi.
+        [Test]
+        public void StatusText_Offline_IsEmpty() =>
+            Assert.AreEqual("", CharactersViewText.StatusText(new StarUpResult { Status = StarUpStatus.Offline }));
+
         [Test]
         public void ButtonLabel_English()
         {

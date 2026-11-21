@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
@@ -34,6 +35,8 @@ namespace BunDauPeo.UI
         private bool _subscribed;
         // Từ lúc bấm quay đến lúc bấm Thôi: khoá nút quay trên trang roll.
         private bool _busy;
+        // Đang chờ server trả lời một lượt quay.
+        private bool _pulling;
         private bool _lastIsTen;
         private bool _lastSaved = true;
         private IReadOnlyList<GachaPullEntry> _entries;
@@ -105,26 +108,35 @@ namespace BunDauPeo.UI
             return ok;
         }
 
-        private void PullSingle() => TryPull(() => _gacha.PullSingle(_banner.Id), isTen: false);
+        private void PullSingle() => TryPull(() => _gacha.PullSingleAsync(_banner.Id), isTen: false);
 
-        private void PullTen() => TryPull(() => _gacha.PullTen(_banner.Id), isTen: true);
+        private void PullTen() => TryPull(() => _gacha.PullTenAsync(_banner.Id), isTen: true);
 
-        private void TryPull(Func<GachaPullResult> pull, bool isTen)
+        private async void TryPull(Func<Task<GachaPullResult>> pull, bool isTen)
         {
+            // Một lệnh mỗi lúc: bấm lần hai trong lúc chờ server không gửi gì.
+            if (_pulling) return;
+            _pulling = true;
+            _busy = true;
+            Redraw();
             GachaPullResult result;
             try
             {
-                result = pull();
+                result = await pull();
             }
             catch (Exception e)
             {
-                // Roll chạy trước khi trừ tiền nên chưa có gì đổi; mở lại nút thay vì khoá vĩnh viễn.
+                // Server lỗi thì chưa có gì đổi; mở lại nút thay vì khoá vĩnh viễn.
                 Debug.LogException(e, this);
+                _pulling = false;
                 _busy = false;
-                Redraw();
+                if (_subscribed) Redraw();
                 return;
             }
 
+            _pulling = false;
+            // Panel bị tắt trong lúc chờ: state đã áp, không còn gì để vẽ.
+            if (this == null || !_subscribed) return;
             StartPull(result, isTen);
         }
 

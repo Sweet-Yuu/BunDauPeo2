@@ -24,8 +24,10 @@ namespace BunDauPeo.UI
         private static Text _title;
         private static Text _body;
         private static Text _buttonLabel;
+        private static GameObject _button;
         private static Action _action;
         private static IGameStarter _watched;
+        private static CommandGate _gate;
         // Hộp đang chờ Thử lại một lệnh (Reset, Xoá tài khoản): sự kiện đẩy save chung không được đổi nút hay đóng hộp.
         private static bool _forCommand;
 
@@ -37,7 +39,9 @@ namespace BunDauPeo.UI
             _dim = null;
             _action = null;
             _watched = null;
+            _gate = null;
             _forCommand = false;
+            _button = null;
         }
 
         public static bool IsShown => _dim != null && _dim.activeSelf;
@@ -50,6 +54,9 @@ namespace BunDauPeo.UI
             Show("online.lost_title", "online.lost_body", "online.retry", retry);
             _forCommand = true;
         }
+
+        // Máy dưới MinProtocolVersion: không có nút vì không có đường đi tiếp (spec con 7.2).
+        public static void ShowTooOld() => Show("online.too_old_title", "online.too_old_body", null, null);
 
         public static void ShowOtherDevice(Action toTitle) => Show("online.other_device_title", "online.other_device_body", "online.to_title", toTitle);
 
@@ -68,11 +75,53 @@ namespace BunDauPeo.UI
             {
                 _watched.ConnectionProblem -= OnProblem;
                 _watched.ConnectionRestored -= OnRestored;
+                _watched.NoState -= ToTitle;
             }
 
             _watched = starter;
             starter.ConnectionProblem += OnProblem;
             starter.ConnectionRestored += OnRestored;
+            starter.NoState += ToTitle;
+        }
+
+        // Cổng lệnh sống suốt app: lệnh mất kết nối, máy khác, bản cũ đều hiện hộp từ đây.
+        public static void Watch(CommandGate gate)
+        {
+            if (gate == null || gate == _gate) return;
+            if (_gate != null)
+            {
+                _gate.Lost -= OnCommandLost;
+                _gate.OtherDevice -= OnCommandOtherDevice;
+                _gate.TooOld -= OnCommandTooOld;
+            }
+
+            _gate = gate;
+            gate.Lost += OnCommandLost;
+            gate.OtherDevice += OnCommandOtherDevice;
+            gate.TooOld += OnCommandTooOld;
+        }
+
+        private static void OnCommandLost(Action retry) => ShowLost(() =>
+        {
+            Hide();
+            retry();
+        });
+
+        private static void OnCommandOtherDevice() => ShowOtherDevice(ToTitle);
+
+        private static void OnCommandTooOld()
+        {
+            // Đẩy save tiếp cũng chỉ bị từ chối; dừng cho khỏi gửi vô ích.
+            try
+            {
+                ServiceLocator.Get<CloudSync>().Stop();
+            }
+            catch (InvalidOperationException)
+            {
+                // Chưa có session (hộp hiện ở Tiêu đề): không có gì để dừng.
+            }
+
+            ShowTooOld();
         }
 
         private static void OnProblem(OnlineStatus status)
@@ -100,7 +149,11 @@ namespace BunDauPeo.UI
             Build();
             _title.text = UiText.Get(titleKey);
             _body.text = UiText.Get(bodyKey);
-            _buttonLabel.text = UiText.Get(buttonKey);
+            // Hộp không nút (Cần cập nhật) dùng cả phần dưới cho chữ: bản tiếng Anh dài hơn hai dòng.
+            _button.SetActive(buttonKey != null);
+            if (buttonKey != null) _buttonLabel.text = UiText.Get(buttonKey);
+            _body.rectTransform.sizeDelta = new Vector2(820, buttonKey != null ? 140 : 240);
+            _body.rectTransform.anchoredPosition = new Vector2(0, buttonKey != null ? -195 : -245);
             _action = action;
             _forCommand = false;
             _dim.SetActive(true);
@@ -146,6 +199,7 @@ namespace BunDauPeo.UI
             var click = button.gameObject.AddComponent<Button>();
             click.targetGraphic = image;
             click.onClick.AddListener(OnButton);
+            _button = button.gameObject;
             _buttonLabel = NewText("Label", button, font, 40, Color.white, center, Vector2.zero, ButtonSize);
 
             _dim.SetActive(false);

@@ -15,7 +15,18 @@ namespace BunDauPeo.UI
 
             var anyOpen = false;
             var union = ResourceSlots.None;
-            if (openPages != null)
+            if (openPages is List<IHubPage> list)
+            {
+                // Danh sách có sẵn của HubNav: duyệt theo chỉ số, foreach qua IEnumerable sẽ tạo enumerator mỗi khung.
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var page = list[i];
+                    if (page == null || !page.IsOpen) continue;
+                    anyOpen = true;
+                    if (page is IResourcePage resourcePage) union |= resourcePage.Slots;
+                }
+            }
+            else if (openPages != null)
             {
                 foreach (var page in openPages)
                 {

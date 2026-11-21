@@ -18,7 +18,7 @@ namespace BunDauPeo.Tests
             var catalog = TestData.Catalog(owned);
             var roster = new Roster(_save, catalog);
             foreach (var hero in owned) roster.Add(hero.Id);
-            _stars = new StarService(_save, roster, catalog, ScriptableObject.CreateInstance<StarConfig>(), () => true);
+            _stars = ServerRig.IdleStars(_save, roster, catalog, ScriptableObject.CreateInstance<StarConfig>());
             return roster;
         }
 

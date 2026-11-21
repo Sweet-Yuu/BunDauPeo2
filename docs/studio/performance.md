@@ -38,4 +38,5 @@ Máy chuẩn: Android tầm trung, RAM 3–4 GB.
 
 | Ngày | Bản / màn | Dung lượng | Khung (ms) | GC/khung | Bộ nhớ | Ghi chú |
 |---|---|---|---|---|---|---|
-| | | | | | | chưa đo lần nào |
+| 2026-11-18 | `feature/online-2` sau O2-d, Editor batch (`GcMeasureTests`, `ProfilerRecorder` "GC Allocated In Frame", 300 khung) | chưa đo | chưa đo | Restaurant 570–667 B, Bản đồ màn 812–892 B, Trận AUTO 612–692 B (khung trống của Editor: 742–822 B; hai lần chạy) | chưa đo | Máy dev Windows, không phải máy chuẩn. Trước sửa: Restaurant 1371, Bản đồ 1596, Trận 1092 B. Phần của code giờ ≈ 0 B ở ba màn; còn lại là nền Editor. Chưa đo trên Android thật (cần điện thoại). |
+| | | | | | | (hàng trên là lần đo đầu) |

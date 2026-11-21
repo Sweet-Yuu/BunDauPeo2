@@ -177,6 +177,8 @@ Một `PlayerSave` trong bộ nhớ như hiện nay (code game ít đổi), như
 
 ### 5.5 Đẩy phần "máy giữ" lên server (đợt 1)
 
+> Cập nhật đợt 2 (2026-11-17): so `SaveRevision` đã được thay bằng **mã phiên** (`ActiveSessionId` trong khoá `state`): xem [spec con](2026-11-16-online-2-design.md) mục 3 và 5. Hai máy trùng `SaveRevision` không còn bị nhận nhầm.
+
 > Sửa sau review (2026-11-15): server từ chối vì xung đột ngay sau một lượt đẩy lỗi hoặc hết giờ thì tải lại bản trên server và so `SaveRevision`; bản đó là lượt đẩy trước của chính máy này thì cập nhật write lock rồi đẩy lại, chỉ khác máy mới báo `OtherDevice`. Giới hạn: hai máy cùng tài khoản trùng `SaveRevision` vẫn bị nhận nhầm, đợt 3 so thêm ID phiên.
 
 - `GameSession.Persist()` giữ nguyên chữ ký `bool`: ghi bản đệm (như cũ), đánh dấu `save` "bẩn", trả kết quả ghi bản đệm. `CloudSync` (Online) đẩy khoá `save` khi bẩn: **gộp lượt**, tối đa một lần mỗi **5 giây**, và đẩy ngay khi app vào nền (`OnApplicationPause(true)`) hay thoát.
@@ -190,6 +192,8 @@ Một `PlayerSave` trong bộ nhớ như hiện nay (code game ít đổi), như
 - `StaminaService` (`utcNow`), `AfkService`, `RestaurantService` (`IClock`) nhận đồng hồ này thay giờ máy. Đợt 2 server tự tính thể lực bằng giờ của nó; giờ trên máy chỉ để hiện.
 
 ### 5.7 Logic server (đợt 2)
+
+> Cập nhật đợt 2 (2026-11-17): mỗi lệnh game chặn cả màn bằng màn chờ (0,5 giây hiện "Đang gửi…", 10 giây → hộp Mất kết nối, Thử lại không trừ hai lần): xem [spec con](2026-11-16-online-2-design.md) mục 7.1.
 
 Lệnh của module (mỗi lệnh đọc `state`, chạy `ServerHandlers`, ghi `state` một lần, trả kết quả + `ServerState` mới + giờ server):
 

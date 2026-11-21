@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -16,8 +19,8 @@ namespace BunDauPeo.Tests
         private Roster _roster;
         private StarConfig _config;
         private int _changed;
-        private int _persistCalls;
-        private bool _persistResult;
+        private int _applyCalls;
+        private bool _applyResult;
 
         [SetUp]
         public void SetUp()
@@ -32,8 +35,8 @@ namespace BunDauPeo.Tests
             _roster.Add("a");
             _roster.Add("b");
             _config = ScriptableObject.CreateInstance<StarConfig>();
-            _persistResult = true;
-            _persistCalls = 0;
+            _applyResult = true;
+            _applyCalls = 0;
             _changed = 0;
             _roster.Changed += () => _changed++;
         }
@@ -51,12 +54,16 @@ namespace BunDauPeo.Tests
             return character;
         }
 
-        // Tạo sau khi test đã sửa config: IsConfigValid chỉ tính một lần ở constructor.
-        private StarService Service() => new StarService(_save, _roster, _catalog, _config, () =>
+        // Tạo sau khi test đã sửa config: IsConfigValid chỉ tính một lần ở constructor. Chỉ cho ca đọc: lệnh ghi dùng MakeAsync.
+        private StarService Service() => ServerRig.IdleStars(_save, _roster, _catalog, _config);
+
+        private bool Apply(ServerState state)
         {
-            _persistCalls++;
-            return _persistResult;
-        });
+            _applyCalls++;
+            ServerStateApplier.Apply(_save, state);
+            _roster.NotifyChanged();
+            return _applyResult;
+        }
 
         private void Give(string id, long fragments)
         {
@@ -69,18 +76,6 @@ namespace BunDauPeo.Tests
         private void BreakCosts() => typeof(StarConfig)
             .GetField("_costs", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(_config, null);
 
-        // Từ chối thì save (mảnh, StarUps), Changed và persist đều không đổi.
-        private void AssertRejected(string id, StarUpStatus expected, int expectedStars)
-        {
-            var before = JsonUtility.ToJson(_save);
-            var service = Service();
-            var result = service.TryStarUp(id);
-            Assert.AreEqual(expected, result.Status);
-            Assert.AreEqual(expectedStars, result.StarsAfter);
-            Assert.AreEqual(before, JsonUtility.ToJson(_save));
-            Assert.AreEqual(0, _changed);
-            Assert.AreEqual(0, _persistCalls);
-        }
 
         [Test]
         public void GetStars_NoEntry_IsStartingStars()
@@ -135,115 +130,187 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, service.GetNextCost("ghost"));
         }
 
-        [Test]
-        public void TryStarUp_Success_SpendsCostAddsStarSavesOnce()
+        private static GameData Data()
         {
-            Give("a", 3);
-            var result = Service().TryStarUp("a");
+            var data = new GameData { MaxStars = 5, MaxTeamSize = 5, StarCosts = new List<int> { 2, 4, 6, 8 } };
+            data.Characters.Add(new CharacterData { Id = "a", Rarity = 0, BaseStars = 1 });
+            data.Characters.Add(new CharacterData { Id = "b", Rarity = 1, BaseStars = 2 });
+            data.Characters.Add(new CharacterData { Id = "c", Rarity = 0, BaseStars = 1 });
+            return data;
+        }
+
+        // Server giữ a, b (+ mảnh/sao đã seed); máy khớp server như lúc mở app. Tạo service sau khi test sửa config.
+        private async Task<(ServerRig Rig, StarService Service)> MakeAsync(long fragmentsOfA = 0, int starUpsOfA = 0,
+            params string[] extraOwned)
+        {
+            var rig = await ServerRig.CreateAsync(Data(), s =>
+            {
+                s.OwnedCharacterIds.AddRange(new[] { "a", "b" });
+                s.OwnedCharacterIds.AddRange(extraOwned);
+                if (fragmentsOfA > 0) s.Fragments.Add(new FragmentCount { CharacterId = "a", Count = fragmentsOfA });
+                if (starUpsOfA > 0) s.StarUps.Add(new StarUpEntry { CharacterId = "a", Count = starUpsOfA });
+            });
+            rig.ApplyTo(_save);
+            _changed = 0;
+            return (rig, new StarService(_save, _roster, _catalog, _config, rig.Server, rig.Gate, Apply));
+        }
+
+        // Từ chối ở máy thì không gửi lệnh nào, save và Changed không đổi.
+        private async Task AssertRejectedLocallyAsync(ServerRig rig, StarService service, string id, StarUpStatus expected, int expectedStars)
+        {
+            var before = JsonUtility.ToJson(_save);
+            var result = await service.TryStarUpAsync(id);
+            Assert.AreEqual(expected, result.Status);
+            Assert.AreEqual(expectedStars, result.StarsAfter);
+            Assert.AreEqual(before, JsonUtility.ToJson(_save));
+            Assert.AreEqual(0, _changed);
+            Assert.AreEqual(0, _applyCalls);
+            Assert.AreEqual(0, rig.Server.CommandCalls, "nothing was sent to the server");
+        }
+
+        [Test]
+        public async Task StarUpAsync_Ok_Applies()
+        {
+            var (rig, service) = await MakeAsync(fragmentsOfA: 3);
+
+            var result = await service.TryStarUpAsync("a");
 
             Assert.AreEqual(StarUpStatus.Success, result.Status);
             Assert.AreEqual(2, result.StarsAfter);
             Assert.IsTrue(result.Saved);
             Assert.AreEqual(1, _roster.GetFragments("a"));
             Assert.AreEqual(1, _save.StarUps.Count);
-            Assert.AreEqual("a", _save.StarUps[0].CharacterId);
             Assert.AreEqual(1, _save.StarUps[0].Count);
-            Assert.AreEqual(1, _changed);
-            Assert.AreEqual(1, _persistCalls);
+            Assert.GreaterOrEqual(_changed, 1);
+            Assert.AreEqual(1, _applyCalls);
+            Assert.AreEqual(1, rig.Server.State.StarUps[0].Count, "device and server agree");
         }
 
         [Test]
-        public void TryStarUp_InvalidConfig_ChangesNothing()
+        public async Task StarUpAsync_NotEnoughFragments_NoServerCall()
         {
-            Give("a", 5);
-            BreakCosts();
-            AssertRejected("a", StarUpStatus.InvalidConfig, 1);
-            Assert.AreEqual(0, Service().GetNextCost("a"));
+            var (rig, service) = await MakeAsync(fragmentsOfA: 1);
+            await AssertRejectedLocallyAsync(rig, service, "a", StarUpStatus.NotEnoughFragments, 1);
         }
 
         [Test]
-        public void TryStarUp_StartingStarsBelowOne_RejectedNotFree()
+        public async Task StarUpAsync_InvalidConfig_NoServerCall()
+        {
+            BreakCosts();
+            var (rig, service) = await MakeAsync(fragmentsOfA: 5);
+            await AssertRejectedLocallyAsync(rig, service, "a", StarUpStatus.InvalidConfig, 1);
+            Assert.AreEqual(0, service.GetNextCost("a"));
+        }
+
+        [Test]
+        public async Task StarUpAsync_StartingStarsBelowOne_RejectedNotFree()
         {
             // SO chưa chạy Setup Project có _stars = 0: giá bậc kế bằng 0, không được nâng miễn phí.
             TestData.Edit(_a, so => so.FindProperty("_stars").intValue = 0);
-            Give("a", 5);
-            AssertRejected("a", StarUpStatus.InvalidConfig, 0);
+            var (rig, service) = await MakeAsync(fragmentsOfA: 5);
+            await AssertRejectedLocallyAsync(rig, service, "a", StarUpStatus.InvalidConfig, 0);
             Assert.AreEqual(5, _roster.GetFragments("a"));
         }
 
         [Test]
-        public void TryStarUp_UnknownId_ChangesNothing()
+        public async Task StarUpAsync_UnknownId_NoServerCall()
         {
-            Give("a", 5);
-            AssertRejected("ghost", StarUpStatus.Unknown, 0);
+            var (rig, service) = await MakeAsync(fragmentsOfA: 5);
+            await AssertRejectedLocallyAsync(rig, service, "ghost", StarUpStatus.Unknown, 0);
         }
 
         [Test]
-        public void TryStarUp_NotOwned_ChangesNothing()
+        public async Task StarUpAsync_NotOwned_NoServerCall()
         {
+            var (rig, service) = await MakeAsync();
             // Mảnh được ghi thẳng vào save để chỉ còn bước kiểm sở hữu chặn lại.
             _save.Fragments.Add(new FragmentCount { CharacterId = "c", Count = 10 });
-            AssertRejected("c", StarUpStatus.NotOwned, 1);
+            await AssertRejectedLocallyAsync(rig, service, "c", StarUpStatus.NotOwned, 1);
         }
 
         [Test]
-        public void TryStarUp_AtFiveStars_ChangesNothing()
+        public async Task StarUpAsync_AtFiveStars_NoServerCall()
         {
-            Give("a", 20);
-            SetStarUps("a", 4);
-            AssertRejected("a", StarUpStatus.MaxStars, 5);
+            var (rig, service) = await MakeAsync(fragmentsOfA: 20, starUpsOfA: 4);
+            await AssertRejectedLocallyAsync(rig, service, "a", StarUpStatus.MaxStars, 5);
         }
 
         [Test]
-        public void TryStarUp_NotEnoughFragments_ChangesNothing()
+        public async Task StarUpAsync_ServerRejects_MapsStatus_NoChange()
         {
-            Give("a", 1);
-            AssertRejected("a", StarUpStatus.NotEnoughFragments, 1);
+            // Máy tưởng có 3 mảnh nhưng server không có: server là bản chính.
+            var (rig, service) = await MakeAsync();
+            _save.Fragments.Add(new FragmentCount { CharacterId = "a", Count = 3 });
+            var before = JsonUtility.ToJson(_save);
+
+            var result = await service.TryStarUpAsync("a");
+
+            Assert.AreEqual(1, rig.Server.CommandCalls);
+            Assert.AreEqual(StarUpStatus.NotEnoughFragments, result.Status);
+            Assert.AreEqual(before, JsonUtility.ToJson(_save));
+            Assert.AreEqual(0, _applyCalls);
         }
 
         [Test]
-        public void TryStarUp_FromOneToFive_CostsTwentyThenMaxStars()
+        public async Task StarUpAsync_Offline_NoChange()
         {
-            Give("a", 20);
-            var service = Service();
+            var (rig, service) = await MakeAsync(fragmentsOfA: 3);
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+            var before = JsonUtility.ToJson(_save);
+
+            var result = await service.TryStarUpAsync("a");
+
+            Assert.AreEqual(StarUpStatus.Offline, result.Status);
+            Assert.AreEqual(before, JsonUtility.ToJson(_save));
+            Assert.AreEqual(0, _applyCalls);
+            Assert.AreEqual(3, rig.Server.State.Fragments[0].Count, "the failed command wrote nothing");
+        }
+
+        [Test]
+        public async Task StarUpAsync_LostReplyThenRetry_SpendsOnce()
+        {
+            var (rig, service) = await MakeAsync(fragmentsOfA: 5);
+            rig.Gate.Lost += retry => retry();
+            rig.Server.LoseNextReply();
+
+            var result = await service.TryStarUpAsync("a");
+
+            Assert.AreEqual(StarUpStatus.Success, result.Status);
+            Assert.AreEqual(2, result.StarsAfter);
+            Assert.AreEqual(3, _roster.GetFragments("a"), "charged 2 once, not 4");
+            Assert.AreEqual(3, rig.Server.State.Fragments[0].Count);
+        }
+
+        [Test]
+        public async Task StarUpAsync_FromOneToFive_CostsTwentyThenMaxStars()
+        {
+            var (_, service) = await MakeAsync(fragmentsOfA: 20);
             for (var expected = 2; expected <= 5; expected++)
             {
-                var result = service.TryStarUp("a");
+                var result = await service.TryStarUpAsync("a");
                 Assert.AreEqual(StarUpStatus.Success, result.Status, $"to {expected}★");
                 Assert.AreEqual(expected, result.StarsAfter);
             }
 
-            Assert.AreEqual(StarUpStatus.MaxStars, service.TryStarUp("a").Status);
+            Assert.AreEqual(StarUpStatus.MaxStars, (await service.TryStarUpAsync("a")).Status);
             Assert.AreEqual(0, _roster.GetFragments("a"));
             Assert.AreEqual(4, _save.StarUps[0].Count);
         }
 
         [Test]
-        public void TryStarUp_PersistFails_SavedFalseButApplied()
+        public async Task StarUpAsync_ApplyReportsNotSaved_SavedFalseButApplied()
         {
-            Give("a", 3);
-            _persistResult = false;
-            var result = Service().TryStarUp("a");
+            _applyResult = false;
+            var (_, service) = await MakeAsync(fragmentsOfA: 3);
+
+            var result = await service.TryStarUpAsync("a");
 
             Assert.AreEqual(StarUpStatus.Success, result.Status);
             Assert.IsFalse(result.Saved);
             Assert.AreEqual(2, result.StarsAfter);
             Assert.AreEqual(1, _roster.GetFragments("a"));
-            Assert.AreEqual(1, _persistCalls);
         }
 
-        [Test]
-        public void TryStarUp_NegativeCountEntry_ResetsToOne()
-        {
-            SetStarUps("a", -2);
-            Give("a", 2);
-            var result = Service().TryStarUp("a");
-
-            Assert.AreEqual(StarUpStatus.Success, result.Status);
-            Assert.AreEqual(2, result.StarsAfter);
-            Assert.AreEqual(1, _save.StarUps.Count);
-            Assert.AreEqual(1, _save.StarUps[0].Count);
-        }
 
         [Test]
         public void GetCombatStats_ScalesHpAttackDefenseNotSpeed()

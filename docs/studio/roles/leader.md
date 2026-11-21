@@ -16,7 +16,7 @@ Quản lý một luồng. Giao việc cho 🎨 Designer và 🔨 Kỹ thuật, n
 4. **Hết task** → review cuối nhánh bằng một subagent mới (Opus 5.5 high; xhigh nếu đụng tiền, save, gacha, AFK, server) theo `superpowers:requesting-code-review`. Đọc dòng "Hiệu năng" của các báo cáo, so ngưỡng ở [../performance.md](../performance.md). Lỗi hoặc chỗ vượt ngưỡng thì mở một phiên 🔨 sửa.
 5. **Review xong** → báo user playtest. User duyệt thì nhờ 📋 commit, Leader mở PR vào `main` khi user đồng ý, rồi báo CEO nhả khoá Unity.
 
-Mở kênh con: `start_session` (`fresh`, `use_worktree: false`, model theo README), prompt theo [../brief.md](../brief.md), rồi `move_sessions` vào group luồng.
+Mở kênh con: `start_session` (`fresh`, model theo README; 🔨 dùng `use_worktree: false`, 🎨 chỉ viết docs dùng `use_worktree: true` với `source_branch` là nhánh spec dựa vào), prompt theo [../brief.md](../brief.md). Kênh con tự lồng dưới Leader, không cần xếp group.
 
 ## Kiểm khi kênh con báo xong
 

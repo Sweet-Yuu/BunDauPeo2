@@ -5,6 +5,7 @@ using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using BunDauPeo.Restaurant;
+using BunDauPeo.Rules;
 using UnityEngine;
 
 namespace BunDauPeo.Boot
@@ -22,18 +23,21 @@ namespace BunDauPeo.Boot
         private readonly RestaurantConfig _restaurantConfig;
         private readonly CombatConfig _combatConfig;
         private readonly StarConfig _starConfig;
+        private readonly GameData _data;
+        private readonly CommandGate _gate = new(CommandGate.RealtimeDelay);
         private readonly GameObject _host;
 
         private bool _signedIn;
         private bool _bootstrapped;
         private bool _saveLoaded;
         private PlayerSave _serverSave;
+        private BootstrapResponse _bootstrap;
         private Task<OnlineStatus> _running;
         private RestaurantRunner _runner;
 
         public OnlineStartup(IGameServer server, ServerTime time, string savePath, CharacterCatalog catalog,
             NewGameConfig newGame, GachaBannerCatalog banners, RestaurantConfig restaurantConfig,
-            CombatConfig combatConfig, StarConfig starConfig, GameObject host)
+            CombatConfig combatConfig, StarConfig starConfig, GameData data, GameObject host)
         {
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _time = time ?? throw new ArgumentNullException(nameof(time));
@@ -44,16 +48,21 @@ namespace BunDauPeo.Boot
             _restaurantConfig = restaurantConfig;
             _combatConfig = combatConfig;
             _starConfig = starConfig;
+            // Cổng sống suốt app nên nối một lần ở đây: lệnh game báo state mất cũng về Tiêu đề, như đẩy save.
+            _gate.NoState += () => NoState.SafeInvoke();
+            _data = data ?? throw new ArgumentNullException(nameof(data));
             _host = host != null ? host : throw new ArgumentNullException(nameof(host));
         }
 
         public GameSession Session { get; private set; }
         public RestaurantService Restaurant { get; private set; }
         public CloudSync Sync { get; private set; }
+        public CommandGate Gate => _gate;
         public bool IsStarted => Session != null;
 
         public event Action<OnlineStatus> ConnectionProblem;
         public event Action ConnectionRestored;
+        public event Action NoState;
 
         // Ba service sống qua Shutdown: Tiêu đề cần chúng để dựng lại session.
         public void RegisterBase()
@@ -61,6 +70,8 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register<IGameStarter>(this);
             ServiceLocator.Register(_server);
             ServiceLocator.Register(_time);
+            ServiceLocator.Register(_data);
+            ServiceLocator.Register(_gate);
         }
 
         public Task<OnlineStatus> StartAsync()
@@ -73,10 +84,13 @@ namespace BunDauPeo.Boot
         // Đăng nhập giữ nguyên (cùng người chơi); Bootstrap và tải save chạy lại để lấy bản mới trên server.
         public void Shutdown()
         {
+            // Lệnh đang chờ Thử lại thuộc phiên cũ: nhả cổng, không thì Busy kẹt sang phiên sau.
+            _gate.Abort();
             TearDownGame();
             _bootstrapped = false;
             _saveLoaded = false;
             _serverSave = null;
+            _bootstrap = null;
         }
 
         private void TearDownGame()
@@ -129,7 +143,18 @@ namespace BunDauPeo.Boot
             {
                 var boot = await _server.BootstrapAsync();
                 if (!boot.Ok) return boot.Status;
+                if (boot.Value.State == null)
+                {
+                    Debug.LogError($"{nameof(OnlineStartup)}: bootstrap returned no state, game not started");
+                    return OnlineStatus.ServerError;
+                }
+
                 _time.Sync(boot.Value.ServerUtcTicks);
+                var expected = DataHash.Of(GameDataBuilder.ToJson(_data));
+                // Không chặn: server khác bản dữ liệu chỉ lệch số liệu, còn lệnh vẫn chạy đúng luật của server.
+                if (boot.Value.DataHash != expected)
+                    Debug.LogWarning($"{nameof(OnlineStartup)}: server data hash {boot.Value.DataHash} differs from this build {expected}");
+                _bootstrap = boot.Value;
                 _bootstrapped = true;
             }
 
@@ -188,6 +213,10 @@ namespace BunDauPeo.Boot
         private void Build()
         {
             var session = new GameSession(new SaveService(_savePath), _catalog, _newGame, _serverSave);
+            // Server là bản chính của Gem, nhân vật, mảnh… (spec con 4.3); save đợt 1 còn đội/nhân viên/avatar trỏ tới nhân vật server không biết.
+            session.ApplyServerState(_bootstrap.State);
+            var pruned = ServerStateApplier.PruneUnowned(session.Save);
+            if (pruned) session.Persist();
             ServiceLocator.Register(session.Wallet);
             ServiceLocator.Register(session.Roster);
             session.ApplyLanguage();
@@ -195,8 +224,9 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(new RestaurantBarPref(() => session.Save.RestaurantBarOpen, session.SetRestaurantBarOpen));
             ServiceLocator.Register(new PlayerProfile(() => session.Save.PlayerName, () => session.Save.AvatarCharacterId,
                 session.SetPlayerName, session.SetAvatar));
-            ServiceLocator.Register(new GachaService(session.Save, session.Wallet, session.Roster, _catalog,
-                _banners, new System.Random(), session.Persist));
+            ServiceLocator.Register(new DevCommands(_server, _gate, session.ApplyServerState));
+            ServiceLocator.Register(new GachaService(session.Save, session.Wallet, _catalog, _banners,
+                _server, _gate, session.ApplyServerState));
 
             var restaurant = new RestaurantService(_restaurantConfig, session.Save, session.Wallet, session.Roster,
                 new System.Random(), new ServerClock(_time), session.Persist);
@@ -205,22 +235,29 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(restaurant);
             session.ResetCompleted += restaurant.ResetRuntime;
 
-            var stars = new StarService(session.Save, session.Roster, _catalog, _starConfig, session.Persist);
+            var stars = new StarService(session.Save, session.Roster, _catalog, _starConfig,
+                _server, _gate, session.ApplyServerState);
             ServiceLocator.Register(stars);
 
             var stamina = new StaminaService(session.Save, _combatConfig, () => _time.UtcNow);
-            var progress = new StageProgressService(session.Save, session.Wallet, _combatConfig.Stages, stamina, session.Persist);
-            var combat = new CombatService(_combatConfig, session.Roster, stars, stamina, progress, new System.Random(), session.Persist);
+            var progress = new StageProgressService(session.Save, session.Wallet, _combatConfig.Stages, stamina,
+                _server, _gate, session.ApplyServerState);
+            var combat = new CombatService(_combatConfig, session.Roster, stars, stamina, progress, new System.Random(),
+                session.Persist, _server, _gate, session.ApplyServerState);
             ServiceLocator.Register(combat);
             session.ResetCompleted += combat.ResetRuntime;
 
-            var sync = new CloudSync(_server, () => JsonUtility.ToJson(session.Save), () => session.Save.SaveRevision++);
+            var sessionId = _bootstrap.SessionId;
+            var sync = new CloudSync(_server, () => ServerStateApplier.ToUploadJson(session.Save), () => session.Save.SaveRevision++,
+                () => sessionId);
             session.Persisted += sync.MarkDirty;
             // Game mới đã ghi bản đệm trong constructor, trước khi có người nghe Persisted: tự đánh dấu để server có save.
-            if (session.IsNewGame) sync.MarkDirty();
+            if (session.IsNewGame || pruned) sync.MarkDirty();
             sync.Lost += () => ConnectionProblem.SafeInvoke(OnlineStatus.NetworkError);
             sync.Restored += () => ConnectionRestored.SafeInvoke();
             sync.OtherDevice += () => ConnectionProblem.SafeInvoke(OnlineStatus.OtherDevice);
+            sync.NoState += () => NoState.SafeInvoke();
+
             // Hộp Mất kết nối: Thử lại đẩy ngay qua đây.
             ServiceLocator.Register(sync);
             ServiceLocator.Register(new GameResetter(() => session.ResetToDefaultsAsync(_server, sync)));

@@ -70,6 +70,10 @@ namespace BunDauPeo.UI
         private float _bannerLeft;
         private Text _speedLabel;
         private Text[] _cellLabels;
+        private string[] _cellNames;
+        private readonly List<BattleUnit> _order = new();
+        private int _shownWaveLabel = -1, _shownWaveCount = -1;
+        private bool _shownFast;
 
         public static float ActionSeconds(bool fast) => fast ? 0.3f : 0.6f;
 
@@ -111,6 +115,7 @@ namespace BunDauPeo.UI
             Listen(_speedButton, OnSpeedClicked);
             _speedLabel = _speedButton.GetComponentInChildren<Text>(true);
             _cellLabels = System.Array.ConvertAll(_turnCells, c => c.GetComponentInChildren<Text>(true));
+            _cellNames = new string[_turnCells.Length];
             // Chạm quái hoặc người phe ta đặt mục tiêu (đồng minh cho chiêu hồi máu). Đọc Unit lúc chạm vì hình được dùng lại giữa các đợt.
             foreach (var view in _enemies) Listen(view.Button, () => _panel.ChooseEnemy(view.Unit));
             foreach (var view in _allies) Listen(view.Button, () => _panel.ChooseAlly(view.Unit));
@@ -200,9 +205,16 @@ namespace BunDauPeo.UI
 
         private void RefreshTopBar(BattleSession session, float dt)
         {
-            _waveText.text = CombatViewText.WaveLabel(_shownWave + 1, session.WaveCount);
+            // Mọi chuỗi chỉ gán khi đổi: Update chạy mỗi khung, không được tạo chuỗi hay danh sách mới (performance.md).
+            if (_shownWaveLabel != _shownWave || _shownWaveCount != session.WaveCount)
+            {
+                _shownWaveLabel = _shownWave;
+                _shownWaveCount = session.WaveCount;
+                _waveText.text = CombatViewText.WaveLabel(_shownWave + 1, session.WaveCount);
+            }
 
-            var order = session.RemainingOrder;
+            session.CopyRemainingOrder(_order);
+            var order = _order;
             for (var i = 0; i < _turnCells.Length; i++)
             {
                 var cell = _turnCells[i];
@@ -212,11 +224,17 @@ namespace BunDauPeo.UI
                 var baseColor = order[i].IsAlly ? AllyCell : EnemyCell;
                 cell.color = i == 0 ? Color.Lerp(baseColor, Color.white, 0.6f) : new Color(baseColor.r, baseColor.g, baseColor.b, 0.7f);
                 var name = order[i].DisplayName;
+                if (ReferenceEquals(_cellNames[i], name)) continue;
+                _cellNames[i] = name;
                 _cellLabels[i].text = string.IsNullOrEmpty(name) ? "" : name.Substring(0, 1);
             }
 
             ((Image)_autoButton.targetGraphic).color = _service.AutoEnabled ? AutoOn : AutoOff;
-            _speedLabel.text = CombatViewText.SpeedLabel(_service.FastEnabled);
+            if (_shownFast != _service.FastEnabled)
+            {
+                _shownFast = _service.FastEnabled;
+                _speedLabel.text = CombatViewText.SpeedLabel(_shownFast);
+            }
 
             if (_bannerLeft > 0f)
             {

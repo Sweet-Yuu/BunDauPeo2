@@ -1,10 +1,12 @@
 using System;
+using System.Threading.Tasks;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 
 namespace BunDauPeo.Characters
 {
     // Giá trị ghim vì có thể đi vào test và log; chỉ thêm ở cuối.
-    public enum StarUpStatus { Success, InvalidConfig, Unknown, NotOwned, MaxStars, NotEnoughFragments }
+    public enum StarUpStatus { Success, InvalidConfig, Unknown, NotOwned, MaxStars, NotEnoughFragments, Offline }
 
     public struct StarUpResult
     {
@@ -20,17 +22,23 @@ namespace BunDauPeo.Characters
         private readonly Roster _roster;
         private readonly CharacterCatalog _catalog;
         private readonly StarConfig _config;
-        private readonly Func<bool> _persist;
+        private readonly IGameServer _server;
+        private readonly CommandGate _gate;
+        private readonly Func<ServerState, bool> _apply;
 
         public bool IsConfigValid { get; }
 
-        public StarService(PlayerSave save, Roster roster, CharacterCatalog catalog, StarConfig config, Func<bool> persist)
+        // apply chép state server vào PlayerSave và báo view; trả false khi lưu bản đệm thất bại.
+        public StarService(PlayerSave save, Roster roster, CharacterCatalog catalog, StarConfig config,
+            IGameServer server, CommandGate gate, Func<ServerState, bool> apply)
         {
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _roster = roster ?? throw new ArgumentNullException(nameof(roster));
             _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _persist = persist ?? throw new ArgumentNullException(nameof(persist));
+            _server = server ?? throw new ArgumentNullException(nameof(server));
+            _gate = gate ?? throw new ArgumentNullException(nameof(gate));
+            _apply = apply ?? throw new ArgumentNullException(nameof(apply));
             IsConfigValid = _config.Validate().Count == 0;
         }
 
@@ -79,8 +87,8 @@ namespace BunDauPeo.Characters
             return stats;
         }
 
-        // Mọi bước từ chối đứng trước bước đổi.
-        public StarUpResult TryStarUp(string id)
+        // Máy kiểm trước để không gửi lệnh thừa; server tính lại và là bản chính.
+        public async Task<StarUpResult> TryStarUpAsync(string id)
         {
             if (!IsConfigValid) return Rejected(StarUpStatus.InvalidConfig, id);
             if (id == null || !_catalog.TryGet(id, out _)) return Rejected(StarUpStatus.Unknown, id);
@@ -92,13 +100,22 @@ namespace BunDauPeo.Characters
             if (cost <= 0) return Rejected(StarUpStatus.InvalidConfig, id);
             if (_roster.GetFragments(id) < cost) return Rejected(StarUpStatus.NotEnoughFragments, id);
 
-            // Đổi sao trước, rồi SpendFragments phát Changed một lần khi cả sao lẫn mảnh đã đổi.
-            var index = FindEntry(id);
-            if (index < 0) _save.StarUps.Add(new StarUpEntry { CharacterId = id, Count = 1 });
-            else _save.StarUps[index] = new StarUpEntry { CharacterId = id, Count = Math.Max(_save.StarUps[index].Count, 0) + 1 };
-            _roster.SpendFragments(id, cost);
+            var result = await _gate.RunAsync(requestId => _server.StarUpAsync(requestId, id));
+            // Lỗi mạng cuối cùng (hộp mạng đã hiện) hoặc phiên hỏng: không đổi gì.
+            if (!result.Ok) return Rejected(StarUpStatus.Offline, id);
 
-            return new StarUpResult { Status = StarUpStatus.Success, StarsAfter = GetStars(id), Saved = _persist() };
+            var response = result.Value;
+            switch ((CommandCode)response.Code)
+            {
+                case CommandCode.Ok:
+                    if (response.State == null) return Rejected(StarUpStatus.Offline, id);
+                    var saved = _apply(response.State);
+                    return new StarUpResult { Status = StarUpStatus.Success, StarsAfter = GetStars(id), Saved = saved };
+                case CommandCode.NotOwned: return Rejected(StarUpStatus.NotOwned, id);
+                case CommandCode.MaxStars: return Rejected(StarUpStatus.MaxStars, id);
+                case CommandCode.NotEnoughFragments: return Rejected(StarUpStatus.NotEnoughFragments, id);
+                default: return Rejected(StarUpStatus.InvalidConfig, id);
+            }
         }
 
         private StarUpResult Rejected(StarUpStatus status, string id) =>

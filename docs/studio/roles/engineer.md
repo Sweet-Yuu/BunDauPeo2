@@ -12,7 +12,7 @@ Làm đúng Task a–b được giao, tự kiểm thử, báo lại. Không comm
 
 - Làm theo `superpowers:executing-plans` (TDD). Tick checkbox ngay khi xong từng task. Cập nhật dòng "Đang làm" của roadmap.
 - Lệnh Unity theo [unity-workflow.md](../../guides/unity-workflow.md); chưa chắc cờ thì đọc `unity <lệnh> -h`.
-- **Cần hình:** không tự vẽ. Dùng placeholder `_PH_` theo kế hoạch; cần hình khác thì nhắn Leader để Leader giao Designer.
+- **Cần hình:** không tự vẽ. Dùng placeholder `_PH_` theo kế hoạch; cần hình khác thì nhắn Leader để Leader giao Designer. Task dựng lại hình hoặc màn theo ảnh tham khảo mới: cất bản cũ vào `_Old/` rồi dựng từ đầu, theo luật trong [designer.md](designer.md) mục "Hình placeholder và thay ảnh".
 - **Subagent song song** khi có 2–3 task độc lập (không chung file, không đụng scene/prefab/asset/ProjectSettings): `superpowers:dispatching-parallel-agents`. Subagent không chạy Unity, không commit. Kênh này đọc diff, chạy `unity test` một lần cho cả đợt, sửa cho xanh.
 - **Tự kiểm thử trước khi báo:** test EditMode/PlayMode xanh đúng số kế hoạch; việc có UI thì chụp màn bằng `PlaytestTools` và xem ảnh.
 - **Hiệu năng:** phiên cuối của PR có scene/UI/asset mới, hoặc phiên có build: đo theo [../performance.md](../performance.md), ghi dòng "Hiệu năng" trong báo cáo.

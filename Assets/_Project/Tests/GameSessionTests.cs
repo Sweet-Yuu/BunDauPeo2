@@ -5,6 +5,7 @@ using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
+using BunDauPeo.Rules;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -39,12 +40,12 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void NewGame_GrantsStarter_AndWritesFile()
+        public void NewGame_GrantsDeviceCurrencyOnly_AndWritesFile()
         {
             var session = new GameSession(_service, _catalog, _config);
             Assert.IsTrue(session.IsNewGame);
             Assert.AreEqual(500, session.Wallet.Get(CurrencyType.Coin));
-            Assert.IsTrue(session.Roster.IsOwned("a"));
+            Assert.IsFalse(session.Roster.IsOwned("a"), "starters come from the server state");
             Assert.IsTrue(File.Exists(_path));
         }
 
@@ -73,13 +74,14 @@ namespace BunDauPeo.Tests
         {
             var session = new GameSession(_service, _catalog, _config);
             session.Wallet.TrySpend(new CurrencyAmount(CurrencyType.Coin, 200));
+            session.Roster.Add("a");
             session.Roster.AddToTeam("a");
 
             Assert.IsTrue(session.ResetToDefaults());
 
             Assert.AreEqual(500, session.Wallet.Get(CurrencyType.Coin));
             CollectionAssert.IsEmpty(session.Roster.GetBattleTeam());
-            Assert.IsTrue(session.Roster.IsOwned("a"));
+            Assert.IsFalse(session.Roster.IsOwned("a"), "the server hands the starter back (ApplyServerState)");
             var reopened = new GameSession(_service, _catalog, _config);
             Assert.IsFalse(reopened.IsNewGame);
             Assert.AreEqual(500, reopened.Wallet.Get(CurrencyType.Coin));
@@ -181,25 +183,14 @@ namespace BunDauPeo.Tests
         [Test]
         public void GachaService_AfterReset_SeesClearedPityAndFragments()
         {
-            // Nhân vật khởi đầu `a` là R duy nhất của banner, nên mọi lượt quay đều là mảnh của `a`.
+            // Pity và mảnh nằm trong save (server giữ, áp vào máy); Reset phải xoá cả hai để service thấy bản mới.
             var session = new GameSession(_service, _catalog, _config);
+            session.Roster.Add("a"); // nhân vật khởi đầu do server cấp
             _catalog.TryGet("a", out var a);
-            var banner = TestData.Banner("b", a);
-            TestData.Edit(banner, so =>
-            {
-                var weights = so.FindProperty("_rarityWeights");
-                weights.FindPropertyRelative("R").floatValue = 100;
-                weights.FindPropertyRelative("SR").floatValue = 0;
-                weights.FindPropertyRelative("SSR").floatValue = 0;
-                so.FindProperty("_ssrPityThreshold").intValue = 0;
-                so.FindProperty("_guaranteeSrInTen").boolValue = false;
-            });
-            session.Wallet.Add(CurrencyType.Gem, 1000);
-            var gacha = new GachaService(session.Save, session.Wallet, session.Roster, _catalog,
-                TestData.GachaCatalog(banner), new ScriptedRandom(), session.Persist);
-
-            gacha.PullSingle("b");
-            gacha.PullSingle("b");
+            session.Roster.AddFragments("a", 2);
+            session.Save.GachaPity.Add(new PityEntry { BannerId = "b", Pulls = 2 });
+            var gacha = new GachaService(session.Save, session.Wallet, _catalog, TestData.GachaCatalog(TestData.Banner("b", a)),
+                new LocalGameServer(), new CommandGate(_ => new System.Threading.Tasks.TaskCompletionSource<bool>().Task), _ => true);
             Assert.AreEqual(2, gacha.GetPity("b"));
             Assert.AreEqual(2, session.Roster.GetFragments("a"));
 
@@ -464,13 +455,69 @@ namespace BunDauPeo.Tests
             Assert.IsFalse(OnlineStartup.TryParseSave("", out _));
         }
 
+        // Gem và nhân vật khởi đầu là của server: game mới và Reset trên máy chỉ cấp phần máy giữ (Coin, Material).
+        [Test]
+        public void ResetToDefaults_NoGemNoStarters()
+        {
+            var a = TestData.Character("a");
+            var config = TestData.Config(new[] { new CurrencyAmount(CurrencyType.Coin, 500), new CurrencyAmount(CurrencyType.Gem, 100) }, a);
+            var session = new GameSession(_service, TestData.Catalog(a), config);
+            Assert.AreEqual(0, session.Wallet.Get(CurrencyType.Gem), "new game: no Gem from the device");
+            Assert.IsFalse(session.Roster.IsOwned("a"), "new game: no starter from the device");
+            Assert.AreEqual(500, session.Wallet.Get(CurrencyType.Coin));
+
+            session.Wallet.Add(CurrencyType.Coin, 9);
+            Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.AreEqual(0, session.Wallet.Get(CurrencyType.Gem));
+            Assert.IsFalse(session.Roster.IsOwned("a"));
+            Assert.AreEqual(500, session.Wallet.Get(CurrencyType.Coin));
+        }
+
+        // Task 8: Reset online lấy game mới từ server (Gem khởi đầu của server, không cộng thêm của máy).
+        [Test]
+        public void ResetAsync_AppliesServerNewGame()
+        {
+            var a = TestData.Character("a");
+            var config = TestData.Config(new[] { new CurrencyAmount(CurrencyType.Coin, 500), new CurrencyAmount(CurrencyType.Gem, 100) }, a);
+            var data = new GameData
+            {
+                NewGame = new NewGameData { StartingGem = 300, StarterCharacterIds = { "a" } },
+                Stamina = new StaminaData { Max = 100, RegenSeconds = 300 },
+            };
+            var server = new LocalGameServer(data);
+            Assert.AreEqual(OnlineStatus.Ok, server.SignInAsync().Result);
+            var boot = server.BootstrapAsync().Result.Value;
+            var session = new GameSession(_service, TestData.Catalog(a), config, null);
+            session.ApplyServerState(boot.State);
+            server.DevAddGemAsync("r1", 50).Wait();
+            var sync = new CloudSync(server, () => ServerStateApplier.ToUploadJson(session.Save), () => session.Save.SaveRevision++,
+                () => boot.SessionId);
+            session.Persisted += sync.MarkDirty;
+            // Máy đang có Gem lệch với server: Reset phải lấy đúng Gem của server.
+            ServerStateApplier.Apply(session.Save, new ServerState { Gem = 400 });
+            var resets = 0;
+            session.ResetCompleted += () => resets++;
+
+            var reset = session.ResetToDefaultsAsync(server, sync);
+
+            Assert.IsTrue(reset.IsCompleted);
+            Assert.AreEqual(OnlineStatus.Ok, reset.Result);
+            Assert.AreEqual(1, resets);
+            Assert.AreEqual(300, session.Wallet.Get(CurrencyType.Gem), "the server's new game, not 300 + the device's 100");
+            Assert.IsTrue(session.Roster.IsOwned("a"), "starter comes from the server state");
+            Assert.AreEqual(500, session.Wallet.Get(CurrencyType.Coin));
+            Assert.AreEqual(300, server.State.Gem);
+        }
+
         // Session như Boot dựng: save trên server, CloudSync nghe Persisted.
         private (GameSession Session, LocalGameServer Server, CloudSync Sync) OnlineSession()
         {
             var server = new LocalGameServer();
             Assert.AreEqual(OnlineStatus.Ok, server.SignInAsync().Result);
             var session = new GameSession(_service, _catalog, _config, null);
-            var sync = new CloudSync(server, () => JsonUtility.ToJson(session.Save), () => session.Save.SaveRevision++);
+            session.Roster.Add("a"); // như bản server đã cấp
+            var sync = new CloudSync(server, () => JsonUtility.ToJson(session.Save), () => session.Save.SaveRevision++, () => "");
             session.Persisted += sync.MarkDirty;
             session.Wallet.Add(CurrencyType.Coin, 5);
             Assert.IsTrue(session.Persist());
@@ -488,11 +535,11 @@ namespace BunDauPeo.Tests
             var resets = 0;
             session.ResetCompleted += () => resets++;
 
-            server.FailNext(OnlineStatus.NetworkError);
+            server.FailNext(OnlineStatus.ServerError);
             var reset = session.ResetToDefaultsAsync(server, sync);
 
             Assert.IsTrue(reset.IsCompleted);
-            Assert.AreEqual(OnlineStatus.NetworkError, reset.Result);
+            Assert.AreEqual(OnlineStatus.ServerError, reset.Result);
             Assert.AreEqual(505, session.Wallet.Get(CurrencyType.Coin), "memory kept");
             Assert.IsTrue(session.Roster.IsOwned("a"));
             Assert.AreEqual(cache, File.ReadAllText(_path), "cache file kept");
@@ -503,6 +550,31 @@ namespace BunDauPeo.Tests
             session.Persist();
             Assert.IsTrue(sync.FlushAsync().IsCompleted);
             Assert.AreEqual(506, new Wallet(JsonUtility.FromJson<PlayerSave>(server.StoredSave)).Get(CurrencyType.Coin), "sync runs again after the failed reset");
+        }
+
+        // Reset xong trên server nhưng mất trả lời: không được đẩy save cũ lên đè dữ liệu vừa Reset; Thử lại Reset xong mới đẩy tiếp.
+        [Test]
+        public void Reset_LostReply_DoesNotPushOldSave_RetryFinishes()
+        {
+            var (session, server, sync) = OnlineSession();
+            session.Wallet.Add(CurrencyType.Coin, 7);
+            session.Persist();
+            var uploads = server.UploadCalls;
+            server.LoseNextResetReply();
+
+            var first = session.ResetToDefaultsAsync(server, sync);
+            session.Wallet.Add(CurrencyType.Coin, 1);
+            session.Persist();
+            sync.Tick(CloudSync.DebounceSeconds + 1f);
+            Assert.IsTrue(sync.FlushAsync().IsCompleted);
+
+            Assert.AreEqual(OnlineStatus.NetworkError, first.Result);
+            Assert.IsNull(server.StoredSave, "the old save did not come back after the server reset");
+            Assert.AreEqual(uploads, server.UploadCalls, "nothing was uploaded while the Reset is unresolved");
+
+            var retry = session.ResetToDefaultsAsync(server, sync);
+            Assert.AreEqual(OnlineStatus.Ok, retry.Result);
+            Assert.AreEqual(500, new Wallet(JsonUtility.FromJson<PlayerSave>(server.StoredSave)).Get(CurrencyType.Coin), "the server holds the new game");
         }
 
         [Test]

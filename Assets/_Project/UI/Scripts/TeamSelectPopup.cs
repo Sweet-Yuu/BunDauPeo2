@@ -252,7 +252,7 @@ namespace BunDauPeo.UI
         }
 
         // EnterStage một lần mỗi lần bấm: nó kiểm lại, trừ thể lực và lưu; chỉ Entered mới nạp Battle.
-        private void Enter()
+        private async void Enter()
         {
             if (_busy || _stage == null) return;
 
@@ -261,16 +261,19 @@ namespace BunDauPeo.UI
             EnterStageResult result;
             try
             {
-                result = _service.EnterStage(_stage.Id);
+                result = await _service.EnterStageAsync(_stage.Id);
             }
-            catch
+            catch (Exception e)
             {
-                // Lưu ném lỗi: thể lực đã được hoàn, bật lại nút rồi để lỗi nổi lên.
+                // Lỗi ngoài ý muốn: bật lại nút, không treo popup.
+                Debug.LogException(e, this);
                 _busy = false;
-                Refresh();
-                throw;
+                if (this != null) Refresh();
+                return;
             }
 
+            // Popup bị tắt trong lúc chờ (Reset, về Tiêu đề): state đã áp, không còn gì để vẽ.
+            if (this == null) return;
             if (result.Status == EnterStageStatus.Entered)
             {
                 SceneManager.LoadScene(BattleView.BattleScene);

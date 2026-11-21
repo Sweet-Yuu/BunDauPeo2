@@ -13,6 +13,9 @@ namespace BunDauPeo.Core
         event Action<OnlineStatus> ConnectionProblem;
         event Action ConnectionRestored;
 
+        // Server không còn state của người chơi (Reset mất trả lời, tài khoản đã xoá): về Tiêu đề dựng lại, không hộp.
+        event Action NoState;
+
         // Chạy tiếp từ bước lỗi lần trước; đã xong thì trả Ok; đang chạy thì trả cùng Task.
         Task<OnlineStatus> StartAsync();
 

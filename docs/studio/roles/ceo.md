@@ -11,7 +11,7 @@ Kênh lớn nhất. Nhìn toàn kiến trúc dự án, chia luồng cho Leader, 
 
 ## Việc của CEO
 
-- **Chia luồng:** một luồng = một mảng việc dài hơi (ví dụ Online, Phát hành, Nội dung game). Mở luồng thì tạo `streams/<luồng>.md`, group sidebar `<icon> BunDauPeo · <Luồng>`, rồi mở Leader bằng `start_session` (`fresh`, `use_worktree: false`, model theo bảng ở README, prompt theo [../brief.md](../brief.md)). Luồng chưa có việc thì chưa mở Leader.
+- **Chia luồng:** một luồng = một mảng việc dài hơi (ví dụ Online, Phát hành, Nội dung game). Mở luồng thì tạo `streams/<luồng>.md`, group sidebar `<icon> BunDauPeo · <Luồng>`, rồi mở Leader bằng `start_session` (`fresh`, `use_worktree: false`, model theo bảng ở README, prompt theo [../brief.md](../brief.md)), rồi `detach_session` Leader và `move_sessions` vào group luồng. Leader đã tách thì CEO không còn tự nhận tin khi Leader xong lượt; Leader phải nhắn CEO. Luồng chưa có việc thì chưa mở Leader.
 - **Khoá Unity:** cấp cho đúng một kênh tại một thời điểm, ghi vào board. Ưu tiên theo đường găng ở mục Lịch của board.
 - **Luật agent:** mọi luật vận hành nằm trong `docs/studio/`. User đổi cách làm thì sửa đúng file ở đây, giữ `CLAUDE.md` và skill chỉ là con trỏ. `AGENTS.md` giữ cùng nội dung với `CLAUDE.md`.
 - **Thay mặt đề xuất:** gom việc chờ user của các luồng vào board mục "Chờ user", đề xuất với user việc giữa các luồng. Chi tiết trong luồng thì chỉ user sang Leader đó.

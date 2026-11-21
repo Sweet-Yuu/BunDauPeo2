@@ -9,6 +9,23 @@ namespace BunDauPeo.Rules
         public const string Bootstrap = "Bootstrap";
         public const string ResetPlayer = "ResetPlayer";
         public const string SaveKey = "save";
+        public const string StateKey = "state";
+
+        // Tên lệnh = tên hằng (spec con 6.2).
+        public const string GachaPull = "GachaPull";
+        public const string EnterStage = "EnterStage";
+        public const string CompleteStage = "CompleteStage";
+        public const string CompleteStory = "CompleteStory";
+        public const string StarUp = "StarUp";
+        public const string DevAddGem = "DevAddGem";
+        public const string DevRefillStamina = "DevRefillStamina";
+
+        // Máy gửi Version; server từ chối bản dưới MinProtocolVersion (hàng rào bản cũ, spec con 3.3).
+        public const int Version = 2;
+        public const int MinProtocolVersion = 2;
+
+        // Message của ClientTooOldException bắt đầu bằng chuỗi này để máy nhận ra qua lỗi Cloud Code.
+        public const string ClientTooOldTag = "ClientTooOld";
     }
 
     // Field công khai, kiểu cơ bản: JsonUtility (game) và Newtonsoft.Json (Cloud Code) cho cùng một chuỗi.
@@ -16,5 +33,8 @@ namespace BunDauPeo.Rules
     public class BootstrapResponse
     {
         public long ServerUtcTicks;
+        public string SessionId = "";
+        public string DataHash = "";
+        public ServerState State;
     }
 }

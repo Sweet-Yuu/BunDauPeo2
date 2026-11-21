@@ -12,6 +12,7 @@ using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Playtest;
 using BunDauPeo.Restaurant;
+using BunDauPeo.Rules;
 using BunDauPeo.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -183,7 +184,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.Greater(cost, 0, Where("nhân vật đầu đã tối đa sao, không thử nâng được"));
 
             _step = "C2 cấp mảnh, mở màn Nhân vật";
-            roster.AddFragments(starter, cost);
+            ServerFragments(Object.FindFirstObjectByType<GameBootstrap>().Session, starter, cost);
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
 
             _step = "C3 bấm thẻ đầu và nút nâng";
@@ -219,6 +220,7 @@ namespace BunDauPeo.PlayModeTests
         {
             _step = "M1 Boot, mở màn Nhân vật";
             yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var roster = ServiceLocator.Get<Roster>();
             var stars = ServiceLocator.Get<StarService>();
             var starter = roster.GetOwned()[0].Id;
@@ -231,10 +233,10 @@ namespace BunDauPeo.PlayModeTests
             while (stars.GetNextCost(starter) > 0)
             {
                 var before = stars.GetStars(starter);
-                roster.AddFragments(starter, stars.GetNextCost(starter) - 1);
+                ServerFragments(session, starter, stars.GetNextCost(starter) - 1);
                 yield return null;
                 Assert.IsFalse(StarUpButton().interactable, Where($"thiếu 1 mảnh ở {before}★ mà nút nâng bấm được"));
-                roster.AddFragments(starter, 1);
+                ServerFragments(session, starter, 1);
                 yield return null;
                 yield return ClickWhenReady("StarUpButton");
                 Assert.AreEqual(before + 1, stars.GetStars(starter), Where($"sao sau khi nâng từ {before}★"));
@@ -256,7 +258,7 @@ namespace BunDauPeo.PlayModeTests
             var stars = ServiceLocator.Get<StarService>();
             var starter = roster.GetOwned()[0].Id;
             var startStars = stars.GetStars(starter);
-            roster.AddFragments(starter, stars.GetNextCost(starter));
+            ServerFragments(session, starter, stars.GetNextCost(starter));
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
 
@@ -276,6 +278,65 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(UiText.Get("characters.not_saved"), GameObject.Find("StarUpStatus").GetComponent<Text>().text,
                 Where("lưu lỗi mà dòng trạng thái không báo chưa lưu"));
             Assert.AreEqual(startStars + 1, stars.GetStars(starter), Where("lưu lỗi vẫn phải áp dụng trong bộ nhớ"));
+        }
+
+        // Thắng trận thật qua server: thưởng hiện trong ví là thưởng server trả (Gem do server cộng, Material máy cộng một lần từ payload).
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Battle_WinShowsServerReward()
+        {
+            _step = "W1 Boot, mở màn Battle đầu";
+            yield return BootToLobby();
+            var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
+            var combat = ServiceLocator.Get<CombatService>();
+            var server = (LocalGameServer)ServiceLocator.Get<IGameServer>();
+            var stages = combat.Config.Stages.Items;
+            var battle = stages.First(st => st.Kind == StageKind.Battle);
+            foreach (var st in stages)
+            {
+                if (st == battle) break;
+                server.State.ClearedStages.Add(st.Id);
+            }
+
+            session.ApplyServerState(server.State);
+            var roster = ServiceLocator.Get<Roster>();
+            if (roster.GetBattleTeam().Count == 0) roster.AddToTeam(roster.GetOwned()[0].Id);
+            var gemBefore = session.Wallet.Get(CurrencyType.Gem);
+            var materialBefore = session.Wallet.Get(CurrencyType.Material);
+
+            _step = "W2 vào trận qua server";
+            var enter = combat.EnterStageAsync(battle.Id);
+            yield return new WaitUntil(() => enter.IsCompleted);
+            Assert.AreEqual(EnterStageStatus.Entered, enter.Result.Status, Where("vào trận"));
+            var played = enter.Result.Session;
+            Assert.AreEqual(server.State.PendingTicket, played.Ticket, Where("vé trận là vé server giữ"));
+
+            _step = "W3 thắng";
+            for (var i = 0; i < 5000 && (played.State == BattleState.PlayerTurn || played.State == BattleState.EnemyTurn); i++)
+            {
+                if (played.State == BattleState.PlayerTurn)
+                {
+                    var choice = AutoPolicy.Choose(played);
+                    played.PlayerAct(choice.Kind, choice.Target);
+                }
+                else played.EnemyAct();
+            }
+
+            Assert.AreEqual(BattleState.Won, played.State, Where("thua màn Battle đầu bằng AUTO"));
+
+            _step = "W4 nhận thưởng";
+            var done = combat.Progress.CompleteBattleAsync(played);
+            yield return new WaitUntil(() => done.IsCompleted);
+            var result = done.Result;
+            Assert.AreEqual(StageCompleteStatus.Success, result.Status, Where("nhận thưởng"));
+            Assert.IsTrue(result.FirstClear, Where("lần đầu"));
+            foreach (var line in battle.FirstClearReward)
+                Assert.IsTrue(result.Rewards.Any(r => r.Type == line.Type && r.Amount == line.Amount), Where($"thưởng {line.Type} từ server"));
+            Assert.AreEqual(server.State.Gem, session.Wallet.Get(CurrencyType.Gem), Where("Gem trên máy khớp server"));
+            Assert.AreEqual(gemBefore + battle.FirstClearReward.Where(l => l.Type == CurrencyType.Gem).Sum(l => l.Amount),
+                session.Wallet.Get(CurrencyType.Gem), Where("Gem thưởng"));
+            Assert.AreEqual(materialBefore + battle.FirstClearReward.Where(l => l.Type == CurrencyType.Material).Sum(l => l.Amount),
+                session.Wallet.Get(CurrencyType.Material), Where("Material cộng một lần"));
+            CollectionAssert.Contains(server.State.ClearedStages, battle.Id);
         }
 
         // --- Menu của hub (spec UI hub 5.6, 5.7): Reset, Ngôn ngữ, đường về sau trận.
@@ -323,7 +384,7 @@ namespace BunDauPeo.PlayModeTests
             var newFragments = roster.GetFragments(starter);
 
             _step = "R2 chơi: +Gem, +mảnh, đổi đội";
-            session.Wallet.Add(CurrencyType.Gem, 1000);
+            ServerGem(session, 1000);
             roster.AddFragments(starter, 7);
             if (roster.GetBattleTeam().Count == 0) roster.AddToTeam(starter);
             else roster.RemoveFromTeam(starter);
@@ -520,7 +581,7 @@ namespace BunDauPeo.PlayModeTests
                     Assert.IsTrue(free.Any(c => restaurant.Staffing.TryAssign(c.Id, role) == StaffAssignResult.Success), Where($"không xếp được ai vào vai {role}"));
                 }
             // Game mới có thể lực đầy nên dòng "Thể lực đầy" hiện sẵn (đúng luật spec); tiêu hao 1 để bắt đầu từ trạng thái không có việc.
-            Assert.AreEqual(StaminaSpendStatus.Spent, combat.Stamina.TrySpend(1, () => true), Where("tiêu hao 1 thể lực"));
+            ServerStamina(session, combat.Stamina.Max - 1);
             session.Save.Afk.PendingTheoretical = 0;
             yield return new WaitForSecondsRealtime(0.7f);
             Assert.IsFalse(FindAny(dot).activeSelf, Where($"không có việc mà chấm vẫn bật (sự cố {restaurant.Incidents.Active.HasValue}, thiếu {restaurant.Estimate.MissingRole}, AFK {restaurant.Afk.PreviewCollect()}, " +
@@ -539,7 +600,7 @@ namespace BunDauPeo.PlayModeTests
             foreach (var worker in restaurant.Profile.Workers(StaffRole.Cashier).ToList()) restaurant.Staffing.Remove(worker.CharacterId);
             session.Save.Afk.PendingTheoretical = 1000;
             session.Save.Afk.AccumulatedSeconds = 3600;
-            combat.Stamina.Refill();
+            ServerStamina(session, combat.Stamina.Max);
             var ready = CharacterListRows.Build(roster, stars).First(r => r.NextCost > 0);
             roster.AddFragments(ready.Character.Id, Math.Max(0L, ready.NextCost - ready.Fragments));
             var starUpId = CharacterListRows.Build(roster, stars).First(r => r.NextCost > 0 && r.Fragments >= r.NextCost).Character.Id;
@@ -626,7 +687,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsFalse(FindAny(popup).activeSelf, Where("hộp phải đóng"));
 
             _step = "N7 Gacha quay: nút ẩn cùng thanh";
-            session.Wallet.Add(CurrencyType.Gem, 5000);
+            ServerGem(session, 5000);
             yield return ClickWhenReady("NavTabGacha_PH_320x120");
             Assert.IsTrue(FindAny(notify).activeInHierarchy, Where("trang roll phải có nút Thông báo"));
             yield return ClickWhenReady("TenButton");
@@ -850,7 +911,7 @@ namespace BunDauPeo.PlayModeTests
             yield return BootToLobby();
             var hub = Object.FindFirstObjectByType<HubNav>();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
-            session.Wallet.Add(CurrencyType.Gem, 5000);
+            ServerGem(session, 5000);
             var bar = (RectTransform)FindAny("ResourceBar_PH_1120x76").transform;
             yield return null;
             Assert.AreEqual("Stamina,Coin,Material,Gem", ShownSlots(), Where("Lobby phải hiện đủ 4 ô"));
@@ -1145,7 +1206,7 @@ namespace BunDauPeo.PlayModeTests
             _step = "H1 Boot, Gacha";
             yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
-            session.Wallet.Add(CurrencyType.Gem, 5000);
+            ServerGem(session, 5000);
             yield return ClickWhenReady("NavTabGacha_PH_320x120");
             Assert.IsTrue(FindAny("NavBar_PH_1920x120").activeSelf, Where("thanh phải hiện ở trang roll"));
 
@@ -1170,7 +1231,7 @@ namespace BunDauPeo.PlayModeTests
             yield return BootToLobby();
             var session = Object.FindFirstObjectByType<GameBootstrap>().Session;
             var startGems = session.Wallet.Get(CurrencyType.Gem);
-            session.Wallet.Add(CurrencyType.Gem, 1000);
+            ServerGem(session, 1000);
             Assert.IsTrue(session.Persist(), Where("ghi save tạm"));
             var played = session.Wallet.Get(CurrencyType.Gem);
 
@@ -1359,7 +1420,7 @@ namespace BunDauPeo.PlayModeTests
             if (restaurant.Incidents.Active.HasValue) restaurant.Incidents.Cancel();
             session.Save.Afk.PendingTheoretical = 0;
             session.Save.Afk.AccumulatedSeconds = 0;
-            if (combat.Stamina.Current >= combat.Stamina.Max) combat.Stamina.TrySpend(1, () => true);
+            if (combat.Stamina.Current >= combat.Stamina.Max) ServerStamina(session, combat.Stamina.Max - 1);
             foreach (var row in CharacterListRows.Build(roster, stars).Where(r => r.NextCost > 0 && r.Fragments >= r.NextCost))
                 roster.SpendFragments(row.Character.Id, row.Fragments);
             yield return new WaitForSecondsRealtime(0.7f);
@@ -1372,7 +1433,7 @@ namespace BunDauPeo.PlayModeTests
             foreach (var worker in restaurant.Profile.Workers(StaffRole.Cashier).ToList()) restaurant.Staffing.Remove(worker.CharacterId);
             session.Save.Afk.PendingTheoretical = 1000;
             session.Save.Afk.AccumulatedSeconds = 3600;
-            combat.Stamina.Refill();
+            ServerStamina(session, combat.Stamina.Max);
             var ready = CharacterListRows.Build(roster, stars).First(r => r.NextCost > 0);
             roster.AddFragments(ready.Character.Id, Math.Max(0L, ready.NextCost - ready.Fragments));
             yield return new WaitForSecondsRealtime(0.7f);
@@ -1458,6 +1519,19 @@ namespace BunDauPeo.PlayModeTests
                 yield return WaitForButtonStep(OnlineRetry);
                 yield return Shot("connect-failed", suffix, "online1");
                 OnlineOverlay.Hide();
+
+                // Bản đợt cũ: server từ chối Bootstrap (ClientTooOld), hộp Cần cập nhật không có nút (spec con 7.2).
+                _server.ProtocolVersion = 1;
+                // Lần chạm trước đã qua bước Bootstrap: bỏ trạng thái đó để Bootstrap chạy lại và bị từ chối.
+                ServiceLocator.Get<IGameStarter>().Shutdown();
+                yield return ReloadTitle();
+                yield return ClickWhenReady("TapArea");
+                var tooOldDeadline = Time.realtimeSinceStartup + SceneTimeout;
+                while (!OnlineOverlay.IsShown && Time.realtimeSinceStartup < tooOldDeadline) yield return null;
+                Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp Cần cập nhật không hiện"));
+                yield return Shot("too-old", suffix, "online2");
+                _server.ProtocolVersion = ServerProtocol.Version;
+                OnlineOverlay.Hide();
             }
 
             _step = "S0 vào Lobby (Việt)";
@@ -1472,6 +1546,7 @@ namespace BunDauPeo.PlayModeTests
             SceneManager.LoadScene("Restaurant");
             yield return WaitForNewHub(oldHub);
             yield return null;
+            yield return ShotWaitOverlay("");
             yield return ShootAllPages("");
 
             _step = "S0 đổi English";
@@ -1480,7 +1555,25 @@ namespace BunDauPeo.PlayModeTests
             SceneManager.LoadScene("Restaurant");
             yield return WaitForNewHub(oldHub);
             yield return null;
+            yield return ShotWaitOverlay("-en");
             yield return ShootAllPages("-en");
+        }
+
+        // Màn chờ sau 0,5 giây (spec con 7.1): giữ một lệnh server bằng DelayNext, chụp khi ô xoay đã hiện, rồi thả lệnh.
+        private IEnumerator ShotWaitOverlay(string suffix)
+        {
+            _step = "S Màn chờ" + suffix;
+            var open = new System.Threading.Tasks.TaskCompletionSource<bool>();
+            _server.DelayNext(open);
+            var run = ServiceLocator.Get<CommandGate>().RunAsync(id => _server.DevAddGemAsync(id, 1));
+            yield return new WaitForSecondsRealtime(WaitOverlay.ShowAfterSeconds + 0.3f);
+            Assert.IsTrue(WaitOverlay.IsSpinnerShown, Where("màn chờ chưa hiện sau 0,5 giây"));
+            yield return Shot("wait", suffix, "online2");
+            open.SetResult(true);
+            var deadline = Time.realtimeSinceStartup + SceneTimeout;
+            while (!run.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.IsTrue(run.IsCompleted, Where("lệnh giữ không xong"));
+            yield return null;
         }
 
 #if UNITY_EDITOR
@@ -1740,6 +1833,7 @@ namespace BunDauPeo.PlayModeTests
         }
 
         // Mở app: Boot nạp Tiêu đề; chạm TapArea qua raycast thật (L-036) rồi mới vào Lobby.
+
         private IEnumerator BootToLobby()
         {
             SceneManager.LoadScene("Boot");
@@ -1807,6 +1901,35 @@ namespace BunDauPeo.PlayModeTests
         // --- Online đợt 1: Tiêu đề kết nối, hộp mạng (OnlineOverlay).
 
         private const string OnlineRetry = "OnlineRetryBtn_PH_340x110";
+
+        // Gem và thể lực do server giữ (spec con 4.3): test đổi chúng ở server trong bộ nhớ rồi áp vào session như một lệnh vừa xong.
+        private static void ServerGem(GameSession session, long amount)
+        {
+            var server = (LocalGameServer)ServiceLocator.Get<IGameServer>();
+            server.State.Gem += amount;
+            session.ApplyServerState(server.State);
+        }
+
+        // Mảnh nhân vật do server giữ: cộng ở server trong bộ nhớ rồi áp vào session (lệnh nâng sao kiểm mảnh ở server).
+        private static void ServerFragments(GameSession session, string id, long amount)
+        {
+            var server = (LocalGameServer)ServiceLocator.Get<IGameServer>();
+            var list = server.State.Fragments;
+            var index = list.FindIndex(f => f.CharacterId == id);
+            var total = (index < 0 ? 0 : list[index].Count) + amount;
+            var entry = new FragmentCount { CharacterId = id, Count = total };
+            if (index < 0) list.Add(entry);
+            else list[index] = entry;
+            session.ApplyServerState(server.State);
+        }
+
+        private static void ServerStamina(GameSession session, int current)
+        {
+            var server = (LocalGameServer)ServiceLocator.Get<IGameServer>();
+            var full = current >= ServiceLocator.Get<CombatService>().Stamina.Max;
+            server.State.Stamina = new StaminaState { Current = current, AnchorUtcTicks = full ? 0 : System.DateTime.UtcNow.Ticks };
+            session.ApplyServerState(server.State);
+        }
 
         private static string OnlineTitleText() => GameObject.Find("OnlineTitle")?.GetComponent<Text>().text;
 
@@ -2072,11 +2195,13 @@ namespace BunDauPeo.PlayModeTests
             Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp Mất kết nối của Reset"));
             Assert.AreEqual(0, resets, Where("chưa reset"));
 
-            _step = "R2 đẩy save lỗi quá 30 giây";
+            // O2-d: Reset mất mạng có thể đã xoá trên server mà trả lời mất, nên đẩy save dừng tới khi Thử lại xong
+            // (đẩy save cũ lúc này sẽ dựng lại dữ liệu vừa Reset): CloudSync không đẩy, không báo Lost, hộp Thử lại ở yên.
+            _step = "R2 chờ quá 30 giây, đẩy save đã dừng";
             sync.Tick(CloudSync.DebounceSeconds);
             sync.Tick(CloudSync.LostAfterSeconds);
             yield return null;
-            Assert.IsTrue(sync.IsLost, Where("CloudSync đã báo mất kết nối"));
+            Assert.IsFalse(sync.IsLost, Where("CloudSync dừng nên không báo mất kết nối"));
             Assert.IsTrue(OnlineOverlay.IsShown, Where("hộp còn"));
 
             _step = "R3 có mạng, Thử lại";

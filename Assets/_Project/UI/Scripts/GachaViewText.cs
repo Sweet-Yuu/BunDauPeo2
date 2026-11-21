@@ -31,6 +31,8 @@ namespace BunDauPeo.UI
             GachaPullStatus.UnknownBanner => UiText.Get("gacha.status_unknown_banner"),
             GachaPullStatus.InvalidBanner => UiText.Get("gacha.status_invalid_banner"),
             GachaPullStatus.NotEnoughCurrency => UiText.Get("gacha.status_not_enough"),
+            // Hộp Mất kết nối đã báo; không thêm dòng lỗi.
+            GachaPullStatus.Offline => "",
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
         };
 
@@ -49,7 +51,7 @@ namespace BunDauPeo.UI
         // Ví dụ: "14:02 31/10 · Quay 10 · Nem Chua, Lòng Dồi, ..."
         public static string HistoryLine(GachaHistoryEntry entry, Func<string, string> nameOf)
         {
-            var time = DateTimeOffset.FromUnixTimeSeconds(entry.Utc).ToLocalTime().ToString("HH:mm dd/MM");
+            var time = new DateTime(entry.Utc, DateTimeKind.Utc).ToLocalTime().ToString("HH:mm dd/MM");
             var names = new List<string>(entry.CharacterIds.Length);
             foreach (var id in entry.CharacterIds) names.Add(nameOf(id));
             return UiText.Format("gacha.history_line", time, entry.Count, string.Join(", ", names));

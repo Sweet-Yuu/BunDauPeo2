@@ -4,6 +4,7 @@ using System.Reflection;
 using BunDauPeo.Core;
 using BunDauPeo.Online;
 using NUnit.Framework;
+using Unity.Services.CloudCode;
 using Unity.Services.CloudSave;
 using Unity.Services.Core;
 
@@ -33,5 +34,20 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(OnlineStatus.ServerError, UgsErrors.Map(new RequestFailedException(10_000, "unauthorized")));
             Assert.AreEqual(OnlineStatus.ServerError, UgsErrors.Map(CloudSave(CloudSaveExceptionReason.InvalidArgument, 7_000)));
         }
+
+        [Test]
+        public void Map_WrappedClientTooOld_IsClientTooOld()
+        {
+            const string tooOld = "ScriptError (422): ... ClientTooOld: client 0 < 2 ...";
+            Assert.AreEqual(OnlineStatus.ClientTooOld, UgsErrors.Map(CloudCode(tooOld)));
+            Assert.AreEqual(OnlineStatus.ServerError, UgsErrors.Map(CloudCode("ScriptError (422): something else")));
+            Assert.AreEqual(OnlineStatus.ServerError, UgsErrors.Map(new InvalidOperationException(tooOld)),
+                "only a Cloud Code error carries the tag");
+        }
+
+        private static CloudCodeException CloudCode(string message) =>
+            (CloudCodeException)typeof(CloudCodeException).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null,
+                    new[] { typeof(CloudCodeExceptionReason), typeof(int), typeof(string), typeof(Exception) }, null)
+                .Invoke(new object[] { CloudCodeExceptionReason.Unknown, 9_000, message, null });
     }
 }

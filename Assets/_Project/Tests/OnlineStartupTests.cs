@@ -5,8 +5,10 @@ using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Restaurant;
+using BunDauPeo.Rules;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace BunDauPeo.Tests
 {
@@ -23,12 +25,17 @@ namespace BunDauPeo.Tests
             _dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(_dir);
             _host = new GameObject("OnlineStartupTests");
-            _server = new LocalGameServer();
+            var data = new GameData
+            {
+                NewGame = new NewGameData { StartingGem = 300, StarterCharacterIds = { "a" } },
+                Stamina = new StaminaData { Max = 100, RegenSeconds = 300 },
+            };
+            _server = new LocalGameServer(data);
             var a = TestData.Character("a");
             _startup = new OnlineStartup(_server, new ServerTime(), Path.Combine(_dir, "save.json"),
                 TestData.Catalog(a), TestData.Config(new[] { new CurrencyAmount(CurrencyType.Coin, 500) }, a),
                 TestData.GachaCatalog(TestData.Banner("b", a)), RestaurantTestData.Config(), CombatTestData.Config(),
-                ScriptableObject.CreateInstance<StarConfig>(), _host);
+                ScriptableObject.CreateInstance<StarConfig>(), data, _host);
             ServiceLocator.Clear();
             _startup.RegisterBase();
         }
@@ -40,6 +47,51 @@ namespace BunDauPeo.Tests
             UnityEngine.Object.DestroyImmediate(_host);
             GameLanguage.Current = Language.Vi;
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
+        }
+
+        // Review Focus 3: save đợt 1 thật (Gem 5000, nhân vật gacha x trong owned, đội, nhân viên, avatar) mở bằng bản đợt 2.
+        [Test]
+        public async Task Start_Phase1Save_ServerFieldsFromState_PrunesUnowned()
+        {
+            var old = new PlayerSave();
+            old.Balances.Add(new CurrencyAmount(CurrencyType.Coin, 50));
+            old.Balances.Add(new CurrencyAmount(CurrencyType.Gem, 5000));
+            old.OwnedCharacterIds.AddRange(new[] { "a", "x" });
+            old.BattleTeam.AddRange(new[] { "a", "x" });
+            old.Staff.Add(new StaffAssignment { CharacterId = "x", Role = StaffRole.Cashier });
+            old.AvatarCharacterId = "x";
+            await _server.SignInAsync();
+            await _server.UploadSaveAsync(JsonUtility.ToJson(old));
+
+            Assert.AreEqual(OnlineStatus.Ok, await _startup.StartAsync());
+
+            var save = _startup.Session.Save;
+            Assert.AreEqual(300, ServiceLocator.Get<Wallet>().Get(CurrencyType.Gem), "Gem comes from state, not the old save");
+            CollectionAssert.AreEqual(new[] { "a" }, save.OwnedCharacterIds, "x is not owned by the server");
+            CollectionAssert.AreEqual(new[] { "a" }, save.BattleTeam);
+            Assert.AreEqual(0, save.Staff.Count);
+            Assert.AreEqual("", save.AvatarCharacterId);
+            Assert.AreEqual(50, ServiceLocator.Get<Wallet>().Get(CurrencyType.Coin), "Coin kept");
+        }
+
+        [Test]
+        public async Task Start_NewPlayer_GemFromServer_CoinFromConfig()
+        {
+            Assert.AreEqual(OnlineStatus.Ok, await _startup.StartAsync());
+
+            Assert.AreEqual(300, ServiceLocator.Get<Wallet>().Get(CurrencyType.Gem), "granted once, by the server");
+            Assert.AreEqual(500, ServiceLocator.Get<Wallet>().Get(CurrencyType.Coin));
+            Assert.IsTrue(ServiceLocator.Get<Roster>().IsOwned("a"), "starter from server state");
+        }
+
+        [Test]
+        public async Task Start_DataHashMismatch_LogsWarning_StillStarts()
+        {
+            _server.DataHash = "not-the-same";
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("differs"));
+
+            Assert.AreEqual(OnlineStatus.Ok, await _startup.StartAsync());
+            Assert.IsTrue(_startup.IsStarted);
         }
 
         [Test]

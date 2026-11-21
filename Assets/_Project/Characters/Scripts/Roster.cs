@@ -33,7 +33,8 @@ namespace BunDauPeo.Characters
 
         public bool IsOwned(string id) => id != null && _save.OwnedCharacterIds.Contains(id);
 
-        public bool Add(string id)
+        // internal: server giữ danh sách này; code game không được ghi thẳng (chỉ ServerStateApplier và test).
+        internal bool Add(string id)
         {
             if (!_catalog.TryGet(id, out _) || IsOwned(id)) return false;
             _save.OwnedCharacterIds.Add(id);
@@ -41,7 +42,7 @@ namespace BunDauPeo.Characters
             return true;
         }
 
-        public bool AddFragments(string id, long count)
+        internal bool AddFragments(string id, long count)
         {
             if (count <= 0 || !IsOwned(id) || !_catalog.TryGet(id, out _)) return false;
 
@@ -61,8 +62,8 @@ namespace BunDauPeo.Characters
             return true;
         }
 
-        // Public như mọi hàm sửa khác của Roster; ngoài StarService thì không ai nên gọi.
-        public bool SpendFragments(string id, long count)
+        // Như Add: chỉ test.
+        internal bool SpendFragments(string id, long count)
         {
             if (count <= 0 || id == null) return false;
 

@@ -26,6 +26,26 @@
 
 ## Đang hiệu lực
 
+### L-044 — `Update` của view dùng LINQ, `foreach` qua interface, `new` và chuỗi mỗi khung: ~1 KB/khung (2026-11-18)  #script #ui
+- Triệu chứng: Profiler đo ~1,5 KB GC mỗi khung ở mọi màn (ngưỡng 0 B khi đứng yên, ≤ 1 KB trong trận). Một phần là Editor (khung trống cũng ~740 B); phần của code: `_pages.OfType<>()` và `Where().ToList()` trong HubNav/BattleSession, `foreach` qua `IReadOnlyList`/`IEnumerable`, `new StaminaState` trong `StaminaService`, `new bool[]` mỗi khung, và chuỗi dựng lại mỗi khung (`WaveLabel`, `SpeedLabel`, `Substring`).
+- Nguyên nhân gốc: viết view theo kiểu "vẽ lại mỗi khung, rẻ" mà không đo; `GetAllocatedBytesForCurrentThread` trả 0 trong Unity nên đo nhầm là sạch.
+- Luật từ nay: trong `Update` chỉ dùng vòng `for` theo chỉ số, danh sách và mảng dựng sẵn, và chỉ gán chuỗi khi giá trị đổi. Đo bằng `ProfilerRecorder` "GC Allocated In Frame" (`GcMeasureTests`), trừ khung trống làm nền.
+
+### L-043 — Cổng một-lệnh giữ cờ bận qua một phiên bị bỏ thì kẹt mãi (2026-11-18)  #script #process
+- Triệu chứng: lệnh mất trả lời, hộp Mất kết nối bị hộp Máy khác thay, Về Tiêu đề; `Busy` vẫn true, mọi lệnh sau đó nhận lỗi im lặng.
+- Nguyên nhân gốc: lời hứa "Thử lại" chỉ được trả khi người chơi bấm nút; mọi đường thoát khác (`Shutdown`) không biết cổng đang chờ.
+- Luật từ nay: thứ chờ người bấm thì mọi đường bỏ phiên phải huỷ nó (`CommandGate.Abort`). Test ca "bỏ giữa chừng" cho mọi cờ bận, cả khi đang gửi lẫn khi hộp đang hiện.
+
+### L-042 — Sửa .cs khi `unity test` đang biên dịch làm lượt chạy hỏng (2026-11-17)  #process #script
+- Triệu chứng: lệnh `unity test` chạy nền báo `CS0103/CS1061` ở file tôi đang sửa dở, mất cả lượt (vài phút) mà chẳng kiểm được gì.
+- Nguyên nhân gốc: Unity đọc nguồn lúc biên dịch đầu lượt; sửa tiếp trong lúc đó cho nó thấy bản nửa vời.
+- Luật từ nay: đã bắt đầu `unity test`/`unity run` thì không sửa `.cs` cho tới khi nó xong (sửa docs thì được); gom xong cả nhóm sửa rồi mới chạy một lần.
+
+### L-041 — Test service qua LocalGameServer không được khẳng định kết quả roll (2026-11-17)  #script
+- Triệu chứng: `Pull_Ok_AppliesStateAndRaisesChanged` đỏ ngẫu nhiên (pity mong 1, thực 0).
+- Nguyên nhân gốc: `LocalGameServer` roll bằng `System.Random` thật; 5% quay trúng SSR thì pity về 0.
+- Luật từ nay: test service (Gacha) chỉ khẳng định thứ không phụ thuộc roll (Gem, số dòng, khớp với `server.State`); ca cần roll cụ thể thuộc `HandlerGachaTests` (random giả có kịch bản, L-006).
+
 ### L-040 — Trả cài đặt ký bằng setter làm Unity ghi rác vào ProjectSettings.asset (2026-11-16)  #build #editor
 - Triệu chứng: sau `BuildRelease` thật, `AndroidKeystoreName` trong `ProjectSettings.asset` thành `'{inproject}: '` dù `Restore()` đã gán lại giá trị cũ (rỗng, kể cả `null`); test đọc file đỏ.
 - Nguyên nhân gốc: setter `PlayerSettings.Android.keystoreName` luôn chuẩn hoá đường dẫn, không giữ được chuỗi rỗng.

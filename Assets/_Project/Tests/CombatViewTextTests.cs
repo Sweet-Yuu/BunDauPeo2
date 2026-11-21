@@ -21,6 +21,13 @@ namespace BunDauPeo.Tests
             foreach (EnterStageStatus status in System.Enum.GetValues(typeof(EnterStageStatus)))
             {
                 var line = CombatViewText.EnterFailedLine(status);
+                // Offline: hộp Mất kết nối đã báo, không thêm dòng lỗi.
+                if (status == EnterStageStatus.Offline)
+                {
+                    Assert.IsEmpty(line);
+                    continue;
+                }
+
                 Assert.IsNotEmpty(line, $"status = {status}");
                 Assert.IsFalse(line.StartsWith("#"), $"status = {status}: missing key '{line}'");
                 Assert.IsFalse(Accented.IsMatch(line), $"status = {status}: '{line}' still Vietnamese");
@@ -173,6 +180,12 @@ namespace BunDauPeo.Tests
             {
                 if (status == EnterStageStatus.Entered) continue;
                 var line = CombatViewText.EnterFailedLine(status);
+                if (status == EnterStageStatus.Offline)
+                {
+                    Assert.IsEmpty(line, "the network box already told the player");
+                    continue;
+                }
+
                 Assert.IsNotEmpty(line, $"status = {status}");
                 if (status != EnterStageStatus.Unknown && status != EnterStageStatus.Invalid && status != EnterStageStatus.WrongKind)
                     Assert.IsTrue(seen.Add(line), $"status = {status}: text '{line}' is shared");
@@ -286,6 +299,12 @@ namespace BunDauPeo.Tests
             {
                 if (status == StageCompleteStatus.Success || status == StageCompleteStatus.NotPaid) continue;
                 var line = CombatViewText.NoRewardLine(status);
+                if (status == StageCompleteStatus.Offline)
+                {
+                    Assert.IsEmpty(line, "the network box already told the player");
+                    continue;
+                }
+
                 Assert.IsNotEmpty(line, $"status = {status}");
                 Assert.AreNotEqual(CombatViewText.TrialLine(), line, $"status = {status}: a paid battle is not a trial");
             }

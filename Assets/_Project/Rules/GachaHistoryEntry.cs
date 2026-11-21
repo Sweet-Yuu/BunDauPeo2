@@ -6,6 +6,7 @@ namespace BunDauPeo.Core
     [Serializable]
     public struct GachaHistoryEntry
     {
+        // Ticks của DateTime UTC (đợt 1 từng ghi giây Unix; ServerStateApplier.FromSave đổi bản cũ).
         public long Utc;
         public string BannerId;
         public int Count;

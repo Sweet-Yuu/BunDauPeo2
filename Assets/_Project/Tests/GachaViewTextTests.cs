@@ -2,6 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
+using BunDauPeo.Rules;
 using BunDauPeo.Characters;
 using BunDauPeo.UI;
 using NUnit.Framework;
@@ -73,6 +74,20 @@ namespace BunDauPeo.Tests
             Assert.AreNotEqual(invalid, poor);
         }
 
+        // Mất kết nối đã có hộp riêng: không thêm dòng lỗi trên trang quay.
+        [Test]
+        public void StatusMessage_Offline_IsEmpty() => Assert.AreEqual("", GachaViewText.StatusMessage(GachaPullStatus.Offline, true));
+
+        // Utc là ticks (server ghi DateTime.Ticks), không phải giây Unix.
+        [Test]
+        public void HistoryLine_TimeIsServerTicksInLocalTime()
+        {
+            var when = new DateTime(2026, 11, 16, 12, 0, 0, DateTimeKind.Utc);
+            var entry = new GachaHistoryEntry { Utc = when.Ticks, BannerId = "b", Count = 1, CharacterIds = new[] { "a" } };
+
+            StringAssert.Contains(when.ToLocalTime().ToString("HH:mm dd/MM"), GachaViewText.HistoryLine(entry, id => id));
+        }
+
         private static CurrencyAmount[] Gem(long amount) => new[] { new CurrencyAmount(CurrencyType.Gem, amount) };
 
         [Test]
@@ -89,10 +104,11 @@ namespace BunDauPeo.Tests
         [Test]
         public void CanRollAgain_FalseWhenShort_TrueWhenEnough()
         {
-            var wallet = new Wallet(new PlayerSave());
-            wallet.Add(CurrencyType.Gem, 899);
+            var save = new PlayerSave();
+            var wallet = new Wallet(save);
+            ServerStateApplier.Apply(save, new ServerState { Gem = 899 });
             Assert.IsFalse(GachaViewText.CanRollAgain(wallet, Gem(900)));
-            wallet.Add(CurrencyType.Gem, 1);
+            ServerStateApplier.Apply(save, new ServerState { Gem = 900 });
             Assert.IsTrue(GachaViewText.CanRollAgain(wallet, Gem(900)));
         }
 

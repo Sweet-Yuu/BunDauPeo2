@@ -28,6 +28,11 @@ Nghĩ và đọc ý tưởng, viết spec + kế hoạch, làm ảnh mô phỏng
 - Ảnh mô phỏng (mockup) phải được user duyệt trước khi Kỹ thuật dựng UI.
 - Hình tạm chỉ dùng hình có sẵn của Unity (vuông, tròn, tam giác…), component `Image` trên Canvas. Object chưa có hình đặt tên `<Tên>_PH_<rộng>x<cao>`. Không tự thêm file ảnh; chỉ dùng file user gửi và cho phép.
 - Được giao thay ảnh thật vào scene/prefab: xin Leader khoá Unity trước, theo [unity-workflow.md](../../guides/unity-workflow.md) mục "UI và hình tạm".
+- **User bảo sửa hình theo ảnh tham khảo khác thì cất hình cũ rồi vẽ lại từ đầu**, không sửa trên hình cũ (user chốt 2026-11-21):
+  - file hình, prefab, ảnh mô phỏng cũ: chuyển vào thư mục `_Old/` nằm cạnh nó (vd. `Assets/_Project/Restaurant/Art/_Old/`). Trong `Assets/` chuyển bằng Unity (`AssetDatabase.MoveAsset` qua CLI hoặc MCP) để `.meta` đi theo, không chuyển tay;
+  - object dựng trong scene: lưu thành prefab vào `_Old/` rồi xoá khỏi scene;
+  - bản mới dựng lại từ đầu theo ảnh tham khảo mới, không copy rồi chỉnh bản cũ. Scene và prefab đang dùng không được trỏ vào `_Old/`, để hình cũ không lọt vào bản build;
+  - báo cáo cuối kênh ghi rõ đã cất gì vào `_Old/`.
 
 ## Xong việc
 

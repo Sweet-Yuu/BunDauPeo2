@@ -130,6 +130,13 @@ namespace BunDauPeo.UI
                 return;
             }
 
+            // Máy dưới MinProtocolVersion: hộp Cần cập nhật, không phải lỗi chung (như lệnh qua CommandGate).
+            if (status == OnlineStatus.ClientTooOld)
+            {
+                OnlineOverlay.ShowTooOld();
+                return;
+            }
+
             // Server chưa xoá gì (spec 5.8): hộp Mất kết nối, Thử lại chạy lại Reset một lần.
             if (status == OnlineStatus.NetworkError)
             {

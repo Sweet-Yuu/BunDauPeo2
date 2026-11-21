@@ -8,6 +8,7 @@ namespace BunDauPeo.Tests
     public class CloudSyncTests
     {
         private LocalGameServer _server;
+        private string _session;
         private string _snapshot;
         private int _uploaded;
         private CloudSync _sync;
@@ -15,12 +16,13 @@ namespace BunDauPeo.Tests
         [SetUp]
         public void SetUp()
         {
-            _server = new LocalGameServer();
+            _server = new LocalGameServer(GachaRulesTests.Data());
             // Task của LocalGameServer đã xong ngay nên đọc Result không chặn.
             Assert.AreEqual(OnlineStatus.Ok, _server.SignInAsync().Result);
+            _session = _server.BootstrapAsync().Result.Value.SessionId;
             _snapshot = "v1";
             _uploaded = 0;
-            _sync = new CloudSync(_server, () => _snapshot, () => _uploaded++);
+            _sync = new CloudSync(_server, () => _snapshot, () => _uploaded++, () => _session);
         }
 
         private void Run(float seconds, float step = 1f)
@@ -139,15 +141,15 @@ namespace BunDauPeo.Tests
             Assert.IsNull(_server.StoredSave);
         }
 
-        // Review O1 mục 2: lượt đẩy hết giờ mà server đã ghi → máy giữ write lock cũ → lượt sau xung đột. Server đang giữ chính bản của
-        // máy này (cùng SaveRevision) nên không phải máy khác: nhận lock mới rồi đẩy lại, không báo OtherDevice, không mất thay đổi mới.
+        // Review O1 mục 2, Review Focus 5: lượt đẩy hết giờ mà server đã ghi → máy giữ write lock cũ → lượt sau xung đột. State vẫn giữ
+        // mã phiên của máy này nên không phải máy khác: nhận lock mới rồi đẩy lại, không báo OtherDevice, không mất thay đổi mới.
         [Test]
-        public void ConflictAfterLostReply_OwnRevisionOnServer_UploadsAgain()
+        public void Conflict_SameSession_Reuploads()
         {
             var save = new PlayerSave();
             var other = 0;
             var uploaded = 0;
-            var sync = new CloudSync(_server, () => JsonUtility.ToJson(save), () => { save.SaveRevision++; uploaded++; });
+            var sync = new CloudSync(_server, () => JsonUtility.ToJson(save), () => { save.SaveRevision++; uploaded++; }, () => _session);
             sync.OtherDevice += () => other++;
 
             _server.LoseNextUploadReply();
@@ -167,36 +169,39 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(1, save.SaveRevision);
         }
 
-        // Xung đột rồi tải lại cũng lỗi mạng: chưa biết là ai ghi, nên coi như lỗi mạng và thử lại, không báo nhầm OtherDevice.
+        // Không đọc được mã phiên: chưa biết ai ghi, nên coi như lỗi mạng và thử lại, không báo nhầm OtherDevice.
         [Test]
-        public void ConflictAfterLostReply_ReloadFails_RetriesInsteadOfOtherDevice()
+        public void Conflict_SessionReadFails_RetriesLater_NotOtherDevice()
         {
             var save = new PlayerSave();
             var other = 0;
-            var sync = new CloudSync(_server, () => JsonUtility.ToJson(save), () => save.SaveRevision++);
+            var noState = 0;
+            var sync = new CloudSync(_server, () => JsonUtility.ToJson(save), () => save.SaveRevision++, () => _session);
             sync.OtherDevice += () => other++;
+            sync.NoState += () => noState++;
 
             _server.LoseNextUploadReply();
             sync.MarkDirty();
             sync.Tick(CloudSync.DebounceSeconds);
             save.PlayerName = "B";
             sync.MarkDirty();
-            _server.FailNextOn(nameof(IGameServer.LoadSaveAsync), OnlineStatus.NetworkError);
+            _server.FailNextOn(nameof(IGameServer.LoadActiveSessionIdAsync), OnlineStatus.NetworkError);
             sync.Tick(CloudSync.RetrySeconds);
             Assert.AreEqual(0, other, "unknown writer is not another device");
+            Assert.AreEqual(0, noState);
 
             sync.Tick(CloudSync.RetrySeconds);
             Assert.AreEqual(0, other);
             Assert.AreEqual("B", JsonUtility.FromJson<PlayerSave>(_server.StoredSave).PlayerName, "the next retry gets through");
         }
 
-        // Ngược lại: đã có lượt lỗi nhưng server giữ bản của máy khác (SaveRevision khác) → vẫn là OtherDevice, không ghi đè.
+        // Máy khác đã Bootstrap (mã phiên khác) → OtherDevice, không ghi đè.
         [Test]
-        public void ConflictAfterFailure_OtherRevisionOnServer_RaisesOtherDevice()
+        public void Conflict_OtherSession_OtherDevice()
         {
             var save = new PlayerSave();
             var other = 0;
-            var sync = new CloudSync(_server, () => JsonUtility.ToJson(save), () => save.SaveRevision++);
+            var sync = new CloudSync(_server, () => JsonUtility.ToJson(save), () => save.SaveRevision++, () => _session);
             sync.OtherDevice += () => other++;
             var theirs = JsonUtility.ToJson(new PlayerSave { SaveRevision = 7, PlayerName = "other" });
 
@@ -209,6 +214,31 @@ namespace BunDauPeo.Tests
 
             Assert.AreEqual(1, other);
             Assert.AreEqual(theirs, _server.StoredSave, "their save is not overwritten");
+        }
+
+        // Review Focus 5: Reset mất trả lời rồi xoá hết mà chưa tạo lại → không có state; không báo "máy khác", về Tiêu đề.
+        [Test]
+        public void Conflict_NoState_GoesToTitle()
+        {
+            var save = new PlayerSave();
+            var other = 0;
+            var noState = 0;
+            var sync = new CloudSync(_server, () => JsonUtility.ToJson(save), () => save.SaveRevision++, () => _session);
+            sync.OtherDevice += () => other++;
+            sync.NoState += () => noState++;
+
+            _server.LoseNextUploadReply();
+            sync.MarkDirty();
+            sync.Tick(CloudSync.DebounceSeconds);
+            Assert.IsTrue(_server.ResetNoRecreateAsync().Result.Ok);
+            sync.Tick(CloudSync.RetrySeconds);
+
+            Assert.AreEqual(1, noState);
+            Assert.AreEqual(0, other);
+            var calls = _server.UploadCalls;
+            sync.MarkDirty();
+            sync.Tick(60f);
+            Assert.AreEqual(calls, _server.UploadCalls, "stopped after NoState");
         }
 
         // Review O1 mục 6: thay đổi đến trong lúc dừng (chờ lệnh Reset/Xoá tài khoản) mà lệnh lỗi → Resume phải đẩy bù.

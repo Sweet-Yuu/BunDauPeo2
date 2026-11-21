@@ -75,9 +75,6 @@ namespace BunDauPeo.UI
         // Đường duy nhất mở panel: Menu → DEV của hub và Menu tạm dừng của trận.
         public static void OpenSettings() => _openPanel?.Invoke();
 
-        // Qua ví như +Material: không chạm file save, Changed bắn và Reset Save Data xoá sạch như thường.
-        public static void GrantGems(Wallet wallet) => wallet.Add(CurrencyType.Gem, GemGrant);
-
         public static string LanguageButtonLabel(Language current) => current == Language.En ? "Language: English" : "Ngôn ngữ: Tiếng Việt";
 
         // Battle không nạp lại: scene đang chạy trận, nạp lại làm hỏng trận.
@@ -146,12 +143,12 @@ namespace BunDauPeo.UI
                 _trialStageId = NextBattleStageId(Combat().Config.Stages, _trialStageId);
                 stageLabel.text = StageLabel(Combat());
             });
-            AddButton(box, font, "Hồi đầy thể lực", new Vector2(Left, 395), Width, () => Combat().Stamina.Refill());
+            AddButton(box, font, "Hồi đầy thể lực", new Vector2(Left, 395), Width, async () => await ServiceLocator.Get<DevCommands>().RefillStaminaAsync());
             // Qua ví như mọi nguồn thu khác (không chạm file save), nên Changed bắn và Reset Save Data xoá sạch như thường.
             AddButton(box, font, $"+{MaterialGrant} Material", new Vector2(Right, 395), Width,
                 () => ServiceLocator.Get<Wallet>().Add(CurrencyType.Material, MaterialGrant));
             AddButton(box, font, $"+{GemGrant} Gem", new Vector2(Left, 315), Width,
-                () => GrantGems(ServiceLocator.Get<Wallet>()));
+                async () => await ServiceLocator.Get<DevCommands>().AddGemAsync(GemGrant));
             AddButton(box, font, $"Tua AFK +{AfkRewindHours} giờ", new Vector2(Right, 315), Width, RewindAfk);
             // Dòng báo (lỗi lưu, đang ở Battle) hiện ngay trên nhãn nút; mở lại panel thì nhãn trở về ngôn ngữ hiện tại.
             Text languageLabel = null;

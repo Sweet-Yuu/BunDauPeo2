@@ -1,5 +1,6 @@
 using System;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
@@ -108,8 +109,38 @@ namespace BunDauPeo.Tests
         [Test]
         public void Balance_IsStoredInSave()
         {
-            _wallet.Add(CurrencyType.Gem, 5);
-            Assert.AreEqual(5, new Wallet(_save).Get(CurrencyType.Gem));
+            _wallet.Add(CurrencyType.Material, 5);
+            Assert.AreEqual(5, new Wallet(_save).Get(CurrencyType.Material));
+        }
+
+        // Gem do server giữ: chỉ ServerStateApplier ghi được; ví chỉ đọc và hỏi CanAfford.
+        [Test]
+        public void Gem_AddOrSpend_Throws()
+        {
+            ServerStateApplier.Apply(_save, new ServerState { Gem = 100 });
+            var raised = 0;
+            _wallet.Changed += () => raised++;
+
+            Assert.Throws<ArgumentException>(() => _wallet.Add(CurrencyType.Gem, 1));
+            Assert.Throws<ArgumentException>(() => _wallet.TrySpend(new CurrencyAmount(CurrencyType.Gem, 1)));
+            Assert.Throws<ArgumentException>(() => _wallet.TrySpend(Coin(1), new CurrencyAmount(CurrencyType.Gem, 1)));
+            Assert.Throws<ArgumentException>(() => _wallet.TrySpend(new CurrencyAmount(CurrencyType.Gem, 1000)), "also when it could not afford it");
+
+            Assert.AreEqual(100, _wallet.Get(CurrencyType.Gem));
+            Assert.AreEqual(0, raised);
+            Assert.IsTrue(_wallet.CanAfford(new CurrencyAmount(CurrencyType.Gem, 100)), "reading and asking stay allowed");
+            Assert.IsFalse(_wallet.CanAfford(new CurrencyAmount(CurrencyType.Gem, 101)));
+        }
+
+        [Test]
+        public void Coin_Material_Unchanged()
+        {
+            _wallet.Add(CurrencyType.Coin, 10);
+            _wallet.Add(CurrencyType.Material, 20);
+            Assert.IsTrue(_wallet.TrySpend(Coin(4), new CurrencyAmount(CurrencyType.Material, 5)));
+            Assert.AreEqual(6, _wallet.Get(CurrencyType.Coin));
+            Assert.AreEqual(15, _wallet.Get(CurrencyType.Material));
+            Assert.IsTrue(_wallet.TrySpend(new CurrencyAmount(CurrencyType.Gem, 0)), "a zero Gem line spends nothing and is allowed");
         }
 
         private static CurrencyAmount Coin(long amount) => new(CurrencyType.Coin, amount);
@@ -164,7 +195,7 @@ namespace BunDauPeo.Tests
                 new[] { Coin(101) },
                 new[] { Coin(60), Coin(60) },
                 new[] { Coin(-5) },
-                new[] { Coin(50), new CurrencyAmount(CurrencyType.Gem, 1) },
+                new[] { Coin(50), new CurrencyAmount(CurrencyType.Material, 1) },
             };
             foreach (var costs in cases)
             {

@@ -1,7 +1,8 @@
 namespace BunDauPeo.Core
 {
     // Kết quả mọi lệnh server: lệnh không ném ra ngoài, lỗi nào cũng về một trong các giá trị này.
-    public enum OnlineStatus { Ok, NetworkError, OtherDevice, ServerError }
+    // ClientTooOld ở cuối enum: máy dưới MinProtocolVersion của server (hàng rào bản cũ, spec con 3.3).
+    public enum OnlineStatus { Ok, NetworkError, OtherDevice, ServerError, ClientTooOld }
 
     public readonly struct OnlineResult<T>
     {

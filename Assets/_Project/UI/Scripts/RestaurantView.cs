@@ -47,6 +47,7 @@ namespace BunDauPeo.UI
             public bool Seen;
         }
 
+        private bool[] _occupied;
         private static readonly Comparison<Actor> FrontLast = (a, b) => b.Rect.position.y.CompareTo(a.Rect.position.y);
 
         private readonly Dictionary<int, Actor> _customers = new();
@@ -172,8 +173,11 @@ namespace BunDauPeo.UI
         private void SyncCustomers(RestaurantSimulation simulation)
         {
             var queued = 0;
-            foreach (var customer in simulation.Customers)
+            // Vòng chỉ số: foreach qua IReadOnlyList tạo enumerator mỗi khung (performance.md).
+            var customers = simulation.Customers;
+            for (var i = 0; i < customers.Count; i++)
             {
+                var customer = customers[i];
                 var target = CustomerTarget(customer, ref queued);
                 if (!_customers.TryGetValue(customer.Id, out var actor))
                 {
@@ -192,8 +196,10 @@ namespace BunDauPeo.UI
         private void SyncWorkers(RestaurantSimulation simulation)
         {
             Array.Clear(_perRole, 0, _perRole.Length);
-            foreach (var worker in simulation.Workers)
+            var workers = simulation.Workers;
+            for (var i = 0; i < workers.Count; i++)
             {
+                var worker = workers[i];
                 var index = _perRole[(int)worker.Role]++;
                 var target = WorkerTarget(worker, index, simulation);
                 if (!_workers.TryGetValue(worker.CharacterId, out var actor))
@@ -284,7 +290,9 @@ namespace BunDauPeo.UI
         // Một đĩa mỗi bàn có khách đang ăn; bàn nhiều hơn đĩa thì bỏ qua phần dư.
         private void ShowDishes(RestaurantSimulation simulation)
         {
-            var occupied = TableDishes.Occupied(simulation.Customers, _dishes.Length);
+            if (_occupied == null || _occupied.Length != _dishes.Length) _occupied = new bool[_dishes.Length];
+            TableDishes.Fill(simulation.Customers, _occupied);
+            var occupied = _occupied;
             for (var i = 0; i < _dishes.Length; i++)
                 if (_dishes[i].activeSelf != occupied[i]) _dishes[i].SetActive(occupied[i]);
         }
