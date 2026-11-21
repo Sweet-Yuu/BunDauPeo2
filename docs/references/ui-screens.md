@@ -42,6 +42,6 @@
 | Quán | `restaurant-layout-farm-en.webp` | Như trên, bối cảnh nông trại: có quầy thu ngân và lối vào rõ hơn |
 | Quán | `restaurant-layout-sea-en.webp` | Như trên, bối cảnh biển: dãy dài dọc tường sau, hai hàng đồ giữa phòng |
 | Quán | `restaurant-room-isometric-en.jpg` | Phòng isometric có nhân vật đi lại. **Không còn là mẫu cần theo**, đã thay bằng ba ảnh trên. Trong game gốc đây là Guildhouse |
-| Cốt truyện | `story-dialogue-en.webp` | Hội thoại: nhân vật lớn, khung thoại, nút Skip. Cốt truyện sẽ làm sau MVP ([vision](../vision/vision.md)) |
+| Cốt truyện | `story-dialogue-en.webp` | Hội thoại: nhân vật lớn, khung thoại, nút Skip. Spec Cốt truyện Ch1 (2026-11-21) lấy bố cục này: [spec](../superpowers/specs/2026-11-21-story-ch1-design.md) |
 
 User đã gửi đủ ảnh cho các màn hiện biết (2026-11-01). Các phần khác của quán (xếp nhân viên, nâng cấp, AFK) không có ảnh: agent đề xuất phương án tối ưu trong spec Restaurant, user duyệt.

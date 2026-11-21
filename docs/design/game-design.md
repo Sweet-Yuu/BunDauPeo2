@@ -80,7 +80,7 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 (user chốt 2026-11-02)
 
 - MVP có **1 chương: 5 màn đánh và 2 màn cốt truyện**, 7 nút nối nhau trên bản đồ. Màn mở theo thứ tự; màn đã clear luôn mở.
-- **Màn cốt truyện** hiện chỉ là nút giữ chỗ: bấm Tiếp tục là clear, không thưởng, không tốn thể lực. Hội thoại thật làm sau MVP ([vision](../vision/vision.md)).
+- **Màn cốt truyện** không thưởng, không tốn thể lực; hiện còn là nút giữ chỗ (bấm Tiếp tục là clear). Hội thoại thật (Chương 1: Péo, Hợp chất X, phe địch toàn tôm, boss Tôm Chúa) đã có spec, user chốt 2026-11-21: chiếu hội thoại rồi clear; thoại trước/sau ở một số trận đánh (1-5) chỉ tự chiếu một lần, thoại trước chiếu sau khi vào trận (thể lực đã trừ); xem lại ở ô Cốt truyện. Xem [spec Cốt truyện Ch1](../superpowers/specs/2026-11-21-story-ch1-design.md).
 - Vào một màn đánh cần: màn đã mở, đủ thể lực, đội có ít nhất 1 người (dưới 5 người thì hỏi xác nhận, xem [Nhân vật](#nhân-vật)). Thể lực bị trừ ngay khi vào, xem [Thể lực](#thể-lực).
 - Chưa làm: nhiều chương, độ khó Hard, quét nhanh, tự tiến màn tiếp theo.
 
