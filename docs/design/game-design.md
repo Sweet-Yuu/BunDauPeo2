@@ -11,7 +11,7 @@ Mục ghi *khởi điểm* là giá trị tạm để bắt đầu cân bằng, 
 |---|---|---|
 | Coin | Khách trả tiền ở quán, thu thập AFK | Mua nâng cấp quán |
 | Material | Thưởng màn chơi | Mua nâng cấp quán |
-| Gem | Thưởng màn chơi; [Nhiệm vụ](#nhiệm-vụ) (Online đợt 3); Hộp quà (Online đợt 4); sau 31/12: mua trong game, quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
+| Gem | Thưởng màn chơi; [Nhiệm vụ](#nhiệm-vụ) (Online đợt 3); Hộp quà trong Hộp thư (Online đợt 4); sau 31/12: mua trong game, quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
 
 Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để quán chạy vừa đi đánh.
 
@@ -88,11 +88,11 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 
 (user chốt 2026-11-03, theo master plan mục 20.7, thay luật 2026-11-02; [D-008](../decisions/decisions.md). Luật mới so với [vision](../vision/vision.md), `TODO(user)` cập nhật vision)
 
-- Tối đa **100**, hồi **1 điểm mỗi 5 phút theo giờ server** (từ Online đợt 1; trước đó theo giờ máy; user chốt 2026-11-13), **kể cả khi tắt game** (từ 0 lên đầy mất 8 giờ 20). Đầy thì không tích thêm.
+- Tối đa **100**, hồi **1 điểm mỗi 5 phút theo giờ server** (từ Online đợt 1; trước đó theo giờ máy; user chốt 2026-11-13), **kể cả khi tắt game** (từ 0 lên đầy mất 8 giờ 20). Đầy thì không tích thêm. **Ngoại lệ (user chốt 2026-11-21, Online đợt 3):** thưởng Nhiệm vụ (nhận thể lực theo khung giờ) cộng thẳng được **vượt 100, tối đa 999**; đang từ 100 trở lên thì không hồi thêm, trừ khi vào trận kéo xuống dưới 100 thì hồi lại như thường.
 - Mỗi màn đánh tốn **10**, kể cả màn boss; màn cốt truyện tốn 0.
 - **Trừ một lần ngay khi vào trận hợp lệ**, và lưu ngay. Thua, bỏ cuộc, tắt app giữa trận đều **không hoàn**. "Thử lại" sau khi thua là một lần vào mới, trừ lại. Chỉ trừ sau khi mọi kiểm tra (màn, mở khoá, đội, cấu hình) đã qua, nên bị từ chối vào thì không mất thể lực. Nếu không lưu được thì không vào trận và không mất thể lực.
 - Nút DEV "Chiến đấu thử" (panel Cài đặt) vào thẳng, không trừ thể lực và không có thưởng.
-- Không mua thể lực bằng Gem, không có vật phẩm hồi thể lực.
+- Không mua thể lực bằng Gem, không có vật phẩm hồi thể lực. Nguồn thể lực khác hồi tự nhiên: thưởng Nhiệm vụ (khung giờ ngày).
 - Đồng hồ chạy lùi thì không hồi và không mất thể lực. Từ Online đợt 1 tính theo giờ server, chỉnh giờ máy không đổi được thể lực; từ đợt 2 server trừ thể lực khi vào trận.
 - Reset Save Data đưa thể lực về đầy.
 
@@ -107,16 +107,19 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 - **Luồng hiển thị** (user chốt 2026-10-31): bấm Quay → cutscene thường 3,5 giây (chạm để bỏ qua) → từng nhân vật hiện lần lượt (artwork, tên, số sao, lóe sáng; chạm để sang nhân vật kế) → trang tổng. SSR luôn đứng cuối, mỗi SSR có cutscene riêng 2,6 giây **không bỏ qua được**, rồi lóe sáng như nhân vật khác. Quay 10 có nút Bỏ qua: tới SSR đầu tiên, hoặc tới trang tổng nếu không có SSR. Quay 1 cũng có trang tổng (1 icon). Trang tổng của Quay 10 là lưới 5 + 5 icon hiện lần lượt, có nút OK.
 - **Quay tiếp:** bấm OK hiện popup Quay tiếp (cùng số lượt vừa quay) hoặc Thôi (về trang roll). Không đủ Gem thì popup cảnh báo và nút Quay tiếp mờ.
 - **Lịch sử quay:** lưu trong save, 50 lượt gần nhất (mỗi lần bấm Quay 1 hoặc Quay 10 là một mục), Reset Save Data xoá. Trang roll có nút Lịch sử mở popup chỉ đọc, mới nhất trên cùng.
+- **Lượt quay miễn phí** (user chốt 2026-11-21, Online đợt 3): mỗi ngày (00:00 giờ Việt Nam theo giờ server) có **1 lượt Quay ×1 miễn phí**, chỉ ở banner được đánh dấu (hiện chỉ có 1 banner). Vẫn tính vào bộ đếm đảm bảo, lịch sử và việc ngày "Quay gacha 1 lần". Nút Quay ×1 đổi thành "Quay miễn phí" tới khi dùng.
 - Nhân vật trùng thành mảnh: xem mục [Nhân vật](#nhân-vật). Thiết kế đầy đủ: [spec Gacha](../superpowers/specs/2026-10-31-gacha-design.md).
 
 ## Nhiệm vụ
 
-(user chốt 2026-11-13, Online đợt 3, [spec Online mục 5.10](../superpowers/specs/2026-11-13-online-design.md); đảo lại quyết định 2026-11-03 không lấy nhiệm vụ ngày/tuần của master plan.) Danh sách và thưởng là số *khởi điểm*, đặt trong `MissionCatalog` (SO).
+(user chốt 2026-11-13, đổi 2026-11-21; Online đợt 3, [spec con đợt 3](../superpowers/specs/2026-11-21-online-3-design.md), [spec Online mục 5.10](../superpowers/specs/2026-11-13-online-design.md); đảo lại quyết định 2026-11-03 không lấy nhiệm vụ ngày/tuần của master plan.) Danh sách và thưởng là số *khởi điểm*, đặt trong `MissionCatalog` (SO), user sẽ thêm việc sau.
 
-- **Nhiệm vụ ngày**, làm mới **00:00 giờ Việt Nam (UTC+7)** theo giờ server, giống nhau cho mọi người: Vào trận 3 lần, Thắng 1 màn, Quay gacha 1 lượt (quay 10 tính 10), Thu tiền AFK 1 lần, Xử lý 1 sự cố ở quán. Mỗi việc **20 Gem**; đủ cả 5 việc thì thêm **50 Gem**.
-- **Nhiệm vụ tân thủ**, một lần, hiện theo thứ tự, làm trước cũng tính, tổng **650 Gem**: Đặt tên trong Hồ sơ (50), Xếp 1 nhân viên (50), Xếp đội và thắng màn đầu (100), Quay gacha lần đầu (50), Mua nâng cấp quán đầu tiên (50), Thu AFK lần đầu (50), Nâng sao một nhân vật (100), Thắng 10 màn đánh khác nhau, không tính màn cốt truyện (200).
-- **Nhận:** server trao Gem, kiểm chưa nhận và đủ mục tiêu. Việc do máy đếm (AFK, sự cố, tên, nhân viên, nâng cấp) thì server tin số của máy nhưng giữ giới hạn một lần mỗi ngày / một lần mãi mãi.
-- Mở từ nút tròn Nhiệm vụ ở Lobby ([luồng màn](screen-flow.md)). Reset Save Data xoá toàn bộ tiến độ và lượt nhận.
+- **Nhiệm vụ ngày**, làm mới **00:00 giờ Việt Nam (UTC+7)** theo giờ server, giống nhau cho mọi người, server đếm: **Thắng 5 trận** ở chế độ bất kỳ (20 Gem), **Quay gacha 1 lần** (20 Gem; lượt miễn phí cũng tính), **Nâng lv một nhân vật** (khoá "Sắp có": game chưa có cấp nhân vật), **Nhận thể lực 00:00–12:00** và **Nhận thể lực 12:00–24:00** (mỗi khung nhận một lần, **100 thể lực**). Mỗi ngày tối đa 40 Gem + 200 thể lực.
+- **Nhiệm vụ tân thủ**, một lần, hiện theo thứ tự, làm trước cũng tính, tổng **750 Gem**: Liên kết tài khoản (100), Đặt tên trong Hồ sơ (50), Xếp 1 nhân viên (50), Thắng màn đánh đầu tiên (100), Quay gacha lần đầu (50), Mua nâng cấp quán đầu tiên (50), Thu AFK lần đầu (50), Nâng sao một nhân vật (100), Thắng 10 màn đánh khác nhau, không tính màn cốt truyện (200).
+- **Nhận:** server trao thưởng, kiểm chưa nhận và đủ mục tiêu. Việc do máy báo (tên, nhân viên, nâng cấp, AFK, liên kết tài khoản) thì server tin số của máy nhưng giữ giới hạn một lần mãi mãi. **Nhận hết** theo tab đang mở.
+- **Thể lực nhận thêm có thể vượt 100, tối đa 999**; phần dư mất, và khi lượt nhận làm mất phần nào thì hộp xác nhận hỏi lại trước khi nhận (user chốt 2026-11-21).
+- Mở từ nút tròn Nhiệm vụ ở Lobby ([luồng màn](screen-flow.md)). Dòng chưa đủ có nút **Đi tới** (đã nhận thì nút xám, không bấm được). Reset Save Data xoá toàn bộ tiến độ và lượt nhận.
+- **Chưa làm:** thanh mốc thưởng (user bỏ 2026-11-21), tab Thành tựu ([ideas](ideas.md#để-sau)).
 
 ## Kiếm tiền
 
