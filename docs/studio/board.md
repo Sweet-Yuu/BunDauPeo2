@@ -19,9 +19,10 @@ _Cập nhật 2026-11-21 bởi 👑 CEO #1._
 
 | Luồng | File | Leader | Bước kế |
 |---|---|---|---|
-| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | [PR #22](https://github.com/Sweet-Yuu/BunDauPeo2/pull/22) Online 2 (đã sửa review + GC) chờ user playtest + merge; 🎨 spec Online đợt 3 (Google + Nhiệm vụ) mở song song (user chốt 2026-11-21). Còn: đo Android thật, deploy production |
+| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | [PR #22](https://github.com/Sweet-Yuu/BunDauPeo2/pull/22) Online 2 (đã sửa review + GC) chờ user playtest + merge. Đợt 3 (Google + Nhiệm vụ): spec + kế hoạch 12 task user duyệt 2026-11-21 (nhánh `claude/fervent-brattain-b00297`); 🔨 O3-a chờ PR #22 merge + khoá Unity, đi trước Thời tiết. Còn: đo Android thật, deploy production |
 | 🚀 Phát hành | [streams/release.md](streams/release.md) | chưa mở | R2 khi có khoá upload + icon |
-| 🍜 Nội dung game | [streams/content.md](streams/content.md) | 🧭 Nội dung game #1 `local_95aae363-67d6-40fa-8849-673dbe1f854c` (mở 2026-11-21) | Thời tiết: spec + kế hoạch user duyệt (`4abe294` trên `docs/thoi-tiet-spec`, 4 task, 2 phiên 🔨), 🔨 chờ PR #22 merge + khoá Unity. Cốt truyện Ch1: spec + kế hoạch user duyệt (`docs/cot-truyen-spec`, 7 task, 3 phiên 🔨; trễ thì cắt Task 6 → 5 → 4). Hai việc này cùng đụng PlayerSave/ProjectSetup nên 🔨 làm lần lượt: Thời tiết trước, Cốt truyện sau. 🎨 kế tiếp: spec Shipper. Thứ tự user chốt: Thời tiết → Cốt truyện → Shipper → Nội thất; trễ thì cắt Nội thất, rồi Shipper |
+| 🍜 Nội dung game | [streams/content.md](streams/content.md) | 🧭 Nội dung game #1 `local_95aae363-67d6-40fa-8849-673dbe1f854c` (mở 2026-11-21) | Thời tiết: spec + kế hoạch user duyệt (`4abe294` trên `docs/thoi-tiet-spec`, 4 task, 2 phiên 🔨), 🔨 chờ PR #22 merge + khoá Unity. Cốt truyện Ch1: spec + kế hoạch user duyệt (`docs/cot-truyen-spec`, 7 task, 3 phiên 🔨; trễ thì cắt Task 6 → 5 → 4). Hai việc này cùng đụng PlayerSave/ProjectSetup nên 🔨 làm lần lượt: Thời tiết trước, Cốt truyện sau. Thứ tự user chốt (đổi 2026-11-21): Thời tiết → Cốt truyện → Vẽ lại quán bằng tilemap + Nội thất 8×8 (một spec; hình quán cũ cất vào thư mục old) → Shipper; trễ thì cắt Shipper trước |
+| 🧩 Nhân vật | chưa có | chưa mở (thẻ đề xuất trong kênh CEO) | Cấp nhân vật vào bản 31/12 (user chốt 2026-11-21, vision đã sửa); trang bị sau 31/12 |
 | 💰 Kiếm tiền | chưa có | chưa mở | sau 31/12 |
 
 ## Kênh đứng lâu
@@ -36,6 +37,8 @@ _Cập nhật 2026-11-21 bởi 👑 CEO #1._
 - Xem ngưỡng dung lượng/hiệu năng CEO đề xuất ở [performance.md](performance.md); chưa đo lần nào. Đề xuất đo nền trong Editor ngay sau Online O2-a.
 - Phát hành: U3 khoá upload, U5 deploy production, U7 icon PNG, U9 thử save trên điện thoại, D-015 → Accepted, tài khoản Play Console (trước 30/11), email hỗ trợ.
 - Ảnh `ReferenceImages/hub-missions.jpg`, `ReferenceImages/hub-presents-popup.jpg` trước spec Online đợt 3/4.
+- Bấm thẻ mở 🧭 Nhân vật #1 trong kênh CEO.
+- Thứ tự khoá Unity sau PR #22: Online O3 → Thời tiết → Cốt truyện; Cấp nhân vật và Vẽ lại quán xếp khi có kế hoạch. Tab Thành tựu: luồng Online, sau 31/12 (user chốt 2026-11-21).
 - Giá nâng cấp (quán bằng Material, nhân vật bằng Coin) mới nằm ở `ideas.md`, chưa xếp roadmap.
 
 ## Lưu ý vận hành
