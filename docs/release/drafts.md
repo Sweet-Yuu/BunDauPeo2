@@ -82,7 +82,7 @@ BunDauPeo ("the game") is published by `<Publisher name>`. Contact: `<support em
 | Ô | Nháp |
 |---|---|
 | Tên (≤ 30) | BunDauPeo |
-| Mô tả ngắn (≤ 80, EN) | `<user viết: một câu về quán ăn và đội nhân vật tôm của Péo>` |
+| Mô tả ngắn (≤ 80, EN) | `<user viết: một câu về quán bún đậu của Péo và đội chống quái tôm>` |
 | Mô tả đầy đủ (≤ 4000) | `<user viết, chỉ nói những gì bản phát hành có thật; không hứa tính năng chưa làm>` |
 | Chính sách | `<URL trang 1>` |
 | Xoá tài khoản (Data safety) | `<URL trang 2>` |

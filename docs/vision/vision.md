@@ -22,7 +22,7 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 
 ## Phong cách
 
-- Hình ảnh: 2D, UI hub và màn hình tham khảo Princess Connect Re:Dive. Chiến đấu turn-based: bố trí theo Princess Connect, chọn chiêu theo Fate/Grand Order, kết quả trận theo Epic Seven (ảnh trong `Mota/`, mục lục ở [ui-screens.md](../references/ui-screens.md)). Hiện dùng sprite có sẵn của Unity làm placeholder. TODO(user): phong cách art cuối cùng.
+- Hình ảnh: 2D, UI hub và màn hình tham khảo Princess Connect Re:Dive. Chiến đấu turn-based: bố trí theo Princess Connect, chọn chiêu theo Fate/Grand Order, kết quả trận theo Epic Seven (ảnh trong `ReferenceImages/`, mục lục ở [ui-screens.md](../references/ui-screens.md)). Hiện dùng sprite có sẵn của Unity làm placeholder. TODO(user): phong cách art cuối cùng.
 - Âm thanh / tone: TODO(user)
 
 ## Trong phạm vi (MVP)
@@ -34,13 +34,13 @@ Người vắng mặt vẫn có thu nhập AFK nhưng thấp hơn người chơi
 - Lưu game cục bộ.
 - Online, xong trong bản 31/12 (user chốt 2026-11-09): đăng nhập (ẩn danh, Google Play Games trên Android), save trên server, Gem và gacha do server giữ, Nhiệm vụ, Hộp quà, Hồ sơ online. Phạm vi và bốn đợt ở [spec Online](../superpowers/specs/2026-11-13-online-design.md) (user duyệt 2026-11-13); không có Hội, xếp hạng, PvP, Thông báo tin trong bản 31/12. Nơi phát hành (user chốt 2026-11-16): bản 31/12 là itch.io; CH Play công khai đầu T1/2027.
 - Mua trong game (gói Gem, thẻ tháng, gói tân thủ, gói nhân vật khởi đầu) và quảng cáo thưởng nhận Gem. Luật và `TODO(user)` ở [game-design.md](../design/game-design.md#kiếm-tiền).
+- Cốt truyện Chương 1 (user chốt 2026-11-21, [spec Cốt truyện Ch1](../superpowers/specs/2026-11-21-story-ch1-design.md)): Péo chủ quán, Hợp chất X trong mắm tôm, phe địch toàn tôm, boss Tôm Chúa; hai đoạn truyện và thoại trước/sau vài trận, xem lại ở ô Cốt truyện. Nhiều chương, lựa chọn rẽ nhánh, tiếng nói để sau.
 - Nhân vật trùng thành mảnh để nâng sao (tối đa 5★); nâng sao tăng HP, Tấn công, Thủ (user chốt 2026-11-08, [spec Nâng sao](../superpowers/specs/2026-11-08-star-up-design.md)).
 
 ## Ngoài phạm vi (chưa làm)
 
 - Hệ nguyên tố, trang bị.
 - Cấp nhân vật (chưa thiết kế).
-- Cốt truyện và hội thoại (sẽ làm sau MVP).
 
 ## Tiêu chí "xong" của MVP
 
