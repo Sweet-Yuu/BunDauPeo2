@@ -16,6 +16,10 @@
 
 - 2026-11-21 — Cấp nhân vật trong 31/12; trang bị sau 31/12 (user).
 
+- 2026-11-21 — Cấp nhân vật (user duyệt spec + kế hoạch): cấp người chơi (EXP = thể lực tiêu, Lv20) + cấp nhân vật (trần = cấp người chơi, +2%/cấp HP/Tấn công/Thủ); chi phí chính thuốc EXP + Coin phụ; thuốc rơi từ màn (qua server) và quán (phụ, có AFK); cấp lưu phía máy cho 31/12, chuyển server **bắt buộc** sau 31/12; số cân bằng tính lại cuối T12; trang bị, nâng skill để sau.
+- Spec `docs/superpowers/specs/2026-11-21-character-level-design.md`, kế hoạch `docs/superpowers/plans/2026-11-21-character-level.md` (nhánh `docs/cap-nhan-vat-spec`). 8 task, 2 phiên 🔨 (#1 Task 1–5, #2 Task 6–8), +77 EditMode +1 .NET +3 PlayMode. Cần khoá Unity cả hai phiên.
+- **Phối hợp:** server dựng lại + triển khai lại (`ExpPotion`, ProtocolVersion 3, Min giữ 2) xếp cùng Online O3 (🧭 Online); phiên #1 chạm CombatService/RestaurantService/AfkService/StageProgressService; ảnh mô phỏng UI (spec mục 8) phải được user duyệt trước Task 7, 🔨 dừng sau Task 6 nếu chưa; `ideas.md` chưa ghi trang bị và nâng skill.
+
 ## Nhật ký
 
 - 2026-11-21 — Lập luồng, mở Leader #1, tạo file luồng.
