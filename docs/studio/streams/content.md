@@ -16,3 +16,4 @@
 - 2026-11-16 — Lập luồng.
 - 2026-11-21 — Mở Leader #1; user chốt thứ tự; mở 🎨 Spec Thời tiết.
 - 2026-11-21 — Spec + kế hoạch Thời tiết xong, user duyệt (nhánh `docs/thoi-tiet-spec`, chờ 📋 commit): 4 task, 2 phiên 🔨, +39 EditMode. Trạng thái ở `PlayerSave.Weather`, không đổi server. 🔨 làm sau khi PR #22 merge, cần khoá Unity. Kế: spec Cốt truyện Ch1.
+- 2026-11-21 — Spec + kế hoạch Cốt truyện Ch1 xong, user duyệt (nhánh `docs/cot-truyen-spec`, chờ 📋 commit): 7 task, 3 phiên 🔨, +72 EditMode +1 PlayMode. Péo chủ quán, Hợp chất X trong mắm tôm, boss Tôm Chúa. Thoại trong ScriptableObject, cờ `PlayerSave.SeenStoryScenes`; server/tiền không đổi. Cắt khi trễ: Task 6 → 5 → 4. Chung `PlayerSave`/`ProjectSetup` với Thời tiết nên 🔨 làm lần lượt, sau PR #22 + khoá Unity. TODO(user): `vision.md` còn ghi "Cốt truyện sau MVP"; câu "đội nhân vật tôm của Péo" ở `release/drafts.md` lệch với "đội ta không phải tôm". Kế: Shipper + nấu ăn.
