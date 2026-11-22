@@ -23,9 +23,12 @@ Mỗi ý ghi ngày và người đề xuất. Luồng màn ở [screen-flow.md](
 - **Banner sự kiện và gói mua** ở bên trái Lobby (🎨, 2026-11-09). Chỗ banner đã giữ, banner đầu trỏ Gacha.
 - **Nút góc màn Tiêu đề**: ngôn ngữ, xoá cache, hỗ trợ (🎨, user đồng ý 2026-11-09).
 - **Bước đặt tên lúc mới vào game** (🎨, 2026-11-12): hiện chỉ sửa tên trong Hồ sơ (nhiệm vụ tân thủ "Đặt tên" ở Online đợt 3 nhắc người chơi). Bàn cùng luồng hướng dẫn lần đầu chơi.
+- **Nội thất mở rộng** (🎨, user duyệt phạm vi 2026-11-23): bán nội thất, Bộ cài sẵn (có ở mức đầy đủ của [spec](../superpowers/specs/2026-11-23-restaurant-tilemap-furniture-design.md)), nhiều tầng, nội thất treo tường, thêm nhiều món, tab loại ở Cửa hàng, khách tìm đường quanh nội thất. Bản 31/12 chỉ có chậu cây và kệ.
 
 ## Bỏ
 
 - **Guildhouse** (🎨, user đồng ý 2026-11-09): Quán đã là Lobby.
 - **Cấp và EXP người chơi** trên thanh trên (🎨, user đồng ý 2026-11-09): game không có cấp người chơi.
 - **Nhân vật lớn và bong bóng thoại ở Lobby** (🎨, 2026-11-09, suy ra từ việc user chọn Quán là nền Lobby): chỗ đó là quán.
+- **Nội thất có hiệu ứng sản xuất vật phẩm theo giờ** (🎨, 2026-11-22, từ ảnh `restaurant-furniture-effects.jpg`): game này dùng điểm trang trí cho Chất lượng quán, không có sản xuất vật phẩm. Bỏ để không trùng AFK.
+- **Xếp nhân vật đứng trong phòng theo tầng** (🎨, 2026-11-22, từ ảnh `restaurant-character-placement.jpg`): nhân viên đứng theo vai ở màn Nhân viên. Bỏ.

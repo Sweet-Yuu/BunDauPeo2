@@ -41,7 +41,14 @@
 | Quán | `restaurant-layout-garden-en.webp` | **Bố cục màn quán cần theo** (user chốt 2026-11-01), cùng hai ảnh dưới: phòng chữ nhật nghiêng lấp gần hết màn, tường ở cạnh sau và cạnh trái, cảnh quanh phòng, thẻ tiền trên-trái, cột nút phải. Mô tả và phần không lấy: [spec Restaurant mục 5.1](../superpowers/specs/2026-11-01-restaurant-design.md#51-màn-quán-restaurantunity) |
 | Quán | `restaurant-layout-farm-en.webp` | Như trên, bối cảnh nông trại: có quầy thu ngân và lối vào rõ hơn |
 | Quán | `restaurant-layout-sea-en.webp` | Như trên, bối cảnh biển: dãy dài dọc tường sau, hai hàng đồ giữa phòng |
-| Quán | `restaurant-room-isometric-en.jpg` | Phòng isometric có nhân vật đi lại. **Không còn là mẫu cần theo**, đã thay bằng ba ảnh trên. Trong game gốc đây là Guildhouse |
+| Quán | `restaurant-room-isometric-en.jpg` | Phòng isometric có nhân vật đi lại. **Lại là mẫu cho hình thoi của sàn** (user chốt 2026-11-21, thay quyết định 2026-11-01 ở dòng này); vẫn lấy vườn, HUD, cột nút từ ba ảnh trên. Trong game gốc đây là Guildhouse |
+| Quán · Nội thất | `restaurant-furniture-menu.jpg` | **Xem trước.** Phòng isometric có tường sau-trái và sau-phải; menu nổi lưới 3 cột (Cửa hàng, Kho, Hiệu ứng, Bộ cài sẵn, Cất tất cả, Xếp nhân vật…) mở từ nút MENU; nút chọn tầng bên trái. User chốt 2026-11-22: lấy cách mở menu nội thất và các popup dưới đây (user chốt 2026-11-21: sàn hình thoi). Không lấy tầng, BGM, Game table, quà, hiệu ứng sản xuất |
+| Quán · Nội thất | `restaurant-furniture-shop.jpg` | Cửa hàng nội thất: tab loại, thẻ món (tên, hình, giá Coin), hai nút **Mua cất kho** / **Mua và đặt**; đếm "đã đặt / chỗ kho" ở góc dưới. Không lấy món giới hạn thời gian |
+| Quán · Nội thất | `restaurant-furniture-storage.jpg` | Kho: thẻ món có số lượng ×N, nút **Bán** / **Đặt**, tab loại, sắp xếp, đếm "đã đặt / chỗ kho". Bán không có ở món đặc biệt |
+| Quán · Nội thất | `restaurant-furniture-bulk-store.jpg` | Hộp xác nhận cất tất cả: số đã đặt, số trong kho, ô chọn loại, cảnh báo đỏ không hoàn tác |
+| Quán · Nội thất | `restaurant-furniture-myset.jpg` | Bộ cài sẵn: nhiều ô lưu bố cục (xoá, đổi tên, lưu bố cục hiện tại, áp dụng). Có thể để sau |
+| Quán · Nội thất | `restaurant-furniture-effects.jpg` | Danh sách nội thất có hiệu ứng (sản xuất vật phẩm theo giờ). Chỉ tham khảo bố cục danh sách; hiệu ứng của game này là điểm trang trí |
+| Quán · Nội thất | `restaurant-character-placement.jpg` | Chọn nhân vật đứng trong phòng theo tầng. Game này không làm (nhân viên theo vai ở màn Nhân viên) |
 | Cốt truyện | `story-dialogue-en.webp` | Hội thoại: nhân vật lớn, khung thoại, nút Skip. Cốt truyện sẽ làm sau MVP ([vision](../vision/vision.md)) |
 
 User đã gửi đủ ảnh cho các màn hiện biết (2026-11-01). Các phần khác của quán (xếp nhân viên, nâng cấp, AFK) không có ảnh: agent đề xuất phương án tối ưu trong spec Restaurant, user duyệt.
