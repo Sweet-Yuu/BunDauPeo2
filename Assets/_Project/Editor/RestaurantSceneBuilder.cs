@@ -239,8 +239,9 @@ namespace BunDauPeo.EditorTools
             var restaurantBar = BuildRestaurantBar(lobbyHud, font, sprite, knob);
             var staffPanel = BuildStaffPanel(canvas, restaurantBar, font, sprite, knob);
             var upgradePanel = BuildUpgradePanel(canvas, restaurantBar, font, sprite, knob);
-            var (missionsButton, _) = MissionsPageBuilder.BuildLobbyButtons(lobbyHud, font, knob);
+            var (missionsButton, mailButton) = MissionsPageBuilder.BuildLobbyButtons(lobbyHud, font, knob);
             var missionsPage = MissionsPageBuilder.BuildPage(canvas, missionsButton, font, sprite, knob);
+            var mailPage = MailPageBuilder.BuildPage(canvas, mailButton, mailButton.transform.Find("MailDot_PH_28x28").gameObject, font, sprite, knob);
             BuildAfkButton(restaurantBar, font, knob, hud);
             var qualityPopup = BuildQualityPopup(canvas, font, sprite, statsButton);
 
@@ -259,7 +260,7 @@ namespace BunDauPeo.EditorTools
             // Trang kín màn: bấm ô khác thì HubNav đóng từng trang đang mở qua IHubPage.Close() (Chọn đội trả đội như lúc mở).
             NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[]
             {
-                staffPanel, upgradePanel, missionsPage, qualityPopup, notifyPopup, profilePopup, stageMapPanel.GetComponentInChildren<StageMapView>(true),
+                staffPanel, upgradePanel, missionsPage, mailPage, qualityPopup, notifyPopup, profilePopup, stageMapPanel.GetComponentInChildren<StageMapView>(true),
                 stageMapPanel.GetComponentInChildren<StageInfoPopup>(true), stageMapPanel.GetComponentInChildren<StoryPlaceholderPopup>(true),
                 stageMapPanel.GetComponentInChildren<TeamSelectPopup>(true), gachaPanel.GetComponentInChildren<GachaHistoryPopup>(true),
             });

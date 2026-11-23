@@ -4,6 +4,7 @@ using System.Reflection;
 using BunDauPeo.Core;
 using BunDauPeo.Online;
 using NUnit.Framework;
+using Unity.Services.Authentication;
 using Unity.Services.CloudCode;
 using Unity.Services.CloudSave;
 using Unity.Services.Core;
@@ -49,5 +50,34 @@ namespace BunDauPeo.Tests
             (CloudCodeException)typeof(CloudCodeException).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null,
                     new[] { typeof(CloudCodeExceptionReason), typeof(int), typeof(string), typeof(Exception) }, null)
                 .Invoke(new object[] { CloudCodeExceptionReason.Unknown, 9_000, message, null });
+
+        [Test]
+        public void MapAccount_ConflictCancelledOffline()
+        {
+            Assert.AreEqual(AccountStatus.Conflict, UgsErrors.MapAccount(new RequestFailedException(AuthenticationErrorCodes.AccountAlreadyLinked, "x"), AccountMethod.Google, false));
+            Assert.AreEqual(AccountStatus.UsernameTaken, UgsErrors.MapAccount(new RequestFailedException(AuthenticationErrorCodes.AccountAlreadyLinked, "x"), AccountMethod.UserPass, false));
+            Assert.AreEqual(AccountStatus.Cancelled, UgsErrors.MapAccount(new OperationCanceledException(), AccountMethod.Google, false));
+            Assert.AreEqual(AccountStatus.Offline, UgsErrors.MapAccount(new RequestFailedException(CommonErrorCodes.TransportError, "x"), AccountMethod.Google, true));
+            Assert.AreEqual(AccountStatus.WrongCredentials, UgsErrors.MapAccount(new RequestFailedException(AuthenticationErrorCodes.InvalidParameters, "x"), AccountMethod.UserPass, true));
+            Assert.AreEqual(AccountStatus.WeakPassword, UgsErrors.MapAccount(new RequestFailedException(AuthenticationErrorCodes.InvalidParameters, "x"), AccountMethod.UserPass, false));
+            Assert.AreEqual(AccountStatus.WrongCredentials, UgsErrors.MapAccount(new RequestFailedException(CommonErrorCodes.Unknown, "Invalid username or password"), AccountMethod.UserPass, true));
+            const string off = "usernamepassword external id provider is not available: PERMISSION_DENIED";
+            Assert.AreEqual(AccountStatus.Unavailable, UgsErrors.MapAccount(new RequestFailedException(AuthenticationErrorCodes.InvalidParameters, off), AccountMethod.UserPass, false));
+            Assert.AreEqual(AccountStatus.Unavailable, UgsErrors.MapAccount(new RequestFailedException(AuthenticationErrorCodes.InvalidParameters, off), AccountMethod.UserPass, true));
+        }
+
+        private sealed class FakeGoogle : IGoogleTokenProvider
+        {
+            public System.Threading.Tasks.Task<string> GetIdTokenAsync() => System.Threading.Tasks.Task.FromResult("token");
+        }
+
+        [Test]
+        public void Available_ExcludesGoogle_WithoutProvider_IncludesWithOne()
+        {
+            CollectionAssert.AreEqual(new[] { AccountMethod.UserPass }, new BunDauPeo.Online.UgsAccountService("development").Available);
+            CollectionAssert.Contains(new BunDauPeo.Online.UgsAccountService("development", new FakeGoogle()).Available, AccountMethod.Google);
+            Assert.AreEqual(AccountStatus.Unavailable,
+                new BunDauPeo.Online.UgsAccountService("development").LinkGoogleAsync().GetAwaiter().GetResult().Status);
+        }
     }
 }

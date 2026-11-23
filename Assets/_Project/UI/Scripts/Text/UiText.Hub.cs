@@ -82,6 +82,16 @@ namespace BunDauPeo.UI
             ("gacha.status_free_used", "Hôm nay bạn đã dùng lượt miễn phí", "You already used today's free pull"),
             ("gacha.free_left", "Còn 1 lượt miễn phí hôm nay", "1 free pull left today"),
             ("mail.title", "Hộp thư", "Mail"),
+            ("mail.count", "Số lượng {0}/{1}", "Quantity {0}/{1}"),
+            ("mail.claim_all", "Nhận hết", "Claim all"),
+            ("mail.delete_read", "Xoá đã đọc", "Delete read"),
+            ("mail.empty", "Chưa có thư", "No mail"),
+            ("mail.attachments", "Đính kèm", "Attachments"),
+            ("mail.sender", "Đội ngũ BunDauPeo", "BunDauPeo Team"),
+            ("mail.link_title", "Liên kết tài khoản", "Link your account"),
+            ("mail.link_body", "Chào bạn! Hãy liên kết tài khoản để giữ tiến độ khi đổi máy hoặc cài lại game.",
+                "Hello! Link your account to keep your progress when you switch devices or reinstall."),
+            ("mail.link_btn", "Liên kết", "Link"),
         };
     }
 }

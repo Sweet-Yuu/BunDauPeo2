@@ -47,14 +47,17 @@ namespace BunDauPeo.Tests
                 Assert.IsNull(version.GetComponent<LocalizedText>(), "the view writes the version at runtime");
 
                 var tap = LobbySceneTests.Named(scene, "TapArea");
-                Assert.AreEqual(tap.parent.childCount - 1, tap.GetSiblingIndex(), "TapArea is the last (top) sibling");
+                // Đợt 3: nút Đăng nhập bằng tài khoản nằm trên TapArea (sibling cuối) để nhận chạm trước.
+                var account = LobbySceneTests.Named(scene, "TitleAccountBtn_PH_480x90");
+                Assert.AreEqual(tap.parent.childCount - 1, account.GetSiblingIndex(), "the account button is the top sibling");
+                Assert.AreEqual(account.GetSiblingIndex() - 1, tap.GetSiblingIndex(), "TapArea is right below it");
                 Assert.AreEqual(Vector2.zero, tap.anchorMin);
                 Assert.AreEqual(Vector2.one, tap.anchorMax);
                 Assert.AreEqual(Vector2.zero, tap.offsetMin);
                 Assert.AreEqual(Vector2.zero, tap.offsetMax);
                 Assert.IsNotNull(tap.GetComponent<Button>());
                 Assert.IsTrue(tap.GetComponent<Image>().raycastTarget, "TapArea catches every touch");
-                foreach (var image in RestaurantSceneTests.All<Image>(scene).Where(i => i.transform != tap))
+                foreach (var image in RestaurantSceneTests.All<Image>(scene).Where(i => i.transform != tap && i.name != "TitleAccountBtn_PH_480x90"))
                     Assert.IsFalse(image.raycastTarget, $"{image.name} must not take touches");
                 foreach (var text in RestaurantSceneTests.All<Text>(scene))
                     Assert.IsFalse(text.raycastTarget, $"{text.name} must not take touches");
@@ -71,8 +74,8 @@ namespace BunDauPeo.Tests
             {
                 Assert.IsNull(LabelOf(scene, "TapHint"), "TitleView writes TapHint (tap to start, then connecting), so no LocalizedText");
                 var buttons = RestaurantSceneTests.All<Button>(scene);
-                Assert.AreEqual(1, buttons.Length, "only TapArea");
-                Assert.AreEqual("TapArea", buttons[0].name);
+                Assert.AreEqual(2, buttons.Length, "TapArea and the account button (đợt 3)");
+                CollectionAssert.AreEquivalent(new[] { "TapArea", "TitleAccountBtn_PH_480x90" }, System.Linq.Enumerable.Select(buttons, x => x.name));
                 Assert.IsTrue(UiText.AllEntries.Any(e => e.Key == "online.connecting"), "online.connecting key");
             });
     }

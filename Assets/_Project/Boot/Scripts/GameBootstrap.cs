@@ -35,6 +35,9 @@ namespace BunDauPeo.Boot
         // Test đặt server giả ở đây và tự trả về null như SavePathOverride; null = Boot tự chọn server.
         public static System.Func<IGameServer> ServerFactory { get; set; }
 
+        // Test đặt tài khoản giả ở đây và tự trả về null; null = UGS cho server UGS, còn lại LocalAccountService.
+        public static System.Func<IAccountService> AccountFactory { get; set; }
+
         // Menu Tools/BunDauPeo/Online Mode ghi vào đây (EditorPrefs); bản build bỏ qua.
         public static bool UseUgsInEditor { get; set; }
 
@@ -115,8 +118,11 @@ namespace BunDauPeo.Boot
             }
 
             (server as LocalGameServer)?.UseDataIfEmpty(gameData);
+            IAccountService account = AccountFactory?.Invoke();
+            // Google dời sang sau (plugin cần Unity 6.5+): chưa có nguồn ID token nên không có nút Google.
+            if (account == null && server is Online.UgsGameServer ugs) account = new Online.UgsAccountService(ugs.Environment);
             _startup = new OnlineStartup(server, new ServerTime(), SavePath, _catalog, _newGameConfig, _bannerCatalog,
-                _restaurantConfig, _combatConfig, _starConfig, gameData, gameObject);
+                _restaurantConfig, _combatConfig, _starConfig, gameData, gameObject, account);
             _startup.RegisterBase();
 
             _active = this;

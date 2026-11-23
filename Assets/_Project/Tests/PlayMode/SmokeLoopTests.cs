@@ -1381,6 +1381,56 @@ namespace BunDauPeo.PlayModeTests
 
             yield return ShootProfile(suffix);
             yield return ShootNotify(suffix);
+            yield return ShootOnline3(suffix);
+        }
+
+        // Ảnh đợt 3 (online3-): Nhiệm vụ (Ngày, Tân thủ có dòng Nhận/Đã nhận/khoá), hộp thể lực, Hộp thư, ba hộp tài khoản, Hồ sơ có dòng Tài khoản.
+        private IEnumerator ShootOnline3(string suffix)
+        {
+            _step = "S Nhiệm vụ" + suffix;
+            yield return ClickWhenReady("HubRoundBtnMissions_PH_110x110");
+            yield return Shot("missions-daily", suffix, "online3");
+            var tabs = UiDriver.FindButtons("MissionTab_PH_300x80").OrderBy(b => b.transform.GetSiblingIndex()).ToList();
+            Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click(tabs[1]).Status, Where("tab Tân thủ"));
+            yield return null;
+            // Đặt tên ở ShootProfile nên new_name nhận được: nhận một dòng để ảnh có cả Nhận (dòng khác), Đã nhận và Đi tới.
+            var rows = Object.FindObjectsByType<MissionRowView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var claim = rows.FirstOrDefault(r => r.State == MissionButtonState.Claim);
+            if (claim != null)
+            {
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click(claim.Button).Status, Where("nhận một dòng"));
+                yield return new WaitForSecondsRealtime(0.8f);
+            }
+
+            yield return Shot("missions-newbie", suffix, "online3");
+            var confirm = FindAny("StaminaCapConfirm").GetComponent<StaminaCapConfirm>();
+            _ = confirm.AskAsync(950, 49, 999, 51);
+            yield return Shot("stamina-cap", suffix, "online3");
+            confirm.Cancel();
+            yield return ClickWhenReady("CloseButton");
+
+            _step = "S Hộp thư" + suffix;
+            yield return ClickWhenReady("HubRoundBtnMail_PH_110x110");
+            yield return Shot("mail", suffix, "online3");
+            yield return ClickWhenReady("CloseButton");
+
+            _step = "S Hộp tài khoản" + suffix;
+            yield return ClickWhenReady("Avatar_PH_140x140");
+            yield return Shot("profile-account", suffix, "online3");
+            yield return ClickWhenReady("ProfileAccountBtn_PH_160x55");
+            yield return Shot("account-choose", suffix, "online3");
+            yield return ClickWhenReady("AccountUserPassBtn_PH_700x90");
+            GameObject.Find("CredentialUser_PH_700x80").GetComponent<InputField>().text = "ab";
+            yield return ClickWhenReady("CredentialActionBtn_PH_380x90");
+            yield return Shot("account-credential", suffix, "online3");
+            yield return ClickWhenReady("CredentialCancelBtn_PH_300x90");
+            // Hộp chuyển tài khoản chỉ hiện khi Google báo Conflict (Editor không có Google): mở thẳng để chụp bố cục.
+            AccountBoxes.ShowLink(AccountBoxes.NewFlow(() => { }));
+            var conflict = typeof(AccountBoxes).GetField("_conflict", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            typeof(AccountBoxes).GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new[] { conflict });
+            yield return Shot("account-conflict", suffix, "online3");
+            AccountBoxes.Hide();
+            yield return ClickWhenReady("CloseButton");
         }
 
         // Ảnh đợt C: Hồ sơ có tên và avatar, rồi Lobby với avatar đã đổi. Chạy trên save tạm.

@@ -232,6 +232,8 @@ Lý do làm server trước rồi mới xoá máy: nếu xoá máy trước mà 
 
 ### 5.9 Hồ sơ online và liên kết tài khoản
 
+> Đợt 3: chi tiết ở [spec con đợt 3](2026-11-21-online-3-design.md) mục 8.3; Google đổi từ Play Games sang Sign in with Google (ID token) theo yêu cầu user, chưa có plugin lấy token.
+
 - **Đợt 1:** Hồ sơ thêm dòng **ID: `<PlayerId>`** và nút **Sao chép** (chép vào clipboard, hiện "Đã chép" 2 giây). ID là `AuthenticationService.Instance.PlayerId`.
 - **Đợt 3, Android:** Hồ sơ thêm dòng **Tài khoản**: "Chưa liên kết" + nút **Liên kết Google Play Games**, hoặc "Đã liên kết Google Play Games".
   - Mở app trên Android: thử đăng nhập Google Play Games im lặng; được thì `SignInWithGooglePlayGamesAsync(authCode)` (vào đúng người chơi đã liên kết), không thì ẩn danh như đợt 1.
@@ -240,6 +242,8 @@ Lý do làm server trước rồi mới xoá máy: nếu xoá máy trước mà 
 - **WebGL:** không có dòng Tài khoản (chỉ ẩn danh; bản demo không cập nhật nên chấp nhận).
 
 ### 5.10 Nhiệm vụ (đợt 3)
+
+> Chi tiết và danh sách chốt ở [spec con đợt 3](2026-11-21-online-3-design.md) mục 7–8.
 
 User chốt danh sách và thưởng dưới đây làm số khởi điểm (đổi sau trong asset). Danh sách nằm trong `MissionCatalog` (SO) và đi vào `GameData.json` cho server.
 

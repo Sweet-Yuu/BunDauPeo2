@@ -38,10 +38,16 @@ namespace BunDauPeo.Online
                 ? AuthenticationService.Instance.PlayerId ?? ""
                 : "";
 
-        public Task<OnlineStatus> SignInAsync() => Run("sign in", async () =>
+        // Dùng chung với UgsAccountService: Tiêu đề đăng nhập bằng tài khoản trước khi có phiên ẩn danh nào.
+        public static async Task EnsureInitializedAsync(string environment)
         {
             if (UnityServices.State != ServicesInitializationState.Initialized)
-                await UnityServices.InitializeAsync(new InitializationOptions().SetEnvironmentName(Environment));
+                await UnityServices.InitializeAsync(new InitializationOptions().SetEnvironmentName(environment));
+        }
+
+        public Task<OnlineStatus> SignInAsync() => Run("sign in", async () =>
+        {
+            await EnsureInitializedAsync(Environment);
             // SDK tự dùng token phiên đã cất trong PlayerPrefs (spec 5.4), nên cùng máy là cùng người chơi.
             if (!AuthenticationService.Instance.IsSignedIn) await AuthenticationService.Instance.SignInAnonymouslyAsync();
             Debug.Log($"{Log} signed in as {PlayerId} ({Environment})");

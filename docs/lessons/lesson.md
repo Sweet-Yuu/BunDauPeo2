@@ -26,6 +26,10 @@
 
 ## Đang hiệu lực
 
+### L-046 — Overlay tĩnh giữ danh sách `Text` đã bị huỷ; plugin Unity ngoài đòi bản Unity mới hơn (2026-11-24)  #ui #build #process
+- Overlay dựng bằng code, sống qua đổi scene (`AccountBoxes`, `OnlineOverlay`) mà giữ danh sách `Text` trong static: test dọn object thì danh sách còn trỏ vào cái đã huỷ (`MissingReferenceException` ở lần chạy sau, chỉ lộ khi chạy cả bộ). Khi dựng lại hộp (`_root == null` theo Unity) phải xoá danh sách đó.
+- Plugin ngoài (Sign in with Google của Google) ghi "Unity 6.5+" thì build Android trên Unity 6.3 vỡ vì thiếu Kotlin cho `.androidlib` (AGP cũ). Đọc ghi chú bản Unity và gradle template của plugin trước khi nhập; thử xong mà vỡ thì gỡ sạch (manifest, `Assets/Plugins`, `ProjectSettings/AndroidResolverDependencies.xml`) và báo, không vá gradle đoán mò (D-011).
+
 ### L-045 — Danh sách cuộn chỉ kéo được khi bấm trúng nút trong hàng, và lăn chuột không chạy (2026-11-24)  #ui #input
 - Triệu chứng: trang Nhiệm vụ phải ấn đúng nút của một dòng rồi vuốt mới cuộn; vuốt trên chữ hay khe giữa hai dòng thì đứng yên; lăn chuột không cuộn (user playtest 1, bản itch.io chạy trên máy tính).
 - Nguyên nhân gốc: `ScrollRect` chỉ nhận kéo và lăn khi điểm chạm trúng một `Graphic` raycast bên dưới nó; hàng nền và khung cuộn đều `raycast: false` nên chỉ nút (Graphic duy nhất) bắt được sự kiện rồi chuyển lên `ScrollRect`. Tick lăn của Input System còn nhỏ nên độ nhạy mặc định (1) cuộn không thấy.
