@@ -403,6 +403,7 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
+            ConfigureScroll(scroll);
             scroll.viewport = viewport;
             scroll.content = content;
 

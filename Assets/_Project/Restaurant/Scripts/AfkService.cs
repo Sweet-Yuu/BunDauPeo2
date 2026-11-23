@@ -93,6 +93,7 @@ namespace BunDauPeo.Restaurant
             _wallet.Add(CurrencyType.Coin, coins);
             _save.Afk.PendingTheoretical = 0;
             _save.Afk.AccumulatedSeconds = 0;
+            _save.AfkCollected = true;
             // Lưu lỗi thì giữ nguyên bộ nhớ (đã cộng Coin, đã về 0); lần lưu sau thử lại.
             return new AfkCollectResult(coins, _persist());
         }

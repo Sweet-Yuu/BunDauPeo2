@@ -2271,5 +2271,32 @@ namespace BunDauPeo.PlayModeTests
             sha.TransformFinalBlock(new byte[0], 0, 0);
             return BitConverter.ToString(sha.Hash);
         }
+
+        // Quay miễn phí (spec đợt 3 8.4): nút ×1 đổi thành Quay miễn phí, quay không tốn Gem, rồi nút ×1 lại có giá.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Gacha_FreePullButton_ThenBackToPaid()
+        {
+            _step = "G1 Gacha: nút Quay miễn phí";
+            yield return BootToLobby();
+            var wallet = ServiceLocator.Get<Wallet>();
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+            var single = UiDriver.FindButtons("SingleButton").Single();
+            Assert.AreEqual(UiText.Get("gacha.free_pull"), single.GetComponentInChildren<Text>().text, Where("còn lượt hôm nay: nút ×1 là Quay miễn phí"));
+            Assert.IsTrue(GameObject.Find("FreeLeftText_PH_300x50") != null, Where("nhãn Còn 1 lượt miễn phí phải hiện"));
+            var gem = wallet.Get(CurrencyType.Gem);
+
+            _step = "G2 bấm Quay miễn phí";
+            yield return ClickWhenReady("SingleButton");
+            yield return null;
+            Assert.AreEqual(gem, wallet.Get(CurrencyType.Gem), Where("quay miễn phí không tốn Gem"));
+            typeof(GachaView).GetMethod("Dismiss", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Object.FindFirstObjectByType<GachaView>(), null);
+            yield return null;
+
+            _step = "G3 nút ×1 trở lại có giá";
+            single = UiDriver.FindButtons("SingleButton").Single();
+            StringAssert.Contains("Gem", single.GetComponentInChildren<Text>().text, Where("hết lượt: nút ×1 có giá Gem"));
+            Assert.AreNotEqual(UiText.Get("gacha.free_pull"), single.GetComponentInChildren<Text>().text);
+            Assert.IsNull(GameObject.Find("FreeLeftText_PH_300x50"), Where("hết lượt: nhãn tắt"));
+        }
     }
 }

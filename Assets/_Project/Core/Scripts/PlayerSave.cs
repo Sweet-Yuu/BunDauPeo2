@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BunDauPeo.Rules;
 
 namespace BunDauPeo.Core
 {
@@ -43,5 +44,11 @@ namespace BunDauPeo.Core
         public string AvatarCharacterId = "";
         // Tăng mỗi lần đẩy khoá save lên server thành công (spec 5.3); chỉ để ghi log và kiểm đồng bộ.
         public long SaveRevision = 0;
+        // Tiến độ nhiệm vụ: server là bản chính (chép từ ServerState, không đi lên server qua khoá save; spec đợt 3 5.2).
+        public MissionState Missions = new();
+        // Đã thu AFK ít nhất một lần (việc tân thủ new_afk, do máy báo).
+        public bool AfkCollected = false;
+        // Id thư đã đọc (Hộp thư, Task 11).
+        public List<string> MailRead = new();
     }
 }

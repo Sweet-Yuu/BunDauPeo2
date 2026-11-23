@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-045 — Danh sách cuộn chỉ kéo được khi bấm trúng nút trong hàng, và lăn chuột không chạy (2026-11-24)  #ui #input
+- Triệu chứng: trang Nhiệm vụ phải ấn đúng nút của một dòng rồi vuốt mới cuộn; vuốt trên chữ hay khe giữa hai dòng thì đứng yên; lăn chuột không cuộn (user playtest 1, bản itch.io chạy trên máy tính).
+- Nguyên nhân gốc: `ScrollRect` chỉ nhận kéo và lăn khi điểm chạm trúng một `Graphic` raycast bên dưới nó; hàng nền và khung cuộn đều `raycast: false` nên chỉ nút (Graphic duy nhất) bắt được sự kiện rồi chuyển lên `ScrollRect`. Tick lăn của Input System còn nhỏ nên độ nhạy mặc định (1) cuộn không thấy.
+- Luật từ nay: dựng danh sách cuộn trong builder thì gọi `GachaSceneBuilder.ConfigureScroll(scroll)` (Image alpha ~0,004 raycast trên chính `ScrollRect`, `cullTransparentMesh = false`, `scrollSensitivity` 40); alpha 0 hẳn thì Canvas bỏ qua khi raycast. Có `ScrollListTests` đọc scene và PlayMode raycast từ dòng, nút, khe giữa hai dòng.
+
 ### L-044 — `Update` của view dùng LINQ, `foreach` qua interface, `new` và chuỗi mỗi khung: ~1 KB/khung (2026-11-18)  #script #ui
 - Triệu chứng: Profiler đo ~1,5 KB GC mỗi khung ở mọi màn (ngưỡng 0 B khi đứng yên, ≤ 1 KB trong trận). Một phần là Editor (khung trống cũng ~740 B); phần của code: `_pages.OfType<>()` và `Where().ToList()` trong HubNav/BattleSession, `foreach` qua `IReadOnlyList`/`IEnumerable`, `new StaminaState` trong `StaminaService`, `new bool[]` mỗi khung, và chuỗi dựng lại mỗi khung (`WaveLabel`, `SpeedLabel`, `Substring`).
 - Nguyên nhân gốc: viết view theo kiểu "vẽ lại mỗi khung, rẻ" mà không đo; `GetAllocatedBytesForCurrentThread` trả 0 trong Unity nên đo nhầm là sạch.

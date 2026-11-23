@@ -5,6 +5,7 @@ using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using BunDauPeo.Restaurant;
+using BunDauPeo.Missions;
 using BunDauPeo.Rules;
 using UnityEngine;
 
@@ -226,8 +227,10 @@ namespace BunDauPeo.Boot
                 session.SetPlayerName, session.SetAvatar));
             ServiceLocator.Register(new DevCommands(_server, _gate, session.ApplyServerState));
             ServiceLocator.Register(new GachaService(session.Save, session.Wallet, _catalog, _banners,
-                _server, _gate, session.ApplyServerState));
+                _server, _gate, session.ApplyServerState, () => _time.UtcNow));
 
+            ServiceLocator.Register(new MissionService(session.Save, _data, _server, _gate, session.ApplyServerState,
+                () => _time.UtcNow, () => MissionService.ClientDoneFromSave(session.Save)));
             var restaurant = new RestaurantService(_restaurantConfig, session.Save, session.Wallet, session.Roster,
                 new System.Random(), new ServerClock(_time), session.Persist);
             _runner = _host.AddComponent<RestaurantRunner>();

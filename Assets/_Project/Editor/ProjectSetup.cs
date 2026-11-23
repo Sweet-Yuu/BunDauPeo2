@@ -261,6 +261,13 @@ namespace BunDauPeo.EditorTools
                         changed = true;
                     }
 
+                    var missions = so.FindProperty("_missionCatalog");
+                    if (missions.objectReferenceValue == null)
+                    {
+                        missions.objectReferenceValue = AssetDatabase.LoadAssetAtPath<MissionCatalog>(MissionCatalogPath);
+                        changed = true;
+                    }
+
                     // Chỉ đổi giá trị trống, scene đã xoá (Gacha) hay mặc định cũ (Restaurant): lựa chọn khác của user được giữ.
                     var start = so.FindProperty("_startScene");
                     if (IsStaleStartScene(start.stringValue))

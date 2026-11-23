@@ -31,6 +31,7 @@ namespace BunDauPeo.UI
             GachaPullStatus.UnknownBanner => UiText.Get("gacha.status_unknown_banner"),
             GachaPullStatus.InvalidBanner => UiText.Get("gacha.status_invalid_banner"),
             GachaPullStatus.NotEnoughCurrency => UiText.Get("gacha.status_not_enough"),
+            GachaPullStatus.FreePullUsed => UiText.Get("gacha.status_free_used"),
             // Hộp Mất kết nối đã báo; không thêm dòng lỗi.
             GachaPullStatus.Offline => "",
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),

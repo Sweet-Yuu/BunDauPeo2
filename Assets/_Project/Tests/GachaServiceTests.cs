@@ -276,5 +276,99 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, service.GetPity("other"));
             Assert.AreEqual(0, service.GetPity(null));
         }
+
+        // Banner có cờ quay miễn phí ở cả server (GameData) lẫn SO của máy.
+        private async Task<(ServerRig Rig, GachaService Service)> MakeFreeAsync(bool flag = true)
+        {
+            var data = GachaRulesTests.Data();
+            data.Banners[0].FreePullDaily = flag;
+            TestData.Edit(_banner, so => so.FindProperty("_freePullDaily").boolValue = flag);
+            return await MakeAsync(gem: 1000, data: data);
+        }
+
+        private static long Today => MissionRules.DayIndex(DateTime.UtcNow);
+
+        [Test]
+        public async Task FreePull_Available_WhenFlagAndNotUsedToday()
+        {
+            var (_, service) = await MakeFreeAsync();
+            Assert.IsTrue(service.FreePullAvailable("b"));
+            Assert.IsFalse(service.FreePullAvailable("other"));
+            Assert.IsFalse(service.FreePullAvailable(null));
+
+            _save.Missions.FreePullDay = Today;
+            Assert.IsFalse(service.FreePullAvailable("b"), "already used today");
+            _save.Missions.FreePullDay = Today - 1;
+            Assert.IsTrue(service.FreePullAvailable("b"), "yesterday's use does not count");
+
+            var (_, noFlag) = await MakeFreeAsync(flag: false);
+            _save.Missions.FreePullDay = 0;
+            Assert.IsFalse(noFlag.FreePullAvailable("b"), "banner without the daily flag has no free pull");
+        }
+
+        [Test]
+        public async Task FreePull_Ok_NoGemSpent_AppliesState()
+        {
+            var (_, service) = await MakeFreeAsync();
+            var gemBefore = Gem;
+
+            var result = await service.PullFreeAsync("b");
+
+            Assert.AreEqual(GachaPullStatus.Success, result.Status);
+            Assert.AreEqual(1, result.Entries.Count);
+            Assert.AreEqual(gemBefore, Gem, "a free pull costs no Gem");
+            Assert.AreEqual(Today, _save.Missions.FreePullDay);
+            Assert.AreEqual(1, _save.GachaHistory.Count);
+            Assert.AreEqual(1, _applyCalls);
+            Assert.IsFalse(service.FreePullAvailable("b"));
+        }
+
+        [Test]
+        public async Task FreePull_UsedToday_NoServerCall()
+        {
+            var (rig, service) = await MakeFreeAsync();
+            Assert.AreEqual(GachaPullStatus.Success, (await service.PullFreeAsync("b")).Status);
+            var calls = rig.Server.CommandCalls;
+            var applies = _applyCalls;
+
+            var again = await service.PullFreeAsync("b");
+
+            Assert.AreEqual(GachaPullStatus.FreePullUsed, again.Status);
+            Assert.IsEmpty(again.Entries);
+            Assert.AreEqual(calls, rig.Server.CommandCalls);
+            Assert.AreEqual(applies, _applyCalls);
+        }
+
+        [Test]
+        public async Task FreePull_Offline_NoChange()
+        {
+            var (rig, service) = await MakeFreeAsync();
+            var before = JsonUtility.ToJson(_save);
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+
+            var result = await service.PullFreeAsync("b");
+
+            Assert.AreEqual(GachaPullStatus.Offline, result.Status);
+            Assert.AreEqual(before, JsonUtility.ToJson(_save));
+            Assert.AreEqual(0, _applyCalls);
+            Assert.IsTrue(service.FreePullAvailable("b"), "nothing was spent");
+        }
+
+        // Review Focus 2: mất trả lời rồi Thử lại (cùng requestId): lượt quay ghi một lần, Gem không đổi.
+        [Test]
+        public async Task FreePull_LostReplyThenRetry_OncePerDay()
+        {
+            var (rig, service) = await MakeFreeAsync();
+            rig.Gate.Lost += retry => retry();
+            rig.Server.LoseNextReply();
+
+            var result = await service.PullFreeAsync("b");
+
+            Assert.AreEqual(GachaPullStatus.Success, result.Status);
+            Assert.AreEqual(1, _save.GachaHistory.Count, "recorded once");
+            Assert.AreEqual(1000, Gem);
+            Assert.AreEqual(GachaPullStatus.FreePullUsed, (await service.PullFreeAsync("b")).Status);
+            Assert.AreEqual(1, rig.Server.State.GachaHistory.Count, "the retry did not roll a second time");
+        }
     }
 }

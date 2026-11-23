@@ -3,7 +3,7 @@ using BunDauPeo.Characters;
 
 namespace BunDauPeo.Gacha
 {
-    public enum GachaPullStatus { Success, UnknownBanner, InvalidBanner, NotEnoughCurrency, Offline }
+    public enum GachaPullStatus { Success, UnknownBanner, InvalidBanner, NotEnoughCurrency, Offline, FreePullUsed }
 
     public readonly struct GachaPullEntry
     {

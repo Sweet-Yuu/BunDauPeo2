@@ -239,6 +239,8 @@ namespace BunDauPeo.EditorTools
             var restaurantBar = BuildRestaurantBar(lobbyHud, font, sprite, knob);
             var staffPanel = BuildStaffPanel(canvas, restaurantBar, font, sprite, knob);
             var upgradePanel = BuildUpgradePanel(canvas, restaurantBar, font, sprite, knob);
+            var (missionsButton, _) = MissionsPageBuilder.BuildLobbyButtons(lobbyHud, font, knob);
+            var missionsPage = MissionsPageBuilder.BuildPage(canvas, missionsButton, font, sprite, knob);
             BuildAfkButton(restaurantBar, font, knob, hud);
             var qualityPopup = BuildQualityPopup(canvas, font, sprite, statsButton);
 
@@ -257,7 +259,7 @@ namespace BunDauPeo.EditorTools
             // Trang kín màn: bấm ô khác thì HubNav đóng từng trang đang mở qua IHubPage.Close() (Chọn đội trả đội như lúc mở).
             NavBarBuilder.Wire(hub, menuView, charactersPanel, stagesPanel, gachaPanel, menuPanel, new Object[]
             {
-                staffPanel, upgradePanel, qualityPopup, notifyPopup, profilePopup, stageMapPanel.GetComponentInChildren<StageMapView>(true),
+                staffPanel, upgradePanel, missionsPage, qualityPopup, notifyPopup, profilePopup, stageMapPanel.GetComponentInChildren<StageMapView>(true),
                 stageMapPanel.GetComponentInChildren<StageInfoPopup>(true), stageMapPanel.GetComponentInChildren<StoryPlaceholderPopup>(true),
                 stageMapPanel.GetComponentInChildren<TeamSelectPopup>(true), gachaPanel.GetComponentInChildren<GachaHistoryPopup>(true),
             });
@@ -271,6 +273,7 @@ namespace BunDauPeo.EditorTools
             var afkPopup = BuildAfkPopup(canvas, font, sprite);
             viewSo.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
+            MissionsPageBuilder.WireTargets(missionsPage, hub, staffPanel, upgradePanel, afkPopup, profilePopup);
             NavBarBuilder.WireNotify(notifyView, hub, notifyPopup, scroll, (RectTransform)bubble.transform, staffPanel, afkPopup,
                 charactersPanel.GetComponentInChildren<CharactersView>(true));
 
@@ -558,7 +561,7 @@ namespace BunDauPeo.EditorTools
 
         // Trang kín màn (spec UI hub 5.5): root phủ 1920×1080 với nền đặc chặn bấm, dưới thanh dưới; hộp nội dung chỉ phủ phần trên thanh
         // (offsetMin.y = BarHeight) nên con của nó neo theo mép trên/dưới không lọt xuống dải 0–120.
-        private static (RectTransform Root, RectTransform Box) PageFrame(RectTransform parent, string rootName, string boxName, Color color)
+        internal static (RectTransform Root, RectTransform Box) PageFrame(RectTransform parent, string rootName, string boxName, Color color)
         {
             var root = NewRect(rootName, parent);
             Stretch(root);
@@ -571,7 +574,7 @@ namespace BunDauPeo.EditorTools
         }
 
         // Nút Quay lại của trang: góc trên-trái, nhãn hub.back, giữ tên cũ (CloseButton).
-        private static Button BackButton(RectTransform box, Font font, Sprite sprite) =>
+        internal static Button BackButton(RectTransform box, Font font, Sprite sprite) =>
             LabelButton("CloseButton", box, sprite, font, "hub.back", GreyButton, TopLeft, new Vector2(30, -25), new Vector2(200, 80));
 
         // Trang Nhân viên: ba cột ô và danh sách nhân vật mở khi bấm ô (trang con, Quay lại về trang Nhân viên).
@@ -666,6 +669,7 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
+            ConfigureScroll(scroll);
 
             var rowTemplate = NewButton("RowTemplate", listBox, sprite, font, "", ButtonColor, Center, Vector2.zero, new Vector2(1150, 90));
             var rowLabel = (RectTransform)rowTemplate.transform.GetChild(0);
@@ -783,7 +787,7 @@ namespace BunDauPeo.EditorTools
         }
 
         // Nút có nhãn cố định theo key: gắn LocalizedText vào Text con của nút.
-        private static Button LabelButton(string name, RectTransform parent, Sprite sprite, Font font, string key, Color color,
+        internal static Button LabelButton(string name, RectTransform parent, Sprite sprite, Font font, string key, Color color,
             Vector2 anchor, Vector2 position, Vector2 size)
         {
             var button = NewButton(name, parent, sprite, font, UiText.Get(key), color, anchor, position, size);

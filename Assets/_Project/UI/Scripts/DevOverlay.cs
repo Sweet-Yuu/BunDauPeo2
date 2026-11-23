@@ -19,6 +19,7 @@ namespace BunDauPeo.UI
         public const long MaterialGrant = 50;
         public const long GemGrant = 1000;
         public const int AfkRewindHours = 1;
+        public const int StaminaGrant = 900;
         private const string ConfirmPrompt = "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.";
         private const string ResetFailedMessage = "RESET THẤT BẠI: không xoá hay ghi được file save (đang bị khoá?).\nThử lại.";
 
@@ -123,16 +124,20 @@ namespace BunDauPeo.UI
             dim.offsetMin = dim.offsetMax = Vector2.zero;
             dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
 
-            // Chín nút xếp hai cột, từ trên xuống; hộp thấp vừa đủ chín nút và hộp xác nhận Reset (cao 170, ở đáy).
-            var box = NewRect("Box", dim, Vector2.zero, new Vector2(1000, 640));
+            // Mười một nút xếp hai cột, từ trên xuống; hộp thấp vừa đủ mười một nút và hộp xác nhận Reset (cao 170, ở đáy).
+            var box = NewRect("Box", dim, Vector2.zero, new Vector2(1000, 720));
             box.anchorMin = box.anchorMax = box.pivot = new Vector2(0.5f, 0.5f);
             box.anchoredPosition = Vector2.zero;
             box.gameObject.AddComponent<Image>().color = new Color(0.12f, 0.12f, 0.16f, 1f);
 
-            AddLabel(box, font, "Cài đặt (DEV)", new Vector2(0, 565), new Vector2(1000, 60), 40);
-            AddButton(box, font, "Đóng", new Vector2(820, 565), 160, () => dim.gameObject.SetActive(false));
+            AddLabel(box, font, "Cài đặt (DEV)", new Vector2(0, 645), new Vector2(1000, 60), 40);
+            AddButton(box, font, "Đóng", new Vector2(820, 645), 160, () => dim.gameObject.SetActive(false));
 
             const float Left = 40, Right = 520, Width = 440;
+            // Nhiệm vụ đợt 3: Reset thay cho đợi sang ngày; +Thể lực để thử hộp xác nhận vượt trần. Lệnh DevOnly chỉ log cảnh báo.
+            AddButton(box, font, "Reset nhiệm vụ", new Vector2(Left, 555), Width, async () => await ServiceLocator.Get<DevCommands>().ResetMissionsAsync());
+            AddButton(box, font, $"+Thể lực {StaminaGrant}", new Vector2(Right, 555), Width,
+                async () => await ServiceLocator.Get<DevCommands>().AddStaminaAsync(StaminaGrant));
             AddButton(box, font, "Chiến đấu thử", new Vector2(Left, 475), Width, () =>
             {
                 if (StartTrialBattle(Combat())) dim.gameObject.SetActive(false);
