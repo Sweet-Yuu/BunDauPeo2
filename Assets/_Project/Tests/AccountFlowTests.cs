@@ -122,6 +122,35 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Link_LostReply_Retry_IsOk_NewLinkOnce()
+        {
+            var changed = 0;
+            _anonymous.Changed += () => changed++;
+            _anonymous.LoseNextLinkReply = true;
+            var flow = Flow();
+
+            Assert.AreEqual(AccountStatus.Offline, Run(flow.LinkAsync(AccountMethod.UserPass, "abc", Strong)));
+            Assert.IsFalse(_anonymous.IsLinked, "reply lost: the device has not seen the link yet");
+            Assert.AreEqual(0, changed);
+
+            Assert.AreEqual(AccountStatus.Ok, Run(flow.LinkAsync(AccountMethod.UserPass, "abc", Strong)), "retry must not say the name is taken");
+            Assert.IsTrue(_anonymous.IsLinked);
+            Assert.AreEqual(1, changed, "pinned mail disappears once");
+            Assert.IsTrue(MissionService.ClientDoneFromSave(new PlayerSave(), _anonymous.IsLinked).Contains("new_link"));
+
+            // Tên của người khác vẫn báo đã dùng.
+            Assert.AreEqual(AccountStatus.UsernameTaken, Run(new LocalAccountService("c", _directory).LinkUserPassAsync("abc", Strong)));
+        }
+
+        [Test]
+        public void HasLinkedName_IgnoresCase()
+        {
+            Assert.IsTrue(AccountRules.HasLinkedName(new[] { "Abc" }, "abc"));
+            Assert.IsFalse(AccountRules.HasLinkedName(new[] { "Google" }, "abc"));
+            Assert.IsFalse(AccountRules.HasLinkedName(new[] { "abc" }, null));
+        }
+
+        [Test]
         public void NeverForceLink()
         {
             var path = Path.Combine(Application.dataPath, "_Project/Online/Scripts/UgsAccountService.cs");

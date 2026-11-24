@@ -83,7 +83,7 @@ namespace BunDauPeo.UI
             _closeButton.onClick.RemoveListener(Close);
             _claimAllButton.onClick.RemoveListener(ClaimAll);
             foreach (var tab in _tabButtons) tab.onClick.RemoveAllListeners();
-            foreach (var row in _rows) row.Clicked -= OnRowClicked;
+            // Dòng là con của trang, gắn một lần lúc tạo: không gỡ ở đây (OnEnable không gắn lại).
             _service = null;
             _restaurant = null;
         }

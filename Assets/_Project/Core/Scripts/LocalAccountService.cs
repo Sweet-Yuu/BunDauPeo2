@@ -33,6 +33,9 @@ namespace BunDauPeo.Core
         // Giả lập mất mạng: mọi lệnh trả Offline và không đổi gì.
         public bool Offline { get; set; }
 
+        // Giả lập mất trả lời: lệnh Liên kết tên + mật khẩu kế tiếp đã xong trên "server" nhưng máy nhận Offline (như UgsAccountService).
+        public bool LoseNextLinkReply { get; set; }
+
         public bool IsLinked => _linked.Count > 0;
         public IReadOnlyList<string> LinkedNames => _linked;
         public IReadOnlyList<AccountMethod> Available => _available;
@@ -46,10 +49,19 @@ namespace BunDauPeo.Core
             if (!AccountRules.ValidName(user)) return Done(AccountStatus.WrongCredentials);
             if (!AccountRules.StrongPassword(pass)) return Done(AccountStatus.WeakPassword);
             var key = NameKey(user);
-            if (_directory.Identities.ContainsKey(key)) return Done(AccountStatus.UsernameTaken);
-            if (_linked.Exists(n => n != "Google")) return Done(AccountStatus.Unavailable);
+            // Lần liên kết trước đã xong mà mất trả lời: đọc lại thì tên đã là của người này, trả Ok (như UgsAccountService).
+            var mine = _directory.Identities.TryGetValue(key, out var owned) && owned.Owner == PlayerId;
+            if (_directory.Identities.ContainsKey(key) && !mine) return Done(AccountStatus.UsernameTaken);
+            if (!mine && _linked.Exists(n => n != "Google")) return Done(AccountStatus.Unavailable);
 
             _directory.Identities[key] = (PlayerId, pass);
+            if (LoseNextLinkReply)
+            {
+                LoseNextLinkReply = false;
+                return Done(AccountStatus.Offline);
+            }
+
+            if (mine && AccountRules.HasLinkedName(_linked, user)) return Done(AccountStatus.Ok);
             _linked.Add(user);
             Changed?.Invoke();
             return Done(AccountStatus.Ok);

@@ -46,6 +46,8 @@ namespace BunDauPeo.UI
             Labels.Clear();
             _flow = null;
             _busy = false;
+            _lastUser = "";
+            _lastPass = "";
         }
 
         public static bool IsShown => _dim != null && _dim.activeSelf;
@@ -63,7 +65,7 @@ namespace BunDauPeo.UI
 
         public static void Hide()
         {
-            _busy = false;
+            // _busy do lệnh đang chạy tự hạ khi xong (finally), không hạ ở đây để Huỷ rồi mở lại không chạy hai lệnh cùng lúc.
             if (_dim != null) _dim.SetActive(false);
         }
 
@@ -73,7 +75,6 @@ namespace BunDauPeo.UI
             Build();
             _flow = flow;
             _signIn = signIn;
-            _busy = false;
             _chooseTitle.text = UiText.Get(signIn ? "account.choose_signin" : "account.choose_link");
             var warn = signIn && flow.NeedsLoseWarning;
             _chooseNote.text = warn ? UiText.Get("account.warn_lose") : "";
@@ -149,11 +150,24 @@ namespace BunDauPeo.UI
             SetInteractable(false);
             _credError.text = UiText.Get("online.sending");
             var flow = _flow;
-            var result = _signIn
-                ? await flow.SignInAsync(method, user, pass, confirmedLoss: true)
-                : await flow.LinkAsync(method, user, pass);
-            _busy = false;
-            SetInteractable(true);
+            AccountResult result;
+            try
+            {
+                result = _signIn
+                    ? await flow.SignInAsync(method, user, pass, confirmedLoss: true)
+                    : await flow.LinkAsync(method, user, pass);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Account] {method} failed: {e}");
+                result = new AccountResult(AccountStatus.Unavailable);
+            }
+            finally
+            {
+                _busy = false;
+                if (_dim != null) SetInteractable(true);
+            }
+
             if (_dim == null) return;
 
             switch (result.Status)
@@ -197,9 +211,22 @@ namespace BunDauPeo.UI
             if (_busy || _flow == null) return;
             _busy = true;
             SetInteractable(false);
-            var result = await _flow.SignInAsync(_lastMethod, _lastUser, _lastPass, confirmedLoss: true);
-            _busy = false;
-            SetInteractable(true);
+            AccountResult result;
+            try
+            {
+                result = await _flow.SignInAsync(_lastMethod, _lastUser, _lastPass, confirmedLoss: true);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Account] switch failed: {e}");
+                result = new AccountResult(AccountStatus.Unavailable);
+            }
+            finally
+            {
+                _busy = false;
+                if (_dim != null) SetInteractable(true);
+            }
+
             if (_dim == null) return;
 
             if (result.Ok) Hide();

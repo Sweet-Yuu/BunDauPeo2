@@ -19,6 +19,10 @@ namespace BunDauPeo.Core
             && pass.Any(c => c >= 'A' && c <= 'Z') && pass.Any(c => c >= 'a' && c <= 'z')
             && pass.Any(c => c >= '0' && c <= '9') && pass.Any(c => !IsAscii(c) || !char.IsLetterOrDigit(c));
 
+        // Mất trả lời lúc liên kết: nếu đọc lại danh tính mà tên đã có thì lần liên kết đó đã thành công.
+        public static bool HasLinkedName(System.Collections.Generic.IEnumerable<string> names, string user) =>
+            user != null && names.Any(n => string.Equals(n, user, System.StringComparison.OrdinalIgnoreCase));
+
         private static bool IsAscii(char c) => c < 128;
     }
 }

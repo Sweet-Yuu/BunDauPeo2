@@ -36,6 +36,7 @@ namespace BunDauPeo.Boot
         private BootstrapResponse _bootstrap;
         private Task<OnlineStatus> _running;
         private RestaurantRunner _runner;
+        private MailService _mail;
 
         public OnlineStartup(IGameServer server, ServerTime time, string savePath, CharacterCatalog catalog,
             NewGameConfig newGame, GachaBannerCatalog banners, RestaurantConfig restaurantConfig,
@@ -101,6 +102,8 @@ namespace BunDauPeo.Boot
 
         private void TearDownGame()
         {
+            _mail?.Dispose();
+            _mail = null;
             if (_runner != null)
             {
                 // Destroy chờ cuối khung: tắt ngay để quán không ghi bản đệm sau khi Xoá tài khoản đã xoá nó.
@@ -262,7 +265,9 @@ namespace BunDauPeo.Boot
 
             ServiceLocator.Register(new MissionService(session.Save, _data, _server, _gate, session.ApplyServerState,
                 () => _time.UtcNow, () => MissionService.ClientDoneFromSave(session.Save, _account.IsLinked)));
-            ServiceLocator.Register(new MailService(session.Save, session.Persist, new IMailSource[] { new LinkAccountMailSource(_account) }, _account));
+            _mail?.Dispose();
+            _mail = new MailService(session.Save, session.Persist, new IMailSource[] { new LinkAccountMailSource(_account) }, _account);
+            ServiceLocator.Register(_mail);
             var restaurant = new RestaurantService(_restaurantConfig, session.Save, session.Wallet, session.Roster,
                 new System.Random(), new ServerClock(_time), session.Persist);
             _runner = _host.AddComponent<RestaurantRunner>();

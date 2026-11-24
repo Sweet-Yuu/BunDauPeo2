@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BunDauPeo.Online
 {
-    // IAccountService trên UGS Authentication (3.8.1): tên đăng nhập + mật khẩu; Google ở Google qua IGoogleTokenProvider (Sign in with Google, không dùng Play Games).
+    // IAccountService trên UGS Authentication (3.8.1): tên đăng nhập + mật khẩu; Google ở Google qua IGoogleTokenProvider (Sign in with Google, khớp hằng GoogleTypeId bên dưới).
     // Không bao giờ ép liên kết (cờ force của SDK): danh tính đã thuộc người khác thì trả Conflict để UI hỏi chuyển tài khoản.
     public sealed class UgsAccountService : IAccountService
     {
@@ -52,14 +52,14 @@ namespace BunDauPeo.Online
         }
 
         public Task<AccountResult> LinkUserPassAsync(string user, string pass) =>
-            LinkAsync(AccountMethod.UserPass, () => AuthenticationService.Instance.AddUsernamePasswordAsync(user, pass));
+            LinkAsync(AccountMethod.UserPass, user, () => AuthenticationService.Instance.AddUsernamePasswordAsync(user, pass));
 
         // Token lấy trước khi đụng tới UGS: đóng hộp chọn tài khoản Google không để lại gì dở.
         public async Task<AccountResult> LinkGoogleAsync()
         {
             var token = await TokenAsync(false);
             if (token.Status != AccountStatus.Ok) return new AccountResult(token.Status);
-            return await LinkAsync(AccountMethod.Google, () => AuthenticationService.Instance.LinkWithGoogleAsync(token.Value));
+            return await LinkAsync(AccountMethod.Google, "Google", () => AuthenticationService.Instance.LinkWithGoogleAsync(token.Value));
         }
 
         public Task<AccountResult> SignInUserPassAsync(string user, string pass) =>
@@ -86,7 +86,7 @@ namespace BunDauPeo.Online
             }
         }
 
-        private async Task<AccountResult> LinkAsync(AccountMethod method, Func<Task> link)
+        private async Task<AccountResult> LinkAsync(AccountMethod method, string expectedName, Func<Task> link)
         {
             try
             {
@@ -98,11 +98,20 @@ namespace BunDauPeo.Online
             {
                 var status = UgsErrors.MapAccount(e, method, signIn: false);
                 Debug.LogWarning($"{Log} link {method} failed ({status}): {e.Message}");
+                // Mất trả lời: server đã liên kết nhưng máy nhận lỗi. Đọc lại; đã có đúng tên thì coi như thành công (Thử lại không báo "Tên đã được dùng").
+                if (status is AccountStatus.UsernameTaken or AccountStatus.Unavailable or AccountStatus.Offline)
+                {
+                    await RefreshAsync();
+                    if (!AccountRules.HasLinkedName(_names, expectedName)) return new AccountResult(status);
+                    Changed.SafeInvoke();
+                    return new AccountResult(AccountStatus.Ok);
+                }
+
                 return new AccountResult(status);
             }
 
             await RefreshAsync();
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return new AccountResult(AccountStatus.Ok);
         }
 
@@ -139,7 +148,7 @@ namespace BunDauPeo.Online
             }
 
             await RefreshAsync();
-            Changed?.Invoke();
+            Changed.SafeInvoke();
             return new AccountResult(AccountStatus.Ok);
         }
     }
