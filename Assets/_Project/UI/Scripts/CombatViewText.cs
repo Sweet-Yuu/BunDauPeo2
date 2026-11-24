@@ -86,11 +86,12 @@ namespace BunDauPeo.UI
         {
             CurrencyType.Coin => new Color(0.95f, 0.80f, 0.25f),
             CurrencyType.Material => new Color(0.65f, 0.45f, 0.28f),
+            CurrencyType.ExpPotion => new Color(0.55f, 0.85f, 0.45f),
             _ => new Color(0.35f, 0.65f, 0.95f),
         };
 
         public static string CurrencyCell(CurrencyAmount line) =>
-            $"{line.Amount.ToString(CultureInfo.InvariantCulture)} {line.Type}";
+            $"{line.Amount.ToString(CultureInfo.InvariantCulture)} {(line.Type == CurrencyType.ExpPotion ? UiText.Get("level.potion") : line.Type.ToString())}";
 
         public static string NodeLabel(StageDefinition stage) => stage.Kind == StageKind.Story ? UiText.Get("combat.node_story") : stage.DisplayName;
 

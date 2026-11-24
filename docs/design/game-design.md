@@ -11,11 +11,12 @@ Mục ghi *khởi điểm* là giá trị tạm để bắt đầu cân bằng, 
 |---|---|---|
 | Coin | Khách trả tiền ở quán, thu thập AFK | Mua nâng cấp quán |
 | Material | Thưởng màn chơi | Mua nâng cấp quán |
+| Thuốc EXP | Thắng màn đánh (lần đầu 10, đánh lại 3); lên cấp người chơi; khách trả tiền ở quán (3%) và AFK | Nâng cấp nhân vật (cùng Coin), xem [Cấp người chơi và cấp nhân vật](#cấp-người-chơi-và-cấp-nhân-vật) |
 | Gem | Thưởng màn chơi; [Nhiệm vụ](#nhiệm-vụ) (Online đợt 3); Hộp quà trong Hộp thư (Online đợt 4); sau 31/12: mua trong game, quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
 
 Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để quán chạy vừa đi đánh.
 
-**Online** (user chốt 2026-11-13, [spec Online](../superpowers/specs/2026-11-13-online-design.md)): phải có mạng mới chơi được. Từ Online đợt 2, Gem, nhân vật, mảnh, nâng sao, gacha, thể lực, vào trận và thưởng màn do **server** tính và ghi (chống gian lận mức 2). Coin, Material và quán vẫn tính trên máy.
+**Online** (user chốt 2026-11-13, [spec Online](../superpowers/specs/2026-11-13-online-design.md)): phải có mạng mới chơi được. Từ Online đợt 2, Gem, nhân vật, mảnh, nâng sao, gacha, thể lực, vào trận và thưởng màn do **server** tính và ghi (chống gian lận mức 2). Coin, Material và quán vẫn tính trên máy. **Cấp người chơi, cấp nhân vật và thuốc EXP cũng tính trên máy** cho bản 31/12 (user chốt 2026-11-21); chỉ số lượng thuốc thưởng màn do server trả. Chuyển cấp lên server là việc bắt buộc sau 31/12 ([D-016](../decisions/decisions.md)).
 
 ## Nhân vật
 
@@ -29,7 +30,19 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - **Nhân vật trùng** (user chốt 2026-10-31): quay ra nhân vật đã có thì nhận **mảnh** của nhân vật đó, không đổi kho nhân vật. Số mảnh theo độ hiếm, *khởi điểm* R/SR/SSR đều **1**, đặt trong banner SO. Mảnh nằm trong save (qua `Roster`) và bị Reset Save Data xoá. Màn Gacha chỉ hiện số mảnh nhận được ở mỗi lượt, chưa có màn kho.
 - **Số sao khởi điểm** (user chốt 2026-10-31): mỗi nhân vật có số sao khởi điểm 1..5 đặt trong `CharacterDefinition`, mẫu R = 1, SR = 2, SSR = 3, chỉnh riêng từng nhân vật.
 - **Nâng sao** (user chốt 2026-11-08, [spec](../superpowers/specs/2026-11-08-star-up-design.md)): tiêu mảnh của chính nhân vật đó, mỗi lần 1 sao, tối đa 5★. Giá theo sao đích, không theo độ hiếm, *khởi điểm* lên 2★/3★/4★/5★ tốn **2/4/6/8** mảnh, đặt trong `StarConfig`. Mỗi sao đã nâng (trên sao khởi điểm) cộng **10%** chỉ số gốc vào HP, Tấn công, Thủ (*khởi điểm*); Tốc độ, chỉ số quán và AFK không đổi. Đã 5★ thì mảnh vẫn được cộng và để dành, chưa có chỗ tiêu. Nâng ở màn Nhân vật. Reset Save Data xoá sao đã nâng cùng mảnh.
-- Chưa thiết kế: cấp nhân vật; chỗ tiêu mảnh dư ở 5★.
+- Cấp nhân vật: xem mục [Cấp người chơi và cấp nhân vật](#cấp-người-chơi-và-cấp-nhân-vật). Chưa thiết kế: chỗ tiêu mảnh dư ở 5★; trang bị và nâng skill (sau 31/12, ghi ở [ý tưởng](ideas.md)).
+
+## Cấp người chơi và cấp nhân vật
+
+User chốt 2026-11-21 ([spec](../superpowers/specs/2026-11-21-character-level-design.md), [D-016](../decisions/decisions.md)). Mọi số dưới đây là *khởi điểm* trong `LevelConfig`, **chỉ tính lại khi có bản cuối tháng 12**.
+
+- **Cấp người chơi:** tối đa **20**. EXP người chơi = **thể lực đã trừ khi vào trận thành công** (màn đánh 10; màn cốt truyện không tốn thể lực nên không cho EXP; thua hay bỏ cuộc vẫn tính vì thể lực đã trừ). EXP từ cấp L lên L+1 = `100 + 20 × L`; đủ EXP ở cấp tối đa thì bỏ phần dư. Lên cấp nhận **`200 × cấp mới` Coin và 5 thuốc EXP** cho từng cấp đạt được (không có Gem, Gem do server giữ). Thanh Lv + EXP hiện ở màn Nhân vật, và popup hiện khi lên cấp.
+- **Cấp nhân vật:** mọi nhân vật bắt đầu Lv1. **Trần cấp = cấp người chơi** (kiểu Princess Connect, không theo sao hay độ hiếm). Mỗi lần bấm nâng 1 cấp, tốn **thuốc EXP** (chi phí chính) và **Coin** (chi phí phụ): theo cấp đích T, `2 × T` thuốc và `100 × T` Coin (Lv1 → Lv20 tốn 418 thuốc, 20.900 Coin). Nút mờ kèm lý do khi thiếu thuốc, thiếu Coin, hoặc cấp nhân vật đã bằng cấp người chơi.
+- **Chỉ số:** HP, Tấn công, Thủ cộng dồn phần trăm với sao: `gốc × (100 + 10 × lầnNângSao + 2 × (cấp − 1)) / 100` (làm tròn nửa lên); Tốc độ và chỉ số quán không đổi. Cấp hiệu lực = `min(cấp đã lưu, cấp người chơi, 20)`, nên chỉ số không bao giờ vượt trần.
+- **Thuốc EXP:** thắng màn đánh **lần đầu 10, đánh lại 3** (server trả số lượng, máy cộng vào ví như Material); quán: mỗi khách trả tiền **3%** rơi 1 thuốc, và AFK quy ra thuốc theo **500 Coin = 1 thuốc**. Thuốc hiện trong panel nâng cấp và ô thưởng, không có trong thanh tài nguyên.
+- **Quy tắc chi phí chung:** mọi nâng cấp có một chi phí chính (thuốc cho cấp, mảnh cho sao, nguyên liệu cho skill về sau) và Coin là chi phí phụ.
+- **Nơi lưu:** cấp, EXP người chơi và thuốc nằm **phía máy** (`PlayerSave`) cho bản 31/12; chuyển lên server là việc bắt buộc sau 31/12. Reset Save Data xoá hết.
+- **Giao diện:** màn Nhân vật là danh sách thẻ (có nhãn Lv); bấm thẻ mở panel chi tiết có hai tab **Cấp** (xem trước → sau, nút Nâng cấp) và **Sao** (nâng sao như cũ), mũi tên ‹ › chuyển nhân vật, nút Quay lại.
 
 ## Quán
 
@@ -39,6 +52,7 @@ Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để
 - **Bố cục màn quán** (user chốt 2026-11-01, thay phòng isometric trước đó): theo ba ảnh `ReferenceImages/restaurant-layout-*`. Chỉ lấy bố cục; mô tả cụ thể và phần không lấy ở [spec Restaurant mục 5.1](../superpowers/specs/2026-11-01-restaurant-design.md#51-màn-quán-restaurantunity).
 - **Dây chuyền** (user chốt 2026-11-01): khách vào, ngồi bàn, **nấu**, **phục vụ** bưng ra, ăn (không cần ai), **thu ngân** thanh toán, về. Thời gian một việc = thời gian gốc × 100 / (100 + chỉ số), chỉ số chỉ làm nhanh hơn, không đổi giá món. Mỗi vai khởi điểm 1 ô, bàn khởi điểm 3 (nâng cấp tăng).
 - **Kiên nhẫn:** hai lần chờ có hạn (từ lúc đến tới khi có món; từ lúc ăn xong tới khi trả tiền xong). Quá hạn thì khách bỏ về **không trả tiền**.
+- **Thuốc EXP từ quán** (user chốt 2026-11-21): mỗi khách trả tiền có **3%** rơi 1 thuốc; AFK quy Coin thu được ra thuốc theo 500 Coin = 1 thuốc, phần dư giữ cho lần sau. Quán là nguồn phụ (khoảng 1/4 tổng thuốc). Chi tiết ở [Cấp người chơi và cấp nhân vật](#cấp-người-chơi-và-cấp-nhân-vật).
 - **Thiếu người ở một vai** thì trạm đó đứng yên, quán không thu được gì. Không có "chủ quán làm thay". Với 3 nhân vật khởi đầu, chạy quán thì đội chiến đấu trống: đúng cân nhắc "đội mạnh hay quán đông".
 - **Nâng cấp** (user chốt 2026-11-01): sáu loại, mọi cấp tốn cả Coin và Material, không có điều kiện cần có trước: Bàn (5 cấp, 3 → 8), ba loại ô nhân viên (2 cấp mỗi loại, 1 → 3), Biển hiệu (5 cấp, khách đến nhanh hơn), Thực đơn (5 cấp, giá món cao hơn). Số khởi điểm ở [spec Restaurant](../superpowers/specs/2026-11-01-restaurant-design.md#34-sáu-nâng-cấp-mẫu). UI nâng cấp hoàn chỉnh do người khác làm, `TODO(user)` gửi mô tả; công thức nấu ăn và đồ trang trí là ý tưởng chưa thiết kế, `TODO(user)`.
 - **Chất lượng quán** (user chốt 2026-11-01): thang 100 điểm, 20 điểm là 1 sao, chỉ ảnh hưởng AFK, không ảnh hưởng tiền khi chơi thật. Gồm hai phần, mỗi phần tối đa 50 điểm:

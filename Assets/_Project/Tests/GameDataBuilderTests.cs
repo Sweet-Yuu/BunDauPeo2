@@ -316,6 +316,16 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void ExportedJson_ContainsExpPotionForBattleStages()
+        {
+            var data = ServerDataExport.BuildFromProject(out _);
+            var battles = data.Stages.Where(s => s.Kind == (int)StageKind.Battle).ToArray();
+            Assert.AreEqual(5, battles.Length);
+            Assert.IsTrue(battles.All(s => s.FirstClear.ExpPotion == 10 && s.Repeat.ExpPotion == 3));
+            StringAssert.Contains("\"ExpPotion\":10", File.ReadAllText(ServerDataExport.FullOutputPath));
+        }
+
+        [Test]
         public void CommittedJson_NoBomNoTrailingNewline()
         {
             var bytes = File.ReadAllBytes(ServerDataExport.FullOutputPath);

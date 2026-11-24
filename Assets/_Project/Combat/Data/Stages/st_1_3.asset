@@ -33,8 +33,12 @@ MonoBehaviour:
     Amount: 50
   - Type: 1
     Amount: 200
+  - Type: 3
+    Amount: 10
   _repeatReward:
   - Type: 2
     Amount: 50
   - Type: 1
     Amount: 40
+  - Type: 3
+    Amount: 3

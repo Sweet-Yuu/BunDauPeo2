@@ -44,7 +44,7 @@ namespace BunDauPeo.Boot
             CombatConfig combatConfig, StarConfig starConfig, GameData data, GameObject host, IAccountService account = null,
             LevelConfig levelConfig = null)
         {
-            // Task 6 nối asset LevelConfig qua GameBootstrap; tới lúc đó dùng số khởi điểm trong code.
+            // Test dựng thẳng không có asset thì dùng số khởi điểm trong code.
             _levelConfig = levelConfig != null ? levelConfig : ScriptableObject.CreateInstance<LevelConfig>();
             _account = account ?? new LocalAccountService();
             _server = server ?? throw new ArgumentNullException(nameof(server));
@@ -286,6 +286,8 @@ namespace BunDauPeo.Boot
             var playerLevel = new PlayerLevelService(session.Save, session.Wallet, _levelConfig, session.Persist);
             var characterLevels = new CharacterLevelService(session.Save, session.Roster, session.Wallet, _catalog, _levelConfig,
                 playerLevel, session.Persist);
+            ServiceLocator.Register(_starConfig);
+            ServiceLocator.Register(_levelConfig);
             ServiceLocator.Register(playerLevel);
             ServiceLocator.Register(characterLevels);
 

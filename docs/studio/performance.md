@@ -38,5 +38,6 @@ Máy chuẩn: Android tầm trung, RAM 3–4 GB.
 
 | Ngày | Bản / màn | Dung lượng | Khung (ms) | GC/khung | Bộ nhớ | Ghi chú |
 |---|---|---|---|---|---|---|
+| 2026-11-24 | `feature/character-level` sau Task 8, Editor batch (`GcMeasureTests`, 300 khung) | chưa đo | chưa đo | Characters danh sách 892 B, Characters chi tiết 1024 B (một khung đỉnh 12 KB lúc mở panel), Restaurant 782 B, Trận AUTO 692 B (khung trống của Editor: 822 B) | chưa đo | Máy dev Windows. Màn Nhân vật cao hơn nền Editor khoảng 70 B (danh sách), trong ngưỡng 1 KB trung bình; chưa đo trên Android thật. |
 | 2026-11-18 | `feature/online-2` sau O2-d, Editor batch (`GcMeasureTests`, `ProfilerRecorder` "GC Allocated In Frame", 300 khung) | chưa đo | chưa đo | Restaurant 570–667 B, Bản đồ màn 812–892 B, Trận AUTO 612–692 B (khung trống của Editor: 742–822 B; hai lần chạy) | chưa đo | Máy dev Windows, không phải máy chuẩn. Trước sửa: Restaurant 1371, Bản đồ 1596, Trận 1092 B. Phần của code giờ ≈ 0 B ở ba màn; còn lại là nền Editor. Chưa đo trên Android thật (cần điện thoại). |
 | | | | | | | (hàng trên là lần đo đầu) |

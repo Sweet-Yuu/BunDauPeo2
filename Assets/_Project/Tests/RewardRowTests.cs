@@ -49,6 +49,15 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void CurrencyCell_ExpPotion_UsesLocalizedName()
+        {
+            Assert.AreEqual("10 Thuốc EXP", CombatViewText.CurrencyCell(new CurrencyAmount(CurrencyType.ExpPotion, 10)));
+            GameLanguage.Current = Language.En;
+            try { Assert.AreEqual("10 EXP Potion", CombatViewText.CurrencyCell(new CurrencyAmount(CurrencyType.ExpPotion, 10))); }
+            finally { GameLanguage.Current = Language.Vi; }
+        }
+
+        [Test]
         public void RewardRow_Show_FiveLines_ShowsFirstFour()
         {
             _row.Show(Lines((CurrencyType.Coin, 1), (CurrencyType.Gem, 2), (CurrencyType.Material, 3), (CurrencyType.Coin, 4), (CurrencyType.Gem, 5)), "");

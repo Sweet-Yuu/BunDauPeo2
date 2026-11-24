@@ -85,6 +85,16 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public async Task Bootstrap_RegistersLevelServices()
+        {
+            Assert.AreEqual(OnlineStatus.Ok, await _startup.StartAsync());
+
+            Assert.IsNotNull(ServiceLocator.Get<PlayerLevelService>());
+            Assert.IsNotNull(ServiceLocator.Get<CharacterLevelService>());
+            Assert.IsNotNull(ServiceLocator.Get<LevelConfig>());
+        }
+
+        [Test]
         public async Task Start_DataHashMismatch_LogsWarning_StillStarts()
         {
             _server.DataHash = "not-the-same";

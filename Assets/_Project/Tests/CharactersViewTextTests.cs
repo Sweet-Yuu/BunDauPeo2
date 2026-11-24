@@ -31,6 +31,25 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void LevelLine_ShowsLevelOverMax() => Assert.AreEqual("Lv 5/7", CharactersViewText.LevelLine(5, 7));
+
+        [Test]
+        public void UpgradeButtonLabel_ShowsPotionAndCoin() =>
+            StringAssert.Contains("12 thuốc + 600 Coin", CharactersViewText.UpgradeButtonLabel(12, 600));
+
+        [Test]
+        public void UpgradeDisabledReason_AtPlayerLevel_MentionsPlayerLevel() =>
+            Assert.AreEqual("Cần nâng cấp người chơi", CharactersViewText.UpgradeDisabledReason(LevelUpStatus.AtPlayerLevel));
+
+        [Test]
+        public void UpgradeDisabledReason_NotEnoughPotion() =>
+            Assert.AreEqual("Thiếu thuốc EXP", CharactersViewText.UpgradeDisabledReason(LevelUpStatus.NotEnoughPotion));
+
+        [Test]
+        public void UpgradeDisabledReason_NotEnoughCoin() =>
+            Assert.AreEqual("Thiếu Coin", CharactersViewText.UpgradeDisabledReason(LevelUpStatus.NotEnoughCoin));
+
+        [Test]
         public void ButtonLabel_Vietnamese()
         {
             Assert.AreEqual("Nâng lên 4★ (6 mảnh)", CharactersViewText.ButtonLabel(Row(3, 5, 6, false)));

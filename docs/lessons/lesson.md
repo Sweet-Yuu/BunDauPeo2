@@ -26,6 +26,10 @@
 
 ## Đang hiệu lực
 
+### L-047 — `GetOrCreateAsset` không áp init lên asset đã có; đổi builder thì scene phải dựng lại (2026-11-24)  #unity-files #scene-prefab
+- Thêm dòng dữ liệu mới vào `init` của `ProjectSetup` (ví dụ thưởng thuốc cho `st_1_*`) không chạm asset đã tồn tại; test dữ liệu đỏ dù code đúng. Cần bước vá riêng, idempotent, chỉ thêm dòng còn thiếu (xem `EnsureExpPotionRewards`), và test bảng mẫu (`SampleStages_MatchSpecTable`) phải cập nhật cùng lúc.
+- Đổi `*SceneBuilder` rồi chạy test scene mà chưa `RebuildRestaurantScene` thì test đọc file scene cũ và đỏ ("field null"): dựng lại scene trước khi chạy EditMode.
+
 ### L-046 — Overlay tĩnh giữ danh sách `Text` đã bị huỷ; plugin Unity ngoài đòi bản Unity mới hơn (2026-11-24)  #ui #build #process
 - Overlay dựng bằng code, sống qua đổi scene (`AccountBoxes`, `OnlineOverlay`) mà giữ danh sách `Text` trong static: test dọn object thì danh sách còn trỏ vào cái đã huỷ (`MissingReferenceException` ở lần chạy sau, chỉ lộ khi chạy cả bộ). Khi dựng lại hộp (`_root == null` theo Unity) phải xoá danh sách đó.
 - Plugin ngoài (Sign in with Google của Google) ghi "Unity 6.5+" thì build Android trên Unity 6.3 vỡ vì thiếu Kotlin cho `.androidlib` (AGP cũ). Đọc ghi chú bản Unity và gradle template của plugin trước khi nhập; thử xong mà vỡ thì gỡ sạch (manifest, `Assets/Plugins`, `ProjectSettings/AndroidResolverDependencies.xml`) và báo, không vá gradle đoán mò (D-011).

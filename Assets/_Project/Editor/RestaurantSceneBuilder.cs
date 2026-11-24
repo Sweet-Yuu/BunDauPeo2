@@ -272,6 +272,7 @@ namespace BunDauPeo.EditorTools
 
             // Hộp Thu AFK dựng sau thanh và có Canvas con (OverBar) nên vẽ đè lên thanh.
             var afkPopup = BuildAfkPopup(canvas, font, sprite);
+            CharactersSceneBuilder.BuildLevelUpPopup(canvas, sprite, font);
             viewSo.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
             viewSo.ApplyModifiedPropertiesWithoutUndo();
             MissionsPageBuilder.WireTargets(missionsPage, hub, staffPanel, upgradePanel, afkPopup, profilePopup);

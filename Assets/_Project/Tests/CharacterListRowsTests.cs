@@ -45,6 +45,27 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Rows_IncludeEffectiveLevel()
+        {
+            var config = ScriptableObject.CreateInstance<LevelConfig>();
+            var starConfig = ScriptableObject.CreateInstance<StarConfig>();
+            var catalog = TestData.Catalog(TestData.Character("a"), TestData.Character("b"));
+            // Người chơi Lv3 (tổng EXP của hai bậc đầu); "a" lưu Lv9 nhưng cấp hiệu lực kẹp ở 3.
+            _save.PlayerExp = config.ExpToNext(1) + config.ExpToNext(2);
+            _save.CharacterLevels.Add(new CharacterLevelEntry { CharacterId = "a", Level = 9 });
+            var player = new PlayerLevelService(_save, new Wallet(_save), config, () => true);
+            var levels = new CharacterLevelService(_save, _roster, new Wallet(_save), catalog, config, player, () => true);
+
+            var rows = CharacterListRows.Build(_roster, _stars, levels, config, starConfig);
+
+            Assert.AreEqual(3, rows[0].Level);
+            Assert.AreEqual(1, rows[1].Level);
+            Assert.AreEqual(1040, rows[0].Now.HP, "Lv3 = +4% on 1000");
+            Object.DestroyImmediate(config);
+            Object.DestroyImmediate(starConfig);
+        }
+
+        [Test]
         public void Build_ShortOrMax_CannotStarUp()
         {
             _roster.AddFragments("a", 1);

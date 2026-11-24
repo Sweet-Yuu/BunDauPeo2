@@ -18,6 +18,7 @@ namespace BunDauPeo.Boot
         [SerializeField] private RestaurantConfig _restaurantConfig;
         [SerializeField] private CombatConfig _combatConfig;
         [SerializeField] private StarConfig _starConfig;
+        [SerializeField] private LevelConfig _levelConfig;
         [SerializeField] private MissionCatalog _missionCatalog;
         [SerializeField] private string _startScene;
 
@@ -86,6 +87,12 @@ namespace BunDauPeo.Boot
                 return;
             }
 
+            if (_levelConfig == null)
+            {
+                Debug.LogError($"{nameof(GameBootstrap)}: field {nameof(_levelConfig)} is not assigned.", this);
+                return;
+            }
+
             if (_missionCatalog == null)
             {
                 Debug.LogError($"{nameof(GameBootstrap)}: field {nameof(_missionCatalog)} is not assigned.", this);
@@ -122,7 +129,7 @@ namespace BunDauPeo.Boot
             // Google dời sang sau (plugin cần Unity 6.5+): chưa có nguồn ID token nên không có nút Google.
             if (account == null && server is Online.UgsGameServer ugs) account = new Online.UgsAccountService(ugs.Environment);
             _startup = new OnlineStartup(server, new ServerTime(), SavePath, _catalog, _newGameConfig, _bannerCatalog,
-                _restaurantConfig, _combatConfig, _starConfig, gameData, gameObject, account);
+                _restaurantConfig, _combatConfig, _starConfig, gameData, gameObject, account, _levelConfig);
             _startup.RegisterBase();
 
             _active = this;

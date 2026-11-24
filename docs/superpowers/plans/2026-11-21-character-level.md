@@ -206,10 +206,10 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
 - Consumes: mọi thứ Task 1–5.
 - Produces: `ProjectSetup.LevelConfigPath = "Assets/_Project/Characters/Data/LevelConfig.asset"`; `ServiceLocator` có `PlayerLevelService`, `CharacterLevelService`, `LevelConfig`; `Boot.unity` gán `_levelConfig` (vá khi trống, như `_starConfig`, bài học L-002).
 
-- [ ] **Step 1: Viết test (đỏ).** `ProjectSetupTests`: `CreatesLevelConfigAsset`; `BootScene_LevelConfigIsAssigned` (đọc lại tham chiếu từ file scene); `BattleStages_HaveExpPotionRewards` (5 màn đánh có dòng `ExpPotion`: lần đầu 10, đánh lại 3; màn cốt truyện không có). `ResetSaveDataTests.Reset_ClearsPlayerExpCharacterLevelsPotionAndAfkRemainder`. `GameSessionTests.Bootstrap_RegistersLevelServices` (`ServiceLocator.Get<PlayerLevelService>()` và `<CharacterLevelService>` không null sau Boot). `GameDataBuilderTests.ExportedJson_ContainsExpPotionForBattleStages` (dữ liệu server xuất từ SO có `ExpPotion` 10 và 3).
-- [ ] **Step 2: Chạy, xác nhận đỏ.**
-- [ ] **Step 3: Cài đặt.** `OnlineStartup` dựng `PlayerLevelService`, `CharacterLevelService`, đăng ký cả hai và `LevelConfig` vào `ServiceLocator` ngay sau khi đăng ký `StarService`; truyền vào `CombatService` và `RestaurantService`. `ProjectSetup`: `GetOrCreateAsset<LevelConfig>`, vá `Boot.unity`, thêm dòng thưởng thuốc cho 5 màn đánh theo kiểu cách `ProjectSetup` đang gán thưởng màn (bám phần code hiện có, không sửa tay file `.meta`). Chạy lại `ServerDataExport` (menu có sẵn) để dữ liệu server có `ExpPotion`; ghi đường dẫn file xuất vào báo cáo để 🧭 Online triển khai server.
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (6 test) và Boot chạy được trong Editor Play không lỗi console.
+- [x] **Step 1: Viết test (đỏ).** `ProjectSetupTests`: `CreatesLevelConfigAsset`; `BootScene_LevelConfigIsAssigned` (đọc lại tham chiếu từ file scene); `BattleStages_HaveExpPotionRewards` (5 màn đánh có dòng `ExpPotion`: lần đầu 10, đánh lại 3; màn cốt truyện không có). `ResetSaveDataTests.Reset_ClearsPlayerExpCharacterLevelsPotionAndAfkRemainder`. `GameSessionTests.Bootstrap_RegistersLevelServices` (`ServiceLocator.Get<PlayerLevelService>()` và `<CharacterLevelService>` không null sau Boot). `GameDataBuilderTests.ExportedJson_ContainsExpPotionForBattleStages` (dữ liệu server xuất từ SO có `ExpPotion` 10 và 3).
+- [x] **Step 2: Chạy, xác nhận đỏ.**
+- [x] **Step 3: Cài đặt.** `OnlineStartup` dựng `PlayerLevelService`, `CharacterLevelService`, đăng ký cả hai và `LevelConfig` vào `ServiceLocator` ngay sau khi đăng ký `StarService`; truyền vào `CombatService` và `RestaurantService`. `ProjectSetup`: `GetOrCreateAsset<LevelConfig>`, vá `Boot.unity`, thêm dòng thưởng thuốc cho 5 màn đánh theo kiểu cách `ProjectSetup` đang gán thưởng màn (bám phần code hiện có, không sửa tay file `.meta`). Chạy lại `ServerDataExport` (menu có sẵn) để dữ liệu server có `ExpPotion`; ghi đường dẫn file xuất vào báo cáo để 🧭 Online triển khai server.
+- [x] **Step 4: Chạy lại, xác nhận xanh** (6 test) và Boot chạy được trong Editor Play không lỗi console.
 
 ---
 
@@ -228,7 +228,7 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
   - `CharacterUpgradePreview.Build(CharacterDefinition c, int starUps, int level, int maxLevel, LevelConfig lc, int statPercentPerStar) → { bool HasNext; CombatStats Before, After; }` (`HasNext = false` khi `level >= maxLevel`).
   - `CharactersViewText.LevelLine(int level, int max)`, `UpgradeButtonLabel(int potion, int coin)`, `UpgradeDisabledReason(LevelUpStatus s)`; `CharacterListRows.Row` thêm `Level`; `CombatViewText.CurrencyCell` hiện tên đã dịch cho `ExpPotion`; khoá `UiText` Việt + Anh cho mọi chữ mới.
 
-- [ ] **Step 1: Viết test (đỏ).**
+- [x] **Step 1: Viết test (đỏ).**
   - `CharactersViewTextTests` (5): `LevelLine_ShowsLevelOverMax`; `UpgradeButtonLabel_ShowsPotionAndCoin`; `UpgradeDisabledReason_AtPlayerLevel_MentionsPlayerLevel`; `UpgradeDisabledReason_NotEnoughPotion`; `UpgradeDisabledReason_NotEnoughCoin`.
   - `CharacterListRowsTests.Rows_IncludeEffectiveLevel` (1).
   - `PlayerLevelBarRuleTests` (2): `Fill_IsExpOverToNext`; `Fill_AtMaxLevel_IsOne`.
@@ -237,9 +237,9 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
   - `CharactersSceneTests` (4, các ca cũ kiểm nút Nâng sao trên danh sách phải sửa theo luồng mới): `Scene_ClickingCard_OpensDetailPanelOfThatCharacter`; `Detail_BackButton_ReturnsToList`; `Detail_HasLevelAndStarTabs_StarUpButtonOnlyInStarTab`; `Detail_ArrowsSwitchToNeighborCharacter`.
   - `RewardRowTests.CurrencyCell_ExpPotion_UsesLocalizedName` (1).
   - `UiTextTests` và `HardcodedTextTests` hiện có phải vẫn xanh; thêm khoá mới đủ Việt và Anh.
-- [ ] **Step 2: Chạy, xác nhận đỏ.**
-- [ ] **Step 3: Cài đặt** theo mục 8 của spec và ảnh mô phỏng v2 đã duyệt. Danh sách chỉ chọn nhân vật; panel chi tiết có tab Cấp (xem trước trước → sau, nút Nâng cấp gọi `CharacterLevelService.TryLevelUp`) và tab Sao (nút Nâng sao gọi `StarService.TryStarUpAsync`, hành vi cũ giữ nguyên); `Saved == false` thì báo "chưa lưu được dữ liệu" như nâng sao. Thanh Lv + EXP, popup lên cấp người chơi, dòng thuốc ở popup kết quả trận. Dùng hình tạm Unity, `Image` trên Canvas; không thêm file ảnh. Bám pattern `CharactersView` (đăng ký `Changed`, huỷ đăng ký khi tắt). Không thêm lọc/sắp xếp.
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (19 test) và mở màn Nhân vật trong Play kiểm bằng mắt rồi chụp bằng công cụ `ScreenCapture1080` để đính kèm báo cáo.
+- [x] **Step 2: Chạy, xác nhận đỏ.**
+- [x] **Step 3: Cài đặt** theo mục 8 của spec và ảnh mô phỏng v2 đã duyệt. Danh sách chỉ chọn nhân vật; panel chi tiết có tab Cấp (xem trước trước → sau, nút Nâng cấp gọi `CharacterLevelService.TryLevelUp`) và tab Sao (nút Nâng sao gọi `StarService.TryStarUpAsync`, hành vi cũ giữ nguyên); `Saved == false` thì báo "chưa lưu được dữ liệu" như nâng sao. Thanh Lv + EXP, popup lên cấp người chơi, dòng thuốc ở popup kết quả trận. Dùng hình tạm Unity, `Image` trên Canvas; không thêm file ảnh. Bám pattern `CharactersView` (đăng ký `Changed`, huỷ đăng ký khi tắt). Không thêm lọc/sắp xếp.
+- [x] **Step 4: Chạy lại, xác nhận xanh** (19 test) và mở màn Nhân vật trong Play kiểm bằng mắt rồi chụp bằng công cụ `ScreenCapture1080` để đính kèm báo cáo.
 
 ---
 
@@ -252,10 +252,10 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
 
 **Interfaces:** Consumes mọi task trước. Produces: không có kiểu mới.
 
-- [ ] **Step 1: Viết test PlayMode (đỏ).** `LevelFlowPlayTests` (3): `EnterStage_GivesExp_AndLevelsUpPlayer` (vào màn 10 lần → người chơi Lv2, popup xuất hiện, thưởng vào ví); `UpgradeCharacter_RaisesStatsAndSpendsCost` (cấp thuốc và Coin qua `Wallet`, bấm thẻ nhân vật để mở panel chi tiết rồi bấm Nâng cấp ở tab Cấp → cấp +1, panel hiện chỉ số mới); `FullLoop_EnterStageWinCollectPotionUpgradeEnterAgain` (vào màn → thắng → thuốc về ví → nâng nhân vật → vào lại, chỉ số đồng minh của `BattleSession` tăng đúng; Reset xoá hết).
-- [ ] **Step 2: Chạy, xác nhận đỏ rồi xanh** sau khi sửa lỗi nối còn sót.
-- [ ] **Step 3: Docs** (mục 10 của spec): `game-design.md` (thay "Chưa thiết kế: cấp nhân vật"; thêm Thuốc EXP vào bảng tài nguyên; mục Quán có thuốc; mục Online ghi cấp phía máy; mục "Cấp người chơi", "Cấp nhân vật"); `decisions.md` thêm D-xxx (cấp phía máy cho 31/12, chuyển lên server là việc bắt buộc sau 31/12; ghi lý do và đánh đổi mục 11 của spec); `ideas.md` chuyển ý Coin → **Đã làm**, thêm ý trang bị (sau 31/12) và nâng skill (dùng quy tắc "chi phí chính + Coin phụ"); `roadmap.md` tick mục. Bài học mới (nếu có sai sót khi làm) ghi vào `docs/lessons/lesson.md` ngay trong task đó.
-- [ ] **Step 4: Chạy toàn bộ EditMode + PlayMode + `dotnet test ServerModule/BunDauPeoServer.sln`**, đo hiệu năng màn Nhân vật và màn quán theo `docs/studio/performance.md` (không vượt ngưỡng), kiểm console không lỗi. Gửi "Báo cáo cuối kênh" (mẫu `docs/studio/brief.md`): test 86/86 EditMode mới + 1 .NET + 3/3 PlayMode, đường dẫn dữ liệu server cần triển khai, ảnh chụp màn.
+- [x] **Step 1: Viết test PlayMode (đỏ).** `LevelFlowPlayTests` (3): `EnterStage_GivesExp_AndLevelsUpPlayer` (vào màn 10 lần → người chơi Lv2, popup xuất hiện, thưởng vào ví); `UpgradeCharacter_RaisesStatsAndSpendsCost` (cấp thuốc và Coin qua `Wallet`, bấm thẻ nhân vật để mở panel chi tiết rồi bấm Nâng cấp ở tab Cấp → cấp +1, panel hiện chỉ số mới); `FullLoop_EnterStageWinCollectPotionUpgradeEnterAgain` (vào màn → thắng → thuốc về ví → nâng nhân vật → vào lại, chỉ số đồng minh của `BattleSession` tăng đúng; Reset xoá hết).
+- [x] **Step 2: Chạy, xác nhận đỏ rồi xanh** sau khi sửa lỗi nối còn sót.
+- [x] **Step 3: Docs** (mục 10 của spec): `game-design.md` (thay "Chưa thiết kế: cấp nhân vật"; thêm Thuốc EXP vào bảng tài nguyên; mục Quán có thuốc; mục Online ghi cấp phía máy; mục "Cấp người chơi", "Cấp nhân vật"); `decisions.md` thêm D-xxx (cấp phía máy cho 31/12, chuyển lên server là việc bắt buộc sau 31/12; ghi lý do và đánh đổi mục 11 của spec); `ideas.md` chuyển ý Coin → **Đã làm**, thêm ý trang bị (sau 31/12) và nâng skill (dùng quy tắc "chi phí chính + Coin phụ"); `roadmap.md` tick mục. Bài học mới (nếu có sai sót khi làm) ghi vào `docs/lessons/lesson.md` ngay trong task đó.
+- [x] **Step 4: Chạy toàn bộ EditMode + PlayMode + `dotnet test ServerModule/BunDauPeoServer.sln`**, đo hiệu năng màn Nhân vật và màn quán theo `docs/studio/performance.md` (không vượt ngưỡng), kiểm console không lỗi. Gửi "Báo cáo cuối kênh" (mẫu `docs/studio/brief.md`): test 86/86 EditMode mới + 1 .NET + 3/3 PlayMode, đường dẫn dữ liệu server cần triển khai, ảnh chụp màn.
 
 ---
 
