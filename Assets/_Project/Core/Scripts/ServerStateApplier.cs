@@ -74,6 +74,7 @@ namespace BunDauPeo.Core
             var owned = new HashSet<string>(save.OwnedCharacterIds);
             var changed = save.BattleTeam.RemoveAll(id => !owned.Contains(id)) > 0;
             changed |= save.Staff.RemoveAll(s => !owned.Contains(s.CharacterId)) > 0;
+            changed |= save.CharacterLevels.RemoveAll(e => !owned.Contains(e.CharacterId)) > 0;
             if (!string.IsNullOrEmpty(save.AvatarCharacterId) && !owned.Contains(save.AvatarCharacterId))
             {
                 save.AvatarCharacterId = "";

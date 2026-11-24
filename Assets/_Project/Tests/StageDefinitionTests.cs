@@ -90,6 +90,25 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void ExpPotionRewardLine_IsAllowed()
+        {
+            foreach (var field in new[] { "_firstClearReward", "_repeatReward" })
+            {
+                var errors = Edited(Battle(), so => CombatTestData.SetRewards(so.FindProperty(field),
+                    Amount(CurrencyType.Material, 5), Amount(CurrencyType.ExpPotion, 10)));
+                Assert.IsEmpty(errors, field);
+            }
+        }
+
+        [Test]
+        public void CoinRewardLine_StillRejected()
+        {
+            var errors = Edited(Battle(), so => CombatTestData.SetRewards(so.FindProperty("_firstClearReward"),
+                Amount(CurrencyType.ExpPotion, 10), Amount(CurrencyType.Coin, 5)));
+            Assert.That(errors, Has.Some.StartsWith("FirstClearReward[1]"));
+        }
+
+        [Test]
         public void Validate_RewardWithCoin_Reported()
         {
             foreach (var (field, name) in new[] { ("_firstClearReward", "FirstClearReward"), ("_repeatReward", "RepeatReward") })

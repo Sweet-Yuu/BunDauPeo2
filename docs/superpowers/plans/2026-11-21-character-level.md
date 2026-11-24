@@ -76,13 +76,13 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
   - `LevelConfig : ScriptableObject` (menu `BunDauPeo/Characters/Level Config`) với property chỉ đọc: `int MaxPlayerLevel`, `int ExpBase`, `int ExpPerLevel`, `int StatPercentPerLevel`, `int PotionPerTargetLevel`, `int CoinPerTargetLevel`, `int LevelUpRewardCoinPerLevel`, `int LevelUpRewardPotion`, `int RestaurantPotionChancePercent`, `int AfkCoinPerPotion`; hàm `long ExpToNext(int level)` (= `ExpBase + ExpPerLevel × level`, ném `ArgumentOutOfRangeException` khi `level < 1`) và `List<string> Validate()` (mỗi lỗi bắt đầu bằng tên field).
   - `public static class GrowthStats { public static CombatStats Get(CharacterDefinition c, int starUps, int level, int statPercentPerStar, int statPercentPerLevel); }`; `starUps < 0` coi là 0, `level < 1` coi là 1.
 
-- [ ] **Step 1: Viết test (đỏ)**
+- [x] **Step 1: Viết test (đỏ)**
   - `LevelConfigTests`: `Defaults_AreValid` (asset mới `CreateInstance` → `Validate()` rỗng; `ExpToNext(1) == 120`, `ExpToNext(19) == 480`); `Validate_RejectsMaxPlayerLevelBelowOne`; `Validate_RejectsNegativeCostsAndRewards`; `Validate_RejectsChanceOutsideZeroTo100` (`RestaurantPotionChancePercent` −1 và 101); `Validate_RejectsAfkCoinPerPotionBelowOne`.
   - `GrowthStatsTests`: `Level1NoStar_ReturnsBase`; `Level1_MatchesStarServiceFormula` (cùng kết quả `StarService.GetCombatStats(c, starUps)` với `starUps` 0..4); `MamTomOneStarUpLevel5_AddsBothPercents` (Mắm Tôm HP 1000, Atk 110, Def 50, `starUps=1`, `level=5`, 10%/2% → HP 1180, Attack 130, Defense 59, Speed gốc); `RoundsHalfUp` (gốc 5 ở +10% cho 6 vì `(5×110+50)/100 = 6`); `Speed_NeverChanges`; `NegativeInputs_ClampedToBase`.
   - `SaveCompatibilityTests.OldSave_WithoutLevelFields_LoadsAsLevel1` (JSON save cũ không có 3 field → `PlayerExp == 0`, `CharacterLevels.Count == 0`, `AfkPotionRemainderCoin == 0`); `WalletTests.ExpPotion_AddAndGet_RoundTripsThroughSave`.
-- [ ] **Step 2: Chạy, xác nhận đỏ** (`unity` chạy EditMode lọc theo tên fixture; đỏ vì thiếu kiểu).
-- [ ] **Step 3: Cài đặt** các kiểu trên đúng chữ ký. `GrowthStats.Get` dùng `long` như `StarService.GetCombatStats(character, starUps)`; `LevelConfig` copy kiểu `Validate()`/`OnValidate()` của `StarConfig` với số *khởi điểm* ở Global Constraints. `PlayerSave` thêm 3 field kèm comment một dòng; không đổi `Version`.
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (13 test).
+- [x] **Step 2: Chạy, xác nhận đỏ** (`unity` chạy EditMode lọc theo tên fixture; đỏ vì thiếu kiểu).
+- [x] **Step 3: Cài đặt** các kiểu trên đúng chữ ký. `GrowthStats.Get` dùng `long` như `StarService.GetCombatStats(character, starUps)`; `LevelConfig` copy kiểu `Validate()`/`OnValidate()` của `StarConfig` với số *khởi điểm* ở Global Constraints. `PlayerSave` thêm 3 field kèm comment một dòng; không đổi `Version`.
+- [x] **Step 4: Chạy lại, xác nhận xanh** (13 test).
 
 ---
 
@@ -96,21 +96,21 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
 - Consumes: `CurrencyType.ExpPotion` (Task 1).
 - Produces: `RewardData.ExpPotion` (`long`), `StageRewardPayload.ExpPotion` (`long`); `StageCompleteResult.Rewards` có thêm dòng `CurrencyAmount(ExpPotion, n)` khi `n > 0`; `ServerProtocol.Version` không đổi (O3 đặt 3), `MinProtocolVersion == 2`.
 
-- [ ] **Step 1: Viết test (đỏ)**
+- [x] **Step 1: Viết test (đỏ)**
   - `HandlerStageTests`: `CompleteStage_FirstClear_ReturnsExpPotion`, `CompleteStage_Repeat_ReturnsExpPotion`, `CompleteStage_Lost_ReturnsNoPotion` (dữ liệu màn có `FirstClear{Gem:150,Material:30,ExpPotion:10}`, `Repeat{…ExpPotion:3}`; `ServerState` không đổi ngoài Gem và `ClearedStages`).
   - `GameDataBuilderTests`: `Build_MapsExpPotionLine` (dòng `ExpPotion` trong SO → `RewardData.ExpPotion`); `Validate_AllowsExpPotionInStageReward`; `Validate_StillRejectsCoinInStageReward`.
   - `StageDefinitionTests`: `ExpPotionRewardLine_IsAllowed`; `CoinRewardLine_StillRejected`.
   - `StageProgressServiceTests`: `CompleteStage_AddsExpPotionToWallet`; `CompleteStage_ResultListsExpPotionLine`; `CompleteStage_ReplyWithoutExpPotionField_AddsNothing` (JSON trả lời không có trường).
   - `ServerProtocolTests.Version_IsNotRaisedByThisFeature_MinProtocolStays2` (Version bằng giá trị O3 đang đặt, Min vẫn 2).
   - `ServerModuleTests.ReadsGameDataWithoutExpPotionField_DefaultsToZero` (.NET, `dotnet test ServerModule/BunDauPeoServer.sln`).
-- [ ] **Step 2: Chạy, xác nhận đỏ.**
-- [ ] **Step 3: Cài đặt.**
+- [x] **Step 2: Chạy, xác nhận đỏ.**
+- [x] **Step 3: Cài đặt.**
   - `RewardData` và `StageRewardPayload` thêm `public long ExpPotion;`; `ServerHandlers.CompleteStage` trả `ExpPotion = reward.ExpPotion` (không đổi `ServerState`).
   - `GameDataBuilder.Reward` thêm `ExpPotion = Sum(lines, CurrencyType.ExpPotion)`; `CheckReward` cho phép `ExpPotion` (comment "Server chỉ biết Gem, Material, ExpPotion" cập nhật).
   - `StageDefinition.CheckRewardLines` vẫn chặn Coin, không chặn `ExpPotion`.
   - `StageProgressService.CompleteStageAsync` cộng `payload.ExpPotion` vào `_wallet` cạnh dòng Material, trước `_apply`, và thêm dòng vào `rewards`.
   - `ServerProtocol.Version` không đổi (O3 đã đặt 3), `MinProtocolVersion` giữ 2.
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (12 EditMode + 1 .NET).
+- [x] **Step 4: Chạy lại, xác nhận xanh** (12 EditMode + 1 .NET).
 
 ---
 
@@ -150,13 +150,13 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
   ```
   `PlayerSave` lưu EXP tổng ở `PlayerExp`; `Level`, `Exp` suy ra, không lưu riêng.
 
-- [ ] **Step 1: Viết test (đỏ)**
+- [x] **Step 1: Viết test (đỏ)**
   - `PlayerLevelServiceTests` (9): `NewSave_IsLevel1WithZeroExp`; `AddExp_BelowThreshold_KeepsLevel` (`AddExp(119)` → Lv1, `Exp == 119`, `ExpToNext == 120`); `AddExp_CrossesThreshold_LevelsUpAndGrantsReward` (`AddExp(120)` → Lv2, ví +400 Coin và +5 thuốc); `AddExp_ManyLevelsAtOnce_GrantsEachLevelsReward`; `AddExp_AtMaxLevel_DropsExcess` (`IsMaxLevel`, `ExpToNext == 0`, PlayerExp không vượt tổng tới cấp 20); `AddExp_ZeroOrNegative_NoChange` (không phát `Changed`, không `persist`); `AddExp_LongMaxValue_DoesNotOverflowOrHang`; `InvalidConfig_AddExpIgnored`; `PersistFailure_KeepsMemoryState`.
   - `CharacterLevelServiceTests` (11): `TryLevelUp_Success_SpendsPotionAndCoinAndRaisesLevel` (nhân vật Lv1 → Lv2 tốn 4 thuốc và 200 Coin khi người chơi ≥ Lv2); `TryLevelUp_UnknownId_Unknown`; `TryLevelUp_NotOwned_NotOwned`; `TryLevelUp_AtPlayerLevel_AtPlayerLevel`; `TryLevelUp_NotEnoughPotion`; `TryLevelUp_NotEnoughCoin`; `TryLevelUp_InvalidConfig_InvalidConfig`; `Rejections_LeaveWalletSaveAndEventsUntouched` (mọi mã từ chối: ví, `CharacterLevels`, `Changed`, `persist` không đổi); `PersistFailure_SavedFalse_KeepsMemory`; `GetLevel_StoredAbovePlayerLevel_ReturnsEffective` (dòng `Level=15`, người chơi Lv3 → `GetLevel == 3`, dòng lưu vẫn 15); `GetNextCost_UsesTargetLevel` (Lv4 → thuốc 10, Coin 500).
   - `ServerStateApplierTests.PruneUnowned_RemovesCharacterLevelsOfUnownedIds` (và nhân vật còn sở hữu giữ nguyên).
-- [ ] **Step 2: Chạy, xác nhận đỏ.**
-- [ ] **Step 3: Cài đặt** đúng chữ ký. Mẫu theo `StarService` (thứ tự từ chối, `persist` một lần). `PlayerLevelService.Level`: lặp trừ `ExpToNext` từ tổng `PlayerExp`, dừng ở `MaxPlayerLevel` (không đệ quy; tránh tràn bằng cách kẹp EXP tổng ở tổng tới cấp tối đa trước khi cộng). Thưởng lên cấp `Wallet.Add(Coin, LevelUpRewardCoinPerLevel × cấpMới)` và `Wallet.Add(ExpPotion, LevelUpRewardPotion)` cho từng cấp. `TryLevelUp` dùng `Wallet.TrySpend` cho cả hai khoản một lần (nguyên tử). `PruneUnowned` thêm `save.CharacterLevels.RemoveAll(e => !owned.Contains(e.CharacterId))` và gộp kết quả `changed`.
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (21 test).
+- [x] **Step 2: Chạy, xác nhận đỏ.**
+- [x] **Step 3: Cài đặt** đúng chữ ký. Mẫu theo `StarService` (thứ tự từ chối, `persist` một lần). `PlayerLevelService.Level`: lặp trừ `ExpToNext` từ tổng `PlayerExp`, dừng ở `MaxPlayerLevel` (không đệ quy; tránh tràn bằng cách kẹp EXP tổng ở tổng tới cấp tối đa trước khi cộng). Thưởng lên cấp `Wallet.Add(Coin, LevelUpRewardCoinPerLevel × cấpMới)` và `Wallet.Add(ExpPotion, LevelUpRewardPotion)` cho từng cấp. `TryLevelUp` dùng `Wallet.TrySpend` cho cả hai khoản một lần (nguyên tử). `PruneUnowned` thêm `save.CharacterLevels.RemoveAll(e => !owned.Contains(e.CharacterId))` và gộp kết quả `changed`.
+- [x] **Step 4: Chạy lại, xác nhận xanh** (21 test).
 
 ---
 
@@ -170,10 +170,10 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
 - Consumes: `PlayerLevelService`, `CharacterLevelService`, `GrowthStats`, `LevelConfig`, `StarConfig` (Task 1, 3).
 - Produces: `CombatService(CombatConfig config, Roster roster, StarService stars, CharacterLevelService levels, PlayerLevelService playerLevel, LevelConfig levelConfig, StarConfig starConfig, StaminaService stamina, StageProgressService progress, System.Random random, Func<bool> persist, IGameServer server, CommandGate gate, Func<ServerState, bool> apply)`; tham số mới chèn sau `stars`. `BattleSession` nhận `statsOf = c => GrowthStats.Get(c, stars.GetStarUps(c.Id), levels.GetLevel(c.Id), starConfig.StatPercentPerStar, levelConfig.StatPercentPerLevel)`; config lỗi thì dùng `Stars.GetCombatStats` cũ.
 
-- [ ] **Step 1: Viết test (đỏ)** trong `CombatServiceTests`: `EnterStage_Success_AddsExpEqualToStaminaCost` (màn 10 thể lực → `PlayerLevelService` +10 EXP); `EnterStage_Rejected_AddsNoExp` (thiếu thể lực, màn khoá, đội rỗng); `EnterStage_Offline_AddsNoExp`; `EnterStage_LostReplyRetrySameRequest_AddsExpOnce` (dùng cách mô phỏng của `LocalGameServerTests.Local_LostReply_RetrySameRequest_AppliesOnce`); `BattleAllyStats_IncludeStarAndLevel` (nhân vật Lv5 1 lần nâng sao: HP đơn vị đồng minh bằng 1180 cho Mắm Tôm). `StartBattle` (DEV) không cộng EXP: một test `StartBattle_Dev_AddsNoExp` (tổng 6 test).
-- [ ] **Step 2: Chạy, xác nhận đỏ.** Cập nhật `CombatRig`, `CombatTestData`, `OnlineStartup` để dựng thêm hai service và hai config (chưa có `LevelConfig` trong Boot: `OnlineStartup` nhận qua `[SerializeField]` ở Task 6; tạm dùng `ScriptableObject.CreateInstance<LevelConfig>()` trong test rig).
-- [ ] **Step 3: Cài đặt.** Trong `EnterStageAsync`, `playerLevel.AddExp(stage.StaminaCost)` ngay trước `_apply(response.State)`; không đụng nhánh từ chối/Offline. `StartBattle` không đổi.
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (6 test). Toàn bộ `CombatServiceTests`, `BattleSessionTests` cũ vẫn xanh.
+- [x] **Step 1: Viết test (đỏ)** trong `CombatServiceTests`: `EnterStage_Success_AddsExpEqualToStaminaCost` (màn 10 thể lực → `PlayerLevelService` +10 EXP); `EnterStage_Rejected_AddsNoExp` (thiếu thể lực, màn khoá, đội rỗng); `EnterStage_Offline_AddsNoExp`; `EnterStage_LostReplyRetrySameRequest_AddsExpOnce` (dùng cách mô phỏng của `LocalGameServerTests.Local_LostReply_RetrySameRequest_AppliesOnce`); `BattleAllyStats_IncludeStarAndLevel` (nhân vật Lv5 1 lần nâng sao: HP đơn vị đồng minh bằng 1180 cho Mắm Tôm). `StartBattle` (DEV) không cộng EXP: một test `StartBattle_Dev_AddsNoExp` (tổng 6 test).
+- [x] **Step 2: Chạy, xác nhận đỏ.** Cập nhật `CombatRig`, `CombatTestData`, `OnlineStartup` để dựng thêm hai service và hai config (chưa có `LevelConfig` trong Boot: `OnlineStartup` nhận qua `[SerializeField]` ở Task 6; tạm dùng `ScriptableObject.CreateInstance<LevelConfig>()` trong test rig).
+- [x] **Step 3: Cài đặt.** Trong `EnterStageAsync`, `playerLevel.AddExp(stage.StaminaCost)` ngay trước `_apply(response.State)`; không đụng nhánh từ chối/Offline. `StartBattle` không đổi.
+- [x] **Step 4: Chạy lại, xác nhận xanh** (6 test). Toàn bộ `CombatServiceTests`, `BattleSessionTests` cũ vẫn xanh.
 
 ---
 
@@ -187,12 +187,12 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
 - Consumes: `LevelConfig.RestaurantPotionChancePercent`, `AfkCoinPerPotion`, `PlayerSave.AfkPotionRemainderCoin` (Task 1). `RestaurantService` đã có `System.Random random`.
 - Produces: `RestaurantService(…, LevelConfig levelConfig, …)` và `AfkService(…, LevelConfig levelConfig, …)` (tham số cuối trước `persist`); `AfkCollectResult` giữ nguyên chữ ký (số thuốc thu được cộng thẳng vào ví, không thêm vào kết quả).
 
-- [ ] **Step 1: Viết test (đỏ).**
+- [x] **Step 1: Viết test (đỏ).**
   - `RestaurantPotionTests`: `CustomerPaid_ChanceHit_AddsOnePotion` (random giả trả giá trị dưới ngưỡng 3%); `CustomerPaid_ChanceMiss_AddsNone`; `ChanceZero_NeverDrops`; `ChanceHundred_AlwaysDrops`; `InvalidLevelConfig_NoPotionAndCoinStillPaid`.
   - `AfkServiceTests`: `Collect_ConvertsCoinToPotionByAfkCoinPerPotion` (thu 1.250 Coin → 2 thuốc, dư 250 trong `AfkPotionRemainderCoin`); `Collect_KeepsRemainderAcrossCollects` (250 dư + lần sau thu 300 → +1 thuốc, dư 50); `Collect_RemainderSurvivesSaveAndLoad`; `Collect_ZeroCoin_NoPotionNoChange`.
-- [ ] **Step 2: Chạy, xác nhận đỏ.**
-- [ ] **Step 3: Cài đặt.** `OnCustomerPaid` thêm: `if (_levelConfigValid && _random.Next(100) < chance) _wallet.Add(ExpPotion, 1)` (dùng nguồn ngẫu nhiên của service để test được). `AfkService.Collect` sau khi cộng Coin: `total = coins + AfkPotionRemainderCoin`; `potions = total / AfkCoinPerPotion`; `AfkPotionRemainderCoin = total % AfkCoinPerPotion`; cộng thuốc vào ví trước `_persist()`; config lỗi thì bỏ phần thuốc, giữ dư cũ.
-- [ ] **Step 4: Chạy lại, xác nhận xanh** (9 test). `RestaurantServiceTests`, `RestaurantInvariantTests` cũ vẫn xanh.
+- [x] **Step 2: Chạy, xác nhận đỏ.**
+- [x] **Step 3: Cài đặt.** `OnCustomerPaid` thêm: `if (_levelConfigValid && _random.Next(100) < chance) _wallet.Add(ExpPotion, 1)` (dùng nguồn ngẫu nhiên của service để test được). `AfkService.Collect` sau khi cộng Coin: `total = coins + AfkPotionRemainderCoin`; `potions = total / AfkCoinPerPotion`; `AfkPotionRemainderCoin = total % AfkCoinPerPotion`; cộng thuốc vào ví trước `_persist()`; config lỗi thì bỏ phần thuốc, giữ dư cũ.
+- [x] **Step 4: Chạy lại, xác nhận xanh** (9 test). `RestaurantServiceTests`, `RestaurantInvariantTests` cũ vẫn xanh.
 
 ---
 

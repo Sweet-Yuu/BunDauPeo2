@@ -31,6 +31,14 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void ExpPotion_AddAndGet_RoundTripsThroughSave()
+        {
+            _wallet.Add(CurrencyType.ExpPotion, 7);
+            var loaded = JsonUtility.FromJson<PlayerSave>(JsonUtility.ToJson(_save));
+            Assert.AreEqual(7, new Wallet(loaded).Get(CurrencyType.ExpPotion));
+        }
+
+        [Test]
         public void Add_Negative_Throws_AndKeepsBalance()
         {
             _wallet.Add(CurrencyType.Coin, 100);

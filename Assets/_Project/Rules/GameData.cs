@@ -36,6 +36,8 @@ namespace BunDauPeo.Rules
     {
         public long Gem;
         public long Material;
+        // Thuốc EXP: server chỉ trả số lượng, máy cộng vào ví như Material. Dữ liệu cũ thiếu field = 0.
+        public long ExpPotion;
     }
 
     [Serializable]

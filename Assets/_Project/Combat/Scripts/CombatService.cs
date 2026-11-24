@@ -48,6 +48,10 @@ namespace BunDauPeo.Combat
     public sealed class CombatService
     {
         private readonly Roster _roster;
+        private readonly CharacterLevelService _levels;
+        private readonly PlayerLevelService _playerLevel;
+        private readonly LevelConfig _levelConfig;
+        private readonly StarConfig _starConfig;
         private readonly System.Random _random;
         private readonly Func<bool> _persist;
         private readonly IGameServer _server;
@@ -55,7 +59,8 @@ namespace BunDauPeo.Combat
         private readonly Func<ServerState, bool> _apply;
 
         // apply chép state server vào PlayerSave và báo view; trả false khi lưu bản đệm thất bại.
-        public CombatService(CombatConfig config, Roster roster, StarService stars, StaminaService stamina,
+        public CombatService(CombatConfig config, Roster roster, StarService stars, CharacterLevelService levels,
+            PlayerLevelService playerLevel, LevelConfig levelConfig, StarConfig starConfig, StaminaService stamina,
             StageProgressService progress, System.Random random, Func<bool> persist,
             IGameServer server, CommandGate gate, Func<ServerState, bool> apply)
         {
@@ -65,6 +70,10 @@ namespace BunDauPeo.Combat
             Config = config ?? throw new ArgumentNullException(nameof(config));
             _roster = roster ?? throw new ArgumentNullException(nameof(roster));
             Stars = stars ?? throw new ArgumentNullException(nameof(stars));
+            _levels = levels ?? throw new ArgumentNullException(nameof(levels));
+            _playerLevel = playerLevel ?? throw new ArgumentNullException(nameof(playerLevel));
+            _levelConfig = levelConfig ?? throw new ArgumentNullException(nameof(levelConfig));
+            _starConfig = starConfig ?? throw new ArgumentNullException(nameof(starConfig));
             Stamina = stamina ?? throw new ArgumentNullException(nameof(stamina));
             Progress = progress ?? throw new ArgumentNullException(nameof(progress));
             _random = random ?? throw new ArgumentNullException(nameof(random));
@@ -97,7 +106,7 @@ namespace BunDauPeo.Combat
             if (team.Count == 0) return new StartBattleResult(StartBattleStatus.EmptyTeam);
             if (team.Any(c => !IsBattleReady(c))) return new StartBattleResult(StartBattleStatus.InvalidCharacter);
 
-            Current = new BattleSession(team, stage, Config, _random, Stars.GetCombatStats);
+            Current = new BattleSession(team, stage, Config, _random, StatsOf);
             return new StartBattleResult(StartBattleStatus.Success, Current);
         }
 
@@ -119,7 +128,7 @@ namespace BunDauPeo.Combat
             // CanEnter vừa tra được màn này; nếu hai danh mục lệch nhau thì dừng trước khi gửi.
             if (!Config.Stages.TryGet(stageId, out var stage)) return new EnterStageResult(EnterStageStatus.Unknown);
             // Dựng trận trước lệnh: dựng ném lỗi thì server chưa trừ gì.
-            var session = new BattleSession(team, stage, Config, _random, Stars.GetCombatStats);
+            var session = new BattleSession(team, stage, Config, _random, StatsOf);
             var ids = team.Select(c => c.Id).ToList();
 
             var result = await _gate.RunAsync(id => _server.EnterStageAsync(id, stageId, ids));
@@ -146,10 +155,18 @@ namespace BunDauPeo.Combat
             session.Ticket = payload.Ticket;
             session.EntryPaid = true;
             // Lưu trước, rồi mới có trận (như cũ): lưu ném lỗi thì không có trận nửa vời.
+            // Vào trận thành công: mỗi điểm thể lực tiêu là 1 EXP người chơi (lưu cùng lần _apply bên dưới).
+            _playerLevel.AddExp(stage.StaminaCost, persist: false);
             var saved = _apply(response.State);
             Current = session;
             return new EnterStageResult(EnterStageStatus.Entered, session, stage.StaminaCost, saved);
         }
+
+        // Chỉ số trong trận = gốc + % sao + % cấp; config cấp hoặc sao lỗi thì dùng chỉ số theo sao như trước.
+        private CombatStats StatsOf(CharacterDefinition c) =>
+            _levels.IsConfigValid && Stars.IsConfigValid
+                ? GrowthStats.Get(c, Stars.GetStarUps(c.Id), _levels.GetLevel(c.Id), _starConfig.StatPercentPerStar, _levelConfig.StatPercentPerLevel)
+                : Stars.GetCombatStats(c);
 
         private static EnterStageStatus RejectionOf(CommandCode code) => code switch
         {

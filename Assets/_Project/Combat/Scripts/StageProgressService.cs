@@ -131,11 +131,13 @@ namespace BunDauPeo.Combat
 
             // Material trước, rồi áp state: lần lưu của áp state ghi cả hai.
             if (payload.Material > 0) _wallet.Add(CurrencyType.Material, payload.Material);
+            if (payload.ExpPotion > 0) _wallet.Add(CurrencyType.ExpPotion, payload.ExpPotion);
             won.RewardsClaimed = true;
             var saved = _apply(response.State);
             var rewards = new List<CurrencyAmount>();
             if (payload.Material > 0) rewards.Add(new CurrencyAmount(CurrencyType.Material, payload.Material));
             if (payload.Gem > 0) rewards.Add(new CurrencyAmount(CurrencyType.Gem, payload.Gem));
+            if (payload.ExpPotion > 0) rewards.Add(new CurrencyAmount(CurrencyType.ExpPotion, payload.ExpPotion));
             Changed.SafeInvoke();
             return new StageCompleteResult(StageCompleteStatus.Success, payload.FirstClear, rewards, stage.StaminaCost, saved);
         }

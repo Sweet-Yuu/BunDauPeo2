@@ -151,6 +151,29 @@ namespace BunDauPeo.Tests
             StringAssert.Contains("s1", errors[0]);
         }
 
+        [Test]
+        public void Build_MapsExpPotionLine()
+        {
+            var r = MakeRig(firstReward: Lines((CurrencyType.Gem, 50), (CurrencyType.ExpPotion, 10)));
+            var data = GameDataBuilder.Build(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame);
+            Assert.AreEqual(10, data.Stages[0].FirstClear.ExpPotion);
+            Assert.AreEqual(0, data.Stages[0].Repeat.ExpPotion);
+        }
+
+        [Test]
+        public void Validate_AllowsExpPotionInStageReward()
+        {
+            var r = MakeRig(firstReward: Lines((CurrencyType.ExpPotion, 10)));
+            Assert.IsEmpty(GameDataBuilder.Validate(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame));
+        }
+
+        [Test]
+        public void Validate_StillRejectsCoinInStageReward()
+        {
+            var r = MakeRig(firstReward: Lines((CurrencyType.ExpPotion, 10), (CurrencyType.Coin, 10)));
+            Assert.IsNotEmpty(GameDataBuilder.Validate(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame));
+        }
+
         private static MissionDefinition Mission(string id, MissionTab tab = MissionTab.Daily, MissionCounter counter = MissionCounter.Wins,
             int target = 1, bool locked = false, long gem = 10, int stamina = 0, int from = 0, int to = 0)
         {

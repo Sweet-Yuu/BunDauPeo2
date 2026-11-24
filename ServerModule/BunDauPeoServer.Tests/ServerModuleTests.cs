@@ -339,6 +339,16 @@ public class ServerModuleTests
         Assert.That(GameDataSource.Data.Stamina.RewardCap, Is.EqualTo(999));
         Assert.That(GameDataSource.Data.Banners.Any(b => b.FreePullDaily), Is.True);
     }
+
+    [Test]
+    public void ReadsGameDataWithoutExpPotionField_DefaultsToZero()
+    {
+        var data = JsonConvert.DeserializeObject<GameData>(
+            "{\"Stages\":[{\"Id\":\"s1\",\"FirstClear\":{\"Gem\":150,\"Material\":30},\"Repeat\":{\"Gem\":5}}]}")!;
+        Assert.That(data.Stages[0].FirstClear.Material, Is.EqualTo(30));
+        Assert.That(data.Stages[0].FirstClear.ExpPotion, Is.EqualTo(0));
+        Assert.That(data.Stages[0].Repeat.ExpPotion, Is.EqualTo(0));
+    }
 }
 
 // Giá trị này cũng nằm trong Assets/_Project/Tests/ServerStateTests.cs (Json_Shape_MatchesNewtonsoftSample): đổi một nơi phải đổi cả hai.
