@@ -56,7 +56,7 @@ Cloud Save **Custom data**, id `gifts`, khoá `list` (JSON, user sửa trên Uni
 
 Luồng Nhân vật thêm `ExpPotion` vào `RewardData`: **không** nằm trong loại quà đợt này. Nếu cần thì thêm `ExpPotion` vào cuối bảng loại ở 4.1 và vào payload sau; không đổi tên chỗ nào của đợt 3.
 
-### 4.3 Lệnh server (thêm cuối, `ProtocolVersion` giữ 3, `MinProtocolVersion` giữ 2)
+### 4.3 Lệnh server (thêm cuối, `ProtocolVersion` giữ 3, `MinProtocolVersion` giữ 3: user chốt 2026-11-25, D-016, bản đợt 2 bị chặn)
 
 | Lệnh | Vào | Đổi state? | Trả |
 |---|---|---|---|
@@ -157,7 +157,7 @@ Không cắt dở nửa đợt (chỉ server hay chỉ UI đều không có ích
 2. **Dashboard sai tay:** JSON hỏng hay quà sai định dạng. Giảm: server kiểm từng quà, chỉ bỏ quà hỏng; hướng dẫn mẫu JSON trong `unity-workflow.md`.
 3. **Đọc Custom data trong Cloud Code** chưa từng dùng ở đợt trước: Task 3 phải **gọi thật trên `development`** trước khi tin (như O2-b).
 4. **Khoảng hở Coin/Material** (mục 7): chấp nhận, đã có ở thưởng màn.
-5. **Chồng khoá Unity:** đợt 4 sửa `ProjectSetup.cs`, `UiText.Hub.cs`, `NotifyPopup.cs` cùng nơi với luồng Nhân vật (thứ tự khoá Unity: cấp nhân vật trước, đợt 4 sau); `RewardData` do Nhân vật sửa, đợt 4 không đụng.
+5. **Chồng khoá Unity:** đợt 4 sửa `ProjectSetup.cs`, `UiText.Hub.cs`, `NotifyPopup.cs` cùng nơi với luồng Nhân vật (thứ tự khoá Unity: cấp nhân vật trước, đợt 4 sau); `RewardData` do Nhân vật sửa (thêm `ExpPotion`), đợt 4 không đụng; **nhánh code O4 cắt từ `main` sau khi PR Cấp nhân vật merge** (chung `PlayerSave`/`ServerProtocol`/module; `development` đang chạy bản Cấp nhân vật, deploy bản thiếu `ExpPotion` sẽ gỡ nó).
 6. **Ngày:** O4 ~28/12, sát công khai 31/12; vì thế cắt được toàn bộ.
 
 ## 11. Docs phải cập nhật khi xong
