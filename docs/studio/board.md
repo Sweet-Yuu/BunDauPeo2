@@ -13,7 +13,7 @@ _Cập nhật 2026-11-21 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **🧭 Nhân vật #1** (cấp 2026-11-24, sau khi Online đợt 3 xong code `11ce1e4` trên `feature/online-3`, Editor đóng). Cấp nhân vật #1 (Task 1–5) xong `5cfb896` trên `feature/character-level` (EditMode 1231, dotnet 19); giữ khoá sang #2 (Task 6–8). Hàng chờ: Cấp nhân vật #2 → Thời tiết → Cốt truyện → Vẽ lại quán. Online còn: Major 2 chờ user, mở PR đợt 3 (không cần khoá trừ khi phải sửa code).
+Đang giữ: **🧭 Nhân vật #1** (cấp 2026-11-24, sau khi Online đợt 3 xong code `11ce1e4` trên `feature/online-3`, Editor đóng). Cấp nhân vật code xong trên `feature/character-level`: #1 `5cfb896`, #2 `c58ae1d` (EditMode 1256, PlayMode 60, dotnet 19). Chờ review cuối + user playtest + deploy `development` (ExpPotion). Giữ khoá tới khi review sửa xong. Hàng chờ: O3-e (chạy test hộp xác nhận mất tiến độ, PR #23, trên `feature/online-3`) → Thời tiết → Cốt truyện → Vẽ lại quán. Online còn: Major 2 chờ user, mở PR đợt 3 (không cần khoá trừ khi phải sửa code).
 
 ## Luồng
 

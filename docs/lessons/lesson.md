@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-048 — Kênh 🔨 sửa code trong checkout chung khi chưa có khoá, lúc checkout đang ở nhánh luồng khác (2026-11-25)  #git #process
+- Triệu chứng: 🔨 O3-e (Online) viết sẵn code vào `D:\Unity\BunDauPeo` trong khi khoá Unity và nhánh checkout (`feature/character-level`) đang của luồng Nhân vật; 3 file lạc suýt lọt vào commit và test của luồng kia.
+- Nguyên nhân gốc: luật khoá chỉ nói "chạy Unity", không nói "sửa file trong checkout chung".
+- Luật từ nay: sửa bất kỳ file nào trong checkout chung cũng cần khoá Unity (luật 1 trong `docs/studio/README.md`). Chưa có khoá thì chỉ đọc; muốn viết trước thì dùng worktree riêng (không chạy Unity ở đó).
+
 ### L-047 — `GetOrCreateAsset` không áp init lên asset đã có; đổi builder thì scene phải dựng lại (2026-11-24)  #unity-files #scene-prefab
 - Thêm dòng dữ liệu mới vào `init` của `ProjectSetup` (ví dụ thưởng thuốc cho `st_1_*`) không chạm asset đã tồn tại; test dữ liệu đỏ dù code đúng. Cần bước vá riêng, idempotent, chỉ thêm dòng còn thiếu (xem `EnsureExpPotionRewards`), và test bảng mẫu (`SampleStages_MatchSpecTable`) phải cập nhật cùng lúc.
 - Đổi `*SceneBuilder` rồi chạy test scene mà chưa `RebuildRestaurantScene` thì test đọc file scene cũ và đỏ ("field null"): dựng lại scene trước khi chạy EditMode.
