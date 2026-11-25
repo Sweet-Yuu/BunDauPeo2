@@ -104,6 +104,7 @@ namespace BunDauPeo.Tests
             "account.choose_signin", "account.google", "account.userpass", "account.username", "account.password", "account.create",
             "account.signin", "account.err_taken", "account.err_weak", "account.err_wrong", "account.err_name", "account.err_other",
             "account.hint_pass", "account.warn_lose", "account.conflict_title", "account.conflict_body", "account.switch",
+            "account.confirm_title",
         };
 
         [Test]
@@ -156,6 +157,7 @@ namespace BunDauPeo.Tests
             Assert.LessOrEqual(Lines("account.hint_pass", 26, 820), 2, "account.hint_pass: hai dòng 820 cỡ 26 (hộp 70)");
             Assert.LessOrEqual(Lines("account.conflict_body", 34, 820) * 34 * 1.2f, 140f, "account.conflict_body: hộp 820×140 cỡ 34");
             Assert.LessOrEqual(Lines("account.conflict_title", 40, 840), 1, "account.conflict_title: một dòng 840 cỡ 40");
+            Assert.LessOrEqual(Lines("account.confirm_title", 40, 840), 1, "account.confirm_title: một dòng 840 cỡ 40");
             Assert.LessOrEqual(Lines("account.choose_signin", 52, 840), 1, "account.choose_signin: một dòng 840 cỡ 52");
             Assert.LessOrEqual(Lines("account.userpass", 36, 700), 1, "account.userpass: một dòng 700 cỡ 36");
         }

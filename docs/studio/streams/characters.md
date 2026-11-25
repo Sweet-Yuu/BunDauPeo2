@@ -32,6 +32,8 @@
 
 - 2026-11-25 — Review cuối nhánh (Opus xhigh, `11ce1e4..c58ae1d`): không Critical; sửa ý 1, 2, 3, 5, 7, 8 → `dcc47cf` (EditMode 1261, PlayMode 60 xanh), đã nhả khoá Unity. **Hoãn:** ý 4 (thưởng lên cấp phát hai lần khi cân bằng lại số → field "cấp cao nhất đã phát thưởng", làm cùng đợt cân bằng cuối T12), ý 6 (Min protocol 2→3, CEO hỏi user), ý 9 (`Restaurant.unity` sinh lại toàn bộ: nhánh khác đụng scene này phải dựng lại bằng builder sau merge). Chi tiết: `side-session-notes/…/review-character-level.md`. Chưa có test PlayMode đi đường thật TeamSelect → Battle → Lobby cho popup lên cấp (chỉ EditMode mô phỏng). Kế: user playtest → mở PR vào `main` sau khi PR #23 merge.
 
+- 2026-11-25 — 🧭 tự playtest theo lời user (Editor của user, `BackupSave`/`RestoreSave`, save đã trả): chọn đội → trận AUTO → popup kết quả có "Stamina used: 10 / Player EXP +10" và thưởng "10 EXP Potion"; EXP nhảy qua ngưỡng Lv2→Lv3 lúc vào trận, **popup lên cấp hiện đúng khi về Lobby** (ý 1 xác nhận bằng đường thật); thưởng +600 Coin ✓; panel nhân vật: trần cấp = cấp người chơi, bấm lên cấp trừ 300 Coin + 6 thuốc, HP 816→832, Attack 82→83, giá kế 8 thuốc + 400 Coin, dòng "Reached Lv 3" còn nguyên sau 12 giây ví đổi (ý 2 ✓). Chưa thử: ngôn ngữ tiếng Việt, Reset Save, tab Sao, thua trận, máy Android thật.
+
 ## Nhật ký
 
 - 2026-11-21 — Lập luồng, mở Leader #1, tạo file luồng.
