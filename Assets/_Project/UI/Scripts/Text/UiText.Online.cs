@@ -44,6 +44,7 @@ namespace BunDauPeo.UI
             ("account.conflict_body", "Chuyển sang tiến độ đó? Tiến độ hiện tại (chưa liên kết) sẽ mất.",
                 "Switch to that progress? Your current progress (not linked) will be lost."),
             ("account.switch", "Chuyển", "Switch"),
+            ("account.confirm_title", "Mất tiến độ hiện tại?", "Lose current progress?"),
         };
     }
 }

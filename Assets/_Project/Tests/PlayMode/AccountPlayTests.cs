@@ -59,7 +59,7 @@ namespace BunDauPeo.PlayModeTests
             ServiceLocator.Clear();
             yield return null;
             var game = SceneManager.GetActiveScene();
-            SceneManager.SetActiveScene(SceneManager.CreateScene("AccountPlayEmpty"));
+            SceneManager.SetActiveScene(SceneManager.CreateScene("AccountPlayEmpty" + Guid.NewGuid().ToString("N")));
             if (game.isLoaded) yield return SceneManager.UnloadSceneAsync(game);
             if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
         }
@@ -135,6 +135,44 @@ namespace BunDauPeo.PlayModeTests
             StringAssert.Contains("abc", accountText.text);
             Assert.IsFalse(AccountBoxes.IsShown, "the boxes close after a successful link");
             Assert.IsFalse(linkButton.activeInHierarchy, "no link button once linked");
+        }
+
+        // Đường UI thật của hàng rào mất tiến độ (Major 2 review đợt 3): hộp xác nhận chặn trước SignIn, Huỷ không đổi gì, Đăng nhập mới đổi.
+        [UnityTest, Timeout(60000)]
+        public IEnumerator SignIn_OverAnonymousProgress_ConfirmBoxGatesSignIn()
+        {
+            var directory = new LocalAccountDirectory();
+            var owner = new LocalAccountService("b", directory, google: true);
+            owner.LinkGoogleAsync().GetAwaiter().GetResult();
+            var anonymous = new LocalAccountService("a", directory, google: true);
+            var signedIn = false;
+            var flow = new AccountFlow(anonymous, new AccountSwitcher(async signIn =>
+            {
+                var result = await signIn();
+                signedIn |= result.Ok;
+                return result;
+            }), () => { }, () => true);
+
+            // Không có scene game nên tự dựng EventSystem (UiDriver cần); TearDown dọn qua scene rỗng.
+            var eventSystem = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem));
+            AccountBoxes.ShowSignIn(flow);
+            yield return ClickWhenReady("AccountGoogleBtn_PH_700x90");
+            Assert.IsNotNull(GameObject.Find("ConfirmOkBtn_PH_340x100"), "the confirm box shows before SignIn");
+            Assert.AreEqual("a", anonymous.PlayerId);
+            Assert.IsFalse(signedIn, "nothing is called before the confirmation");
+
+            yield return ClickWhenReady("ConfirmCancelBtn_PH_340x100");
+            Assert.IsFalse(AccountBoxes.IsShown);
+            Assert.AreEqual("a", anonymous.PlayerId, "Cancel keeps the anonymous progress");
+
+            AccountBoxes.ShowSignIn(flow);
+            yield return ClickWhenReady("AccountGoogleBtn_PH_700x90");
+            yield return ClickWhenReady("ConfirmOkBtn_PH_340x100");
+            var deadline = Time.realtimeSinceStartup + 5f;
+            while (!signedIn && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.IsTrue(signedIn, "Confirm runs the sign-in");
+            Assert.AreEqual("b", anonymous.PlayerId);
+            Object.Destroy(eventSystem);
         }
 
         [UnityTest, Timeout(180000)]

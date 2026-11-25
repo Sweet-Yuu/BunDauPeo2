@@ -23,7 +23,7 @@ namespace BunDauPeo.UI
 
         private static GameObject _root;
         private static GameObject _dim;
-        private static GameObject _choose, _credential, _conflict;
+        private static GameObject _choose, _credential, _conflict, _confirm;
         private static Text _chooseTitle, _chooseNote, _credTitle, _credError, _credHint, _credActionLabel;
         private static Button _googleButton, _userPassButton, _credAction;
         private static InputField _user, _pass;
@@ -98,6 +98,7 @@ namespace BunDauPeo.UI
             _choose.SetActive(box == _choose);
             _credential.SetActive(box == _credential);
             _conflict.SetActive(box == _conflict);
+            _confirm.SetActive(box == _confirm);
             foreach (var (text, key) in Labels) text.text = UiText.Get(key);
             _dim.SetActive(true);
         }
@@ -140,13 +141,21 @@ namespace BunDauPeo.UI
             _ = RunAsync(AccountMethod.UserPass, user, pass);
         }
 
-        private static async Task RunAsync(AccountMethod method, string user, string pass)
+        private static async Task RunAsync(AccountMethod method, string user, string pass, bool confirmed = false)
         {
             if (_busy || _flow == null) return;
-            _busy = true;
             _lastMethod = method;
             _lastUser = user;
             _lastPass = pass;
+            if (_signIn && !confirmed && _flow.NeedsLoseWarning)
+            {
+                Show(_confirm);
+                return;
+            }
+
+            // Từ hộp xác nhận quay về hộp đang làm để dòng đang gửi / lỗi hiện đúng chỗ.
+            if (_confirm.activeSelf) Show(method == AccountMethod.UserPass ? _credential : _choose);
+            _busy = true;
             SetInteractable(false);
             _credError.text = UiText.Get("online.sending");
             var flow = _flow;
@@ -154,7 +163,7 @@ namespace BunDauPeo.UI
             try
             {
                 result = _signIn
-                    ? await flow.SignInAsync(method, user, pass, confirmedLoss: true)
+                    ? await flow.SignInAsync(method, user, pass, confirmedLoss: confirmed)
                     : await flow.LinkAsync(method, user, pass);
             }
             catch (Exception e)
@@ -181,7 +190,7 @@ namespace BunDauPeo.UI
                     OnlineOverlay.ShowLost(() =>
                     {
                         OnlineOverlay.Hide();
-                        _ = RunAsync(method, user, pass);
+                        _ = RunAsync(method, user, pass, confirmed);
                     });
                     break;
                 case AccountStatus.Conflict:
@@ -274,6 +283,7 @@ namespace BunDauPeo.UI
             _choose = BuildChoose(dim, font);
             _credential = BuildCredential(dim, font);
             _conflict = BuildConflict(dim, font);
+            _confirm = BuildConfirm(dim, font);
             _dim.SetActive(false);
         }
 
@@ -308,6 +318,22 @@ namespace BunDauPeo.UI
             (_credAction, _) = NewButton("CredentialActionBtn_PH_380x90", box, font, null, Green, Bottom, new Vector2(-200, 55), new Vector2(380, 90), OnCredentialAction);
             _credActionLabel = _credAction.GetComponentInChildren<Text>();
             NewButton("CredentialCancelBtn_PH_300x90", box, font, "common.cancel", Grey, Bottom, new Vector2(200, 55), new Vector2(300, 90), Hide);
+            return box.gameObject;
+        }
+
+        // Hộp xác nhận mất tiến độ ẩn danh, hiện ngay trước khi gọi SignIn (spec đợt 3 8.3).
+        private static GameObject BuildConfirm(RectTransform dim, Font font)
+        {
+            var box = NewRect("ConfirmLoseBox_PH_900x420", dim, Center, Center, Vector2.zero, new Vector2(900, 420));
+            AddImage(box, Panel, raycast: true);
+            var title = NewText("Title", box, font, 40, Gold, Top, new Vector2(0, -70), new Vector2(840, 80));
+            title.fontStyle = FontStyle.Bold;
+            Labels.Add((title, "account.confirm_title"));
+            var body = NewText("Body", box, font, 30, Color.white, Top, new Vector2(0, -200), new Vector2(820, 140));
+            Labels.Add((body, "account.warn_lose"));
+            NewButton("ConfirmOkBtn_PH_340x100", box, font, "account.signin", Green, Bottom, new Vector2(-200, 50), new Vector2(340, 100),
+                () => _ = RunAsync(_lastMethod, _lastUser, _lastPass, confirmed: true));
+            NewButton("ConfirmCancelBtn_PH_340x100", box, font, "common.cancel", Grey, Bottom, new Vector2(200, 50), new Vector2(340, 100), Hide);
             return box.gameObject;
         }
 
