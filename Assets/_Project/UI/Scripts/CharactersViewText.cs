@@ -28,6 +28,26 @@ namespace BunDauPeo.UI
         public static string ButtonLabel(CharacterListRow row) =>
             row.IsMax ? UiText.Get("characters.star_up_max") : UiText.Format("characters.star_up", row.Stars + 1, row.NextCost);
 
+        public static string LevelLine(int level, int max) => UiText.Format("characters.level_line", level, max);
+
+        public static string UpgradeButtonLabel(int potion, int coin) => UiText.Format("characters.level_up_btn", potion, coin);
+
+        // Lý do nút Nâng cấp mờ; trạng thái khác (thành công, lỗi) không có lý do.
+        public static string UpgradeDisabledReason(LevelUpStatus s) => s switch
+        {
+            LevelUpStatus.AtPlayerLevel => UiText.Get("characters.level_reason_player"),
+            LevelUpStatus.NotEnoughPotion => UiText.Get("characters.level_reason_potion"),
+            LevelUpStatus.NotEnoughCoin => UiText.Get("characters.level_reason_coin"),
+            _ => "",
+        };
+
+        public static string LevelStatusText(LevelUpResult result) => result.Status switch
+        {
+            LevelUpStatus.Success => result.Saved ? UiText.Format("characters.level_done", result.LevelAfter) : UiText.Get("characters.not_saved"),
+            LevelUpStatus.AtPlayerLevel or LevelUpStatus.NotEnoughPotion or LevelUpStatus.NotEnoughCoin => UpgradeDisabledReason(result.Status),
+            _ => UiText.Get("characters.level_error"),
+        };
+
         public static string StatusText(StarUpResult result) => result.Status switch
         {
             StarUpStatus.Success => result.Saved ? UiText.Format("characters.done", result.StarsAfter) : UiText.Get("characters.not_saved"),

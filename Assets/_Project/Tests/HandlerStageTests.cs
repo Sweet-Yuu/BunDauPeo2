@@ -241,6 +241,54 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(1310, s.Gem);
         }
 
+        // Màn s1 có thuốc EXP: lần đầu 10, đánh lại 3.
+        static GameData PotionData()
+        {
+            var data = Data();
+            data.Stages[0].FirstClear.ExpPotion = 10;
+            data.Stages[0].Repeat.ExpPotion = 3;
+            return data;
+        }
+
+        StageRewardPayload Complete(ServerState s, GameData data, bool won)
+        {
+            var enter = ServerHandlers.EnterStage(s, data, Ctx(), "s1", Team("a"));
+            return (StageRewardPayload)ServerHandlers.CompleteStage(s, data, Ctx(), ((EnterStagePayload)enter.Payload).Ticket, won).Payload;
+        }
+
+        [Test]
+        public void CompleteStage_FirstClear_ReturnsExpPotion()
+        {
+            var s = State();
+            s.Gem = 1000;
+            var before = Snap(s);
+            var p = Complete(s, PotionData(), true);
+            Assert.AreEqual((true, 10L), (p.FirstClear, p.ExpPotion));
+            Assert.AreEqual(1100, s.Gem);
+            CollectionAssert.AreEqual(new[] { "s1" }, s.ClearedStages);
+            Assert.AreNotEqual(before, Snap(s));
+        }
+
+        [Test]
+        public void CompleteStage_Repeat_ReturnsExpPotion()
+        {
+            var s = State("s1");
+            s.Gem = 1000;
+            var p = Complete(s, PotionData(), true);
+            Assert.AreEqual((false, 3L), (p.FirstClear, p.ExpPotion));
+        }
+
+        [Test]
+        public void CompleteStage_Lost_ReturnsNoPotion()
+        {
+            var s = State();
+            s.Gem = 1000;
+            var p = Complete(s, PotionData(), false);
+            Assert.AreEqual(0L, p.ExpPotion);
+            Assert.AreEqual(1000, s.Gem);
+            CollectionAssert.IsEmpty(s.ClearedStages);
+        }
+
         [Test]
         public void Complete_Lost_ClearsTicket_NoReward()
         {

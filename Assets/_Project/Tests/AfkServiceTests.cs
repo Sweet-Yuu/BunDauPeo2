@@ -1,7 +1,9 @@
 using System;
+using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Restaurant;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace BunDauPeo.Tests
 {
@@ -15,6 +17,7 @@ namespace BunDauPeo.Tests
         private FakeClock _clock;
         private RestaurantQuality _quality;
         private AfkService _afk;
+        private LevelConfig _levelConfig;
         private double _rate;
         private int _persists;
         private bool _persistResult;
@@ -30,7 +33,49 @@ namespace BunDauPeo.Tests
             _persistResult = true;
             var config = RestaurantTestData.Config();
             _quality = new RestaurantQuality(_save, config, _clock);
-            _afk = new AfkService(_save, _wallet, config, _clock, _quality, () => _rate, () => { _persists++; return _persistResult; });
+            _levelConfig = ScriptableObject.CreateInstance<LevelConfig>();
+            _afk = new AfkService(_save, _wallet, config, _clock, _quality, () => _rate, _levelConfig, () => { _persists++; return _persistResult; });
+        }
+
+        [Test]
+        public void Collect_ConvertsCoinToPotionByAfkCoinPerPotion()
+        {
+            CollectCoins(1250);
+            Assert.AreEqual(1250, _wallet.Get(CurrencyType.Coin));
+            Assert.AreEqual(2, _wallet.Get(CurrencyType.ExpPotion));
+            Assert.AreEqual(250, _save.AfkPotionRemainderCoin);
+        }
+
+        [Test]
+        public void Collect_KeepsRemainderAcrossCollects()
+        {
+            CollectCoins(1250);
+            CollectCoins(300);
+            Assert.AreEqual(3, _wallet.Get(CurrencyType.ExpPotion));
+            Assert.AreEqual(50, _save.AfkPotionRemainderCoin);
+        }
+
+        [Test]
+        public void Collect_RemainderSurvivesSaveAndLoad()
+        {
+            CollectCoins(1250);
+            var loaded = JsonUtility.FromJson<PlayerSave>(JsonUtility.ToJson(_save));
+            Assert.AreEqual(250, loaded.AfkPotionRemainderCoin);
+        }
+
+        [Test]
+        public void Collect_ZeroCoin_NoPotionNoChange()
+        {
+            Assert.AreEqual(0, _afk.Collect().Coins);
+            Assert.AreEqual((0L, 0L), (_wallet.Get(CurrencyType.ExpPotion), _save.AfkPotionRemainderCoin));
+        }
+
+        // Hệ số chất lượng 0,1 ở điểm 0: đặt PendingTheoretical = coins / 0,1 để thu đúng `coins`.
+        private void CollectCoins(long coins)
+        {
+            _save.Afk.PendingTheoretical = (coins + 0.5) / _quality.AfkFactor;   // +0,5 để sai số double không làm tròn xuống
+            Assert.AreEqual(coins, _afk.PreviewCollect(), "setup: preview must equal the intended coins");
+            _afk.Collect();
         }
 
         // Giống một lần thoát app rồi mở lại sau `span`: Heartbeat lúc thoát, CatchUp lúc mở.

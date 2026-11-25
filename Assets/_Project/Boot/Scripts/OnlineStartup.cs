@@ -24,6 +24,7 @@ namespace BunDauPeo.Boot
         private readonly RestaurantConfig _restaurantConfig;
         private readonly CombatConfig _combatConfig;
         private readonly StarConfig _starConfig;
+        private readonly LevelConfig _levelConfig;
         private readonly GameData _data;
         private readonly CommandGate _gate = new(CommandGate.RealtimeDelay);
         private readonly GameObject _host;
@@ -40,8 +41,11 @@ namespace BunDauPeo.Boot
 
         public OnlineStartup(IGameServer server, ServerTime time, string savePath, CharacterCatalog catalog,
             NewGameConfig newGame, GachaBannerCatalog banners, RestaurantConfig restaurantConfig,
-            CombatConfig combatConfig, StarConfig starConfig, GameData data, GameObject host, IAccountService account = null)
+            CombatConfig combatConfig, StarConfig starConfig, GameData data, GameObject host, IAccountService account = null,
+            LevelConfig levelConfig = null)
         {
+            // Test dựng thẳng không có asset thì dùng số khởi điểm trong code.
+            _levelConfig = levelConfig != null ? levelConfig : ScriptableObject.CreateInstance<LevelConfig>();
             _account = account ?? new LocalAccountService();
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _time = time ?? throw new ArgumentNullException(nameof(time));
@@ -269,7 +273,7 @@ namespace BunDauPeo.Boot
             _mail = new MailService(session.Save, session.Persist, new IMailSource[] { new LinkAccountMailSource(_account) }, _account);
             ServiceLocator.Register(_mail);
             var restaurant = new RestaurantService(_restaurantConfig, session.Save, session.Wallet, session.Roster,
-                new System.Random(), new ServerClock(_time), session.Persist);
+                new System.Random(), new ServerClock(_time), _levelConfig, session.Persist);
             _runner = _host.AddComponent<RestaurantRunner>();
             _runner.Init(restaurant);
             ServiceLocator.Register(restaurant);
@@ -279,10 +283,19 @@ namespace BunDauPeo.Boot
                 _server, _gate, session.ApplyServerState);
             ServiceLocator.Register(stars);
 
+            var playerLevel = new PlayerLevelService(session.Save, session.Wallet, _levelConfig, session.Persist);
+            var characterLevels = new CharacterLevelService(session.Save, session.Roster, session.Wallet, _catalog, _levelConfig,
+                playerLevel, session.Persist);
+            ServiceLocator.Register(_starConfig);
+            ServiceLocator.Register(_levelConfig);
+            ServiceLocator.Register(playerLevel);
+            ServiceLocator.Register(characterLevels);
+
             var stamina = new StaminaService(session.Save, _combatConfig, () => _time.UtcNow);
             var progress = new StageProgressService(session.Save, session.Wallet, _combatConfig.Stages, stamina,
                 _server, _gate, session.ApplyServerState);
-            var combat = new CombatService(_combatConfig, session.Roster, stars, stamina, progress, new System.Random(),
+            var combat = new CombatService(_combatConfig, session.Roster, stars, characterLevels, playerLevel, _levelConfig, _starConfig,
+                stamina, progress, new System.Random(),
                 session.Persist, _server, _gate, session.ApplyServerState);
             ServiceLocator.Register(combat);
             session.ResetCompleted += combat.ResetRuntime;

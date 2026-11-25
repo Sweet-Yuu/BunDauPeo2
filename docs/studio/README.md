@@ -31,6 +31,7 @@ Chi tiết chọn model cho subagent: [agent-routing.md](agent-routing.md). Mẫ
 
 1. **Khoá Unity.** Một project Unity chỉ mở được một Editor hoặc một lệnh batch. Kênh nào sắp chạy Unity (test, run, mở Editor, sửa scene) phải được 👑 CEO ghi tên vào mục "Khoá Unity" của [board.md](board.md). Xong thì báo CEO nhả khoá. Kênh chỉ viết docs không cần khoá.
    - **Kênh đụng Unity** dùng checkout chung `D:\Unity\BunDauPeo` (`use_worktree: false`), vì worktree riêng phải import lại `Library/`.
+   - **Sửa bất kỳ file nào trong checkout chung cũng cần khoá**, kể cả chỉ viết code chưa chạy test: checkout đang ở nhánh của kênh giữ khoá (L-048). Chưa có khoá thì chỉ đọc.
    - **Kênh chỉ viết docs** (🎨 viết spec/kế hoạch) mở bằng `use_worktree: true` và nhánh docs riêng, để không đổi nhánh của checkout chung khi kênh khác đang làm. Nhánh docs cắt từ nhánh mà spec dựa vào (thường `origin/main`).
 2. **Chỉ 📋 Thư ký commit và push** (user chốt 2026-11-06). Kênh khác xong việc thì gửi "Báo cáo cuối kênh" (mẫu trong [brief.md](brief.md)) cho 📋 và cho Leader của luồng. Không force push.
 3. **Ai nói chuyện với user về việc gì:**

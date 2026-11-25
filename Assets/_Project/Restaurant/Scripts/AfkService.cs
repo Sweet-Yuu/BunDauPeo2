@@ -1,4 +1,5 @@
 using System;
+using BunDauPeo.Characters;
 using BunDauPeo.Core;
 
 namespace BunDauPeo.Restaurant
@@ -25,12 +26,16 @@ namespace BunDauPeo.Restaurant
         private readonly IClock _clock;
         private readonly RestaurantQuality _quality;
         private readonly Func<double> _currentIncomePerSecond;
+        private readonly LevelConfig _levelConfig;
+        private readonly bool _levelConfigValid;
         private readonly Func<bool> _persist;
         private double _pendingAbsence;
 
         public AfkService(PlayerSave save, Wallet wallet, RestaurantConfig config, IClock clock, RestaurantQuality quality,
-            Func<double> currentIncomePerSecond, Func<bool> persist)
+            Func<double> currentIncomePerSecond, LevelConfig levelConfig, Func<bool> persist)
         {
+            _levelConfig = levelConfig ?? throw new ArgumentNullException(nameof(levelConfig));
+            _levelConfigValid = levelConfig.Validate().Count == 0;
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -91,11 +96,24 @@ namespace BunDauPeo.Restaurant
 
             var coins = PreviewCollect();
             _wallet.Add(CurrencyType.Coin, coins);
+            ConvertCoinsToPotions(coins);
             _save.Afk.PendingTheoretical = 0;
             _save.Afk.AccumulatedSeconds = 0;
             _save.AfkCollected = true;
             // Lưu lỗi thì giữ nguyên bộ nhớ (đã cộng Coin, đã về 0); lần lưu sau thử lại.
             return new AfkCollectResult(coins, _persist());
+        }
+
+        // Coin thu được quy ra thuốc EXP; phần chưa đủ 1 thuốc nằm lại ở AfkPotionRemainderCoin. Config lỗi: bỏ phần thuốc, giữ dư cũ.
+        private void ConvertCoinsToPotions(long coins)
+        {
+            if (!_levelConfigValid) return;
+            var perPotion = (long)_levelConfig.AfkCoinPerPotion;
+            var remainder = Math.Max(_save.AfkPotionRemainderCoin, 0);
+            // Chia trước khi cộng để Coin cực lớn không tràn long.
+            var potions = coins / perPotion + (coins % perPotion + remainder) / perPotion;
+            _save.AfkPotionRemainderCoin = (coins % perPotion + remainder) % perPotion;
+            _wallet.Add(CurrencyType.ExpPotion, potions);
         }
 
         public double TakePendingAbsence()

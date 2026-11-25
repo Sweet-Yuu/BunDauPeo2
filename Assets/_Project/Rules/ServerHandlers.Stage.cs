@@ -18,6 +18,7 @@ namespace BunDauPeo.Rules
         public bool FirstClear;
         public long Gem;
         public long Material;
+        public long ExpPotion;
     }
 
     // Màn, thể lực, reset. Handler nhận state đã là bản sao (CommandRunner); từ chối thì không để lại thay đổi nào trên state.
@@ -69,7 +70,7 @@ namespace BunDauPeo.Rules
             if (first) s.ClearedStages.Add(stage.Id);
             MissionRules.RollDay(s.Missions, ctx.NowUtc);
             s.Missions.DailyWins = Math.Min(s.Missions.DailyWins + 1, MissionRules.CounterCap(data, MissionRules.CounterWins));
-            return HandlerOutcome.Ok(s, new StageRewardPayload { FirstClear = first, Gem = reward.Gem, Material = reward.Material });
+            return HandlerOutcome.Ok(s, new StageRewardPayload { FirstClear = first, Gem = reward.Gem, Material = reward.Material, ExpPotion = reward.ExpPotion });
         }
 
         public static HandlerOutcome CompleteStory(ServerState s, GameData data, string stageId)

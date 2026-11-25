@@ -13,11 +13,18 @@ namespace BunDauPeo.Restaurant
         private readonly Wallet _wallet;
         private readonly Roster _roster;
         private readonly Func<bool> _persist;
+        private readonly LevelConfig _levelConfig;
+        private readonly bool _levelConfigValid;
+        private readonly System.Random _random;
         // double: cộng 0,1f nhiều lần bằng float sẽ lệch khỏi mốc 60 giây.
         private double _autosaveTimer;
 
-        public RestaurantService(RestaurantConfig config, PlayerSave save, Wallet wallet, Roster roster, System.Random random, IClock clock, Func<bool> persist)
+        public RestaurantService(RestaurantConfig config, PlayerSave save, Wallet wallet, Roster roster, System.Random random, IClock clock,
+            LevelConfig levelConfig, Func<bool> persist)
         {
+            _levelConfig = levelConfig ?? throw new ArgumentNullException(nameof(levelConfig));
+            _levelConfigValid = levelConfig.Validate().Count == 0;
+            _random = random;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
@@ -31,7 +38,7 @@ namespace BunDauPeo.Restaurant
             Simulation = new RestaurantSimulation(config, random);
             Quality = new RestaurantQuality(save, config, clock ?? throw new ArgumentNullException(nameof(clock)));
             Incidents = new IncidentDirector(config, random, Simulation, Quality, role => Profile.Workers(role).Count > 0);
-            Afk = new AfkService(save, wallet, config, clock, Quality, () => Estimate.CoinsPerSecond, persist);
+            Afk = new AfkService(save, wallet, config, clock, Quality, () => Estimate.CoinsPerSecond, levelConfig, persist);
             Staffing = new StaffingService(roster, () => Profile);
             // Catalog thiếu là lỗi cấu hình (đã báo ở trên): không có dịch vụ nâng cấp, view phải kiểm null.
             if (config.Upgrades != null) Upgrades = new UpgradeService(save, wallet, config.Upgrades, persist);
@@ -129,6 +136,12 @@ namespace BunDauPeo.Restaurant
             Estimate = IsRunning ? IncomeCalculator.Estimate(_config, Profile) : default;
         }
 
-        private void OnCustomerPaid(int customerId, long coins) => _wallet.Add(CurrencyType.Coin, coins);
+        // Khách trả tiền có xác suất rơi 1 thuốc EXP; dùng nguồn ngẫu nhiên của service để test được.
+        private void OnCustomerPaid(int customerId, long coins)
+        {
+            _wallet.Add(CurrencyType.Coin, coins);
+            if (_levelConfigValid && _random.Next(100) < _levelConfig.RestaurantPotionChancePercent)
+                _wallet.Add(CurrencyType.ExpPotion, 1);
+        }
     }
 }

@@ -26,6 +26,15 @@
 
 ## Đang hiệu lực
 
+### L-048 — Kênh 🔨 sửa code trong checkout chung khi chưa có khoá, lúc checkout đang ở nhánh luồng khác (2026-11-25)  #git #process
+- Triệu chứng: 🔨 O3-e (Online) viết sẵn code vào `D:\Unity\BunDauPeo` trong khi khoá Unity và nhánh checkout (`feature/character-level`) đang của luồng Nhân vật; 3 file lạc suýt lọt vào commit và test của luồng kia.
+- Nguyên nhân gốc: luật khoá chỉ nói "chạy Unity", không nói "sửa file trong checkout chung".
+- Luật từ nay: sửa bất kỳ file nào trong checkout chung cũng cần khoá Unity (luật 1 trong `docs/studio/README.md`). Chưa có khoá thì chỉ đọc; muốn viết trước thì dùng worktree riêng (không chạy Unity ở đó).
+
+### L-047 — `GetOrCreateAsset` không áp init lên asset đã có; đổi builder thì scene phải dựng lại (2026-11-24)  #unity-files #scene-prefab
+- Thêm dòng dữ liệu mới vào `init` của `ProjectSetup` (ví dụ thưởng thuốc cho `st_1_*`) không chạm asset đã tồn tại; test dữ liệu đỏ dù code đúng. Cần bước vá riêng, idempotent, chỉ thêm dòng còn thiếu (xem `EnsureExpPotionRewards`), và test bảng mẫu (`SampleStages_MatchSpecTable`) phải cập nhật cùng lúc.
+- Đổi `*SceneBuilder` rồi chạy test scene mà chưa `RebuildRestaurantScene` thì test đọc file scene cũ và đỏ ("field null"): dựng lại scene trước khi chạy EditMode.
+
 ### L-046 — Overlay tĩnh giữ danh sách `Text` đã bị huỷ; plugin Unity ngoài đòi bản Unity mới hơn (2026-11-24)  #ui #build #process
 - Overlay dựng bằng code, sống qua đổi scene (`AccountBoxes`, `OnlineOverlay`) mà giữ danh sách `Text` trong static: test dọn object thì danh sách còn trỏ vào cái đã huỷ (`MissingReferenceException` ở lần chạy sau, chỉ lộ khi chạy cả bộ). Khi dựng lại hộp (`_root == null` theo Unity) phải xoá danh sách đó.
 - Plugin ngoài (Sign in with Google của Google) ghi "Unity 6.5+" thì build Android trên Unity 6.3 vỡ vì thiếu Kotlin cho `.androidlib` (AGP cũ). Đọc ghi chú bản Unity và gradle template của plugin trước khi nhập; thử xong mà vỡ thì gỡ sạch (manifest, `Assets/Plugins`, `ProjectSettings/AndroidResolverDependencies.xml`) và báo, không vá gradle đoán mò (D-011).

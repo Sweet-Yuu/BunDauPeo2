@@ -128,6 +128,12 @@ namespace BunDauPeo.PlayModeTests
             yield return Click("CloseButton");
             yield return Bisect("Restaurant");
 
+            // Cấp nhân vật: danh sách và panel chi tiết (tab Cấp) đứng yên.
+            yield return Click("NavTabCharacters_PH_320x120");
+            yield return Sample("Characters list idle", 300);
+            yield return Click("CharacterCard0");
+            yield return Sample("Characters detail idle", 300);
+
             var combat = ServiceLocator.Get<CombatService>();
             var stages = combat.Config.Stages.Items;
             var battleIndex = 0;

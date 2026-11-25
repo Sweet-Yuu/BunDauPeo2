@@ -432,6 +432,45 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, rig.PersistCalls);
         }
 
+        private static CombatRig PotionRig()
+        {
+            var b1 = Battle("b1");
+            TestData.Edit(b1, so => CombatTestData.SetRewards(so.FindProperty("_firstClearReward"),
+                new CurrencyAmount(CurrencyType.Material, 30), new CurrencyAmount(CurrencyType.Gem, 150), new CurrencyAmount(CurrencyType.ExpPotion, 10)));
+            return new CombatRig(new[] { CombatTestData.Story("s1"), b1, Battle("b2") });
+        }
+
+        [Test]
+        public void CompleteStage_AddsExpPotionToWallet()
+        {
+            var rig = PotionRig();
+            rig.Clear("s1");
+            rig.Progress.CompleteBattleAsync(CombatTestData.PaidWin(rig.Service, "b1")).Sync();
+            Assert.AreEqual(10, rig.Wallet.Get(CurrencyType.ExpPotion));
+        }
+
+        [Test]
+        public void CompleteStage_ResultListsExpPotionLine()
+        {
+            var rig = PotionRig();
+            rig.Clear("s1");
+            var result = rig.Progress.CompleteBattleAsync(CombatTestData.PaidWin(rig.Service, "b1")).Sync();
+            CollectionAssert.Contains(result.Rewards.ToArray(), new CurrencyAmount(CurrencyType.ExpPotion, 10));
+        }
+
+        [Test]
+        public void CompleteStage_ReplyWithoutExpPotionField_AddsNothing()
+        {
+            var old = JsonUtility.FromJson<StageRewardPayload>("{\"FirstClear\":true,\"Gem\":150,\"Material\":30}");
+            Assert.AreEqual(0, old.ExpPotion);
+
+            var rig = Rig();
+            rig.Clear("s1");
+            var result = rig.Progress.CompleteBattleAsync(CombatTestData.PaidWin(rig.Service, "b1")).Sync();
+            Assert.AreEqual(0, rig.Wallet.Get(CurrencyType.ExpPotion));
+            Assert.That(result.Rewards.Select(r => r.Type), Has.None.EqualTo(CurrencyType.ExpPotion));
+        }
+
         // Review Focus 2: thắng, mất trả lời CompleteStage, bấm Thử lại: Gem vào một lần, Material cộng một lần, màn đã qua.
         [Test]
         public void CompleteBattle_LostReplyThenRetry_MaterialOnce()

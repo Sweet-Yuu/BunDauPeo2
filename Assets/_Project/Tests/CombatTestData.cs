@@ -88,7 +88,8 @@ namespace BunDauPeo.Tests
         // Mọi test tạo CombatService qua đây, để task thể lực và tiến độ đổi chữ ký ở một chỗ.
         public static CombatService Service(CombatConfig config = null, Roster roster = null, Func<bool> persist = null,
             StaminaService stamina = null, StageProgressService progress = null, StarService stars = null,
-            IGameServer server = null, CommandGate gate = null, Func<ServerState, bool> apply = null)
+            IGameServer server = null, CommandGate gate = null, Func<ServerState, bool> apply = null,
+            CharacterLevelService levels = null, PlayerLevelService playerLevel = null, LevelConfig levelConfig = null, StarConfig starConfig = null)
         {
             config ??= Config();
             persist ??= () => true;
@@ -102,7 +103,14 @@ namespace BunDauPeo.Tests
             roster ??= new Roster(new PlayerSave(), TestData.Catalog());
             // Mặc định: catalog rỗng nên không nhân vật nào được cộng sao, chỉ số trận bằng chỉ số SO.
             stars ??= ServerRig.IdleStars(new PlayerSave(), roster, TestData.Catalog(), ScriptableObject.CreateInstance<StarConfig>());
-            return new CombatService(config, roster, stars, stamina, progress, new ScriptedRandom(), persist, server, gate, apply);
+            // Mặc định: save riêng, catalog rỗng nên mọi nhân vật là cấp 1 và chỉ số trận bằng chỉ số SO.
+            levelConfig ??= ScriptableObject.CreateInstance<LevelConfig>();
+            starConfig ??= ScriptableObject.CreateInstance<StarConfig>();
+            var levelSave = new PlayerSave();
+            playerLevel ??= new PlayerLevelService(levelSave, new Wallet(levelSave), levelConfig, () => true);
+            levels ??= new CharacterLevelService(levelSave, roster, new Wallet(levelSave), TestData.Catalog(), levelConfig, playerLevel, () => true);
+            return new CombatService(config, roster, stars, levels, playerLevel, levelConfig, starConfig, stamina, progress,
+                new ScriptedRandom(), persist, server, gate, apply);
         }
 
         // Đánh tới Won bằng đòn thường (quái trong test có 1 HP, nhân vật nhanh hơn).

@@ -15,7 +15,13 @@
 - **Cần user cho đợt 3:** merge PR #22 trước; cho phép deploy `development` (Task 5); cho phép thêm plugin Google Play Games + làm xong Play Console/OAuth (Task 10); xem lại D-008 (thể lực vượt trần); bật tên đăng nhập + mật khẩu trên Dashboard.
 - **Việc sau 31/12 (user xếp 2026-11-21):** tab Thành tựu (dựa khung Nhiệm vụ đợt 3), cùng IAP và quảng cáo. Khoá Unity sau PR #22: O3-a đi trước Thời tiết.
 - **Thứ tự khoá Unity (user chốt 2026-11-21):** O3-a → O3-b → O3-c → Cấp nhân vật #1, #2 → Thời tiết → Cốt truyện → Vẽ lại quán. Luồng Nhân vật cắt nhánh từ code O3 sau O3-c và thêm ExpPotion vào `RewardData`/`StageRewardPayload`/`CompleteStage`: O3 không đổi tên/chữ ký những chỗ đó quá mức cần. `ProtocolVersion` giữ 3 (O3 đặt). Deploy `production` sau cả hai luồng.
-- **Chờ user:** playtest rồi duyệt merge PR #22.
+- **Dời sau (user chốt 2026-11-24):** Google Sign-In (Task 10 đợt 3): plugin siwg cần Unity 6.5+/Kotlin, vỡ build trên 6000.3.15f1. Không vá gradle, không lên 6.5. Chờ Unity 6.5 ổn định hoặc plugin hỗ trợ 6.3; cần trước CH Play công khai, không chặn itch.io 31/12. Code UGS `IGoogleTokenProvider` giữ, không có plugin/EDM4U trong build.
+- **Treo cho 🚀 Phát hành:** APK Development 54,3 MB (+18% so với 2026-11-07, vượt ngưỡng 10%), tách nguyên nhân sau; đo thời gian khung/batches/bộ nhớ.
+- **Lưu ý deploy:** `development` đang chạy module từ `feature/character-level` c58ae1d (= O3 `11ce1e4` + ExpPotion). Deploy lại từ `feature/online-3` sẽ gỡ ExpPotion: báo CEO trước. Production chưa đụng.
+- **Min protocol 3 (luồng Nhân vật, user chốt 2026-11-25, D-016):** `development` chạy `MinProtocolVersion` 3; bản đợt 2 bị từ chối (hộp Cần cập nhật), nên mục "APK đợt 2 vẫn chơi được" của playtest 1 không còn đúng. Mọi APK/Editor phải ≥ đợt 3. `ProtocolVersion` vẫn 3.
+- **Đợt 4 Hộp quà (~28/12; cắt đầu tiên nếu trễ):** spec [online-4](../../superpowers/specs/2026-11-25-online-4-design.md) + kế hoạch 7 task [online-4](../../superpowers/plans/2026-11-25-online-4.md), user duyệt 2026-11-25; nhánh docs `claude/gallant-gagarin-27d560` (từ `fce613b`, 📋 commit). Chốt: Hộp quà = thư trong Hộp thư (không cần `hub-presents-popup.jpg`), quà cho mọi người kể cả tài khoản mới, lệnh `ListGifts` (máy không đọc Custom data), `ClaimedGiftIds` + `PlayerSave.MailDeleted`, không CommandCode mới, `ProtocolVersion` giữ 3. 2 phiên 🔨: O4-a server T1–3 (Opus high), O4-b máy T4–7 (Sonnet high, dừng playtest 3). Cắt: T6 dòng Thông báo → DEV → cả đợt.
+- **Bước kế:** xin CEO khoá Unity sau luồng Nhân vật, rồi mở 🔨 O4-a. Cần user: cho phép deploy `development` (O4-a), tạo Custom data `gifts/list` trên Dashboard, quyết nội dung quà thật cho 31/12.
+- **Còn treo:** Google (dời), ảnh hộp xác nhận O3-e, tắt mạng lúc liên kết / WebGL / APK máy thật chưa thử, deploy `production` (cần user cho phép riêng), APK +18% (🚀 Phát hành).
 
 ## Đã chốt
 
@@ -23,6 +29,7 @@ UGS (Cloud Code .NET 8, assembly `Rules` dùng chung), phải có mạng mới c
 
 ## Nhật ký
 
+- 2026-11-25 — User merge [PR #23](https://github.com/Sweet-Yuu/BunDauPeo2/pull/23) vào `main` (`fce613b`): đợt 3 xong (O3-a..e, review xhigh sửa xong, Major 2 làm hộp xác nhận). Google dời sau (Unity 6.5). Bước kế: đợt 4 Hộp quà (~28/12), mở 🎨 spec.
 - 2026-11-21 — User playtest đạt, PR #22 merge `54dd0be`. Cắt `feature/online-3` từ `main`, merge nhánh spec đợt 3 (chưa commit, 📋 commit). CEO cấp khoá Unity cho O3-a.
 - 2026-11-21 — Designer đợt 3 xong: spec + kế hoạch 12 task user duyệt. Chờ merge PR #22 rồi xin khoá Unity mở 🔨 O3-a.
 - 2026-11-18 — O2-b/c/d xong, review xhigh sửa xong (`724ffc6`). Mở PR #22. Module đã lên `development`.

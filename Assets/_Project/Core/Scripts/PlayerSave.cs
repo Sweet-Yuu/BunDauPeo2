@@ -50,5 +50,11 @@ namespace BunDauPeo.Core
         public bool AfkCollected = false;
         // Id thư đã đọc (Hộp thư, Task 11).
         public List<string> MailRead = new();
+        // Tổng EXP người chơi; cấp suy ra từ đây. Save cũ thiếu field = 0 = cấp 1.
+        public long PlayerExp = 0;
+        // Cấp đã lưu của từng nhân vật (cấp hiệu lực bị chặn bởi cấp người chơi); id lạ bị dọn khi không còn sở hữu.
+        public List<CharacterLevelEntry> CharacterLevels = new();
+        // Coin AFK chưa đủ đổi 1 thuốc EXP, chuyển sang lần thu sau.
+        public long AfkPotionRemainderCoin = 0;
     }
 }

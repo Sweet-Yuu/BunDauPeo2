@@ -45,7 +45,7 @@ namespace BunDauPeo.Tests
             var fixture = new Fixture { Save = save, Wallet = new Wallet(save), Roster = roster, Clock = new FakeClock() };
             fixture.Persist = persist ?? (() => { fixture.Persists++; return true; });
             fixture.Service = new RestaurantService(config ?? RestaurantTestData.Config(), save, fixture.Wallet, roster,
-                random ?? new ScriptedRandom(0.99, 0.0, 0.0, 0.0), fixture.Clock, fixture.Persist);
+                random ?? new ScriptedRandom(0.99, 0.0, 0.0, 0.0), fixture.Clock, ScriptableObject.CreateInstance<LevelConfig>(), fixture.Persist);
             return fixture;
         }
 

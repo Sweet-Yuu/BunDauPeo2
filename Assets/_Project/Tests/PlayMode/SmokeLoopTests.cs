@@ -189,6 +189,7 @@ namespace BunDauPeo.PlayModeTests
 
             _step = "C3 bấm thẻ đầu và nút nâng";
             yield return ClickWhenReady("CharacterCard0");
+            yield return ClickWhenReady("StarTabBtn_PH_320x90");
             Assert.IsTrue(StarUpButton().interactable, Where("đủ mảnh mà nút nâng bị tắt"));
             yield return ClickWhenReady("StarUpButton");
             Assert.AreEqual(startStars + 1, stars.GetStars(starter), Where("sao sau khi nâng"));
@@ -209,7 +210,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(0, roster.GetFragments(starter), Where("mảnh sau Reset"));
             yield return null;
             StringAssert.DoesNotContain(new string('★', startStars + 1), info.text, Where("thẻ vẫn hiện sao cũ sau Reset"));
-            Assert.AreEqual("", GameObject.Find("StarUpStatus").GetComponent<Text>().text, Where("dòng trạng thái còn chữ cũ sau Reset"));
+            Assert.AreEqual("", Object.FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None).Single(t => t.name == "StarUpStatus").text, Where("dòng trạng thái còn chữ cũ sau Reset"));
         }
 
         private static Button StarUpButton() => GameObject.Find("StarUpButton").GetComponent<Button>();
@@ -227,6 +228,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(0, roster.GetFragments(starter), Where("nhân vật đầu phải chưa có mảnh"));
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
+            yield return ClickWhenReady("StarTabBtn_PH_320x90");
             Assert.IsFalse(StarUpButton().interactable, Where("không có mảnh mà nút nâng bấm được"));
 
             _step = "M2 nâng từng bậc";
@@ -261,6 +263,7 @@ namespace BunDauPeo.PlayModeTests
             ServerFragments(session, starter, stars.GetNextCost(starter));
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
+            yield return ClickWhenReady("StarTabBtn_PH_320x90");
 
             _step = "P2 khoá file save rồi nâng";
             Assert.IsTrue(session.Persist(), Where("ghi save tạm"));

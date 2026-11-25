@@ -116,6 +116,21 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void PruneUnowned_RemovesCharacterLevelsOfUnownedIds()
+        {
+            var save = new PlayerSave();
+            save.OwnedCharacterIds.Add("a");
+            save.CharacterLevels.Add(new CharacterLevelEntry { CharacterId = "a", Level = 4 });
+            save.CharacterLevels.Add(new CharacterLevelEntry { CharacterId = "x", Level = 9 });
+
+            Assert.IsTrue(ServerStateApplier.PruneUnowned(save));
+
+            Assert.AreEqual(1, save.CharacterLevels.Count);
+            Assert.AreEqual(("a", 4), (save.CharacterLevels[0].CharacterId, save.CharacterLevels[0].Level));
+            Assert.IsFalse(ServerStateApplier.PruneUnowned(save));
+        }
+
+        [Test]
         public void Apply_CopiesMissions()
         {
             var state = Sample();

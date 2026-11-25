@@ -26,7 +26,7 @@ namespace BunDauPeo.Tests
             var save = new PlayerSave();
             var catalog = TestData.Catalog(RestaurantTestData.Worker("cook0", 0, 0, 0));
             _service = new RestaurantService(RestaurantTestData.Config(null, RestaurantTestData.Incident(StaffRole.Cook)), save, new Wallet(save),
-                new Roster(save, catalog), new ScriptedRandom(0.0), new FakeClock(), () => true);
+                new Roster(save, catalog), new ScriptedRandom(0.0), new FakeClock(), ScriptableObject.CreateInstance<LevelConfig>(), () => true);
             ServiceLocator.Register(_service);
 
             _root = new GameObject("HubNavTest");

@@ -60,6 +60,25 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(500, live.Wallet.Get(CurrencyType.Coin));
         }
 
+        [Test]
+        public void Reset_ClearsPlayerExpCharacterLevelsPotionAndAfkRemainder()
+        {
+            var a = TestData.Character("a");
+            var config = TestData.Config(new[] { new CurrencyAmount(CurrencyType.Coin, 500) }, a);
+            var live = new GameSession(_service, TestData.Catalog(a), config);
+            live.Save.PlayerExp = 77;
+            live.Save.CharacterLevels.Add(new CharacterLevelEntry { CharacterId = "a", Level = 5 });
+            live.Save.AfkPotionRemainderCoin = 123;
+            live.Wallet.Add(CurrencyType.ExpPotion, 9);
+
+            Assert.IsTrue(ResetSaveData.Run(() => true, _service, live));
+
+            Assert.AreEqual(0, live.Save.PlayerExp);
+            Assert.AreEqual(0, live.Save.CharacterLevels.Count);
+            Assert.AreEqual(0, live.Save.AfkPotionRemainderCoin);
+            Assert.AreEqual(0, live.Wallet.Get(CurrencyType.ExpPotion));
+        }
+
         // Review O1 mục 1: chế độ UGS mà chưa có session (chưa Play, hay còn ở Tiêu đề) không với tới save trên server; chỉ xoá bản đệm
         // thì Play lại tiến độ về như cũ (D-005). Từ chối, báo cần vào game, không hỏi và không xoá gì.
         [Test]

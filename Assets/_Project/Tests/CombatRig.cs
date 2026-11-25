@@ -69,7 +69,12 @@ namespace BunDauPeo.Tests
             Stamina = new StaminaService(Save, Config, () => Now);
             Progress = new StageProgressService(Save, Wallet, Config.Stages, Stamina, Server, Gate, Apply);
             Stars = ServerRig.IdleStars(Save, Roster, catalog, ScriptableObject.CreateInstance<StarConfig>());
-            Service = CombatTestData.Service(Config, Roster, Persist, Stamina, Progress, Stars, Server, Gate, Apply);
+            LevelConfig = ScriptableObject.CreateInstance<LevelConfig>();
+            StarConfig = ScriptableObject.CreateInstance<StarConfig>();
+            PlayerLevel = new PlayerLevelService(Save, Wallet, LevelConfig, Persist);
+            Levels = new CharacterLevelService(Save, Roster, Wallet, catalog, LevelConfig, PlayerLevel, Persist);
+            Service = CombatTestData.Service(Config, Roster, Persist, Stamina, Progress, Stars, Server, Gate, Apply,
+                Levels, PlayerLevel, LevelConfig, StarConfig);
         }
 
         public LocalGameServer Server { get; }
@@ -115,6 +120,7 @@ namespace BunDauPeo.Tests
         {
             Gem = lines.Where(l => l.Type == CurrencyType.Gem).Sum(l => l.Amount),
             Material = lines.Where(l => l.Type == CurrencyType.Material).Sum(l => l.Amount),
+            ExpPotion = lines.Where(l => l.Type == CurrencyType.ExpPotion).Sum(l => l.Amount),
         };
 
         public DateTime Now { get; set; }
@@ -125,6 +131,10 @@ namespace BunDauPeo.Tests
         public StaminaService Stamina { get; }
         public StageProgressService Progress { get; }
         public StarService Stars { get; }
+        public LevelConfig LevelConfig { get; }
+        public StarConfig StarConfig { get; }
+        public PlayerLevelService PlayerLevel { get; }
+        public CharacterLevelService Levels { get; }
         public CombatService Service { get; }
         public bool PersistResult { get; set; } = true;
         // Persist ném lỗi (đĩa hỏng giữa chừng); đếm lần gọi trước khi ném.

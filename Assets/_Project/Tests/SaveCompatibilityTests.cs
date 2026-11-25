@@ -15,6 +15,17 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0, (int)CurrencyType.Coin);
             Assert.AreEqual(1, (int)CurrencyType.Gem);
             Assert.AreEqual(2, (int)CurrencyType.Material);
+            Assert.AreEqual(3, (int)CurrencyType.ExpPotion);
+        }
+
+        [Test]
+        public void OldSave_WithoutLevelFields_LoadsAsLevel1()
+        {
+            var loaded = JsonUtility.FromJson<PlayerSave>("{\"Version\":1,\"OwnedCharacterIds\":[\"a\"]}");
+            Assert.AreEqual(0, loaded.PlayerExp);
+            Assert.IsNotNull(loaded.CharacterLevels);
+            Assert.AreEqual(0, loaded.CharacterLevels.Count);
+            Assert.AreEqual(0, loaded.AfkPotionRemainderCoin);
         }
 
         [Test]

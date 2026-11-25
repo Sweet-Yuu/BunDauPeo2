@@ -424,6 +424,85 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void EnterStage_Success_AddsExpEqualToStaminaCost()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+
+            rig.Service.EnterStageAsync("b1").Sync();
+
+            Assert.AreEqual((1, 10L), (rig.PlayerLevel.Level, rig.PlayerLevel.Exp));
+            Assert.AreEqual(10, rig.Save.PlayerExp);
+            Assert.AreEqual(1, rig.PersistCalls, "the EXP is saved by the same persist as the entry");
+        }
+
+        [Test]
+        public void EnterStage_Rejected_AddsNoExp()
+        {
+            var lowStamina = new CombatRig(new[] { Battle1Hp("b1") });
+            lowStamina.SetStamina(9);
+            Assert.AreEqual(EnterStageStatus.NotEnoughStamina, lowStamina.Service.EnterStageAsync("b1").Sync().Status);
+            Assert.AreEqual(0, lowStamina.Save.PlayerExp, "not enough stamina");
+
+            var locked = EnterRig();
+            Assert.AreEqual(EnterStageStatus.Locked, locked.Service.EnterStageAsync("b2").Sync().Status);
+            Assert.AreEqual(0, locked.Save.PlayerExp, "locked stage");
+
+            var noTeam = new CombatRig(new[] { Battle1Hp("b1") }, new CharacterDefinition[0]);
+            Assert.AreEqual(EnterStageStatus.EmptyTeam, noTeam.Service.EnterStageAsync("b1").Sync().Status);
+            Assert.AreEqual(0, noTeam.Save.PlayerExp, "empty team");
+        }
+
+        [Test]
+        public void EnterStage_Offline_AddsNoExp()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            rig.Server.FailNext(OnlineStatus.NetworkError);
+
+            Assert.AreEqual(EnterStageStatus.Offline, rig.Service.EnterStageAsync("b1").Sync().Status);
+
+            Assert.AreEqual(0, rig.Save.PlayerExp);
+        }
+
+        [Test]
+        public void EnterStage_LostReplyRetrySameRequest_AddsExpOnce()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+            rig.Gate.Lost += retry => retry();
+            rig.Server.LoseNextReply();
+
+            Assert.AreEqual(EnterStageStatus.Entered, rig.Service.EnterStageAsync("b1").Sync().Status);
+
+            Assert.AreEqual(10, rig.Save.PlayerExp, "10 stamina = 10 EXP once, not twice");
+        }
+
+        [Test]
+        public void StartBattle_Dev_AddsNoExp()
+        {
+            var rig = new CombatRig(new[] { Battle1Hp("b1") });
+
+            Assert.AreEqual(StartBattleStatus.Success, rig.Service.StartBattle("b1").Status);
+
+            Assert.AreEqual(0, rig.Save.PlayerExp);
+        }
+
+        [Test]
+        public void BattleAllyStats_IncludeStarAndLevel()
+        {
+            var rig = EnterRig();
+            rig.StarUp("a", 1);
+            // Người chơi Lv5 (tổng EXP lên tới cấp 5) và nhân vật a đã lưu Lv5.
+            long exp = 0;
+            for (var l = 1; l < 5; l++) exp += rig.LevelConfig.ExpToNext(l);
+            rig.Save.PlayerExp = exp;
+            rig.Save.CharacterLevels.Add(new CharacterLevelEntry { CharacterId = "a", Level = 5 });
+
+            var ally = rig.Service.EnterStageAsync("b1").Sync().Session.Allies[0];
+
+            // Hero mặc định HP 1000, Atk 100: +10% sao +8% cấp = 118%.
+            Assert.AreEqual((1180, 118), (ally.MaxHp, ally.Attack));
+        }
+
+        [Test]
         public void EnterStage_StarredCharacter_HasScaledStats()
         {
             var rig = EnterRig();

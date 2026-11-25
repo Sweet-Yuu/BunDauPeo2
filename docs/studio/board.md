@@ -13,7 +13,7 @@ _Cập nhật 2026-11-21 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **🧭 Nhân vật #1** (cấp 2026-11-24, sau khi Online đợt 3 xong code `11ce1e4` trên `feature/online-3`, Editor đóng). Điều kiện: checkout chung sạch các file cài đặt lạc (URP asset, ProjectSettings, `Assets/Resources.meta`) trước khi 🔨 #1 cắt nhánh từ `feature/online-3`. Hàng chờ: Cấp nhân vật #2 → Thời tiết → Cốt truyện → Vẽ lại quán. Online còn: Major 2 chờ user, mở PR đợt 3 (không cần khoá trừ khi phải sửa code).
+Đang giữ: **không ai** (2026-11-25; Editor của user đang mở). PR #23 Online đợt 3 merge `fce613b`. Cấp nhân vật code + sửa review + Min protocol 3 xong (`85e36b2`), `development` đã deploy lại; chờ user playtest rồi PR vào main. Hàng chờ (user chốt 2026-11-25): sau PR Cấp nhân vật merge → Online đợt 4 Hộp quà (O4-a, O4-b; spec `cc02734` trên `claude/gallant-gagarin-27d560`) → Thời tiết → Cốt truyện → Vẽ lại quán.
 
 ## Luồng
 

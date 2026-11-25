@@ -291,7 +291,7 @@ public class ServerModuleTests
                  })
             Assert.That(names, Does.Contain(expected));
         Assert.That(ServerProtocol.Version, Is.EqualTo(3));
-        Assert.That(ServerProtocol.MinProtocolVersion, Is.EqualTo(2), "the phase-2 client keeps working");
+        Assert.That(ServerProtocol.MinProtocolVersion, Is.EqualTo(3), "the phase-2 client is refused so it cannot overwrite level data");
     }
 
     [Test]
@@ -338,6 +338,16 @@ public class ServerModuleTests
         Assert.That(GameDataSource.Data.Missions.First().Id, Is.EqualTo("daily_win_5"));
         Assert.That(GameDataSource.Data.Stamina.RewardCap, Is.EqualTo(999));
         Assert.That(GameDataSource.Data.Banners.Any(b => b.FreePullDaily), Is.True);
+    }
+
+    [Test]
+    public void ReadsGameDataWithoutExpPotionField_DefaultsToZero()
+    {
+        var data = JsonConvert.DeserializeObject<GameData>(
+            "{\"Stages\":[{\"Id\":\"s1\",\"FirstClear\":{\"Gem\":150,\"Material\":30},\"Repeat\":{\"Gem\":5}}]}")!;
+        Assert.That(data.Stages[0].FirstClear.Material, Is.EqualTo(30));
+        Assert.That(data.Stages[0].FirstClear.ExpPotion, Is.EqualTo(0));
+        Assert.That(data.Stages[0].Repeat.ExpPotion, Is.EqualTo(0));
     }
 }
 

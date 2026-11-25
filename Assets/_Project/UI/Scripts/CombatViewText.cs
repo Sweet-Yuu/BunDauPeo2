@@ -86,11 +86,12 @@ namespace BunDauPeo.UI
         {
             CurrencyType.Coin => new Color(0.95f, 0.80f, 0.25f),
             CurrencyType.Material => new Color(0.65f, 0.45f, 0.28f),
+            CurrencyType.ExpPotion => new Color(0.55f, 0.85f, 0.45f),
             _ => new Color(0.35f, 0.65f, 0.95f),
         };
 
         public static string CurrencyCell(CurrencyAmount line) =>
-            $"{line.Amount.ToString(CultureInfo.InvariantCulture)} {line.Type}";
+            $"{line.Amount.ToString(CultureInfo.InvariantCulture)} {(line.Type == CurrencyType.ExpPotion ? UiText.Get("level.potion") : line.Type.ToString())}";
 
         public static string NodeLabel(StageDefinition stage) => stage.Kind == StageKind.Story ? UiText.Get("combat.node_story") : stage.DisplayName;
 
@@ -143,6 +144,10 @@ namespace BunDauPeo.UI
         public static string FailHint() => UiText.Get("combat.fail_hint");
 
         public static string FailStamina(int cost) => UiText.Format("combat.fail_stamina", cost);
+        public static string ExpGained(int exp) => UiText.Format("level.exp_gained", exp);
+
+        // Thể lực đã dùng cũng là EXP người chơi nhận (1 thể lực = 1 EXP).
+        public static string WithExp(string staminaLine, int cost) => $"{staminaLine}   {ExpGained(cost)}";
 
         public static string EndBanner(BattleState state) => state switch
         {

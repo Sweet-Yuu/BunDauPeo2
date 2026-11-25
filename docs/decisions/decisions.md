@@ -15,6 +15,12 @@
 
 ## Danh sách
 
+### D-016 — Cấp nhân vật, EXP người chơi và thuốc EXP lưu phía máy cho bản 31/12; chuyển lên server là việc bắt buộc sau 31/12 (2026-11-21)
+- Bối cảnh: user chốt 2026-11-21 đưa cấp nhân vật vào bản 31/12. Spec: [character-level-design](../superpowers/specs/2026-11-21-character-level-design.md), kế hoạch: [character-level](../superpowers/plans/2026-11-21-character-level.md).
+- Quyết định: `PlayerExp`, `CharacterLevels`, thuốc EXP (dòng ví `ExpPotion`) và `AfkPotionRemainderCoin` nằm trong `PlayerSave` qua `PlayerLevelService`/`CharacterLevelService`; trần cấp nhân vật = cấp người chơi, EXP người chơi = thể lực đã trừ khi vào trận. Server chỉ thêm trường `ExpPotion` vào thưởng màn (như Material); không nâng `ProtocolVersion` (giữ 3), nhưng **nâng `MinProtocolVersion` từ 2 lên 3 (user chốt 2026-11-25)**: bản đợt 2 tải save Cloud, `JsonUtility` bỏ các trường cấp rồi đẩy lại sẽ làm mất cấp/EXP đã mua, nên bị chặn bằng hộp "Cần cập nhật". Sau 31/12 **phải** chuyển cấp, EXP và thuốc lên server trước khi có xếp hạng, đấu người chơi hay gói bán liên quan cấp.
+- Lý do / đánh đổi: nhanh cho hạn 31/12 và không đổi lệnh server; đổi lại save sửa tay là lên cấp không tốn gì (chấp nhận vì Coin và quán vốn đã vậy) và có hai nguồn sự thật (server giữ nhân vật, máy giữ cấp), xử lý bằng dọn cấp mồ côi và cấp hiệu lực bị chặn bởi cấp người chơi. Số cân bằng chỉ là khởi điểm, tính lại cuối tháng 12.
+- Trạng thái: Accepted (user duyệt spec 2026-11-21)
+
 ### D-015 — Phát hành CH Play bằng AAB ký khoá upload, target API 36, khoá ngoài repo (2026-11-16)
 - Bối cảnh: user chốt 2026-11-16 itch.io 31/12, thử kín CH Play khoảng 12–13/12, công khai đầu T1/2027. Spec: [release-prep-design](../superpowers/specs/2026-11-16-release-prep-design.md), kế hoạch: [release-prep](../superpowers/plans/2026-11-16-release-prep.md).
 - Quyết định: bản phát hành là AAB (`AndroidBuild.BuildRelease`, `BuildKind.ReleaseAab`), `targetSdk 36`, không Development, kèm symbols, `versionCode` tăng 1 mỗi lần upload (hằng `AndroidBuild.VersionCode`). Ký bằng 4 biến môi trường `BDP_KEYSTORE_PATH`, `BDP_KEYSTORE_PASS`, `BDP_KEY_ALIAS`, `BDP_KEY_PASS` (`AndroidSigning`): gán trong bộ nhớ lúc build rồi trả lại, không ghi vào `ProjectSettings`, log hay repo; keystore phải nằm ngoài thư mục project. Play App Signing bật, khoá của mình chỉ là khoá upload. APK debug của D-011 giữ nguyên (`BuildKind.DebugApk`). Deploy `production` và tạo khoá thật là việc của user ([checklist](../release/production-deploy.md)).

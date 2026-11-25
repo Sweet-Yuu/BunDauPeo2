@@ -239,6 +239,34 @@ namespace BunDauPeo.Tests
         public void BootScene_HasStarConfig() => Assert.IsNotNull(ReadBootField("_starConfig"));
 
         [Test]
+        public void CreatesLevelConfigAsset()
+        {
+            var config = AssetDatabase.LoadAssetAtPath<LevelConfig>(ProjectSetup.LevelConfigPath);
+            Assert.IsNotNull(config);
+            CollectionAssert.IsEmpty(config.Validate());
+        }
+
+        [Test]
+        public void BootScene_LevelConfigIsAssigned() => Assert.IsNotNull(ReadBootField("_levelConfig"));
+
+        [Test]
+        public void BattleStages_HaveExpPotionRewards()
+        {
+            var stages = AssetDatabase.FindAssets("t:StageDefinition", new[] { "Assets/_Project/Combat/Data/Stages" })
+                .Select(g => AssetDatabase.LoadAssetAtPath<StageDefinition>(AssetDatabase.GUIDToAssetPath(g))).ToArray();
+            var battles = stages.Where(s => s.Kind == StageKind.Battle).ToArray();
+            Assert.AreEqual(5, battles.Length);
+            foreach (var s in battles)
+            {
+                Assert.AreEqual(10, s.FirstClearReward.Single(r => r.Type == CurrencyType.ExpPotion).Amount, s.Id);
+                Assert.AreEqual(3, s.RepeatReward.Single(r => r.Type == CurrencyType.ExpPotion).Amount, s.Id);
+            }
+
+            foreach (var s in stages.Where(s => s.Kind == StageKind.Story))
+                Assert.IsFalse(s.FirstClearReward.Any(r => r.Type == CurrencyType.ExpPotion), s.Id);
+        }
+
+        [Test]
         public void WireBootScene_FillsMissingBannerCatalog()
         {
             try
@@ -527,16 +555,17 @@ namespace BunDauPeo.Tests
             const string F = "Ruồi Bàn", R = "Chuột Bếp", G = "Gián Kho", K = "Chuột Chúa";
             CurrencyAmount M(long n) => new CurrencyAmount(CurrencyType.Material, n);
             CurrencyAmount Gem(long n) => new CurrencyAmount(CurrencyType.Gem, n);
+            CurrencyAmount P(long n) => new CurrencyAmount(CurrencyType.ExpPotion, n);
             // Viết thẳng theo spec Combat 3.5, theo đúng thứ tự nút.
             var expected = new (string Id, StageKind Kind, string[][] Waves, int Cost, CurrencyAmount[] First, CurrencyAmount[] Repeat)[]
             {
                 ("st_1_story1", StageKind.Story, new string[0][], 0, new CurrencyAmount[0], new CurrencyAmount[0]),
-                ("st_1_1", StageKind.Battle, new[] { new[] { F, F } }, 10, new[] { M(30), Gem(150) }, new[] { M(30), Gem(30) }),
-                ("st_1_2", StageKind.Battle, new[] { new[] { F, F }, new[] { F, F, F } }, 10, new[] { M(40), Gem(150) }, new[] { M(40), Gem(30) }),
+                ("st_1_1", StageKind.Battle, new[] { new[] { F, F } }, 10, new[] { M(30), Gem(150), P(10) }, new[] { M(30), Gem(30), P(3) }),
+                ("st_1_2", StageKind.Battle, new[] { new[] { F, F }, new[] { F, F, F } }, 10, new[] { M(40), Gem(150), P(10) }, new[] { M(40), Gem(30), P(3) }),
                 ("st_1_story2", StageKind.Story, new string[0][], 0, new CurrencyAmount[0], new CurrencyAmount[0]),
-                ("st_1_3", StageKind.Battle, new[] { new[] { F, R }, new[] { R, R }, new[] { F, R, R } }, 10, new[] { M(50), Gem(200) }, new[] { M(50), Gem(40) }),
-                ("st_1_4", StageKind.Battle, new[] { new[] { R, R }, new[] { G, R }, new[] { G, G, R } }, 10, new[] { M(60), Gem(200) }, new[] { M(60), Gem(40) }),
-                ("st_1_5", StageKind.Battle, new[] { new[] { R, G }, new[] { G, G, R }, new[] { K } }, 10, new[] { M(100), Gem(500) }, new[] { M(100), Gem(100) }),
+                ("st_1_3", StageKind.Battle, new[] { new[] { F, R }, new[] { R, R }, new[] { F, R, R } }, 10, new[] { M(50), Gem(200), P(10) }, new[] { M(50), Gem(40), P(3) }),
+                ("st_1_4", StageKind.Battle, new[] { new[] { R, R }, new[] { G, R }, new[] { G, G, R } }, 10, new[] { M(60), Gem(200), P(10) }, new[] { M(60), Gem(40), P(3) }),
+                ("st_1_5", StageKind.Battle, new[] { new[] { R, G }, new[] { G, G, R }, new[] { K } }, 10, new[] { M(100), Gem(500), P(10) }, new[] { M(100), Gem(100), P(3) }),
             };
 
             var items = SampleCombatConfig().Stages.Items;

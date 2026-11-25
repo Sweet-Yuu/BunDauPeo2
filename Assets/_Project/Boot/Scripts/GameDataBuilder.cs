@@ -82,7 +82,7 @@ namespace BunDauPeo.Boot
             return data;
         }
 
-        // Server chỉ biết Gem và Material: Coin chỉ đến từ quán, giá gacha chỉ tính Gem.
+        // Server chỉ biết Gem, Material, ExpPotion: Coin chỉ đến từ quán, giá gacha chỉ tính Gem.
         public static List<string> Validate(CharacterCatalog characters, GachaBannerCatalog banners, StarConfig stars,
             CombatConfig combat, NewGameConfig newGame, MissionCatalog missions = null)
         {
@@ -137,7 +137,12 @@ namespace BunDauPeo.Boot
         }
 
         private static RewardData Reward(IReadOnlyList<CurrencyAmount> lines) =>
-            new() { Gem = Sum(lines, CurrencyType.Gem), Material = Sum(lines, CurrencyType.Material) };
+            new()
+            {
+                Gem = Sum(lines, CurrencyType.Gem),
+                Material = Sum(lines, CurrencyType.Material),
+                ExpPotion = Sum(lines, CurrencyType.ExpPotion),
+            };
 
         private static void CheckCost(List<string> errors, string label, IReadOnlyList<CurrencyAmount> lines)
         {
@@ -148,8 +153,11 @@ namespace BunDauPeo.Boot
         private static void CheckReward(List<string> errors, string label, IReadOnlyList<CurrencyAmount> lines)
         {
             foreach (var line in lines)
-                if (line.Type != CurrencyType.Gem && line.Type != CurrencyType.Material)
-                    errors.Add($"{label} must be Gem/Material only, found {line.Type}");
+            {
+                if (line.Type != CurrencyType.Gem && line.Type != CurrencyType.Material && line.Type != CurrencyType.ExpPotion)
+                    errors.Add($"{label} must be Gem/Material/ExpPotion only, found {line.Type}");
+                if (line.Amount < 0) errors.Add($"{label} has a negative {line.Type} amount ({line.Amount})");
+            }
         }
     }
 }

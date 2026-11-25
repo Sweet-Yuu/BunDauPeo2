@@ -40,6 +40,7 @@ namespace BunDauPeo.EditorTools
         public const string MissionCatalogPath = "Assets/_Project/Missions/Data/MissionCatalog.asset";
         private const string MissionsFolder = "Assets/_Project/Missions/Data/Missions";
         public const string StarConfigPath = "Assets/_Project/Characters/Data/StarConfig.asset";
+        public const string LevelConfigPath = "Assets/_Project/Characters/Data/LevelConfig.asset";
 
         private const string CharacterData = "Assets/_Project/Characters/Data";
         private const string SkillsFolder = CharacterData + "/Skills";
@@ -169,6 +170,7 @@ namespace BunDauPeo.EditorTools
 
             // Số khởi điểm nằm ở field initializer của StarConfig; asset đã có thì giữ số bạn đã chỉnh.
             GetOrCreateAsset<StarConfig>(StarConfigPath, null);
+            GetOrCreateAsset<LevelConfig>(LevelConfigPath, null);
 
             CreateRestaurantData();
             CreateCombatData();
@@ -258,6 +260,13 @@ namespace BunDauPeo.EditorTools
                     if (stars.objectReferenceValue == null)
                     {
                         stars.objectReferenceValue = AssetDatabase.LoadAssetAtPath<StarConfig>(StarConfigPath);
+                        changed = true;
+                    }
+
+                    var levels = so.FindProperty("_levelConfig");
+                    if (levels.objectReferenceValue == null)
+                    {
+                        levels.objectReferenceValue = AssetDatabase.LoadAssetAtPath<LevelConfig>(LevelConfigPath);
                         changed = true;
                     }
 
@@ -395,6 +404,8 @@ namespace BunDauPeo.EditorTools
                     SetRewards(so.FindProperty("_repeatReward"), row.RepeatMaterial, row.RepeatGem);
                 }))).ToArray();
 
+            EnsureExpPotionRewards(stages);
+
             var catalog = GetOrCreateAsset<StageCatalog>(StageCatalogPath, asset =>
                 Apply(asset, so => SetObjects(so.FindProperty("_items"), stages)));
 
@@ -530,6 +541,35 @@ namespace BunDauPeo.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
+        }
+
+        // Khởi điểm cấp nhân vật: thắng lần đầu 10 thuốc, đánh lại 3. Asset đã có chỉ thêm dòng còn thiếu, giữ số user đã chỉnh.
+        public const long FirstClearExpPotion = 10;
+        public const long RepeatExpPotion = 3;
+
+        private static void EnsureExpPotionRewards(StageDefinition[] stages)
+        {
+            foreach (var stage in stages)
+            {
+                var so = new SerializedObject(stage);
+                if (so.FindProperty("_kind").enumValueIndex != (int)StageKind.Battle) continue;
+                var changed = AddPotionLine(so.FindProperty("_firstClearReward"), FirstClearExpPotion);
+                changed |= AddPotionLine(so.FindProperty("_repeatReward"), RepeatExpPotion);
+                if (!changed) continue;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(stage);
+            }
+
+            AssetDatabase.SaveAssets();
+        }
+
+        private static bool AddPotionLine(SerializedProperty array, long amount)
+        {
+            for (var i = 0; i < array.arraySize; i++)
+                if (array.GetArrayElementAtIndex(i).FindPropertyRelative("Type").enumValueIndex == (int)CurrencyType.ExpPotion) return false;
+            array.arraySize++;
+            SetCost(array.GetArrayElementAtIndex(array.arraySize - 1), CurrencyType.ExpPotion, amount);
+            return true;
         }
 
         private static void SetRewards(SerializedProperty array, long material, long gem)
