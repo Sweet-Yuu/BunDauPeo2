@@ -27,7 +27,7 @@ namespace BunDauPeo.Rules
 
         // Máy gửi Version; server từ chối bản dưới MinProtocolVersion (hàng rào bản cũ, spec con 3.3).
         public const int Version = 3;
-        public const int MinProtocolVersion = 2;
+        public const int MinProtocolVersion = 3;
 
         // Message của ClientTooOldException bắt đầu bằng chuỗi này để máy nhận ra qua lỗi Cloud Code.
         public const string ClientTooOldTag = "ClientTooOld";

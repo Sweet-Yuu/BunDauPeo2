@@ -40,7 +40,7 @@ Tiêu chí xong (người chơi thấy được):
 7. **Thuốc từ màn** *khởi điểm* thắng lần đầu **10**, đánh lại **3**; thuốc từ quán mỗi khách trả tiền **3%** rơi 1. Tính lại khi cân bằng.
 8. **Cấp hiệu lực** của một nhân vật = `min(cấp đã lưu, cấp người chơi, cấp tối đa)`, nên chỉ số không bao giờ vượt trần dù save bị sửa hay cấp người chơi tụt khi reset. UI hiện **cấp hiệu lực**; cấp đã lưu **không bị ghi đè** (không clamp rồi lưu). Reset Save Data xoá cả `PlayerExp` lẫn `CharacterLevels`, nên trường hợp cấp lưu cao hơn cấp người chơi chỉ xảy ra khi save bị sửa tay.
 11. **Cộng thưởng lên cấp cho từng cấp đạt được:** lên 3 cấp trong một lần `AddExp` thì nhận thưởng 3 lần (mỗi cấp mới một phần).
-9. **`MinProtocolVersion` giữ 2, `ProtocolVersion` do Online O3 đặt (3), đợt này không nâng thêm (Leader, 2026-11-21).** Bản cũ vẫn chơi được, chỉ không nhận thuốc (`JsonUtility` bỏ qua trường lạ). Người thử bản cũ không bị ép cập nhật.
+9. **`MinProtocolVersion` nâng lên 3 (user chốt 2026-11-25), `ProtocolVersion` do Online O3 đặt (3), đợt này không nâng Version.** Bản đợt 2 (Min 2) tải save Cloud rồi `JsonUtility` bỏ `PlayerExp`, `CharacterLevels`, `AfkPotionRemainderCoin` và đẩy lại sẽ làm mất cấp/EXP đã mua, nên bị chặn bằng hộp "Cần cập nhật" (`ClientTooOld`). Đổi so với bản duyệt 2026-11-21 ("giữ 2, bản cũ chơi được").
 10. **Không thêm màn mới.** Cấp người chơi hiện ở thanh trên; nâng cấp nhân vật nằm trong panel màn Nhân vật. Thuốc hiện trong panel đó, **không** thêm vào thanh tài nguyên (đợt B UI hub đã chốt thanh này).
 
 ## 4. Phương án đã cân
@@ -100,7 +100,7 @@ public long AfkPotionRemainderCoin = 0;                 // phần Coin AFK lẻ 
 - `StageRewardPayload` (`Rules/ServerHandlers.Stage.cs`) thêm `long ExpPotion`; `CompleteStage` trả đúng `reward.ExpPotion` (không đổi `ServerState`, vì thuốc là số dư của máy).
 - `StageDefinition` (SO của máy): các dòng thưởng `CurrencyAmount` được phép có `ExpPotion` (hiện `CheckRewardLines` chặn loại tiền lạ và Coin); `GameDataBuilder.Reward(...)` map thêm. Thưởng màn vẫn **không** được có Coin; màn cốt truyện vẫn không có thưởng.
 - Máy cộng thuốc vào `Wallet` ở `StageProgressService.CompleteStageAsync`, ngay cạnh dòng cộng Material, và thêm dòng thuốc vào danh sách `rewards` để popup kết quả hiện.
-- `ServerProtocol.Version` do Online O3 đặt (3), không nâng thêm; `MinProtocolVersion` giữ 2.
+- `ServerProtocol.Version` do Online O3 đặt (3), không nâng thêm; `MinProtocolVersion` nâng lên **3** (user chốt 2026-11-25, xem mục 3.9).
 
 ## 6. Phía máy
 

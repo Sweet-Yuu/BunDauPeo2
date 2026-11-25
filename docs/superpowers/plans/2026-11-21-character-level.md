@@ -19,7 +19,7 @@
 - Công thức chỉ số (mục 3.1): `HP/Attack/Defense = (gốc × (100 + StatPercentPerStar × lầnNângSao + StatPercentPerLevel × (cấp − 1)) + 50) / 100`, số nguyên `long`, Speed giữ gốc. Config lỗi trả chỉ số gốc.
 - *Khởi điểm* (user chốt tính lại cuối tháng 12): `MaxPlayerLevel` 20; EXP lên cấp L→L+1 = `100 + 20 × L`; `StatPercentPerLevel` 2; giá nâng lên cấp đích T = `2 × T` thuốc + `100 × T` Coin; thưởng lên cấp người chơi `200 × cấp mới` Coin và `5` thuốc; thuốc từ màn: thắng lần đầu 10, đánh lại 3; quán `3`% mỗi khách trả tiền; `AfkCoinPerPotion` 500.
 - Cấp hiệu lực của nhân vật = `min(cấp đã lưu, cấp người chơi, MaxPlayerLevel)`, tối thiểu 1; không ghi đè cấp đã lưu.
-- Server: `ServerProtocol.Version` do Online O3 đặt (3), đợt này **không nâng thêm**; `MinProtocolVersion` giữ **2**. Thưởng màn vẫn không có Coin; màn cốt truyện không có thưởng. Server không biết cấp, EXP hay Coin.
+- Server: `ServerProtocol.Version` do Online O3 đặt (3), đợt này **không nâng thêm**; `MinProtocolVersion` nâng lên **3** (user chốt 2026-11-25, chặn bản đợt 2 ghi đè save mất cấp/EXP). Thưởng màn vẫn không có Coin; màn cốt truyện không có thưởng. Server không biết cấp, EXP hay Coin.
 - Service ghi theo mẫu `StarService`: mọi bước từ chối đứng trước bước đổi; `persist()` đúng một lần; `persist` trả `false` thì `Saved = false` và giữ nguyên bộ nhớ.
 - Không thêm nút DEV cộng thuốc hay EXP. Hình tạm chỉ dùng hình có sẵn của Unity; object chưa có hình đặt tên `<Tên>_PH_<rộng>x<cao>`.
 - Test đếm theo kế hoạch: **86 EditMode mới + 1 test .NET (`ServerModule`) + 3 PlayMode mới**; toàn bộ test cũ vẫn xanh.
@@ -94,7 +94,7 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
 
 **Interfaces:**
 - Consumes: `CurrencyType.ExpPotion` (Task 1).
-- Produces: `RewardData.ExpPotion` (`long`), `StageRewardPayload.ExpPotion` (`long`); `StageCompleteResult.Rewards` có thêm dòng `CurrencyAmount(ExpPotion, n)` khi `n > 0`; `ServerProtocol.Version` không đổi (O3 đặt 3), `MinProtocolVersion == 2`.
+- Produces: `RewardData.ExpPotion` (`long`), `StageRewardPayload.ExpPotion` (`long`); `StageCompleteResult.Rewards` có thêm dòng `CurrencyAmount(ExpPotion, n)` khi `n > 0`; `ServerProtocol.Version` không đổi (O3 đặt 3), `MinProtocolVersion == 3` (nâng 2026-11-25).
 
 - [x] **Step 1: Viết test (đỏ)**
   - `HandlerStageTests`: `CompleteStage_FirstClear_ReturnsExpPotion`, `CompleteStage_Repeat_ReturnsExpPotion`, `CompleteStage_Lost_ReturnsNoPotion` (dữ liệu màn có `FirstClear{Gem:150,Material:30,ExpPotion:10}`, `Repeat{…ExpPotion:3}`; `ServerState` không đổi ngoài Gem và `ClearedStages`).
@@ -109,7 +109,7 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
   - `GameDataBuilder.Reward` thêm `ExpPotion = Sum(lines, CurrencyType.ExpPotion)`; `CheckReward` cho phép `ExpPotion` (comment "Server chỉ biết Gem, Material, ExpPotion" cập nhật).
   - `StageDefinition.CheckRewardLines` vẫn chặn Coin, không chặn `ExpPotion`.
   - `StageProgressService.CompleteStageAsync` cộng `payload.ExpPotion` vào `_wallet` cạnh dòng Material, trước `_apply`, và thêm dòng vào `rewards`.
-  - `ServerProtocol.Version` không đổi (O3 đã đặt 3), `MinProtocolVersion` giữ 2.
+  - `ServerProtocol.Version` không đổi (O3 đã đặt 3), `MinProtocolVersion` nâng lên 3 (2026-11-25).
 - [x] **Step 4: Chạy lại, xác nhận xanh** (12 EditMode + 1 .NET).
 
 ---

@@ -291,7 +291,7 @@ public class ServerModuleTests
                  })
             Assert.That(names, Does.Contain(expected));
         Assert.That(ServerProtocol.Version, Is.EqualTo(3));
-        Assert.That(ServerProtocol.MinProtocolVersion, Is.EqualTo(2), "the phase-2 client keeps working");
+        Assert.That(ServerProtocol.MinProtocolVersion, Is.EqualTo(3), "the phase-2 client is refused so it cannot overwrite level data");
     }
 
     [Test]
