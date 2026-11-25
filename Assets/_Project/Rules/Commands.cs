@@ -8,6 +8,7 @@ namespace BunDauPeo.Rules
     {
         Ok, Invalid, NotEnoughGem, Locked, WrongKind, EmptyTeam, NotOwned, NotEnoughStamina,
         NotEnoughFragments, MaxStars, AlreadyCleared, TicketMismatch, OtherDevice, NoState, DevOnly,
+        NotReady, AlreadyClaimed, NotInWindow, NothingToClaim, FreePullUsed,
     }
 
     [Serializable]

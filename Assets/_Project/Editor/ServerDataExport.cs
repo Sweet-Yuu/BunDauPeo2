@@ -5,6 +5,7 @@ using BunDauPeo.Boot;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Gacha;
+using BunDauPeo.Missions;
 using BunDauPeo.Rules;
 using UnityEditor;
 using UnityEngine;
@@ -26,8 +27,9 @@ namespace BunDauPeo.EditorTools
             var stars = Load<StarConfig>(ProjectSetup.StarConfigPath);
             var combat = Load<CombatConfig>(ProjectSetup.CombatConfigPath);
             var newGame = Load<NewGameConfig>(ProjectSetup.NewGameConfigPath);
-            errors = GameDataBuilder.Validate(characters, banners, stars, combat, newGame);
-            return GameDataBuilder.Build(characters, banners, stars, combat, newGame);
+            var missions = Load<MissionCatalog>(ProjectSetup.MissionCatalogPath);
+            errors = GameDataBuilder.Validate(characters, banners, stars, combat, newGame, missions);
+            return GameDataBuilder.Build(characters, banners, stars, combat, newGame, missions);
         }
 
         [MenuItem("Tools/BunDauPeo/Export Server Data")]

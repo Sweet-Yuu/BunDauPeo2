@@ -16,6 +16,8 @@ namespace BunDauPeo.UI
         [SerializeField] private Button _tapArea;
         [SerializeField] private Text _tapHint;
         [SerializeField] private Text _versionText;
+        // Nút Đăng nhập bằng tài khoản (Online đợt 3, spec 8.3); không bắt buộc để scene dựng trước đợt 3 vẫn chạy.
+        [SerializeField] private Button _accountButton;
 
         private bool _ready;
         // Chạm thêm khi đang kết nối, hay chạm lần hai cùng khung, không được dựng session hay nạp Restaurant lần nữa: sẽ có hai HubNav.
@@ -34,11 +36,13 @@ namespace BunDauPeo.UI
             _tapHint.text = UiText.Get("title.tap_to_start");
             _versionText.text = UiText.Format("title.version", Application.version);
             _tapArea.onClick.AddListener(Enter);
+            if (_accountButton != null) _accountButton.onClick.AddListener(OpenSignIn);
         }
 
         private void OnDisable()
         {
             if (_tapArea != null) _tapArea.onClick.RemoveListener(Enter);
+            if (_accountButton != null) _accountButton.onClick.RemoveListener(OpenSignIn);
         }
 
         private void Update()
@@ -49,6 +53,23 @@ namespace BunDauPeo.UI
             // Đang kết nối thì chữ đứng yên, không nhấp nháy.
             color.a = _connecting || _entering ? 1f : TitlePulse.Alpha(Time.unscaledTime);
             _tapHint.color = color;
+            // Ẩn lúc "Đang kết nối…" và khi đã vào game: không đổi người chơi giữa chừng một lượt kết nối.
+            if (_accountButton != null) _accountButton.gameObject.SetActive(!_connecting && !_entering);
+        }
+
+        // Đăng nhập xong (session cũ đã bỏ) thì vào game như chạm; chạm lúc đó an toàn vì Enter tự chặn chạm lặp.
+        private void OpenSignIn()
+        {
+            if (_connecting || _entering) return;
+            try
+            {
+                AccountBoxes.ShowSignIn(AccountBoxes.NewFlow(Enter));
+            }
+            catch (InvalidOperationException e)
+            {
+                // Mở Tiêu đề không qua Boot: không có dịch vụ tài khoản.
+                Debug.LogError($"{nameof(TitleView)}: {e.Message}", this);
+            }
         }
 
         public void Enter()

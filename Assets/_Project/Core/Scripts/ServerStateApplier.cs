@@ -19,6 +19,7 @@ namespace BunDauPeo.Core
             save.GachaHistory = new List<GachaHistoryEntry>(state.Clone().GachaHistory);
             save.Stamina = new StaminaState { Current = state.Stamina.Current, AnchorUtcTicks = state.Stamina.AnchorUtcTicks };
             save.ClearedStages = new List<string>(state.ClearedStages);
+            save.Missions = (state.Missions ?? new MissionState()).Clone();
         }
 
         // Ngược lại của Apply, cho LocalGameServer.Seed: bản đệm đầy đủ thành state (Revision 0, chưa có phiên).
@@ -37,6 +38,7 @@ namespace BunDauPeo.Core
                 GachaHistory = new List<GachaHistoryEntry>(save.GachaHistory.ConvertAll(HistoryToTicks)),
                 Stamina = new StaminaState { Current = save.Stamina.Current, AnchorUtcTicks = save.Stamina.AnchorUtcTicks },
                 ClearedStages = new List<string>(save.ClearedStages),
+                Missions = (save.Missions ?? new MissionState()).Clone(),
             };
             return state.Clone();
         }
@@ -62,6 +64,7 @@ namespace BunDauPeo.Core
             copy.GachaHistory = new List<GachaHistoryEntry>();
             copy.Stamina = new StaminaState();
             copy.ClearedStages = new List<string>();
+            copy.Missions = new MissionState();
             return JsonUtility.ToJson(copy);
         }
 

@@ -61,11 +61,24 @@ namespace BunDauPeo.EditorTools
             tapButton.targetGraphic = tapImage;
             tapButton.transition = Selectable.Transition.None;
 
+            // Nằm sau TapArea trong hệ thống phân cấp = vẽ và nhận chạm trước TapArea (Online đợt 3, spec 8.3).
+            var accountRect = NewRect("TitleAccountBtn_PH_480x90", canvas);
+            Place(accountRect, TopCenter, Center, new Vector2(0, -960), new Vector2(480, 90));
+            var accountImage = AddImage(accountRect, sprite, new Color(0.22f, 0.55f, 0.32f), raycast: true);
+            var accountButton = accountRect.gameObject.AddComponent<Button>();
+            accountButton.targetGraphic = accountImage;
+            var accountLabel = NewLabel("Label", accountRect, font, "account.signin_btn", 36, TextAnchor.MiddleCenter, Color.white);
+            Stretch(accountLabel.rectTransform);
+            accountLabel.resizeTextForBestFit = true;
+            accountLabel.resizeTextMinSize = 20;
+            accountLabel.resizeTextMaxSize = 36;
+
             var view = canvas.gameObject.AddComponent<TitleView>();
             var so = new SerializedObject(view);
             so.FindProperty("_tapArea").objectReferenceValue = tapButton;
             so.FindProperty("_tapHint").objectReferenceValue = hint;
             so.FindProperty("_versionText").objectReferenceValue = version;
+            so.FindProperty("_accountButton").objectReferenceValue = accountButton;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.SaveScene(scene, scenePath);

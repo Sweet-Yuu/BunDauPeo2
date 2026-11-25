@@ -379,7 +379,18 @@ namespace BunDauPeo.EditorTools
             Place(copied.rectTransform, TopLeft, TopLeft, new Vector2(255, -672), new Vector2(185, 36));
             copied.gameObject.SetActive(false);
             var status = NewText("ProfileStatus", box, font, "", 28, TextAnchor.UpperLeft, Warning);
-            Place(status.rectTransform, TopLeft, TopLeft, new Vector2(40, -735), new Vector2(400, 60));
+            // Cột trái hết chỗ khi thêm dòng Tài khoản (đợt 3, spec 8.3): dòng báo lỗi lưu chuyển sang phải, dưới lưới avatar.
+            Place(status.rectTransform, TopLeft, TopLeft, new Vector2(780, -700), new Vector2(380, 80));
+            var accountText = NewText("ProfileAccountText", box, font, "", 24, TextAnchor.MiddleLeft, Color.white);
+            Place(accountText.rectTransform, TopLeft, TopLeft, new Vector2(40, -735), new Vector2(230, 55));
+            accountText.resizeTextForBestFit = true;
+            accountText.resizeTextMinSize = 14;
+            accountText.resizeTextMaxSize = 24;
+            var accountButton = BattleSceneBuilder.LabelButton("ProfileAccountBtn_PH_160x55", box, sprite, font, "account.link_btn", GreyButton, TopLeft, new Vector2(275, -735), new Vector2(160, 55));
+            var accountLabel = accountButton.GetComponentInChildren<Text>();
+            accountLabel.resizeTextForBestFit = true;
+            accountLabel.resizeTextMinSize = 12;
+            accountLabel.resizeTextMaxSize = 24;
 
             var label = NewLabel("AvatarLabel", box, font, "profile.change_avatar", 38, TextAnchor.MiddleLeft, Gold);
             Place(label.rectTransform, TopLeft, TopLeft, new Vector2(520, -120), new Vector2(600, 60));
@@ -403,6 +414,7 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
+            ConfigureScroll(scroll);
             scroll.viewport = viewport;
             scroll.content = content;
 
@@ -435,6 +447,8 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_idText").objectReferenceValue = idText;
             so.FindProperty("_copyButton").objectReferenceValue = copy;
             so.FindProperty("_copiedText").objectReferenceValue = copied.gameObject;
+            so.FindProperty("_accountText").objectReferenceValue = accountText;
+            so.FindProperty("_accountButton").objectReferenceValue = accountButton;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             root.gameObject.SetActive(false);

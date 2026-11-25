@@ -1381,6 +1381,56 @@ namespace BunDauPeo.PlayModeTests
 
             yield return ShootProfile(suffix);
             yield return ShootNotify(suffix);
+            yield return ShootOnline3(suffix);
+        }
+
+        // Ảnh đợt 3 (online3-): Nhiệm vụ (Ngày, Tân thủ có dòng Nhận/Đã nhận/khoá), hộp thể lực, Hộp thư, ba hộp tài khoản, Hồ sơ có dòng Tài khoản.
+        private IEnumerator ShootOnline3(string suffix)
+        {
+            _step = "S Nhiệm vụ" + suffix;
+            yield return ClickWhenReady("HubRoundBtnMissions_PH_110x110");
+            yield return Shot("missions-daily", suffix, "online3");
+            var tabs = UiDriver.FindButtons("MissionTab_PH_300x80").OrderBy(b => b.transform.GetSiblingIndex()).ToList();
+            Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click(tabs[1]).Status, Where("tab Tân thủ"));
+            yield return null;
+            // Đặt tên ở ShootProfile nên new_name nhận được: nhận một dòng để ảnh có cả Nhận (dòng khác), Đã nhận và Đi tới.
+            var rows = Object.FindObjectsByType<MissionRowView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var claim = rows.FirstOrDefault(r => r.State == MissionButtonState.Claim);
+            if (claim != null)
+            {
+                Assert.AreEqual(ClickStatus.Clicked, UiDriver.Click(claim.Button).Status, Where("nhận một dòng"));
+                yield return new WaitForSecondsRealtime(0.8f);
+            }
+
+            yield return Shot("missions-newbie", suffix, "online3");
+            var confirm = FindAny("StaminaCapConfirm").GetComponent<StaminaCapConfirm>();
+            _ = confirm.AskAsync(950, 49, 999, 51);
+            yield return Shot("stamina-cap", suffix, "online3");
+            confirm.Cancel();
+            yield return ClickWhenReady("CloseButton");
+
+            _step = "S Hộp thư" + suffix;
+            yield return ClickWhenReady("HubRoundBtnMail_PH_110x110");
+            yield return Shot("mail", suffix, "online3");
+            yield return ClickWhenReady("CloseButton");
+
+            _step = "S Hộp tài khoản" + suffix;
+            yield return ClickWhenReady("Avatar_PH_140x140");
+            yield return Shot("profile-account", suffix, "online3");
+            yield return ClickWhenReady("ProfileAccountBtn_PH_160x55");
+            yield return Shot("account-choose", suffix, "online3");
+            yield return ClickWhenReady("AccountUserPassBtn_PH_700x90");
+            GameObject.Find("CredentialUser_PH_700x80").GetComponent<InputField>().text = "ab";
+            yield return ClickWhenReady("CredentialActionBtn_PH_380x90");
+            yield return Shot("account-credential", suffix, "online3");
+            yield return ClickWhenReady("CredentialCancelBtn_PH_300x90");
+            // Hộp chuyển tài khoản chỉ hiện khi Google báo Conflict (Editor không có Google): mở thẳng để chụp bố cục.
+            AccountBoxes.ShowLink(AccountBoxes.NewFlow(() => { }));
+            var conflict = typeof(AccountBoxes).GetField("_conflict", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            typeof(AccountBoxes).GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new[] { conflict });
+            yield return Shot("account-conflict", suffix, "online3");
+            AccountBoxes.Hide();
+            yield return ClickWhenReady("CloseButton");
         }
 
         // Ảnh đợt C: Hồ sơ có tên và avatar, rồi Lobby với avatar đã đổi. Chạy trên save tạm.
@@ -2270,6 +2320,33 @@ namespace BunDauPeo.PlayModeTests
             }
             sha.TransformFinalBlock(new byte[0], 0, 0);
             return BitConverter.ToString(sha.Hash);
+        }
+
+        // Quay miễn phí (spec đợt 3 8.4): nút ×1 đổi thành Quay miễn phí, quay không tốn Gem, rồi nút ×1 lại có giá.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Gacha_FreePullButton_ThenBackToPaid()
+        {
+            _step = "G1 Gacha: nút Quay miễn phí";
+            yield return BootToLobby();
+            var wallet = ServiceLocator.Get<Wallet>();
+            yield return ClickWhenReady("NavTabGacha_PH_320x120");
+            var single = UiDriver.FindButtons("SingleButton").Single();
+            Assert.AreEqual(UiText.Get("gacha.free_pull"), single.GetComponentInChildren<Text>().text, Where("còn lượt hôm nay: nút ×1 là Quay miễn phí"));
+            Assert.IsTrue(GameObject.Find("FreeLeftText_PH_300x50") != null, Where("nhãn Còn 1 lượt miễn phí phải hiện"));
+            var gem = wallet.Get(CurrencyType.Gem);
+
+            _step = "G2 bấm Quay miễn phí";
+            yield return ClickWhenReady("SingleButton");
+            yield return null;
+            Assert.AreEqual(gem, wallet.Get(CurrencyType.Gem), Where("quay miễn phí không tốn Gem"));
+            typeof(GachaView).GetMethod("Dismiss", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Object.FindFirstObjectByType<GachaView>(), null);
+            yield return null;
+
+            _step = "G3 nút ×1 trở lại có giá";
+            single = UiDriver.FindButtons("SingleButton").Single();
+            StringAssert.Contains("Gem", single.GetComponentInChildren<Text>().text, Where("hết lượt: nút ×1 có giá Gem"));
+            Assert.AreNotEqual(UiText.Get("gacha.free_pull"), single.GetComponentInChildren<Text>().text);
+            Assert.IsNull(GameObject.Find("FreeLeftText_PH_300x50"), Where("hết lượt: nhãn tắt"));
         }
     }
 }

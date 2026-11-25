@@ -2,6 +2,7 @@ using System.IO;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
+using BunDauPeo.Missions;
 using BunDauPeo.Gacha;
 using BunDauPeo.Restaurant;
 using UnityEngine;
@@ -17,6 +18,7 @@ namespace BunDauPeo.Boot
         [SerializeField] private RestaurantConfig _restaurantConfig;
         [SerializeField] private CombatConfig _combatConfig;
         [SerializeField] private StarConfig _starConfig;
+        [SerializeField] private MissionCatalog _missionCatalog;
         [SerializeField] private string _startScene;
 
         // Chỉ bản khởi động thành công mới là "active"; nạp lại scene Boot sẽ sinh bản thứ hai và hai session cùng ghi đè save của nhau.
@@ -32,6 +34,9 @@ namespace BunDauPeo.Boot
 
         // Test đặt server giả ở đây và tự trả về null như SavePathOverride; null = Boot tự chọn server.
         public static System.Func<IGameServer> ServerFactory { get; set; }
+
+        // Test đặt tài khoản giả ở đây và tự trả về null; null = UGS cho server UGS, còn lại LocalAccountService.
+        public static System.Func<IAccountService> AccountFactory { get; set; }
 
         // Menu Tools/BunDauPeo/Online Mode ghi vào đây (EditorPrefs); bản build bỏ qua.
         public static bool UseUgsInEditor { get; set; }
@@ -81,6 +86,12 @@ namespace BunDauPeo.Boot
                 return;
             }
 
+            if (_missionCatalog == null)
+            {
+                Debug.LogError($"{nameof(GameBootstrap)}: field {nameof(_missionCatalog)} is not assigned.", this);
+                return;
+            }
+
             if (_active != null && _active != this)
             {
                 Destroy(gameObject);
@@ -93,7 +104,7 @@ namespace BunDauPeo.Boot
             GameLanguage.Current = GameLanguage.Resolve(cached?.Language ?? "");
 
             // Dữ liệu cân bằng dựng một lần từ các SO: server Local dùng để chạy luật, máy so mã băm với server thật.
-            var gameData = GameDataBuilder.Build(_catalog, _bannerCatalog, _starConfig, _combatConfig, _newGameConfig);
+            var gameData = GameDataBuilder.Build(_catalog, _bannerCatalog, _starConfig, _combatConfig, _newGameConfig, _missionCatalog);
 
             var server = ServerFactory != null
                 ? ServerFactory()
@@ -107,8 +118,11 @@ namespace BunDauPeo.Boot
             }
 
             (server as LocalGameServer)?.UseDataIfEmpty(gameData);
+            IAccountService account = AccountFactory?.Invoke();
+            // Google dời sang sau (plugin cần Unity 6.5+): chưa có nguồn ID token nên không có nút Google.
+            if (account == null && server is Online.UgsGameServer ugs) account = new Online.UgsAccountService(ugs.Environment);
             _startup = new OnlineStartup(server, new ServerTime(), SavePath, _catalog, _newGameConfig, _bannerCatalog,
-                _restaurantConfig, _combatConfig, _starConfig, gameData, gameObject);
+                _restaurantConfig, _combatConfig, _starConfig, gameData, gameObject, account);
             _startup.RegisterBase();
 
             _active = this;

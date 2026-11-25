@@ -3,6 +3,7 @@ using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
+using BunDauPeo.Missions;
 using BunDauPeo.Rules;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ namespace BunDauPeo.Boot
     public static class GameDataBuilder
     {
         public static GameData Build(CharacterCatalog characters, GachaBannerCatalog banners, StarConfig stars,
-            CombatConfig combat, NewGameConfig newGame)
+            CombatConfig combat, NewGameConfig newGame, MissionCatalog missions = null)
         {
             var data = new GameData { MaxStars = StarConfig.MaxStars, MaxTeamSize = Roster.MaxBattleTeamSize };
 
@@ -34,6 +35,7 @@ namespace BunDauPeo.Boot
                     DupFragmentsR = b.DuplicateFragments.R,
                     DupFragmentsSR = b.DuplicateFragments.SR,
                     DupFragmentsSSR = b.DuplicateFragments.SSR,
+                    FreePullDaily = b.FreePullDaily,
                 };
                 foreach (var c in b.Characters) banner.CharacterIds.Add(c.Id);
                 data.Banners.Add(banner);
@@ -42,7 +44,7 @@ namespace BunDauPeo.Boot
             // Phần tử i là giá để lên (i + 2) sao.
             for (var target = 2; target <= StarConfig.MaxStars; target++) data.StarCosts.Add(stars.CostToReach(target));
 
-            data.Stamina = new StaminaData { Max = combat.MaxStamina, RegenSeconds = combat.StaminaRegenSeconds };
+            data.Stamina = new StaminaData { Max = combat.MaxStamina, RegenSeconds = combat.StaminaRegenSeconds, RewardCap = combat.RewardStaminaCap };
 
             foreach (var s in combat.Stages.Items)
             {
@@ -56,6 +58,25 @@ namespace BunDauPeo.Boot
                 });
             }
 
+            if (missions != null)
+            {
+                foreach (var m in missions.Items)
+                {
+                    data.Missions.Add(new MissionData
+                    {
+                        Id = m.Id,
+                        Tab = (int)m.Tab,
+                        Counter = (int)m.Counter,
+                        Target = m.Target,
+                        Locked = m.Locked,
+                        RewardGem = m.RewardGem,
+                        RewardStamina = m.RewardStamina,
+                        WindowStartHour = m.WindowStartHour,
+                        WindowEndHour = m.WindowEndHour,
+                    });
+                }
+            }
+
             data.NewGame.StartingGem = Sum(newGame.StartingCurrency, CurrencyType.Gem);
             foreach (var c in newGame.StarterCharacters) data.NewGame.StarterCharacterIds.Add(c.Id);
             return data;
@@ -63,7 +84,7 @@ namespace BunDauPeo.Boot
 
         // Server chỉ biết Gem và Material: Coin chỉ đến từ quán, giá gacha chỉ tính Gem.
         public static List<string> Validate(CharacterCatalog characters, GachaBannerCatalog banners, StarConfig stars,
-            CombatConfig combat, NewGameConfig newGame)
+            CombatConfig combat, NewGameConfig newGame, MissionCatalog missions = null)
         {
             var errors = new List<string>();
 
@@ -77,6 +98,22 @@ namespace BunDauPeo.Boot
             {
                 CheckReward(errors, $"Stage {s.Id}: FirstClearReward", s.FirstClearReward);
                 CheckReward(errors, $"Stage {s.Id}: RepeatReward", s.RepeatReward);
+            }
+
+            if (combat.RewardStaminaCap < combat.MaxStamina)
+                errors.Add($"Combat: RewardStaminaCap {combat.RewardStaminaCap} must be >= MaxStamina {combat.MaxStamina}");
+
+            if (missions != null)
+            {
+                var seen = new HashSet<string>();
+                foreach (var m in missions.Items)
+                {
+                    if (m == null) { errors.Add("Missions: a catalog entry is missing"); continue; }
+                    foreach (var e in m.Validate()) errors.Add($"Mission {m.Id}: {e}");
+                    if (!seen.Add(m.Id)) errors.Add($"Mission {m.Id}: duplicate id");
+                    if (m.RewardStamina > 0 && combat.RewardStaminaCap <= 0)
+                        errors.Add($"Mission {m.Id}: gives stamina but RewardStaminaCap is {combat.RewardStaminaCap}");
+                }
             }
 
             if (newGame.StartingCurrency == null) errors.Add("NewGame: StartingCurrency is unreadable");

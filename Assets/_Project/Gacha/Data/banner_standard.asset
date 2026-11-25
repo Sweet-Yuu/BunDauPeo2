@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BunDauPeo.Gacha::BunDauPeo.Gacha.GachaBannerDefinition
   _id: banner_standard
   _displayName: "Banner Th\u01B0\u1EDDng"
+  _displayNameEn: Standard Banner
   _singleCost:
   - Type: 1
     Amount: 100
@@ -26,6 +27,7 @@ MonoBehaviour:
     SSR: 5
   _ssrPityThreshold: 50
   _guaranteeSrInTen: 1
+  _freePullDaily: 1
   _duplicateFragments:
     R: 1
     SR: 1

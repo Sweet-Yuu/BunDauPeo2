@@ -38,10 +38,16 @@ namespace BunDauPeo.Online
                 ? AuthenticationService.Instance.PlayerId ?? ""
                 : "";
 
-        public Task<OnlineStatus> SignInAsync() => Run("sign in", async () =>
+        // Dùng chung với UgsAccountService: Tiêu đề đăng nhập bằng tài khoản trước khi có phiên ẩn danh nào.
+        public static async Task EnsureInitializedAsync(string environment)
         {
             if (UnityServices.State != ServicesInitializationState.Initialized)
-                await UnityServices.InitializeAsync(new InitializationOptions().SetEnvironmentName(Environment));
+                await UnityServices.InitializeAsync(new InitializationOptions().SetEnvironmentName(environment));
+        }
+
+        public Task<OnlineStatus> SignInAsync() => Run("sign in", async () =>
+        {
+            await EnsureInitializedAsync(Environment);
             // SDK tự dùng token phiên đã cất trong PlayerPrefs (spec 5.4), nên cùng máy là cùng người chơi.
             if (!AuthenticationService.Instance.IsSignedIn) await AuthenticationService.Instance.SignInAnonymouslyAsync();
             Debug.Log($"{Log} signed in as {PlayerId} ({Environment})");
@@ -139,6 +145,21 @@ namespace BunDauPeo.Online
 
         public Task<OnlineResult<CommandResponse>> DevRefillStaminaAsync(string requestId) =>
             Command(ServerProtocol.DevRefillStamina, requestId);
+
+        public Task<OnlineResult<CommandResponse>> ClaimMissionAsync(string requestId, string missionId, IReadOnlyList<string> clientDone) =>
+            Command(ServerProtocol.ClaimMission, requestId, ("missionId", missionId), ("clientDone", new List<string>(clientDone ?? new List<string>())));
+
+        public Task<OnlineResult<CommandResponse>> ClaimAllMissionsAsync(string requestId, int tab, IReadOnlyList<string> clientDone) =>
+            Command(ServerProtocol.ClaimAllMissions, requestId, ("tab", tab), ("clientDone", new List<string>(clientDone ?? new List<string>())));
+
+        public Task<OnlineResult<CommandResponse>> GachaFreePullAsync(string requestId, string bannerId) =>
+            Command(ServerProtocol.GachaFreePull, requestId, ("bannerId", bannerId));
+
+        public Task<OnlineResult<CommandResponse>> DevResetMissionsAsync(string requestId) =>
+            Command(ServerProtocol.DevResetMissions, requestId);
+
+        public Task<OnlineResult<CommandResponse>> DevAddStaminaAsync(string requestId, int amount) =>
+            Command(ServerProtocol.DevAddStamina, requestId, ("amount", amount));
 
         private Task<OnlineResult<CommandResponse>> Command(string name, string requestId, params (string key, object value)[] args) =>
             Run(name, async () =>

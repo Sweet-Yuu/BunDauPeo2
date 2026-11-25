@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using BunDauPeo.Core;
 using BunDauPeo.Rules;
@@ -217,6 +218,156 @@ namespace BunDauPeo.Tests
             Assert.IsTrue((await pending).Ok);
             Assert.AreEqual(1505, server.State.Gem);
             Assert.AreEqual(server.State.ActiveSessionId, (await server.LoadActiveSessionIdAsync()).Value);
+        }
+    
+
+        // Dữ liệu có hai việc tân thủ do máy báo, một việc ngày thắng 1 trận (không đạt được trong test), và banner quay miễn phí.
+        private static async Task<LocalGameServer> BootedWithMissionsAsync()
+        {
+            var data = GachaRulesTests.Data();
+            data.Banners[0].FreePullDaily = true;
+            data.Missions.Add(new MissionData { Id = "new_link", Tab = 1, Counter = MissionRules.CounterClientFlag, Target = 1, RewardGem = 100 });
+            data.Missions.Add(new MissionData { Id = "new_name", Tab = 1, Counter = MissionRules.CounterClientFlag, Target = 1, RewardGem = 50 });
+            var server = new LocalGameServer(data);
+            await server.SignInAsync();
+            await server.BootstrapAsync();
+            return server;
+        }
+
+        private static readonly string[] Both = { "new_link", "new_name" };
+
+        [Test]
+        public async Task ClaimMission_Ok_AppliesGem()
+        {
+            var server = await BootedWithMissionsAsync();
+
+            var r = await server.ClaimMissionAsync("r1", "new_link", new List<string> { "new_link" });
+
+            Assert.IsTrue(r.Ok);
+            Assert.AreEqual((int)CommandCode.Ok, r.Value.Code);
+            Assert.AreEqual(1600, server.State.Gem);
+            Assert.AreEqual(1600, r.Value.State.Gem);
+            Assert.AreEqual(100, JsonUtility.FromJson<MissionClaimPayload>(r.Value.ResultJson).Gem);
+
+            var again = await server.ClaimMissionAsync("r2", "new_link", new List<string> { "new_link" });
+            Assert.AreEqual((int)CommandCode.AlreadyClaimed, again.Value.Code);
+            Assert.AreEqual(1600, server.State.Gem);
+        }
+
+        [Test]
+        public async Task Local_LostReply_ClaimMission_RetrySameRequest_AppliesOnce()
+        {
+            var server = await BootedWithMissionsAsync();
+            server.LoseNextReply();
+
+            var lost = await server.ClaimMissionAsync("r1", "new_link", Both);
+            Assert.AreEqual(OnlineStatus.NetworkError, lost.Status);
+            Assert.AreEqual(1600, server.State.Gem, "the server already paid");
+            var written = server.State.LastResultJson;
+
+            var retry = await server.ClaimMissionAsync("r1", "new_link", Both);
+
+            Assert.IsTrue(retry.Ok);
+            Assert.AreEqual((int)CommandCode.Ok, retry.Value.Code, "not AlreadyClaimed: the stored result is returned");
+            Assert.AreEqual(written, retry.Value.ResultJson);
+            Assert.AreEqual(1600, server.State.Gem, "paid once");
+        }
+
+        [Test]
+        public async Task Local_LostReply_ClaimAllMissions_RetrySameRequest_AppliesOnce()
+        {
+            var server = await BootedWithMissionsAsync();
+            server.LoseNextReply();
+
+            Assert.AreEqual(OnlineStatus.NetworkError, (await server.ClaimAllMissionsAsync("r1", 1, Both)).Status);
+            Assert.AreEqual(1650, server.State.Gem);
+            var written = server.State.LastResultJson;
+
+            var retry = await server.ClaimAllMissionsAsync("r1", 1, Both);
+
+            Assert.AreEqual((int)CommandCode.Ok, retry.Value.Code);
+            Assert.AreEqual(written, retry.Value.ResultJson);
+            Assert.AreEqual(150, JsonUtility.FromJson<MissionClaimPayload>(retry.Value.ResultJson).Gem);
+            Assert.AreEqual(1650, server.State.Gem);
+            Assert.AreEqual(2, server.State.Missions.NewbieClaimed.Count);
+        }
+
+        [Test]
+        public async Task Local_LostReply_GachaFreePull_RetrySameRequest_AppliesOnce()
+        {
+            var server = await BootedWithMissionsAsync();
+            server.LoseNextReply();
+
+            Assert.AreEqual(OnlineStatus.NetworkError, (await server.GachaFreePullAsync("r1", "b")).Status);
+            var written = server.State.LastResultJson;
+            var history = server.State.GachaHistory.Count;
+            Assert.AreEqual(1, history);
+
+            var retry = await server.GachaFreePullAsync("r1", "b");
+
+            Assert.AreEqual((int)CommandCode.Ok, retry.Value.Code, "not FreePullUsed");
+            Assert.AreEqual(written, retry.Value.ResultJson, "the result the server wrote, not a new roll");
+            Assert.AreEqual(1, server.State.GachaHistory.Count);
+            Assert.AreEqual(1500, server.State.Gem);
+            Assert.AreEqual(1, server.State.Missions.DailyPulls);
+        }
+
+        [Test]
+        public async Task ClaimMission_OtherSession_OtherDevice()
+        {
+            var server = await BootedWithMissionsAsync();
+            server.SimulateOtherDeviceBootstrap();
+
+            var r = await server.ClaimMissionAsync("r1", "new_link", Both);
+
+            Assert.IsTrue(r.Ok);
+            Assert.AreEqual((int)CommandCode.OtherDevice, r.Value.Code);
+            Assert.AreEqual(1500, server.State.Gem);
+            Assert.AreEqual((int)CommandCode.OtherDevice, (await server.GachaFreePullAsync("r2", "b")).Value.Code);
+        }
+
+        [Test]
+        public async Task FreePull_ThenPaidPull_Independent()
+        {
+            var server = await BootedWithMissionsAsync();
+
+            Assert.AreEqual((int)CommandCode.Ok, (await server.GachaFreePullAsync("r1", "b")).Value.Code);
+            Assert.AreEqual((int)CommandCode.FreePullUsed, (await server.GachaFreePullAsync("r2", "b")).Value.Code);
+            Assert.AreEqual((int)CommandCode.Ok, (await server.GachaPullAsync("r3", "b", 1)).Value.Code, "the paid pull is unaffected");
+
+            Assert.AreEqual(1400, server.State.Gem, "only the paid pull cost Gem");
+            Assert.AreEqual(2, server.State.Missions.DailyPulls);
+            Assert.AreEqual(2, server.State.GachaHistory.Count);
+        }
+
+        [Test]
+        public async Task DevMissionCommands_RejectDev_DevOnly_NoChange()
+        {
+            var server = await BootedWithMissionsAsync();
+            await server.ClaimMissionAsync("r1", "new_link", Both);
+            server.RejectDev = true;
+            var before = JsonUtility.ToJson(server.State);
+
+            Assert.AreEqual((int)CommandCode.DevOnly, (await server.DevResetMissionsAsync("r2")).Value.Code);
+            Assert.AreEqual((int)CommandCode.DevOnly, (await server.DevAddStaminaAsync("r3", 50)).Value.Code);
+            Assert.AreEqual(before, JsonUtility.ToJson(server.State));
+
+            server.RejectDev = false;
+            Assert.AreEqual((int)CommandCode.Ok, (await server.DevAddStaminaAsync("r4", 50)).Value.Code);
+            Assert.AreEqual(150, server.State.Stamina.Current, "100 + 50, past Max");
+            Assert.AreEqual((int)CommandCode.Ok, (await server.DevResetMissionsAsync("r5")).Value.Code);
+            CollectionAssert.IsEmpty(server.State.Missions.NewbieClaimed);
+        }
+
+        [Test]
+        public async Task ClaimMission_NullClientDone_NotReady()
+        {
+            var server = await BootedWithMissionsAsync();
+
+            var r = await server.ClaimMissionAsync("r1", "new_link", null);
+
+            Assert.AreEqual((int)CommandCode.NotReady, r.Value.Code);
+            Assert.AreEqual(1500, server.State.Gem);
         }
     }
 }

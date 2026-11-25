@@ -69,6 +69,10 @@ namespace BunDauPeo.EditorTools
 
             var single = NewButton("SingleButton", panel, sprite, font, GachaViewText.PullLabel(1, banner.SingleCost), ButtonColor,
                 BottomRight, new Vector2(-360, 140), new Vector2(300, 160));
+            // "Còn 1 lượt miễn phí hôm nay" ngay trên nút Quay ×1; GachaView bật khi còn lượt (spec đợt 3 8.4).
+            var freeLeft = NewText("FreeLeftText_PH_300x50", panel, font, "", 24, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.4f));
+            Place(freeLeft.rectTransform, BottomRight, BottomRight, new Vector2(-360, 310), new Vector2(300, 50));
+            freeLeft.gameObject.SetActive(false);
             var ten = NewButton("TenButton", panel, sprite, font, GachaViewText.PullLabel(10, banner.TenCost), ButtonColor,
                 BottomRight, new Vector2(-40, 140), new Vector2(300, 160));
             var history = NewButton("HistoryButton", panel, sprite, font, UiText.Get("gacha.history"), GreyButton,
@@ -211,6 +215,7 @@ namespace BunDauPeo.EditorTools
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
+            ConfigureScroll(scroll);
             var close = BattleSceneBuilder.LabelButton("CloseButton", historyBox, sprite, font, "common.close", GreyButton, BottomCenter, new Vector2(0, 25), new Vector2(300, 100));
             var historyPopup = historyRoot.gameObject.AddComponent<GachaHistoryPopup>();
             var historySo = new SerializedObject(historyPopup);
@@ -229,6 +234,7 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_pityText").objectReferenceValue = pity;
             so.FindProperty("_messageText").objectReferenceValue = message;
             so.FindProperty("_singleButton").objectReferenceValue = single;
+            so.FindProperty("_freeLeftText").objectReferenceValue = freeLeft;
             so.FindProperty("_tenButton").objectReferenceValue = ten;
             so.FindProperty("_skipButton").objectReferenceValue = skip;
             so.FindProperty("_historyButton").objectReferenceValue = history;
@@ -293,6 +299,21 @@ namespace BunDauPeo.EditorTools
             var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             Stretch((RectTransform)go.transform);
             return go;
+        }
+
+        // Danh sách cuộn dùng chung (L-045): chạm/kéo bất kỳ đâu trong khung đều cuộn được, và lăn chuột cuộn (bản itch.io chạy trên máy tính).
+        // ScrollRect chỉ nhận kéo và lăn khi điểm chạm trúng một Graphic bên dưới nó; hàng nền không raycast thì chỉ nút trong hàng mới "bắt" được kéo.
+        // Nên khung có một Image gần trong suốt raycast; alpha 0 hẳn thì Canvas bỏ qua nó khi raycast, và tick lăn của Input System rất nhỏ nên nâng độ nhạy.
+        internal const float ScrollSensitivity = 40f;
+
+        internal static void ConfigureScroll(ScrollRect scroll)
+        {
+            var image = scroll.GetComponent<Image>();
+            if (image == null) image = scroll.gameObject.AddComponent<Image>();
+            image.color = new Color(0f, 0f, 0f, 0.004f);
+            image.raycastTarget = true;
+            image.canvasRenderer.cullTransparentMesh = false;
+            scroll.scrollSensitivity = ScrollSensitivity;
         }
 
         internal static Button NewButton(string name, RectTransform parent, Sprite sprite, Font font, string text, Color color,

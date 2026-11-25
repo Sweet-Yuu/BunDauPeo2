@@ -19,6 +19,8 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _messageText;
         [SerializeField] private Button _singleButton;
         [SerializeField] private Button _tenButton;
+        // Nhãn "Còn 1 lượt miễn phí hôm nay" (tuỳ chọn).
+        [SerializeField] private Text _freeLeftText;
         [SerializeField] private Button _skipButton;
         [SerializeField] private Button _historyButton;
         [SerializeField] private GachaRevealView _revealView;
@@ -108,7 +110,9 @@ namespace BunDauPeo.UI
             return ok;
         }
 
-        private void PullSingle() => TryPull(() => _gacha.PullSingleAsync(_banner.Id), isTen: false);
+        // Còn lượt miễn phí thì nút ×1 là Quay miễn phí; hết thì lại là nút có giá (spec đợt 3 8.4).
+        private void PullSingle() =>
+            TryPull(_gacha.FreePullAvailable(_banner.Id) ? () => _gacha.PullFreeAsync(_banner.Id) : () => _gacha.PullSingleAsync(_banner.Id), isTen: false);
 
         private void PullTen() => TryPull(() => _gacha.PullTenAsync(_banner.Id), isTen: true);
 
@@ -205,8 +209,20 @@ namespace BunDauPeo.UI
         {
             _bannerNameText.text = _banner.DisplayName;
             _pityText.text = GachaViewText.PityLine(_banner.SsrPityThreshold, _gacha.GetPity(_banner.Id));
-            SetButton(_singleButton, 1, _banner.SingleCost);
+            var free = _gacha.FreePullAvailable(_banner.Id);
+            if (free)
+            {
+                _singleButton.interactable = !_busy;
+                var label = _singleButton.GetComponentInChildren<Text>();
+                if (label != null) label.text = UiText.Get("gacha.free_pull");
+            }
+            else SetButton(_singleButton, 1, _banner.SingleCost);
             SetButton(_tenButton, 10, _banner.TenCost);
+            if (_freeLeftText != null)
+            {
+                _freeLeftText.gameObject.SetActive(free && !_busy);
+                if (free) _freeLeftText.text = UiText.Get("gacha.free_left");
+            }
             _historyButton.interactable = !_busy;
             _hub.SetBarHidden(this, _busy);
         }

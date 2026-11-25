@@ -19,9 +19,14 @@ namespace BunDauPeo.Rules
         public const string StarUp = "StarUp";
         public const string DevAddGem = "DevAddGem";
         public const string DevRefillStamina = "DevRefillStamina";
+        public const string ClaimMission = "ClaimMission";
+        public const string ClaimAllMissions = "ClaimAllMissions";
+        public const string GachaFreePull = "GachaFreePull";
+        public const string DevResetMissions = "DevResetMissions";
+        public const string DevAddStamina = "DevAddStamina";
 
         // Máy gửi Version; server từ chối bản dưới MinProtocolVersion (hàng rào bản cũ, spec con 3.3).
-        public const int Version = 2;
+        public const int Version = 3;
         public const int MinProtocolVersion = 2;
 
         // Message của ClientTooOldException bắt đầu bằng chuỗi này để máy nhận ra qua lỗi Cloud Code.

@@ -9,7 +9,7 @@ Trạng thái: **có** = đã có trong game · **mới** = user chốt, chưa l
 
 **UI hub đã xong** cả ba đợt: A khung ([spec](../superpowers/specs/2026-11-09-ui-hub-design.md)), B bố cục Lobby ([spec](../superpowers/specs/2026-11-11-ui-hub-b-design.md)), C Tiêu đề, Chọn chế độ, Thông báo, Hồ sơ ([spec](../superpowers/specs/2026-11-12-ui-hub-c-design.md), PR #17, 2026-11-13). Chỗ spec khác file này đã chép vào các mục dưới (mục 11 của mỗi spec).
 
-**Online** ([spec](../superpowers/specs/2026-11-13-online-design.md), user duyệt 2026-11-13) chia bốn đợt, nhãn dưới đây: **O1** nền (đăng nhập, cổng mạng, ID, Reset trên server, Xoá tài khoản), **O2** logic server, **O3** Google Play Games + Nhiệm vụ, **O4** Hộp quà + hai dòng Thông báo.
+**Online** ([spec](../superpowers/specs/2026-11-13-online-design.md), user duyệt 2026-11-13) chia bốn đợt, nhãn dưới đây: **O1** nền (đăng nhập, cổng mạng, ID, Reset trên server, Xoá tài khoản), **O2** logic server, **O3** liên kết tài khoản (Google, tên đăng nhập + mật khẩu) + Nhiệm vụ + Hộp thư (thư ghim) + quay miễn phí ([spec con O3](../superpowers/specs/2026-11-21-online-3-design.md), user chốt 2026-11-21, chờ duyệt bản viết), **O4** quà trong Hộp thư + hai dòng Thông báo.
 
 ## Cấu trúc (user chốt 2026-11-09)
 
@@ -19,7 +19,7 @@ Trạng thái: **có** = đã có trong game · **mới** = user chốt, chưa l
 4. **Nút Thông báo nằm trên mọi panel và trang của hub** (trừ lúc thanh dưới ẩn). Có **chấm đỏ** khi có ít nhất một việc, không hiện số. Bấm vào hiện danh sách việc, bấm một dòng thì tới đúng chỗ ([mục dưới](#nút-thông-báo)).
 5. **Phải có mạng mới chơi được** (O1, user chốt 2026-11-13, đổi vision). Tiêu đề: chạm → "Đang kết nối…" → Lobby. Ba hộp mạng (mục [Hộp mạng](#hộp-mạng)).
 
-**Trang và hộp:** popup màn, chọn đội, màn cốt truyện giữ chỗ, Nhân viên (kèm chọn người cho ô), Nâng cấp, Chất lượng, Nhiệm vụ (O3), Hộp quà (O4) là **trang kín màn**, nút **Quay lại** ở góc trên-trái, thanh dưới vẫn hiện. Bấm ô khác của thanh thì trang đang mở đóng như khi bấm Quay lại. **Giữ cỡ hộp**, nền mờ che cả thanh: hộp xác nhận (chuyển nhân viên, đội thiếu người, quay tiếp, Reset, Xoá tài khoản), popup thu AFK, Lịch sử quay, hộp mạng. Hai ngoại lệ của luật "trang mới kín màn" (L-033, user chốt 2026-11-12): danh sách Thông báo là hộp thả xuống dưới nút, Hồ sơ là hộp giữa màn 1200×800.
+**Trang và hộp:** popup màn, chọn đội, màn cốt truyện giữ chỗ, Nhân viên (kèm chọn người cho ô), Nâng cấp, Chất lượng, Nhiệm vụ (O3), Hộp thư (O3) là **trang kín màn**, nút **Quay lại** ở góc trên-trái, thanh dưới vẫn hiện. Bấm ô khác của thanh thì trang đang mở đóng như khi bấm Quay lại. **Giữ cỡ hộp**, nền mờ che cả thanh: hộp xác nhận (chuyển nhân viên, đội thiếu người, quay tiếp, Reset, Xoá tài khoản), popup thu AFK, Lịch sử quay, hộp mạng. Hai ngoại lệ của luật "trang mới kín màn" (L-033, user chốt 2026-11-12): danh sách Thông báo là hộp thả xuống dưới nút, Hồ sơ là hộp giữa màn 1200×800.
 
 ## Sơ đồ
 
@@ -44,7 +44,9 @@ flowchart TD
   Lobby -.->|Shop, nút +| Shop["Shop (khoá)"]
   Lobby -->|avatar| Profile["Hồ sơ, hộp (có; ID O1, Google O3)"]
   Lobby -.->|nút tròn| Missions["Nhiệm vụ (mới, O3)"]
-  Lobby -.->|nút tròn| Gifts["Hộp quà (mới, O4)"]
+  Lobby -.->|nút tròn, hình phong thư| Mail["Hộp thư (mới, O3: thư ghim; O4: quà)"]
+  Title -.->|nút Đăng nhập bằng tài khoản (O3)| Pick["Hộp chọn cách + tên/mật khẩu (O3)"]
+  Profile -.->|Liên kết tài khoản (O3)| Pick
   Notify["Nút Thông báo, hộp thả xuống (có)"] -->|bấm dòng| Lobby
   Menu --> Lang["Ngôn ngữ Việt ↔ Anh (có)"]
   Menu --> Reset["Reset dữ liệu + xác nhận (có)"]
@@ -58,7 +60,7 @@ flowchart TD
 
 | Màn | Mở từ | Quay về | Ảnh `ReferenceImages/` | Trạng thái |
 |---|---|---|---|---|
-| Tiêu đề | Boot, mỗi lần mở app (không hiện khi về từ trận, đổi ngôn ngữ, Reset, quay lại từ nền) | chạm → Lobby | `title-touch-to-start.jpg` | có: scene `Title`, "Bun Dau Peo" trong `Logo_PH_900x300`, "Chạm để bắt đầu", số phiên bản, không có nút góc. O1: chạm → chữ đổi thành "Đang kết nối…" → đăng nhập → Lobby; hộp "Tài khoản đang dùng ở máy khác" cũng đưa về đây |
+| Tiêu đề | Boot, mỗi lần mở app (không hiện khi về từ trận, đổi ngôn ngữ, Reset, quay lại từ nền) | chạm → Lobby | `title-touch-to-start.jpg` | có: scene `Title`, "Bun Dau Peo" trong `Logo_PH_900x300`, "Chạm để bắt đầu", số phiên bản, không có nút góc (O3 thêm nút nhỏ **Đăng nhập bằng tài khoản** dưới dòng chạm, mở hộp chọn cách; cảnh báo mất tiến độ ẩn danh). O1: chạm → chữ đổi thành "Đang kết nối…" → đăng nhập → Lobby; hộp "Tài khoản đang dùng ở máy khác" cũng đưa về đây |
 | Lobby (quán) | ô **Quán**; về từ Trận | — | `hub-home-annotated-en.png`, `restaurant-layout-*` | có: quán 2.5D kéo được + bố cục hub ([mục dưới](#bố-cục-lobby-user-duyệt-ảnh-mô-phỏng-bản-2-2026-11-09)) |
 | Thanh dưới 6 ô | mọi màn trừ Trận, Tiêu đề | — | `hub-home-annotated-en.png` | có: `NavBar_PH_1920x120`, 6 ô `NavTab*_PH_320x120`, ô đang mở tô nổi. Ẩn trong cutscene, lộ, tổng của Gacha |
 | Popup thu AFK | tự hiện khi vào Lobby sau khi vắng ≥ 5 phút; nút Thu AFK; dòng AFK của Thông báo | Lobby | — | có, hộp |
@@ -70,14 +72,14 @@ flowchart TD
 | Popup màn, chọn đội | bấm một nút màn đánh trên bản đồ | Quay lại → Bản đồ | `quest-stage-info-popup.jpg`, `quest-team-select-popup.jpg` | có, trang kín màn. Popup màn: quái bên trái, thưởng và thể lực ở cột phải, nút Thách đấu neo mép phải |
 | Màn cốt truyện giữ chỗ | bấm một nút màn cốt truyện | Tiếp tục / Quay lại → Bản đồ | — | có, trang kín màn |
 | Trận | chọn đội → vào trận; DEV "Chiến đấu thử" | Quay lại → Lobby, bản đồ mở sẵn; Thử lại → trận mới | `battle-*` | có (`Battle`), không có thanh. Vào trận là rời quán, sự cố bị huỷ. O2: server trừ thể lực khi vào, trao thưởng khi thắng |
-| Gacha | ô **Gacha**; banner Gacha ở Lobby | ô khác của thanh | `gacha-*` | có, panel kín màn, banner kín panel. Lịch sử quay là hộp tối viền sáng. O2: roll trên server, nút mờ + vòng chờ tới khi server trả |
+| Gacha | ô **Gacha**; banner Gacha ở Lobby | ô khác của thanh | `gacha-*` | có, panel kín màn, banner kín panel. Lịch sử quay là hộp tối viền sáng. O2: roll trên server, nút mờ + vòng chờ tới khi server trả. O3: mỗi ngày 1 lượt **Quay miễn phí** (nút Quay ×1 đổi chữ tới khi dùng), chỉ banner hiện tại |
 | Shop | nút tròn Shop; nút + của Thể lực, Coin, Gem | — | — (thiếu) | khoá ("Sắp có"); nạp tiền và quảng cáo làm sau 31/12 |
 | Menu | ô **Menu**, mở trên panel đang đứng | Đóng → panel đang đứng; bấm ô khác → ô đó | — (thiếu) | có, panel kín màn: Ngôn ngữ (đổi xong vẫn ở đúng ô, Menu vẫn mở; game mới và sau Reset là **tiếng Anh**), Reset dữ liệu, **Xoá tài khoản** (O1, dưới Reset), DEV (chỉ bản dev), Đóng |
 | Hộp Reset dữ liệu | Menu → Reset | Huỷ → Menu; Xoá hết → Lobby như game mới | — | có, hộp ([D-005](../decisions/decisions.md)). O1: câu xác nhận thêm "Xoá cả dữ liệu trên máy chủ. Tài khoản và liên kết vẫn giữ."; Reset giữ ID người chơi; mất mạng thì không xoá gì |
 | Hộp Xoá tài khoản | Menu → nút **Xoá tài khoản** (ngay dưới Reset, cùng cỡ, chữ đỏ) | Huỷ → Menu; Xoá → về **Tiêu đề**, chạm vào là người chơi mới | — | đang làm, O1 (nhánh `feature/online-1`, ảnh `online1-delete-account*.png`): hộp xác nhận đỏ "Xoá vĩnh viễn tài khoản và mọi dữ liệu, kể cả liên kết Google. Không lấy lại được.", nút [Xoá] [Huỷ]. Đường xoá trong app theo luật Google Play |
-| Hồ sơ | bấm avatar | Đóng → Lobby | — (thiếu) | có, **hộp giữa màn 1200×800**: tên sửa được (tối đa 12 ký tự, rỗng thì "Người chơi" / "Player"), lưới nhân vật đang sở hữu để đổi avatar; Reset xoá cả hai. O1 (đang làm, ảnh `online1-profile*.png`): dòng **"ID: <PlayerId>"** + nút **Sao chép** ("Đã chép" 2 giây), ở cột trái dưới dòng "Tối đa 12 ký tự". O3: dòng **Tài khoản** + nút **Liên kết Google Play Games** (chỉ Android) |
-| Nhiệm vụ | nút tròn Nhiệm vụ ở Lobby; dòng "thưởng nhiệm vụ" của Thông báo (O4) | Quay lại → Lobby | — (thiếu) | mới, O3, trang kín màn: tab Ngày / Tân thủ; mỗi dòng tên, thanh tiến độ, thưởng, nút Nhận ("Đã nhận" khi xong); Nhận hết; tab Ngày ghi giờ còn lại tới lượt làm mới. Luật ở [game-design](game-design.md#nhiệm-vụ). Ảnh mô phỏng duyệt ở spec con O3 |
-| Hộp quà | nút tròn Hộp quà ở Lobby; dòng "quà chưa nhận" của Thông báo | Quay lại → Lobby | — (thiếu) | mới, O4, trang kín màn: quà đang trong hạn chưa nhận (tên, thưởng, hạn), nút Nhận, Nhận hết. Quà phát từ server. Ảnh mô phỏng duyệt ở spec con O4 |
+| Hồ sơ | bấm avatar | Đóng → Lobby | — (thiếu) | có, **hộp giữa màn 1200×800**: tên sửa được (tối đa 12 ký tự, rỗng thì "Người chơi" / "Player"), lưới nhân vật đang sở hữu để đổi avatar; Reset xoá cả hai. O1 (đang làm, ảnh `online1-profile*.png`): dòng **"ID: <PlayerId>"** + nút **Sao chép** ("Đã chép" 2 giây), ở cột trái dưới dòng "Tối đa 12 ký tự". O3: dòng **Tài khoản**: "Chưa liên kết" + nút **Liên kết tài khoản** (hộp chọn Google / tên đăng nhập + mật khẩu), hoặc "Đã liên kết: …" |
+| Nhiệm vụ | nút tròn Nhiệm vụ ở Lobby; dòng Đi tới của việc tân thủ | Quay lại → Lobby | `hub-missions.png`, `hub-missions-daily.jpg`, `hub-missions-normal.jpg` | mới, O3, trang kín màn: tab Ngày / Tân thủ (số đỏ = số dòng nhận được); mỗi dòng nhãn, tên, thanh tiến độ, thưởng, nút **Đi tới** (chưa đủ) → **Nhận** (đủ) → **Đã nhận** (xám, tắt); việc khung giờ có "Chưa tới giờ"/"Đã lỡ"; việc khoá "Sắp có". Hàng dưới: Còn lại hh:mm (tab Ngày), Hoàn thành x/y, **Nhận hết** theo tab. Nhận thể lực chạm trần 999 thì hộp xác nhận. Không có thanh mốc, không tab Thành tựu. Luật ở [game-design](game-design.md#nhiệm-vụ); ảnh mô phỏng ở [spec con O3 mục 8.1](../superpowers/specs/2026-11-21-online-3-design.md) chờ user duyệt |
+| Hộp thư | nút tròn Hộp thư (hình phong thư) ở Lobby; O4: dòng "quà chưa nhận" của Thông báo | Quay lại → Lobby | `hub-mailbox-en.png`, `restaurant-layout-target-en.png` (nút) | mới, O3, trang kín màn: danh sách thư trái, nội dung phải, Đính kèm, Nhận, **Nhận hết**, **Xoá đã đọc**, "Số lượng x/500", dấu ghim, chấm chưa đọc. O3 chỉ có **thư ghim "Liên kết tài khoản"** (không xoá được, biến mất sau khi liên kết, nút Liên kết). O4 thêm thư quà từ server. Ảnh mô phỏng ở [spec con O3 mục 8.2](../superpowers/specs/2026-11-21-online-3-design.md) |
 | Panel DEV | Menu → DEV; menu tạm dừng trong trận → Cài đặt | Đóng | — | có: Chiến đấu thử, Màn thử, Hồi thể lực, +Material, +Gem, Tua AFK, Ngôn ngữ, Reset, Đóng |
 | Hội | — | — | — | sau 31/12, nút tròn chưa dựng |
 | Thông báo tin từ server | — | — | — | bỏ khỏi bản 31/12 ([ideas](ideas.md#để-sau)) |
@@ -107,7 +109,7 @@ Dựng ở UI hub đợt B, nút Thông báo ở đợt C. Khung 1920×1080, kí
 [Banner                                                            ]  [‹]  ← thanh quán thu gọn
  → Gacha]        QUÁN ĐANG CHẠY, FULL MÀN, VUỐT KÉO                (mở: Nhân viên,
                                                                      Nâng cấp, Thu AFK)
-                                                      (Nhiệm vụ O3) (Hộp quà O4) (Shop)
+                                                      (Nhiệm vụ O3) (Hộp thư O3) (Shop)
 [ Quán | Nhân vật | Cốt truyện (khoá) | Màn chơi | Gacha | Menu ]
 ```
 
@@ -119,7 +121,7 @@ Dựng ở UI hub đợt B, nút Thông báo ở đợt C. Khung 1920×1080, kí
 | Nút Thông báo trên-phải | `NotifyBtn_PH_110x100` | chấm đỏ khi có việc |
 | Banner trái | `BannerGacha_PH_360x200` | "Gacha / Quay ngay", bấm mở ô Gacha, đặt ở `(20, 340)`. Chấm trang làm khi có nhiều banner |
 | Thanh quán thu gọn | `RestaurantBarToggle_PH_60x160`, `RestaurantBar_PH_180x460` | Nhân viên, Nâng cấp, Thu AFK (chỉ hiện khi có Coin chờ). Mặc định đóng; nhớ qua tắt mở game, Reset về đóng; nút ‹ có chấm báo khi có Coin AFK chờ |
-| Hàng nút tròn | `HubRoundBtnShop_PH_110x110` | có Shop (khoá). Thêm **Nhiệm vụ** (O3) và **Hộp quà** (O4). Hội chưa dựng, Thông báo tin bỏ |
+| Hàng nút tròn | `HubRoundBtnShop_PH_110x110` | có Shop (khoá). Thêm **Nhiệm vụ** (O3) và **Hộp thư** (O3, hình phong thư, thay Hộp quà). Hội chưa dựng, Thông báo tin bỏ |
 | Thanh dưới | `NavTab<Ô>_PH_320x120` × 6 trong `NavBar_PH_1920x120` | Quán · Nhân vật · Cốt truyện (khoá) · Màn chơi · Gacha · Menu |
 
 Bỏ từ ảnh: cấp và EXP người chơi, Mana, nhân vật lớn và bong bóng thoại, 4 icon nhỏ trên-phải, Guildhouse, Story tách khỏi bản đồ, Clan và Announcement dạng cũ.
@@ -136,7 +138,7 @@ Có từ UI hub đợt C. Bấm thì hiện hộp thả xuống dưới nút, n�
 | Thể lực đầy | mở Chọn chế độ |
 | Nhân vật đủ mảnh nâng sao | mở Nhân vật, chọn sẵn người đầu tiên đủ mảnh |
 | Phần thưởng nhiệm vụ chưa nhận (O4) | mở Nhiệm vụ, tab có thưởng |
-| Quà chưa nhận (O4) | mở Hộp quà |
+| Quà chưa nhận (O4) | mở Hộp thư |
 
 ## Luật đổi theo luồng màn
 
@@ -152,8 +154,7 @@ User thả vào `ReferenceImages/` theo tên gợi ý, agent cập nhật [ui-sc
 
 | Màn | Cần ảnh gì | Tên gợi ý |
 |---|---|---|
-| Nhiệm vụ (cần cho O3) | màn nhiệm vụ: tab, dòng có thanh tiến độ, nút Nhận | `hub-missions.jpg` |
-| Hộp quà (cần cho O4) | danh sách quà, hạn, nút Nhận hết | `hub-presents-popup.jpg` |
+| Hộp thư, trạng thái có thư quà (cần cho O4) | thư có đính kèm: nút Nhận, hạn | `hub-mailbox-gift.png` |
 | Shop | trang shop chính: các ô gói, giá, ô xem quảng cáo nhận Gem | `shop-main.jpg` |
 | Menu | popup hoặc trang menu: danh sách mục, nút đóng | `menu-popup.jpg` |
 | Cài đặt | trang cài đặt: ngôn ngữ, âm thanh | `menu-settings.jpg` |

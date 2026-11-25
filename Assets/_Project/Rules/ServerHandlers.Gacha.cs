@@ -49,6 +49,15 @@ namespace BunDauPeo.Rules
             var cost = count == 10 ? banner.TenCostGem : banner.SingleCostGem;
             if (s.Gem < cost) return HandlerOutcome.Reject(CommandCode.NotEnoughGem);
 
+            var payload = RollAndGrant(s, data, ctx, banner, count, cost);
+            MissionRules.RollDay(s.Missions, ctx.NowUtc);
+            AddDailyPulls(s, data, count);
+            return HandlerOutcome.Ok(s, payload);
+        }
+
+        // Dùng chung cho quay trả Gem và quay miễn phí (cost = 0): cùng roll, pity, lịch sử.
+        static GachaPullPayload RollAndGrant(ServerState s, GameData data, ServerContext ctx, BannerData banner, int count, long cost)
+        {
             // Roll trên bản sao bộ đếm: RNG ném lỗi thì chưa có gì đổi để hoàn lại.
             var pulls = GetPity(s, banner.Id);
             var rules = new GachaRules(ctx.Random);
@@ -61,8 +70,11 @@ namespace BunDauPeo.Rules
             foreach (var id in drawn) payload.Pulls.Add(Grant(s, banner, id, GachaRules.RarityOf(data, id)));
             SetPity(s, banner.Id, pulls);
             AppendHistory(s, banner.Id, drawn, ctx.NowUtc.Ticks);
-            return HandlerOutcome.Ok(s, payload);
+            return payload;
         }
+
+        static void AddDailyPulls(ServerState s, GameData data, int count) =>
+            s.Missions.DailyPulls = Math.Min(s.Missions.DailyPulls + count, MissionRules.CounterCap(data, MissionRules.CounterPulls));
 
         public static HandlerOutcome StarUp(ServerState s, GameData data, string characterId)
         {

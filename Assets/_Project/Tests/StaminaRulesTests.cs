@@ -38,7 +38,8 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(Max, Read(s, T0));
             Assert.AreEqual(0L, s.AnchorUtcTicks);
             Assert.AreEqual(150, Read(s, T0, max: 150), "full follows a raised Max");
-            Assert.AreEqual(80, Read(s, T0, max: 80), "and a lowered one");
+            var low = new StaminaState { Current = 3, AnchorUtcTicks = 0 };
+            Assert.AreEqual(80, Read(low, T0, max: 80), "and a lowered one (over-cap values are kept now, see Settle_OverMax)");
         }
 
         [Test]
@@ -158,12 +159,12 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
-        public void MaxLowered_CurrentClamped_AnchorZero()
+        public void MaxLowered_CurrentKept_AnchorZero()
         {
             var s = new StaminaState { Current = 90, AnchorUtcTicks = T0 };
 
-            Assert.AreEqual(50, Read(s, T0, max: 50), "90 is clamped to 50");
-            Assert.AreEqual(0L, s.AnchorUtcTicks, "clamped to Max means full, no regen pending");
+            Assert.AreEqual(90, Read(s, T0, max: 50), "over the lowered Max: kept, never taken away (spec 5.4)");
+            Assert.AreEqual(0L, s.AnchorUtcTicks, "at or over Max nothing regenerates");
         }
 
         [Test]
@@ -187,5 +188,105 @@ namespace BunDauPeo.Tests
                 Assert.AreEqual(T0, s.AnchorUtcTicks, $"regen {regen}: the anchor stays");
             }
         }
-    }
+            [Test]
+        public void Settle_OverMax_KeepsCurrent_NoRegen()
+        {
+            var s = new StaminaState { Current = 250, AnchorUtcTicks = 0 };
+
+            Assert.AreEqual(250, Read(s, At(10 * 3600)));
+            Assert.AreEqual(0L, s.AnchorUtcTicks);
+        }
+
+        [Test]
+        public void TrySpend_FromOverCap_StaysOverCapUntilBelowMax()
+        {
+            var s = new StaminaState { Current = 250, AnchorUtcTicks = 0 };
+
+            Assert.IsTrue(StaminaRules.TrySpend(s, 10, T0, Max, Regen));
+            Assert.AreEqual(240, s.Current);
+            Assert.AreEqual(0L, s.AnchorUtcTicks, "still over Max: nothing regenerates");
+            Assert.AreEqual(240, Read(s, At(3 * 3600)), "not pulled back to 100");
+            Assert.AreEqual(0L, s.AnchorUtcTicks);
+        }
+
+        [Test]
+        public void TrySpend_CrossingBelowMax_StartsRegen()
+        {
+            var s = new StaminaState { Current = 105, AnchorUtcTicks = 0 };
+
+            Assert.IsTrue(StaminaRules.TrySpend(s, 20, T0, Max, Regen));
+            Assert.AreEqual(85, s.Current);
+            Assert.AreEqual(T0, s.AnchorUtcTicks);
+            Assert.AreEqual(86, Read(s, At(300 + 5)));
+        }
+
+        [Test]
+        public void TrySpend_FromOver_DownToExactlyMax_NoAnchor()
+        {
+            var s = new StaminaState { Current = 110, AnchorUtcTicks = 0 };
+
+            Assert.IsTrue(StaminaRules.TrySpend(s, 10, T0, Max, Regen));
+            Assert.AreEqual(100, s.Current);
+            Assert.AreEqual(0L, s.AnchorUtcTicks, "full, not regenerating");
+        }
+
+        [Test]
+        public void Add_CapsAt999_ReportsGranted()
+        {
+            var s = new StaminaState { Current = 950, AnchorUtcTicks = 0 };
+
+            Assert.AreEqual(49, StaminaRules.Add(s, 100, T0, Max, Regen, 999));
+            Assert.AreEqual(999, s.Current);
+            Assert.AreEqual(0L, s.AnchorUtcTicks);
+        }
+
+        [Test]
+        public void Add_BelowMax_NoWaste()
+        {
+            var s = new StaminaState { Current = 40, AnchorUtcTicks = T0 };
+
+            Assert.AreEqual(100, StaminaRules.Add(s, 100, T0, Max, Regen, 999));
+            Assert.AreEqual(140, s.Current);
+            Assert.AreEqual(0L, s.AnchorUtcTicks, "over Max: not regenerating");
+        }
+
+        [Test]
+        public void Add_WhileRegenerating_KeepsAnchorAndNoWaste()
+        {
+            var s = Spent10();
+
+            Assert.AreEqual(5, StaminaRules.Add(s, 5, At(450), Max, Regen, 999));
+            Assert.AreEqual(96, s.Current, "91 regenerated + 5");
+            Assert.AreEqual(T0 + Regen, s.AnchorUtcTicks, "still below Max, regen continues");
+        }
+
+        [Test]
+        public void Add_UnderMaxRegenState_SettlesFirst()
+        {
+            var s = Spent10();
+
+            Assert.AreEqual(20, StaminaRules.Add(s, 20, At(3000), Max, Regen, 999));
+            Assert.AreEqual(120, s.Current, "regenerated to 100 first, then +20");
+            Assert.AreEqual(0L, s.AnchorUtcTicks);
+        }
+
+        [Test]
+        public void Add_ClockBackwards_NoLoss()
+        {
+            var s = Spent10();
+
+            Assert.AreEqual(3, StaminaRules.Add(s, 3, At(-1000), Max, Regen, 999));
+            Assert.AreEqual(93, s.Current);
+        }
+
+        [Test]
+        public void Add_NonPositiveOrCapBelowCurrent_GrantsNothing_TakesNothing()
+        {
+            var s = new StaminaState { Current = 500, AnchorUtcTicks = 0 };
+
+            Assert.AreEqual(0, StaminaRules.Add(s, 0, T0, Max, Regen, 999));
+            Assert.AreEqual(0, StaminaRules.Add(s, 10, T0, Max, Regen, 300), "cap below current");
+            Assert.AreEqual(500, s.Current);
+        }
+}
 }

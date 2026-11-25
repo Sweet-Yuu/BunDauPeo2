@@ -4,6 +4,7 @@ using BunDauPeo.Characters;
 using BunDauPeo.Core;
 using BunDauPeo.Restaurant;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace BunDauPeo.UI
@@ -29,6 +30,9 @@ namespace BunDauPeo.UI
         [SerializeField] private Text _idText;
         [SerializeField] private Button _copyButton;
         [SerializeField] private GameObject _copiedText;
+        // Dòng Tài khoản (Online đợt 3, spec 8.3); không bắt buộc để scene dựng trước đợt 3 vẫn mở được.
+        [SerializeField] private Text _accountText;
+        [SerializeField] private Button _accountButton;
 
         private const float CopiedSeconds = 2f;
 
@@ -45,6 +49,7 @@ namespace BunDauPeo.UI
         private Roster _roster;
         private RestaurantService _service;
         private IGameServer _server;
+        private IAccountService _account;
         private float _copiedUntil;
         private bool _wired;
         // Chỉ nhận cú kết thúc gõ khi hộp mở: InputField còn focus bắn onEndEdit lúc bị tắt (Close, nạp lại scene).
@@ -67,6 +72,7 @@ namespace BunDauPeo.UI
             // Đọc lại mỗi lần mở: Xoá tài khoản rồi vào lại là người chơi mới.
             _idText.text = UiText.Format("profile.player_id", PlayerId());
             _copiedText.SetActive(false);
+            RefreshAccount();
             RebuildGrid();
             _bigAvatar.Show(AvatarView.Current());
         }
@@ -105,12 +111,25 @@ namespace BunDauPeo.UI
                 Debug.LogError($"{nameof(ProfilePopup)}: {e.Message}", this);
                 _service = null;
             }
+
+            // Không bắt buộc: test dựng Hồ sơ không đăng ký tài khoản thì dòng Tài khoản ẩn.
+            try
+            {
+                _account = ServiceLocator.Get<IAccountService>();
+                _account.Changed += RefreshAccount;
+            }
+            catch (InvalidOperationException)
+            {
+                _account = null;
+            }
         }
 
         private void OnDisable()
         {
             _open = false;
             _service?.Incidents.SetSpawnBlocked(this, false);
+            if (_account != null) _account.Changed -= RefreshAccount;
+            _account = null;
             _service = null;
             _profile = null;
             _roster = null;
@@ -149,7 +168,25 @@ namespace BunDauPeo.UI
             _nameInput.onEndEdit.AddListener(OnNameEnd);
             _closeButton.onClick.AddListener(Close);
             _copyButton.onClick.AddListener(CopyId);
+            if (_accountButton != null) _accountButton.onClick.AddListener(OpenLink);
         }
+
+        private void RefreshAccount()
+        {
+            if (_accountText == null || _accountButton == null) return;
+            _accountText.gameObject.SetActive(_account != null);
+            _accountButton.gameObject.SetActive(_account != null && !_account.IsLinked);
+            if (_account == null) return;
+            var state = _account.IsLinked ? UiText.Format("account.linked", string.Join(", ", _account.LinkedNames)) : UiText.Get("account.not_linked");
+            // Đã liên kết thì không có nút: chữ dùng cả bề ngang cột trái.
+            var rect = _accountText.rectTransform;
+            rect.sizeDelta = new Vector2(_account.IsLinked ? 410 : 230, rect.sizeDelta.y);
+            _accountText.text = UiText.Get("account.row") + ": " + state;
+        }
+
+        // Liên kết: Conflict → hộp chuyển tài khoản; Chuyển → session bỏ, về Tiêu đề (không còn gì ở đây để cập nhật).
+        private static void OpenLink() =>
+            AccountBoxes.ShowLink(AccountBoxes.NewFlow(() => SceneManager.LoadScene(TitleView.TitleScene)));
 
         private void OnNameEnd(string text)
         {

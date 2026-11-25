@@ -5,6 +5,7 @@ using BunDauPeo.Combat;
 using BunDauPeo.Core;
 using BunDauPeo.Gacha;
 using BunDauPeo.Restaurant;
+using BunDauPeo.Missions;
 using BunDauPeo.Rules;
 using UnityEngine;
 
@@ -26,6 +27,7 @@ namespace BunDauPeo.Boot
         private readonly GameData _data;
         private readonly CommandGate _gate = new(CommandGate.RealtimeDelay);
         private readonly GameObject _host;
+        private readonly IAccountService _account;
 
         private bool _signedIn;
         private bool _bootstrapped;
@@ -34,11 +36,13 @@ namespace BunDauPeo.Boot
         private BootstrapResponse _bootstrap;
         private Task<OnlineStatus> _running;
         private RestaurantRunner _runner;
+        private MailService _mail;
 
         public OnlineStartup(IGameServer server, ServerTime time, string savePath, CharacterCatalog catalog,
             NewGameConfig newGame, GachaBannerCatalog banners, RestaurantConfig restaurantConfig,
-            CombatConfig combatConfig, StarConfig starConfig, GameData data, GameObject host)
+            CombatConfig combatConfig, StarConfig starConfig, GameData data, GameObject host, IAccountService account = null)
         {
+            _account = account ?? new LocalAccountService();
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _time = time ?? throw new ArgumentNullException(nameof(time));
             _savePath = savePath ?? throw new ArgumentNullException(nameof(savePath));
@@ -72,6 +76,9 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(_time);
             ServiceLocator.Register(_data);
             ServiceLocator.Register(_gate);
+            ServiceLocator.Register(_account);
+            ServiceLocator.Register(new AccountSwitcher(SwitchAccountAsync));
+            ServiceLocator.Register(new LocalProgress(() => System.IO.File.Exists(_savePath)));
         }
 
         public Task<OnlineStatus> StartAsync()
@@ -95,6 +102,8 @@ namespace BunDauPeo.Boot
 
         private void TearDownGame()
         {
+            _mail?.Dispose();
+            _mail = null;
             if (_runner != null)
             {
                 // Destroy chờ cuối khung: tắt ngay để quán không ghi bản đệm sau khi Xoá tài khoản đã xoá nó.
@@ -137,6 +146,8 @@ namespace BunDauPeo.Boot
                 var status = await _server.SignInAsync();
                 if (status != OnlineStatus.Ok) return status;
                 _signedIn = true;
+                // Danh tính đã liên kết (Hồ sơ, thư ghim, việc tân thủ); lỗi thì giữ danh sách cũ.
+                await _account.RefreshAsync();
             }
 
             if (!_bootstrapped)
@@ -188,6 +199,30 @@ namespace BunDauPeo.Boot
             return OnlineStatus.Ok;
         }
 
+        // Đăng nhập tài khoản khác (spec đợt 3 8.3): dừng đẩy save trước, để save cũ không ghi vào người chơi mới.
+        // Lỗi thì giữ nguyên session và đẩy lại; thành công thì bỏ session, người gọi nạp Tiêu đề (cache được server ghi đè).
+        private async Task<AccountResult> SwitchAccountAsync(Func<Task<AccountResult>> signIn)
+        {
+            var sync = Sync;
+            if (sync != null) await sync.StopAsync();
+            var result = await signIn();
+            if (!result.Ok)
+            {
+                if (sync != null)
+                {
+                    sync.Resume();
+                    sync.MarkDirty();
+                }
+
+                // Đăng nhập ẩn danh lại ở bước sau nếu phiên SDK mất đúng lúc mất mạng (UgsGameServer.SignInAsync bỏ qua khi còn đăng nhập).
+                _signedIn = false;
+                return result;
+            }
+
+            Shutdown();
+            return result;
+        }
+
         // Xoá tài khoản (spec 5.8): server xoá dữ liệu và tài khoản trước; lỗi thì không xoá gì trên máy và đẩy lại save.
         private async Task<OnlineStatus> DeleteAccountAsync(CloudSync sync)
         {
@@ -226,8 +261,13 @@ namespace BunDauPeo.Boot
                 session.SetPlayerName, session.SetAvatar));
             ServiceLocator.Register(new DevCommands(_server, _gate, session.ApplyServerState));
             ServiceLocator.Register(new GachaService(session.Save, session.Wallet, _catalog, _banners,
-                _server, _gate, session.ApplyServerState));
+                _server, _gate, session.ApplyServerState, () => _time.UtcNow));
 
+            ServiceLocator.Register(new MissionService(session.Save, _data, _server, _gate, session.ApplyServerState,
+                () => _time.UtcNow, () => MissionService.ClientDoneFromSave(session.Save, _account.IsLinked)));
+            _mail?.Dispose();
+            _mail = new MailService(session.Save, session.Persist, new IMailSource[] { new LinkAccountMailSource(_account) }, _account);
+            ServiceLocator.Register(_mail);
             var restaurant = new RestaurantService(_restaurantConfig, session.Save, session.Wallet, session.Roster,
                 new System.Random(), new ServerClock(_time), session.Persist);
             _runner = _host.AddComponent<RestaurantRunner>();

@@ -17,6 +17,8 @@ namespace BunDauPeo.Gacha
         [SerializeField] private RarityWeights _rarityWeights = new() { R = 70f, SR = 25f, SSR = 5f };
         [SerializeField] private int _ssrPityThreshold = 50;
         [SerializeField] private bool _guaranteeSrInTen = true;
+        // Một lượt đơn miễn phí mỗi ngày (giờ VN), do server kiểm.
+        [SerializeField] private bool _freePullDaily;
         [SerializeField] private RarityCounts _duplicateFragments = new() { R = 1, SR = 1, SSR = 1 };
         [SerializeField] private CharacterDefinition[] _characters = Array.Empty<CharacterDefinition>();
 
@@ -26,6 +28,7 @@ namespace BunDauPeo.Gacha
         public RarityWeights RarityWeights => _rarityWeights;
         public int SsrPityThreshold => _ssrPityThreshold;
         public bool GuaranteeSrInTen => _guaranteeSrInTen;
+        public bool FreePullDaily => _freePullDaily;
         public RarityCounts DuplicateFragments => _duplicateFragments;
         public IReadOnlyList<CharacterDefinition> Characters => _characters;
 

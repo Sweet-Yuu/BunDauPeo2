@@ -114,5 +114,58 @@ namespace BunDauPeo.Tests
             Assert.IsFalse(ServerStateApplier.PruneUnowned(owned));
             Assert.AreEqual("a", owned.AvatarCharacterId, "an owned avatar stays");
         }
+
+        [Test]
+        public void Apply_CopiesMissions()
+        {
+            var state = Sample();
+            state.Missions = new MissionState { DailyDay = 20_000, DailyWins = 3, FreePullDay = 19_999 };
+            state.Missions.DailyClaimed.Add("daily_win_5");
+            state.Missions.NewbieClaimed.Add("new_name");
+            var save = new PlayerSave();
+
+            ServerStateApplier.Apply(save, state);
+            state.Missions.DailyClaimed.Clear();
+
+            Assert.AreEqual(20_000, save.Missions.DailyDay);
+            Assert.AreEqual(3, save.Missions.DailyWins);
+            Assert.AreEqual(19_999, save.Missions.FreePullDay);
+            CollectionAssert.AreEqual(new[] { "daily_win_5" }, save.Missions.DailyClaimed, "the save holds a copy, not the state's list");
+            CollectionAssert.AreEqual(new[] { "new_name" }, save.Missions.NewbieClaimed);
+        }
+
+        [Test]
+        public void UploadCopy_StripsMissions()
+        {
+            var save = new PlayerSave { AfkCollected = true };
+            save.Missions.DailyWins = 4;
+            save.Missions.NewbieClaimed.Add("new_name");
+
+            var copy = JsonUtility.FromJson<PlayerSave>(ServerStateApplier.ToUploadJson(save));
+
+            Assert.AreEqual(0, copy.Missions.DailyWins);
+            Assert.IsEmpty(copy.Missions.NewbieClaimed);
+            Assert.IsTrue(copy.AfkCollected, "client-held flags still go up");
+            Assert.AreEqual(4, save.Missions.DailyWins, "the live save is untouched");
+        }
+
+        // Review Focus 5: state đợt 2 thật không có field Missions.
+        [Test]
+        public void Phase2State_WithoutMissions_DefaultsAndKeepsGem()
+        {
+            var json = JsonUtility.ToJson(Sample());
+            var stripped = System.Text.RegularExpressions.Regex.Replace(json, @"""Missions"":\{[^{}]*\},?", "");
+            Assert.AreNotEqual(json, stripped, "the phase-2 JSON must really lack Missions, or this test proves nothing");
+            var state = JsonUtility.FromJson<ServerState>(stripped);
+            var save = new PlayerSave();
+            save.Missions.DailyWins = 9;
+
+            ServerStateApplier.Apply(save, state);
+
+            Assert.AreEqual(0, save.Missions.DailyWins);
+            Assert.IsEmpty(save.Missions.DailyClaimed);
+            Assert.AreEqual(321, new Wallet(save).Get(CurrencyType.Gem));
+            CollectionAssert.AreEqual(new[] { "a", "b" }, save.OwnedCharacterIds);
+        }
     }
 }

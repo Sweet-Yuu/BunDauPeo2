@@ -25,6 +25,10 @@ namespace BunDauPeo.Core
 
         public Task<bool> RefillStaminaAsync() => RunAsync("DevRefillStamina", id => _server.DevRefillStaminaAsync(id));
 
+        public Task<bool> ResetMissionsAsync() => RunAsync("DevResetMissions", id => _server.DevResetMissionsAsync(id));
+
+        public Task<bool> AddStaminaAsync(int amount) => RunAsync("DevAddStamina", id => _server.DevAddStaminaAsync(id, amount));
+
         private async Task<bool> RunAsync(string name, Func<string, Task<OnlineResult<CommandResponse>>> call)
         {
             var result = await _gate.RunAsync(call);

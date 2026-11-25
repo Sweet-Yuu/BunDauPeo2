@@ -42,6 +42,16 @@
 | Quán | `restaurant-layout-farm-en.webp` | Như trên, bối cảnh nông trại: có quầy thu ngân và lối vào rõ hơn |
 | Quán | `restaurant-layout-sea-en.webp` | Như trên, bối cảnh biển: dãy dài dọc tường sau, hai hàng đồ giữa phòng |
 | Quán | `restaurant-room-isometric-en.jpg` | Phòng isometric có nhân vật đi lại. **Không còn là mẫu cần theo**, đã thay bằng ba ảnh trên. Trong game gốc đây là Guildhouse |
+| Hub | `hub-missions.png` | **Màn Nhiệm vụ cần theo** (user gửi 2026-11-21, Princess Connect): tab Daily/Normal, mỗi dòng có nhãn loại, mô tả, thanh Status, ô thưởng, nút Challenge; dưới có Deadline (giờ còn lại), Completion Status 0/9, nút Receive All. Nhân vật lớn bên trái không lấy. Đã nhận: nút xám, không bấm được (user nói) |
+| Hub | `hub-missions-daily.jpg` | Nhiệm vụ, tab Daily (user gửi 2026-11-21): dòng Quest 0/10 nút Challenge, dòng đã đủ nút Receive sáng; dưới có Deadline (giờ còn lại) và Completion Status 0/5, nút Receive All |
+| Hub | `hub-missions-normal.jpg` | Nhiệm vụ, tab Normal (tân thủ): dòng đã đủ nút Receive sáng, dòng chưa đủ nút Challenge trắng; Completion Status 2/12 |
+| Hub | `hub-missions-title.jpg` | Nhiệm vụ, tab thứ ba: nhận quà **thành tựu** (user giải thích 2026-11-21). **Chưa làm**, để sau ([ideas](../design/ideas.md#để-sau)) |
+| Hub | `hub-mailbox-en.png` | **Hộp thư cần theo** (game khác): danh sách thư bên trái (biểu tượng phong thư, tiêu đề cắt, người gửi, dấu ghim/ngôi sao, chấm đỏ chưa đọc), nội dung thư bên phải (tiêu đề, người gửi, ngày, nội dung, Attachments, nút Claim), dưới trái Quantity 2/500, Claim All, Delete Read |
+| Quán | `restaurant-layout-target-en.png` | **Quán user muốn vẽ lại** (2026-11-21): phòng nhà gỗ hai tầng, nền tile, nhân vật chibi. Đồng thời là ảnh nút **Hộp thư** ở Lobby (góc phải dưới, hình hòm thư, nhãn Claim All). Việc vẽ lại quán chưa có luồng ([ideas](../design/ideas.md#để-sau)) |
+| Nhân vật | `character-upgrade-level.jpg` | Tab Lv nâng cấp nhân vật: Lv, thanh EXP, danh sách vật phẩm EXP (trống thì báo "không có"). **Chưa làm**, cho nhiệm vụ "Nâng lv" |
+| Nhân vật | `character-upgrade-skill.jpg` | Tab nâng cấp kỹ năng: dòng kỹ năng, Lv, Mana tốn, nút nâng, khoá theo Rank |
+| Nhân vật | `character-upgrade-memory-piece.jpg` | Tab "tài năng": thanh mảnh 0/30, Mana tốn, nút bật. Cùng loại với nâng sao bằng mảnh |
+| Nhân vật | `character-upgrade-confirm.jpg` | Hộp xác nhận nâng nhanh: **lắp sẵn trang bị đã có để nâng cùng lúc** (user giải thích 2026-11-21); chưa làm |
 | Cốt truyện | `story-dialogue-en.webp` | Hội thoại: nhân vật lớn, khung thoại, nút Skip. Cốt truyện sẽ làm sau MVP ([vision](../vision/vision.md)) |
 
 User đã gửi đủ ảnh cho các màn hiện biết (2026-11-01). Các phần khác của quán (xếp nhân viên, nâng cấp, AFK) không có ảnh: agent đề xuất phương án tối ưu trong spec Restaurant, user duyệt.

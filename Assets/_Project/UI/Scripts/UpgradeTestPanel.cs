@@ -78,7 +78,7 @@ namespace BunDauPeo.UI
             return ok;
         }
 
-        private void Open()
+        public void Open()
         {
             _service.Incidents.SetSpawnBlocked(this, true);
             _messageText.text = "";

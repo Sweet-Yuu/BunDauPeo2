@@ -18,10 +18,11 @@ namespace BunDauPeo.Gacha
         private readonly IGameServer _server;
         private readonly CommandGate _gate;
         private readonly Func<ServerState, bool> _apply;
+        private readonly Func<DateTime> _nowUtc;
 
         // apply chép state vào PlayerSave và báo view; trả false khi lưu bản đệm thất bại (bộ nhớ vẫn đúng).
         public GachaService(PlayerSave save, Wallet wallet, CharacterCatalog characters, GachaBannerCatalog banners,
-            IGameServer server, CommandGate gate, Func<ServerState, bool> apply)
+            IGameServer server, CommandGate gate, Func<ServerState, bool> apply, Func<DateTime> nowUtc = null)
         {
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
@@ -30,6 +31,8 @@ namespace BunDauPeo.Gacha
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _gate = gate ?? throw new ArgumentNullException(nameof(gate));
             _apply = apply ?? throw new ArgumentNullException(nameof(apply));
+            // Ngày của lượt miễn phí tính theo giờ server (OnlineStartup truyền ServerTime); test không truyền thì giờ máy.
+            _nowUtc = nowUtc ?? (() => DateTime.UtcNow);
         }
 
         public IReadOnlyList<GachaHistoryEntry> History => _save.GachaHistory;
@@ -65,6 +68,37 @@ namespace BunDauPeo.Gacha
                     return Failure(GachaPullStatus.InvalidBanner);
             }
 
+            return Complete(response);
+        }
+
+        // Lượt miễn phí hôm nay còn không: banner có cờ FreePullDaily và ngày đã dùng (theo giờ server) khác hôm nay.
+        public bool FreePullAvailable(string bannerId) =>
+            bannerId != null && _banners.TryGet(bannerId, out var banner) && banner.FreePullDaily
+            && _save.Missions.FreePullDay != MissionRules.DayIndex(_nowUtc());
+
+        public async Task<GachaPullResult> PullFreeAsync(string bannerId)
+        {
+            if (!_banners.TryGet(bannerId, out var banner)) return Failure(GachaPullStatus.UnknownBanner);
+            if (!IsPlayable(banner) || !banner.FreePullDaily) return Failure(GachaPullStatus.InvalidBanner);
+            if (!FreePullAvailable(bannerId)) return Failure(GachaPullStatus.FreePullUsed);
+
+            var result = await _gate.RunAsync(id => _server.GachaFreePullAsync(id, banner.Id));
+            if (!result.Ok) return Failure(GachaPullStatus.Offline);
+
+            var response = result.Value;
+            switch ((CommandCode)response.Code)
+            {
+                case CommandCode.Ok:
+                    return Complete(response);
+                case CommandCode.FreePullUsed:
+                    return Failure(GachaPullStatus.FreePullUsed);
+                default:
+                    return Failure(GachaPullStatus.InvalidBanner);
+            }
+        }
+
+        private GachaPullResult Complete(CommandResponse response)
+        {
             GachaPullPayload payload;
             try
             {

@@ -119,6 +119,13 @@ namespace BunDauPeo.PlayModeTests
             yield return Click("TapArea");
             yield return WaitForScene("Restaurant");
             yield return Sample("Restaurant idle", 300);
+            // Đợt 3: trang Nhiệm vụ và Hộp thư (đứng yên, đã mở).
+            yield return Click("HubRoundBtnMissions_PH_110x110");
+            yield return Sample("Missions page idle", 300);
+            yield return Click("CloseButton");
+            yield return Click("HubRoundBtnMail_PH_110x110");
+            yield return Sample("Mail page idle", 300);
+            yield return Click("CloseButton");
             yield return Bisect("Restaurant");
 
             var combat = ServiceLocator.Get<CombatService>();

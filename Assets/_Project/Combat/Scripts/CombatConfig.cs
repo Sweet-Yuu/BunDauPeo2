@@ -33,6 +33,8 @@ namespace BunDauPeo.Combat
         [SerializeField] private int _maxStamina = 100;
         // Một điểm mỗi khoảng này; là mẫu số của StaminaService.
         [SerializeField] private int _staminaRegenSeconds = 300;
+        // Trần khi nhận thể lực thưởng (nhiệm vụ); vượt MaxStamina được, không tự hồi khi còn vượt.
+        [SerializeField] private int _rewardStaminaCap = 999;
 
         [Header("Màn")]
         [SerializeField] private StageCatalog _stages;
@@ -49,6 +51,7 @@ namespace BunDauPeo.Combat
         public float AutoHealBelow => _autoHealBelow;
         public int MaxStamina => _maxStamina;
         public int StaminaRegenSeconds => _staminaRegenSeconds;
+        public int RewardStaminaCap => _rewardStaminaCap;
 
         public float Weight(BattlePosition position) => position switch
         {
