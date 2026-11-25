@@ -144,6 +144,10 @@ namespace BunDauPeo.UI
         public static string FailHint() => UiText.Get("combat.fail_hint");
 
         public static string FailStamina(int cost) => UiText.Format("combat.fail_stamina", cost);
+        public static string ExpGained(int exp) => UiText.Format("level.exp_gained", exp);
+
+        // Thể lực đã dùng cũng là EXP người chơi nhận (1 thể lực = 1 EXP).
+        public static string WithExp(string staminaLine, int cost) => $"{staminaLine}   {ExpGained(cost)}";
 
         public static string EndBanner(BattleState state) => state switch
         {

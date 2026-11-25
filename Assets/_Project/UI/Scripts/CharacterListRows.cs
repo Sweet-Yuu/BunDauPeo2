@@ -46,7 +46,7 @@ namespace BunDauPeo.UI
             var id = character.Id;
             var starUps = stars.GetStarUps(id);
             var level = levels?.GetLevel(id) ?? 1;
-            CombatStats StatsAt(int ups) => levels != null && config != null && starConfig != null
+            CombatStats StatsAt(int ups) => levels != null && levels.IsConfigValid && config != null && starConfig != null
                 ? GrowthStats.Get(character, ups, level, starConfig.StatPercentPerStar, config.StatPercentPerLevel)
                 : stars.GetCombatStats(character, ups);
             var now = StatsAt(starUps);

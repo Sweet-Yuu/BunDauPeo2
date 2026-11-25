@@ -189,7 +189,7 @@ namespace BunDauPeo.PlayModeTests
 
             _step = "C3 bấm thẻ đầu và nút nâng";
             yield return ClickWhenReady("CharacterCard0");
-            yield return ClickWhenReady("StarTabButton");
+            yield return ClickWhenReady("StarTabBtn_PH_320x90");
             Assert.IsTrue(StarUpButton().interactable, Where("đủ mảnh mà nút nâng bị tắt"));
             yield return ClickWhenReady("StarUpButton");
             Assert.AreEqual(startStars + 1, stars.GetStars(starter), Where("sao sau khi nâng"));
@@ -228,7 +228,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(0, roster.GetFragments(starter), Where("nhân vật đầu phải chưa có mảnh"));
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
-            yield return ClickWhenReady("StarTabButton");
+            yield return ClickWhenReady("StarTabBtn_PH_320x90");
             Assert.IsFalse(StarUpButton().interactable, Where("không có mảnh mà nút nâng bấm được"));
 
             _step = "M2 nâng từng bậc";
@@ -263,7 +263,7 @@ namespace BunDauPeo.PlayModeTests
             ServerFragments(session, starter, stars.GetNextCost(starter));
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
-            yield return ClickWhenReady("StarTabButton");
+            yield return ClickWhenReady("StarTabBtn_PH_320x90");
 
             _step = "P2 khoá file save rồi nâng";
             Assert.IsTrue(session.Persist(), Where("ghi save tạm"));

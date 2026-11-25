@@ -210,7 +210,7 @@ namespace BunDauPeo.PlayModeTests
             var before = stars.GetStars(id);
             yield return ClickWhenReady("NavTabCharacters_PH_320x120");
             yield return ClickWhenReady("CharacterCard0");
-            yield return ClickWhenReady("StarTabButton");
+            yield return ClickWhenReady("StarTabBtn_PH_320x90");
 
             yield return PressTwiceWhileHeld("StarUpButton", () => stars.GetStars(id) == before + 1);
         }

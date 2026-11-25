@@ -153,8 +153,11 @@ namespace BunDauPeo.Boot
         private static void CheckReward(List<string> errors, string label, IReadOnlyList<CurrencyAmount> lines)
         {
             foreach (var line in lines)
+            {
                 if (line.Type != CurrencyType.Gem && line.Type != CurrencyType.Material && line.Type != CurrencyType.ExpPotion)
                     errors.Add($"{label} must be Gem/Material/ExpPotion only, found {line.Type}");
+                if (line.Amount < 0) errors.Add($"{label} has a negative {line.Type} amount ({line.Amount})");
+            }
         }
     }
 }

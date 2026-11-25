@@ -57,6 +57,8 @@ namespace BunDauPeo.UI
         private string _selectedId;
         private bool _starTab;
         private bool _subscribed;
+        // Kết quả lần bấm cuối (nâng cấp, nâng sao); rỗng thì dòng trạng thái hiện lý do nút Nâng cấp mờ.
+        private string _message = "";
 
         private void OnEnable()
         {
@@ -78,10 +80,10 @@ namespace BunDauPeo.UI
                 return;
             }
 
-            _roster.Changed += OnStateChanged;
-            _wallet.Changed += OnStateChanged;
-            _levels.Changed += OnStateChanged;
-            _player.Changed += OnStateChanged;
+            _roster.Changed += OnRosterChanged;
+            _wallet.Changed += Redraw;
+            _levels.Changed += Redraw;
+            _player.Changed += Redraw;
             _starUpButton.onClick.AddListener(StarUp);
             _levelUpButton.onClick.AddListener(LevelUp);
             _backButton.onClick.AddListener(Back);
@@ -98,7 +100,7 @@ namespace BunDauPeo.UI
             _subscribed = true;
             _selectedId = null;
             _starTab = false;
-            _statusText.text = "";
+            _message = "";
             Redraw();
         }
 
@@ -106,10 +108,10 @@ namespace BunDauPeo.UI
         {
             if (!_subscribed) return;
             _subscribed = false;
-            _roster.Changed -= OnStateChanged;
-            _wallet.Changed -= OnStateChanged;
-            _levels.Changed -= OnStateChanged;
-            _player.Changed -= OnStateChanged;
+            _roster.Changed -= OnRosterChanged;
+            _wallet.Changed -= Redraw;
+            _levels.Changed -= Redraw;
+            _player.Changed -= Redraw;
             _starUpButton.onClick.RemoveListener(StarUp);
             _levelUpButton.onClick.RemoveListener(LevelUp);
             _backButton.onClick.RemoveListener(Back);
@@ -120,10 +122,10 @@ namespace BunDauPeo.UI
             foreach (var card in _cards) card.Button.onClick.RemoveAllListeners();
         }
 
-        // Đổi từ nơi khác (Reset, Gacha, thuốc): dòng trạng thái cũ không còn đúng.
-        private void OnStateChanged()
+        // Reset, Gacha: kết quả lần bấm cũ không còn đúng. Ví hay cấp đổi thì giữ nó (kể cả "chưa lưu được dữ liệu") và chỉ vẽ lại số.
+        private void OnRosterChanged()
         {
-            _statusText.text = "";
+            _message = "";
             Redraw();
         }
 
@@ -135,7 +137,7 @@ namespace BunDauPeo.UI
             if (!Rows().Any(r => r.Character.Id == id)) return;
             _selectedId = id;
             _starTab = true;
-            _statusText.text = "";
+            _message = "";
             Redraw();
         }
 
@@ -148,28 +150,28 @@ namespace BunDauPeo.UI
             if (index >= rows.Count) return;
             _selectedId = rows[index].Character.Id;
             _starTab = false;
-            _statusText.text = "";
+            _message = "";
             Redraw();
         }
 
         private void Back()
         {
             _selectedId = null;
-            _statusText.text = "";
+            _message = "";
             Redraw();
         }
 
         private void Step(int step)
         {
             _selectedId = CharacterDetailNav.Neighbor(Rows().Select(r => r.Character.Id).ToList(), _selectedId, step);
-            _statusText.text = "";
+            _message = "";
             Redraw();
         }
 
         private void SetTab(bool star)
         {
             _starTab = star;
-            _statusText.text = "";
+            _message = "";
             Redraw();
         }
 
@@ -177,9 +179,8 @@ namespace BunDauPeo.UI
         {
             if (_selectedId == null) return;
             var result = _levels.TryLevelUp(_selectedId);
-            // Thành công đã bắn Changed (vẽ lại); đặt chữ sau cùng để Redraw không xoá nó.
+            _message = CharactersViewText.LevelStatusText(result);
             Redraw();
-            _statusText.text = CharactersViewText.LevelStatusText(result);
         }
 
         private async void StarUp()
@@ -198,9 +199,9 @@ namespace BunDauPeo.UI
 
             // Panel bị tắt trong lúc chờ: state đã áp, không còn gì để vẽ.
             if (this == null || !isActiveAndEnabled) return;
-            // Áp state đã bắn Roster.Changed (vẽ lại) khi thành công; đặt chữ sau cùng để Redraw không xoá nó.
+            // Thành công đã bắn Roster.Changed (xoá kết quả cũ); đặt kết quả mới rồi vẽ lại.
+            _message = CharactersViewText.StatusText(result);
             Redraw();
-            _statusText.text = CharactersViewText.StatusText(result);
         }
 
         // shortcut: lưới cố định, không phân trang; thừa thẻ so với số nhân vật đã sở hữu thì ẩn. Hết chỗ thì thêm cuộn.
@@ -220,7 +221,12 @@ namespace BunDauPeo.UI
             }
 
             _detailRoot.SetActive(selected >= 0);
-            if (selected < 0) return;
+            if (selected < 0)
+            {
+                _message = "";
+                _statusText.text = "";
+                return;
+            }
 
             _levelTabButton.targetGraphic.color = _starTab ? TabIdle : TabActive;
             _starTabButton.targetGraphic.color = _starTab ? TabActive : TabIdle;
@@ -267,7 +273,7 @@ namespace BunDauPeo.UI
                 : LevelUpStatus.Success;
             _levelUpButton.interactable = gate == LevelUpStatus.Success;
             // Lý do nút mờ nằm ở dòng trạng thái; kết quả của lần bấm ghi đè sau Redraw.
-            _statusText.text = _starTab ? "" : CharactersViewText.UpgradeDisabledReason(gate);
+            _statusText.text = _message != "" ? _message : _starTab ? "" : CharactersViewText.UpgradeDisabledReason(gate);
         }
     }
 }

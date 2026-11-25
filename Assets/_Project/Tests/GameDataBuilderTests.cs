@@ -174,6 +174,13 @@ namespace BunDauPeo.Tests
             Assert.IsNotEmpty(GameDataBuilder.Validate(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame));
         }
 
+        [Test]
+        public void Validate_RejectsNegativeExpPotionInStageReward()
+        {
+            var r = MakeRig(firstReward: Lines((CurrencyType.ExpPotion, -5)));
+            Assert.IsNotEmpty(GameDataBuilder.Validate(r.Characters, r.Banners, r.Stars, r.Combat, r.NewGame));
+        }
+
         private static MissionDefinition Mission(string id, MissionTab tab = MissionTab.Daily, MissionCounter counter = MissionCounter.Wins,
             int target = 1, bool locked = false, long gem = 10, int stamina = 0, int from = 0, int to = 0)
         {

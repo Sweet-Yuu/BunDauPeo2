@@ -58,6 +58,10 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void WithExp_AddsPlayerExpToStaminaLine() =>
+            StringAssert.Contains("EXP người chơi +10", CombatViewText.WithExp(CombatViewText.StaminaUsed(10), 10));
+
+        [Test]
         public void RewardRow_Show_FiveLines_ShowsFirstFour()
         {
             _row.Show(Lines((CurrencyType.Coin, 1), (CurrencyType.Gem, 2), (CurrencyType.Material, 3), (CurrencyType.Coin, 4), (CurrencyType.Gem, 5)), "");

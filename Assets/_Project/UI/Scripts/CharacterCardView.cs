@@ -25,7 +25,7 @@ namespace BunDauPeo.UI
             _frame.color = selected ? SelectedFrame : PlainFrame;
             _portrait.color = GachaViewText.RarityColor(character.Rarity);
             _name.text = string.IsNullOrEmpty(character.DisplayName) ? character.Id : character.DisplayName;
-            _info.text = $"Lv{row.Level} {character.Rarity} {new string('★', row.Stars)}";
+            _info.text = $"{UiText.Format("level.player", row.Level)} {character.Rarity} {new string((char)9733, row.Stars)}";
             _fragments.text = CharactersViewText.CardFragments(row);
         }
 

@@ -192,7 +192,7 @@ namespace BunDauPeo.PlayModeTests
             session.Wallet.NotifyChanged();
             yield return null;
             yield return null; // canvas của popup vừa bật cần vài khung để nhận raycast
-            yield return ClickWhenReady("LevelUpOkButton"); // Lv2 mở popup lên cấp, đóng trước khi bấm thẻ
+            yield return ClickWhenReady("LevelUpOkBtn_PH_320x100"); // Lv2 mở popup lên cấp, đóng trước khi bấm thẻ
             var coinBefore = session.Wallet.Get(CurrencyType.Coin);
             Assert.AreEqual(1, levels.GetLevel(starter), Where("Lv1 lúc đầu"));
 
@@ -201,7 +201,7 @@ namespace BunDauPeo.PlayModeTests
             yield return ClickWhenReady("CharacterCard0");
             yield return null;
             var hpBefore = GameObject.Find("HpText").GetComponent<Text>().text;
-            yield return ClickWhenReady("LevelUpButton");
+            yield return ClickWhenReady("LevelUpBtn_PH_760x110");
 
             _step = "U3 kiểm";
             Assert.AreEqual(2, levels.GetLevel(starter), Where("cấp +1"));
@@ -209,7 +209,7 @@ namespace BunDauPeo.PlayModeTests
             Assert.AreEqual(coinBefore - 200, session.Wallet.Get(CurrencyType.Coin), Where("trừ 200 Coin"));
             StringAssert.Contains("2/2", GameObject.Find("LevelLineText").GetComponent<Text>().text, Where("dòng cấp"));
             Assert.AreNotEqual(hpBefore, GameObject.Find("HpText").GetComponent<Text>().text, Where("panel hiện HP mới"));
-            Assert.IsFalse(GameObject.Find("LevelUpButton").GetComponent<Button>().interactable, Where("đã chạm trần cấp người chơi"));
+            Assert.IsFalse(GameObject.Find("LevelUpBtn_PH_760x110").GetComponent<Button>().interactable, Where("đã chạm trần cấp người chơi"));
             yield return null;
             ScreenCapture1080.Capture("level-detail.png"); // ảnh đính kèm báo cáo; đặt cuối vì Capture đổi Canvas
         }

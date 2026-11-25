@@ -68,12 +68,14 @@ namespace BunDauPeo.UI
             var level = _service.Level;
             if (level <= _shownLevel)
             {
+                // Hạ cấp (Reset) hoặc không đổi: không còn gì để báo.
                 _shownLevel = level;
+                _root.SetActive(false);
                 return;
             }
 
+            // _shownLevel chỉ đổi khi người chơi đóng popup: lên cấp lúc vào trận (đổi sang Battle) vẫn được báo khi về Lobby.
             var (coin, potion) = Reward(_config, _shownLevel, level);
-            _shownLevel = level;
             _bodyText.text = UiText.Format("level.up_body", level, coin, potion);
             _root.SetActive(true);
         }
@@ -91,6 +93,10 @@ namespace BunDauPeo.UI
             return (coin, potion);
         }
 
-        public void Close() => _root.SetActive(false);
+        public void Close()
+        {
+            if (_service != null) _shownLevel = _service.Level;
+            _root.SetActive(false);
+        }
     }
 }

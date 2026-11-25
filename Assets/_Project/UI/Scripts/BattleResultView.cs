@@ -69,7 +69,7 @@ namespace BunDauPeo.UI
             else
             {
                 _rewardText.text = CombatViewText.FailHint();
-                _staminaText.text = session.EntryPaid ? CombatViewText.FailStamina(session.Stage.StaminaCost) : "";
+                _staminaText.text = session.EntryPaid ? CombatViewText.WithExp(CombatViewText.FailStamina(session.Stage.StaminaCost), session.Stage.StaminaCost) : "";
                 RefreshRetry(session);
             }
         }
@@ -93,14 +93,14 @@ namespace BunDauPeo.UI
             if (result.Status == StageCompleteStatus.Success)
             {
                 _rewardRow.Show(result.Rewards, result.FirstClear ? UiText.Get("combat.first_clear_tag") : "");
-                _staminaText.text = CombatViewText.StaminaUsed(result.StaminaSpent);
+                _staminaText.text = CombatViewText.WithExp(CombatViewText.StaminaUsed(result.StaminaSpent), result.StaminaSpent);
                 _warningText.text = RestaurantViewText.SaveWarning(result.Saved);
             }
             else
             {
                 // NotPaid (trận vào thẳng từ dải DEV): vẫn CLEAR, ghi "trận thử". Trận đã trả mà không nhận được thưởng vẫn hiện thể lực đã dùng.
                 _rewardText.text = CombatViewText.NoRewardLine(result.Status);
-                _staminaText.text = session.EntryPaid ? CombatViewText.StaminaUsed(session.Stage.StaminaCost) : "";
+                _staminaText.text = session.EntryPaid ? CombatViewText.WithExp(CombatViewText.StaminaUsed(session.Stage.StaminaCost), session.Stage.StaminaCost) : "";
             }
         }
 

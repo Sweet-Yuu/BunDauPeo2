@@ -279,3 +279,8 @@ Cổng ảnh mô phỏng: **đã được user duyệt 2026-11-21 (bản v2, m�
 - **Phủ spec:** mục 1 (tiêu chí 1–6) → Task 3, 4, 6, 7, 8; mục 3.1–3.11 → Task 1, 3; mục 5.1 → Task 1, 3; 5.2 → Task 1; 5.3 → Task 1; 5.4 → Task 2; 6.1–6.2 → Task 3; 6.3–6.4 → Task 4; 6.5 → Task 5; mục 7 → Task 2, 6; mục 8 → Task 7; mục 9 → các test của từng task và Task 8; mục 10 → Task 8. Không thiếu mục nào.
 - **Nhất quán kiểu:** `GrowthStats.Get(c, starUps, level, statPercentPerStar, statPercentPerLevel)` ở Task 1 và 4 trùng; `CharacterLevelService.GetLevel/GetNextCost/TryLevelUp` ở Task 3, 4, 7 trùng; `LevelUpStatus` ở Task 3 và 7 trùng.
 - **Lệch spec cần báo:** spec 6.4 ban đầu ghi `StartBattle`; code thật cộng EXP ở `EnterStageAsync` (đã sửa spec). Spec 6.3 ghi `GameBootstrap` là chỗ gọi; code thật dựng service ở `OnlineStartup` (đã sửa spec).
+
+## Sửa đợt review cuối nhánh (2026-11-25)
+
+- [x] Ý 1 popup lên cấp: `_shownLevel` chỉ đổi khi đóng popup (`LevelUpPopupViewTests` 2 ca). Ý 2: kết quả lần bấm giữ qua đổi ví (`Detail_StatusLine_SurvivesWalletChange`). Ý 3: dòng "EXP người chơi +N" ở popup kết quả trận (`WithExp`). Ý 5: EXP theo `payload.StaminaCost`. Ý 7: đặt tên `_PH_`, nhãn Lv qua `UiText`. Ý 8: config lỗi không vào `GrowthStats`, `Validate` từ chối số lượng âm.
+- Chưa làm theo yêu cầu: ý 4 (đường cong EXP, để đợt cân bằng T12), ý 6 (Min protocol, hỏi user), ý 9 (merge scene). Test: EditMode 1261/1261, PlayMode 60 xanh (2 bỏ qua), .NET không đổi (19).

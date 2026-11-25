@@ -47,11 +47,11 @@ namespace BunDauPeo.EditorTools
             }
 
             // Panel chi tiết phủ lên danh sách.
-            var detail = GachaSceneBuilder.NewRect("DetailRoot", root);
+            var detail = GachaSceneBuilder.NewRect("DetailRoot_PH_1920x1080", root);
             GachaSceneBuilder.Stretch(detail);
             GachaSceneBuilder.AddImage(detail, sprite, Background, raycast: true);
 
-            var back = Labeled(GachaSceneBuilder.NewButton("BackButton", detail, sprite, font, "", TabColor, TopLeft, new Vector2(40, -30), new Vector2(260, 90)),
+            var back = Labeled(GachaSceneBuilder.NewButton("CharBackBtn_PH_260x90", detail, sprite, font, "", TabColor, TopLeft, new Vector2(40, -30), new Vector2(260, 90)),
                 "characters.back");
             var detailTitle = GachaSceneBuilder.NewLabel("DetailTitleText", detail, font, "characters.detail_title", 52, TextAnchor.MiddleLeft, Color.white);
             GachaSceneBuilder.Place(detailTitle.rectTransform, TopLeft, TopLeft, new Vector2(340, -30), new Vector2(600, 90));
@@ -61,9 +61,9 @@ namespace BunDauPeo.EditorTools
             var portrait = GachaSceneBuilder.NewRect("DetailPortrait_PH_640x440", detail);
             GachaSceneBuilder.Place(portrait, TopLeft, TopLeft, new Vector2(40, -150), new Vector2(640, 440));
             GachaSceneBuilder.AddImage(portrait, sprite, Panel, raycast: false);
-            var prev = Labeled(GachaSceneBuilder.NewButton("PrevButton", detail, sprite, font, "", TabColor, TopLeft, new Vector2(50, -290), new Vector2(90, 140)),
+            var prev = Labeled(GachaSceneBuilder.NewButton("CharPrevBtn_PH_90x140", detail, sprite, font, "", TabColor, TopLeft, new Vector2(50, -290), new Vector2(90, 140)),
                 "characters.prev");
-            var next = Labeled(GachaSceneBuilder.NewButton("NextButton", detail, sprite, font, "", TabColor, TopLeft, new Vector2(580, -290), new Vector2(90, 140)),
+            var next = Labeled(GachaSceneBuilder.NewButton("CharNextBtn_PH_90x140", detail, sprite, font, "", TabColor, TopLeft, new Vector2(580, -290), new Vector2(90, 140)),
                 "characters.next");
             var name = Line("NameText", detail, font, 52, TextAnchor.MiddleLeft, Color.white, 40, -610, 440, 70);
             var rarity = Line("RarityText", detail, font, 38, TextAnchor.MiddleLeft, Gold, 40, -610, 200, 70);
@@ -76,9 +76,9 @@ namespace BunDauPeo.EditorTools
             var speed = Line("SpeedText", detail, font, 34, TextAnchor.MiddleLeft, Color.white, 40, -850, 300, 50);
 
             // Phải: hai tab và nội dung của tab.
-            var levelTab = Labeled(GachaSceneBuilder.NewButton("LevelTabButton", detail, sprite, font, "", ButtonColor, TopLeft, new Vector2(760, -150), new Vector2(320, 90)),
+            var levelTab = Labeled(GachaSceneBuilder.NewButton("LevelTabBtn_PH_320x90", detail, sprite, font, "", ButtonColor, TopLeft, new Vector2(760, -150), new Vector2(320, 90)),
                 "characters.tab_level");
-            var starTab = Labeled(GachaSceneBuilder.NewButton("StarTabButton", detail, sprite, font, "", TabColor, TopLeft, new Vector2(1100, -150), new Vector2(320, 90)),
+            var starTab = Labeled(GachaSceneBuilder.NewButton("StarTabBtn_PH_320x90", detail, sprite, font, "", TabColor, TopLeft, new Vector2(1100, -150), new Vector2(320, 90)),
                 "characters.tab_star");
 
             var levelGroup = GachaSceneBuilder.NewRect("LevelGroup", detail);
@@ -88,7 +88,7 @@ namespace BunDauPeo.EditorTools
             var levelCap = Line("LevelCapText", levelGroup, font, 36, TextAnchor.MiddleLeft, Gold, 0, -170, 1120, 60);
             var potion = Line("PotionText", levelGroup, font, 38, TextAnchor.MiddleLeft, Color.white, 0, -250, 1120, 60);
             var coin = Line("CoinText", levelGroup, font, 38, TextAnchor.MiddleLeft, Color.white, 0, -320, 1120, 60);
-            var levelUp = GachaSceneBuilder.NewButton("LevelUpButton", levelGroup, sprite, font, "", ButtonColor, TopLeft, new Vector2(0, -420), new Vector2(760, 110));
+            var levelUp = GachaSceneBuilder.NewButton("LevelUpBtn_PH_760x110", levelGroup, sprite, font, "", ButtonColor, TopLeft, new Vector2(0, -420), new Vector2(760, 110));
             var levelUpLabel = levelUp.GetComponentInChildren<Text>();
 
             var starGroup = GachaSceneBuilder.NewRect("StarGroup", detail);
@@ -147,14 +147,14 @@ namespace BunDauPeo.EditorTools
             var root = GachaSceneBuilder.NewRect("LevelUpPopupRoot", canvas);
             GachaSceneBuilder.Stretch(root);
             GachaSceneBuilder.AddImage(root, null, Dim, raycast: true);
-            var box = GachaSceneBuilder.NewRect("LevelUpPopupBox", root);
+            var box = GachaSceneBuilder.NewRect("LevelUpPopupBox_PH_900x560", root);
             GachaSceneBuilder.Place(box, Center, Center, Vector2.zero, new Vector2(900, 560));
             GachaSceneBuilder.AddImage(box, sprite, Panel, raycast: false);
             var title = GachaSceneBuilder.NewLabel("TitleText", box, font, "level.up_title", 64, TextAnchor.MiddleCenter, Gold);
             GachaSceneBuilder.Place(title.rectTransform, TopLeft, TopLeft, new Vector2(50, -40), new Vector2(800, 90));
             var body = GachaSceneBuilder.NewText("BodyText", box, font, "", 40, TextAnchor.UpperCenter, Color.white);
             GachaSceneBuilder.Place(body.rectTransform, TopLeft, TopLeft, new Vector2(50, -160), new Vector2(800, 220));
-            var ok = Labeled(GachaSceneBuilder.NewButton("LevelUpOkButton", box, sprite, font, "", ButtonColor, BottomCenter, new Vector2(0, 40), new Vector2(320, 100)),
+            var ok = Labeled(GachaSceneBuilder.NewButton("LevelUpOkBtn_PH_320x100", box, sprite, font, "", ButtonColor, BottomCenter, new Vector2(0, 40), new Vector2(320, 100)),
                 "level.up_ok");
             NavBarBuilder.OverBar(root);
             root.GetComponent<Canvas>().sortingOrder = 20; // trên WorldScroll và các hộp khác của Lobby (cùng bậc 10)

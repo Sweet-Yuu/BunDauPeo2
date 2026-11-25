@@ -12,6 +12,7 @@ namespace BunDauPeo.UI
             ("level.up_title", "Lên cấp!", "Level up!"),
             ("level.up_body", "Cấp người chơi: {0}\nTrần cấp nhân vật: {0}\nThưởng: {1} Coin + {2} Thuốc EXP", "Player level: {0}\nCharacter level cap: {0}\nReward: {1} Coin + {2} EXP Potion"),
             ("level.up_ok", "OK", "OK"),
+            ("level.exp_gained", "EXP người chơi +{0}", "Player EXP +{0}"),
             ("characters.back", "Quay lại", "Back"),
             ("characters.detail_title", "Nâng cấp nhân vật", "Upgrade Character"),
             ("characters.tab_level", "Cấp", "Level"),

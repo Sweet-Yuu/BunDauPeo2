@@ -21,18 +21,24 @@ namespace BunDauPeo.Tests
         private CharactersView _view;
         private LevelConfig _levelConfig;
         private StarConfig _starConfig;
+        private PlayerSave _save;
+        private Wallet _wallet;
+        private bool _persistOk;
 
         [SetUp]
         public void SetUp()
         {
             var catalog = TestData.Catalog(CombatTestData.Hero("a"), CombatTestData.Hero("b"), CombatTestData.Hero("c"));
-            var save = new PlayerSave();
-            var wallet = new Wallet(save);
+            _save = new PlayerSave();
+            _wallet = new Wallet(_save);
+            var save = _save;
+            var wallet = _wallet;
+            _persistOk = true;
             var roster = new Roster(save, catalog);
             foreach (var id in new[] { "a", "b", "c" }) roster.Add(id);
             _levelConfig = ScriptableObject.CreateInstance<LevelConfig>();
             _starConfig = ScriptableObject.CreateInstance<StarConfig>();
-            var player = new PlayerLevelService(save, wallet, _levelConfig, () => true);
+            var player = new PlayerLevelService(save, wallet, _levelConfig, () => _persistOk);
             ServiceLocator.Clear();
             ServiceLocator.Register(roster);
             ServiceLocator.Register(wallet);
@@ -40,7 +46,7 @@ namespace BunDauPeo.Tests
             ServiceLocator.Register(_starConfig);
             ServiceLocator.Register(_levelConfig);
             ServiceLocator.Register(player);
-            ServiceLocator.Register(new CharacterLevelService(save, roster, wallet, catalog, _levelConfig, player, () => true));
+            ServiceLocator.Register(new CharacterLevelService(save, roster, wallet, catalog, _levelConfig, player, () => _persistOk));
 
             _canvas = new GameObject("TestCanvas", typeof(RectTransform), typeof(Canvas));
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -63,7 +69,7 @@ namespace BunDauPeo.Tests
         private T Find<T>(string name) where T : Component =>
             _panel.GetComponentsInChildren<T>(true).Single(c => c.name == name);
 
-        private GameObject DetailRoot => Find<RectTransform>("DetailRoot").gameObject;
+        private GameObject DetailRoot => Find<RectTransform>("DetailRoot_PH_1920x1080").gameObject;
         // Hai Text cùng tên "NameText" (thẻ và panel chi tiết): lấy cái nằm dưới DetailRoot.
         private string DetailNameText() =>
             DetailRoot.GetComponentsInChildren<Text>(true).Single(t => t.name == "NameText").text;
@@ -91,7 +97,7 @@ namespace BunDauPeo.Tests
         public void Detail_BackButton_ReturnsToList()
         {
             ClickCard(0);
-            Click("BackButton");
+            Click("CharBackBtn_PH_260x90");
 
             Assert.IsFalse(DetailRoot.activeSelf);
         }
@@ -103,11 +109,31 @@ namespace BunDauPeo.Tests
             Assert.IsTrue(Find<RectTransform>("LevelGroup").gameObject.activeSelf);
             Assert.IsFalse(Find<Button>("StarUpButton").gameObject.activeInHierarchy, "star up lives in the Star tab");
 
-            Click("StarTabButton");
+            Click("StarTabBtn_PH_320x90");
 
             Assert.IsFalse(Find<RectTransform>("LevelGroup").gameObject.activeSelf);
             Assert.IsTrue(Find<Button>("StarUpButton").gameObject.activeInHierarchy);
-            Assert.IsFalse(Find<Button>("LevelUpButton").gameObject.activeInHierarchy);
+            Assert.IsFalse(Find<Button>("LevelUpBtn_PH_760x110").gameObject.activeInHierarchy);
+        }
+
+        // Review 2: ví đổi (thuốc từ quán, tiêu Coin) không được xoá "chưa lưu được dữ liệu".
+        [Test]
+        public void Detail_StatusLine_SurvivesWalletChange()
+        {
+            _save.PlayerExp = _levelConfig.ExpToNext(1); // người chơi Lv2: nâng được
+            _wallet.Add(CurrencyType.ExpPotion, 10);
+            _wallet.Add(CurrencyType.Coin, 1000);
+            _persistOk = false;
+            ClickCard(0);
+
+            Click("LevelUpBtn_PH_760x110");
+            var expected = UiText.Get("characters.not_saved");
+            Assert.AreEqual(expected, Find<Text>("StarUpStatus").text);
+
+            _wallet.Add(CurrencyType.ExpPotion, 1);
+            _wallet.NotifyChanged();
+
+            Assert.AreEqual(expected, Find<Text>("StarUpStatus").text, "wallet change keeps the last result");
         }
 
         [Test]
@@ -115,11 +141,11 @@ namespace BunDauPeo.Tests
         {
             ClickCard(0);
 
-            Click("NextButton");
+            Click("CharNextBtn_PH_90x140");
             Assert.AreEqual("b", DetailNameText());
 
-            Click("PrevButton");
-            Click("PrevButton");
+            Click("CharPrevBtn_PH_90x140");
+            Click("CharPrevBtn_PH_90x140");
             Assert.AreEqual("c", DetailNameText(), "wraps around");
         }
     }

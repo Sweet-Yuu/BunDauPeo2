@@ -156,7 +156,7 @@ namespace BunDauPeo.Combat
             session.EntryPaid = true;
             // Lưu trước, rồi mới có trận (như cũ): lưu ném lỗi thì không có trận nửa vời.
             // Vào trận thành công: mỗi điểm thể lực tiêu là 1 EXP người chơi (lưu cùng lần _apply bên dưới).
-            _playerLevel.AddExp(stage.StaminaCost, persist: false);
+            _playerLevel.AddExp(payload.StaminaCost, persist: false);
             var saved = _apply(response.State);
             Current = session;
             return new EnterStageResult(EnterStageStatus.Entered, session, stage.StaminaCost, saved);
