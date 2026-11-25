@@ -79,7 +79,7 @@ flowchart TD
 | Hộp Xoá tài khoản | Menu → nút **Xoá tài khoản** (ngay dưới Reset, cùng cỡ, chữ đỏ) | Huỷ → Menu; Xoá → về **Tiêu đề**, chạm vào là người chơi mới | — | đang làm, O1 (nhánh `feature/online-1`, ảnh `online1-delete-account*.png`): hộp xác nhận đỏ "Xoá vĩnh viễn tài khoản và mọi dữ liệu, kể cả liên kết Google. Không lấy lại được.", nút [Xoá] [Huỷ]. Đường xoá trong app theo luật Google Play |
 | Hồ sơ | bấm avatar | Đóng → Lobby | — (thiếu) | có, **hộp giữa màn 1200×800**: tên sửa được (tối đa 12 ký tự, rỗng thì "Người chơi" / "Player"), lưới nhân vật đang sở hữu để đổi avatar; Reset xoá cả hai. O1 (đang làm, ảnh `online1-profile*.png`): dòng **"ID: <PlayerId>"** + nút **Sao chép** ("Đã chép" 2 giây), ở cột trái dưới dòng "Tối đa 12 ký tự". O3: dòng **Tài khoản**: "Chưa liên kết" + nút **Liên kết tài khoản** (hộp chọn Google / tên đăng nhập + mật khẩu), hoặc "Đã liên kết: …" |
 | Nhiệm vụ | nút tròn Nhiệm vụ ở Lobby; dòng Đi tới của việc tân thủ | Quay lại → Lobby | `hub-missions.png`, `hub-missions-daily.jpg`, `hub-missions-normal.jpg` | mới, O3, trang kín màn: tab Ngày / Tân thủ (số đỏ = số dòng nhận được); mỗi dòng nhãn, tên, thanh tiến độ, thưởng, nút **Đi tới** (chưa đủ) → **Nhận** (đủ) → **Đã nhận** (xám, tắt); việc khung giờ có "Chưa tới giờ"/"Đã lỡ"; việc khoá "Sắp có". Hàng dưới: Còn lại hh:mm (tab Ngày), Hoàn thành x/y, **Nhận hết** theo tab. Nhận thể lực chạm trần 999 thì hộp xác nhận. Không có thanh mốc, không tab Thành tựu. Luật ở [game-design](game-design.md#nhiệm-vụ); ảnh mô phỏng ở [spec con O3 mục 8.1](../superpowers/specs/2026-11-21-online-3-design.md) chờ user duyệt |
-| Hộp thư | nút tròn Hộp thư (hình phong thư) ở Lobby; O4: dòng "quà chưa nhận" của Thông báo | Quay lại → Lobby | `hub-mailbox-en.png`, `restaurant-layout-target-en.png` (nút) | mới, O3, trang kín màn: danh sách thư trái, nội dung phải, Đính kèm, Nhận, **Nhận hết**, **Xoá đã đọc**, "Số lượng x/500", dấu ghim, chấm chưa đọc. O3 chỉ có **thư ghim "Liên kết tài khoản"** (không xoá được, biến mất sau khi liên kết, nút Liên kết). O4 thêm thư quà từ server. Ảnh mô phỏng ở [spec con O3 mục 8.2](../superpowers/specs/2026-11-21-online-3-design.md) |
+| Hộp thư | nút tròn Hộp thư (hình phong thư) ở Lobby; O4: dòng "quà chưa nhận" của Thông báo | Quay lại → Lobby | `hub-mailbox-en.png`, `restaurant-layout-target-en.png` (nút) | mới, O3, trang kín màn: danh sách thư trái, nội dung phải, Đính kèm, Nhận, **Nhận hết**, **Xoá đã đọc**, "Số lượng x/500", dấu ghim, chấm chưa đọc. O3 chỉ có **thư ghim "Liên kết tài khoản"** (không xoá được, biến mất sau khi liên kết, nút Liên kết). O4 thêm **thư quà từ server** (đính kèm, hạn, Nhận, Nhận hết; đã nhận thì mờ; chấm đỏ nút khi có thư chưa đọc hoặc quà chưa nhận; ảnh mô phỏng ở [spec con O4 mục 6](../superpowers/specs/2026-11-25-online-4-design.md)). Ảnh mô phỏng ở [spec con O3 mục 8.2](../superpowers/specs/2026-11-21-online-3-design.md) |
 | Panel DEV | Menu → DEV; menu tạm dừng trong trận → Cài đặt | Đóng | — | có: Chiến đấu thử, Màn thử, Hồi thể lực, +Material, +Gem, Tua AFK, Ngôn ngữ, Reset, Đóng |
 | Hội | — | — | — | sau 31/12, nút tròn chưa dựng |
 | Thông báo tin từ server | — | — | — | bỏ khỏi bản 31/12 ([ideas](ideas.md#để-sau)) |
@@ -137,8 +137,8 @@ Có từ UI hub đợt C. Bấm thì hiện hộp thả xuống dưới nút, n�
 | Coin AFK chờ thu | về Lobby, mở popup thu AFK |
 | Thể lực đầy | mở Chọn chế độ |
 | Nhân vật đủ mảnh nâng sao | mở Nhân vật, chọn sẵn người đầu tiên đủ mảnh |
-| Phần thưởng nhiệm vụ chưa nhận (O4) | mở Nhiệm vụ, tab có thưởng |
-| Quà chưa nhận (O4) | mở Hộp thư |
+| Phần thưởng nhiệm vụ chưa nhận (O4) | mở Nhiệm vụ, tab Ngày nếu có thưởng, không thì Tân thủ |
+| Quà chưa nhận (O4) | mở Hộp thư, chọn thư quà đầu tiên chưa nhận |
 
 ## Luật đổi theo luồng màn
 
@@ -154,7 +154,6 @@ User thả vào `ReferenceImages/` theo tên gợi ý, agent cập nhật [ui-sc
 
 | Màn | Cần ảnh gì | Tên gợi ý |
 |---|---|---|
-| Hộp thư, trạng thái có thư quà (cần cho O4) | thư có đính kèm: nút Nhận, hạn | `hub-mailbox-gift.png` |
 | Shop | trang shop chính: các ô gói, giá, ô xem quảng cáo nhận Gem | `shop-main.jpg` |
 | Menu | popup hoặc trang menu: danh sách mục, nút đóng | `menu-popup.jpg` |
 | Cài đặt | trang cài đặt: ngôn ngữ, âm thanh | `menu-settings.jpg` |
