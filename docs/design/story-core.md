@@ -2,7 +2,7 @@
 
 > **Đọc khi:** viết spec/lời thoại cốt truyện, đặt tên nhân vật hoặc màn, quyết hình ảnh ngụ ý trong game.
 > **Cập nhật khi:** user đổi cốt truyện. Chỉ **user** quyết nội dung. Bản đầy đủ do user viết ở Google Doc [Cốt truyện chung](https://docs.google.com/document/d/11xYNGNT-7Y0c_pZYfnsX7ocY4AjaBF3HpgQcx3hucFo/edit) (nguồn sự thật); file này là bản tóm tắt cho agent, **chép lại khi doc đổi**.
-> Trạng thái: user chốt khung 2026-11-26. **Chưa chia chương** (có Chương 0 mở đầu, mục dưới); chưa có spec hội thoại mới. Thay hướng cũ (Péo chủ quán, Hợp chất X, địch toàn tôm) của [spec Ch1 cũ](../superpowers/specs/2026-11-21-story-ch1-design.md).
+> Trạng thái: user chốt khung 2026-11-26. **Chưa chia Chương 1** (Chương 0 mở đầu đã có khung chapter, mục dưới); chưa có spec hội thoại mới. Thay hướng cũ (Péo chủ quán, Hợp chất X, địch toàn tôm) của [spec Ch1 cũ](../superpowers/specs/2026-11-21-story-ch1-design.md).
 
 ## Nguyên tắc
 
@@ -35,16 +35,29 @@ Bản 31/12 **mở bằng Chương 0**, trước Chương 1 (hồi ức và hai 
 
 - **Nội dung:** người chơi tìm hiểu thế giới mới (Threat City), làm quen nhân vật đầu game (sên biển), hiểu lịch sử và vấn đề hiện tại: thế giới bị **sinh vật biển giáp xác** đánh hoang tàn.
 - **Mục tiêu và gameplay:** người chơi lập **quán bún đậu mắm tôm** làm chỗ **tình báo**, trinh sát vị trí kẻ địch để đánh bại chúng, giải cứu **người dân thân mềm** và bảo vật.
+- **Cấu trúc Chương 0 (user chốt 2026-11-26, tham khảo nhịp kể Main Story Princess Connect Re:Dive chương 1; chỉ lấy cấu trúc, không lấy nhân vật hay tình tiết):** mỗi **nhịp** là một **chapter riêng có tiêu đề riêng và map riêng** (nhiều map hơn thay vì một map dài). Tên chapter dưới đây là **nháp của 🎨, user sửa**:
+
+| Chapter | Tiêu đề nháp | Nhịp | Nội dung |
+|---|---|---|---|
+| 0-1 | Tỉnh dậy ở Threat City | Mất trí nhớ, hết tiền, đi làm | Péo tỉnh dậy, con **sên biển** dẫn đường (đã chốt); lang thang; hết tiền nên mở quán bún đậu mắm tôm (dạy cơ chế quán) |
+| 0-2 | Kho mắm có khách lạ | Ủy thác đầu, bí ẩn nhỏ | Một **người dân thân mềm** trốn trong kho nguyên liệu, kể về giáp xác; nguồn tình báo đầu tiên của quán |
+| 0-3 | Tiếng giáp xác lạo xạo | Tấn công | Giáp xác tập kích quán, trận đầu tiên (dạy đánh theo lượt) |
+| 0-4 | Vòng vây | Leo thang | Bị bao vây; trinh sát mở ra vị trí kẻ địch |
+| 0-5 | Thủ lĩnh giáp xác | Kẻ địch lộ mặt | **Kết chương bằng một trận thủ lĩnh** (user chốt) |
+| 0-6 | Quãng nghỉ | Tổng kết | Sau trận thủ lĩnh mới tới đây: tóm tắt, nhắc lịch sử, mở hướng sang Chương 1 (hồi ức). Chỉ truyện, không trận |
+
+- **Người dân thân mềm** (user chốt): vừa là NPC cốt truyện vừa có thể là nhân vật gacha mở khoá (cách mở khoá: TODO(user)).
 - **Ghi chú của 🎨 (gợi ý, chưa quyết):**
   - Phe địch giáp xác (tôm, cua...) khớp với phe địch toàn tôm trong roadmap cũ; người dân thân mềm khớp với sên biển là nhân vật đầu tiên. Có thể giữ đổi quái sang tôm/giáp xác cho Chương 0.
   - Quán làm tình báo là cơ chế mới (trinh sát) trên nền quán hiện có: cần spec riêng để biết khách/nhân viên tạo ra thông tin gì và nó mở màn đánh ra sao.
+  - **Nhiều chapter = Combat phải hỗ trợ nhiều chương** (hiện luật "1 chương, 7 nút", [game-design](game-design.md#màn-chơi) ghi "chưa làm nhiều chương"): cần màn chọn chapter, mỗi chapter một map, tiến độ mở theo chapter. Việc này nằm ngoài spec cốt truyện, ảnh hưởng tiến độ 31/12; 🧭 báo CEO.
   - Cách Péo chuyển sinh: 🧭 đã mở thẻ 🎨 "Thế giới chuyển sinh" để user mô tả; chờ kết quả.
   - Chương 0 vẫn dùng hệ thống hội thoại của spec cũ (mục 3–6).
 
 ## Còn mở (TODO(user))
 
 - Tên Hán-Việt của Péo (theo tính cách thấu tình đạt lý) và nét ngoại hình thành biệt danh "Péo" (mũm mĩm).
-- Số chương và chương nào là "chương cuối" (hồi ức dồn ở chương cuối); chia chương, rẽ nhánh.
+- Chia Chương 1 (hồi ức) thành chapter; số node mỗi chapter; chương nào là "chương cuối".
 - Boss và nhân vật gacha ở thế giới mới; phe địch đã nghiêng về sinh vật biển giáp xác (Chương 0), cần user chốt loại và tên; tên phần quà thành tựu của hai nhánh.
 - **Hoa khôi: hold** (có cốt truyện riêng nối tiếp sau, chưa dùng ở đây).
 - Tên Zola, Y, TikTak đổi đủ xa thương hiệu thật.
