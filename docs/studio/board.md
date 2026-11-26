@@ -13,7 +13,7 @@ _Cập nhật 2026-11-26 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **🧭 Online · 🔨 O4-b** (cấp 2026-11-26). O4-a xong code Task 1–3 (EditMode 1295, dotnet 22); Task 3 Step 6 (deploy `development` + gọi thật) chờ user cho phép và tạo Custom data `gifts/list` trên Dashboard. PR #24 Cấp nhân vật merge `4cea38c` (user duyệt 2026-11-26). Nhánh `feature/online-4` CEO cắt từ `main` `4cea38c`, checkout chung đang ở nhánh này. Hàng chờ (user chốt 2026-11-25): O4-a → O4-b (spec `cc02734`/`69f6def` trên `claude/gallant-gagarin-27d560`) → Thời tiết → Vẽ lại quán. Cốt truyện rút khỏi hàng (user đổi cốt truyện 2026-11-26, chờ chia chương + 🎨 viết lại spec).
+Đang giữ: **🧭 Online · 🔨 O4-b** (cấp 2026-11-26). O4-a xong code Task 1–3 (EditMode 1295, dotnet 22); Task 3 Step 6 (deploy `development` + gọi thật) chờ user cho phép và tạo Custom data `gifts/list` trên Dashboard. PR #24 Cấp nhân vật merge `4cea38c` (user duyệt 2026-11-26). Nhánh `feature/online-4` CEO cắt từ `main` `4cea38c`, checkout chung đang ở nhánh này. Hàng chờ (user chốt 2026-11-25): O4-a → O4-b (spec `cc02734`/`69f6def` trên `claude/gallant-gagarin-27d560`) → Thời tiết → Nhiều chương → Cốt truyện → Vẽ lại quán (user chốt 2026-11-26; Vẽ lại quán cắt trước nếu trễ). Nhiều chương và Cốt truyện chờ spec 🎨; spec chưa xong thì lượt đó nhường cho việc kế.
 
 ## Luồng
 
@@ -41,7 +41,7 @@ _Cập nhật 2026-11-26 bởi 👑 CEO #1._
 - Đăng nhập Google (O3-c Task 10): user chốt 2026-11-24 dời sang sau, không vá gradle, không lên Unity 6.5 (plugin cần 6.5+). Cần trước CH Play công khai; itch.io 31/12 không cần.
 - APK Development 54,3 MB, +18% so với 2026-11-07 (vượt ngưỡng 10%; gồm Online đợt 1–3, chưa tách nguyên nhân): kiểm ở 🚀 Phát hành trước thử kín.
 - Thứ tự khoá Unity sau PR #22 (user chốt 2026-11-21): Online O3-a → O3-b → O3-c → Cấp nhân vật #1 → #2 → Thời tiết → Cốt truyện → Vẽ lại quán. Cấp nhân vật cắt nhánh từ nhánh O3 (hoặc `main` sau khi O3 merge) vì sửa cùng `CompleteStage`/`GameData`. Tab Thành tựu: luồng Online, sau 31/12 (user chốt 2026-11-21).
-- Cốt truyện mới (2026-11-26): user chốt bản 31/12 giữ **chương 1 mới**; chờ user viết xong + chia chương rồi 🎨 viết lại spec, sau đó xếp lại vào hàng khoá. `vision.md` dòng Cốt truyện Ch1 (nhánh `docs/cot-truyen-spec`) còn tả cốt truyện cũ, 🎨 sửa. Đổi tên Zola/Y/TikTak xa thương hiệu thật.
+- Cốt truyện mới (2026-11-26): user chốt bản 31/12 giữ chương mới, Chương 0 chia nhiều chapter (khung 6), **bản 31/12 chỉ cần 2–3 chapter tối thiểu**, hệ thống nhiều chapter làm đủ, chapter sau thêm bằng dữ liệu; chờ user viết xong + chia chương rồi 🎨 viết lại spec, sau đó xếp lại vào hàng khoá. `vision.md` dòng Cốt truyện Ch1 (nhánh `docs/cot-truyen-spec`) còn tả cốt truyện cũ, 🎨 sửa. Đổi tên Zola/Y/TikTak xa thương hiệu thật.
 - Giá nâng cấp (quán bằng Material, nhân vật bằng Coin) mới nằm ở `ideas.md`, chưa xếp roadmap.
 
 ## Lưu ý vận hành
