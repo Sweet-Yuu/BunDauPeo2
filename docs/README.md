@@ -10,6 +10,7 @@ Tài liệu được chia nhỏ để agent chỉ nạp đúng thứ cần cho t
 | Làm / sửa gameplay, tính năng mới | vision → [design/game-design.md](design/game-design.md) → [roadmap.md](roadmap.md) → [project/structure.md](project/structure.md) → [guides/code-style.md](guides/code-style.md) |
 | Cân bằng số liệu, hỏi luật chơi | [design/game-design.md](design/game-design.md) |
 | Luồng màn (Lobby đi đâu, nút nào, quay về ra sao), sổ ý tưởng | [design/screen-flow.md](design/screen-flow.md), [design/ideas.md](design/ideas.md) |
+| Cốt truyện gốc của Péo (user viết, tóm tắt cho agent) | [design/story-core.md](design/story-core.md) |
 | Triển khai theo spec / kế hoạch | `superpowers/specs/`, `superpowers/plans/` (xem link trong [roadmap.md](roadmap.md)) |
 | Đo dung lượng build, Profiler, ngưỡng hiệu năng | [studio/performance.md](studio/performance.md) |
 | Chọn model, effort, subagent hay native | [studio/agent-routing.md](studio/agent-routing.md) |

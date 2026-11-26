@@ -1,5 +1,7 @@
 # Spec: Cốt truyện Chương 1 (Péo, Hợp chất X, địch toàn tôm)
 
+> ⚠ **Tạm dừng 2026-11-26: user đổi cốt truyện** (Péo thành nhân vật chuyển sinh, hồi ức và hai nhánh kết; xem [story-core.md](../../design/story-core.md)). Mục 1–2 (kịch bản Hợp chất X, tôm), mục 7 (đổi quái sang tôm) và phụ lục **lỗi thời, không làm**. Mục 3–6 và 8–9 (dữ liệu hội thoại, `SeenStoryScenes`, màn hội thoại, thoại trước/sau trận, ô Cốt truyện, Log/Auto) **giữ nguyên làm nền**; viết lại spec khi user chốt chia chương.
+
 > Ngày: 2026-11-21 · Trạng thái: **user duyệt spec, kế hoạch, ảnh mô phỏng và lời thoại nháp 2026-11-21** · Phạm vi: Combat (`StageDefinition`, quái mẫu), UI (màn hội thoại, ô Cốt truyện), `PlayerSave`, `ProjectSetup`
 > Nguồn: [roadmap](../../roadmap.md) dòng Cốt truyện Chương 1, [D-005](../../decisions/decisions.md), [spec Combat](2026-11-02-combat-design.md), [spec Online đợt 2](2026-11-16-online-2-design.md) (`CompleteStory`, `ClearedStages` do server giữ). Kế hoạch: [story-ch1](../plans/2026-11-21-story-ch1.md). Ảnh tham khảo: `ReferenceImages/story-dialogue-en.webp`.
 
@@ -164,6 +166,8 @@ EditMode trong `BunDauPeo.Tests`; đồng hồ không cần. Danh sách cụ th�
 `roadmap.md` (đã làm / chuyển Đã xong), `game-design.md` mục Màn chơi (bỏ "giữ chỗ", ghi luật thoại), `screen-flow.md` (ô Cốt truyện, màn hội thoại), `docs/references/ui-screens.md` (dòng Cốt truyện), `docs/project/structure.md`, lesson nếu có.
 
 ## Phụ lục: lời thoại nháp (🎨 viết, chờ user sửa)
+
+> **Nguồn lời thoại thật là [design/story-ch1.md](../../design/story-ch1.md)** (user sửa ở đó). Bản dưới chỉ là nháp ban đầu; khi hai bản khác nhau thì `story-ch1.md` thắng, 🔨 nạp từ đó vào `ProjectSetup`.
 
 Người nói: **Péo** (trái), **Tép Nhảy** / **Tôm Chúa** (phải). Mỗi dòng: Việt / Anh.
 
