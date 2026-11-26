@@ -82,7 +82,8 @@ Chi tiết và số khởi điểm: [spec Combat](../superpowers/specs/2026-11-0
 - MVP có **1 chương: 5 màn đánh và 2 màn cốt truyện**, 7 nút nối nhau trên bản đồ. Màn mở theo thứ tự; màn đã clear luôn mở.
 - **Màn cốt truyện** không thưởng, không tốn thể lực; hiện còn là nút giữ chỗ (bấm Tiếp tục là clear). Hội thoại thật (Chương 1: Péo, Hợp chất X, phe địch toàn tôm, boss Tôm Chúa) đã có spec, user chốt 2026-11-21: chiếu hội thoại rồi clear; thoại trước/sau ở một số trận đánh (1-5) chỉ tự chiếu một lần, thoại trước chiếu sau khi vào trận (thể lực đã trừ); xem lại ở ô Cốt truyện. Xem [spec Cốt truyện Ch1](../superpowers/specs/2026-11-21-story-ch1-design.md).
 - Vào một màn đánh cần: màn đã mở, đủ thể lực, đội có ít nhất 1 người (dưới 5 người thì hỏi xác nhận, xem [Nhân vật](#nhân-vật)). Thể lực bị trừ ngay khi vào, xem [Thể lực](#thể-lực).
-- Chưa làm: nhiều chương, độ khó Hard, quét nhanh, tự tiến màn tiếp theo.
+- **Nhiều chương/chapter** (user chốt 2026-11-26, thiết kế chưa làm: [spec](../superpowers/specs/2026-11-26-multi-chapter-design.md)): màn nhóm thành **chapter** (mỗi chapter một tiêu đề, một map, có thể hơn 5 nút), kết bằng một **trận thủ lĩnh**; chapter quãng nghỉ chỉ có màn truyện. Bản đồ là một màn duy nhất, người chơi đổi chapter bằng banner ◀ ▶ "Chương X · Chapter Y" ở góc trái dưới. Chapter sau mở khi màn cuối chapter trước clear (cùng luật mở theo thứ tự, không thưởng riêng khi clear chapter, không field save mới, server không đổi). Bản 31/12 cần tối thiểu 2–3 chapter của Chương 0. Mở khoá nhân vật thân mềm theo chapter: để sau ([ideas](ideas.md)).
+- Chưa làm: độ khó Hard, quét nhanh, tự tiến màn tiếp theo.
 
 ## Thể lực
 

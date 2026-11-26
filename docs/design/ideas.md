@@ -15,6 +15,8 @@ Mỗi ý ghi ngày và người đề xuất. Luồng màn ở [screen-flow.md](
 
 ## Để sau
 
+- **Mở khoá nhân vật người dân thân mềm theo chapter** (🎨 đề xuất, user chốt để ngoài 2026-11-26). Ngoài [spec Nhiều chương](../superpowers/specs/2026-11-26-multi-chapter-design.md). Tặng thẳng khi clear chapter cần lệnh server mới (chạm luật server/dữ liệu có giá trị); thưởng mảnh nhân vật ở màn thủ lĩnh dùng được đường thưởng có sẵn. `TODO(user)`: chọn cách khi spec Cốt truyện chốt người dân nào là nhân vật gacha.
+
 - **Thông báo tin từ server** (🎨, user đồng ý 2026-11-09). Bỏ khỏi bản 31/12 (user chốt 2026-11-13), vẫn để sau.
 - **Hội (Clan)** (🎨, user đồng ý 2026-11-09). Sau 31/12 (user chốt 2026-11-13); nút tròn chưa dựng.
 - **Xếp hạng, PvP** (user, 2026-11-13): sau 31/12.

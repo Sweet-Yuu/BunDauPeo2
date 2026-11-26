@@ -50,7 +50,7 @@ Bản 31/12 **mở bằng Chương 0**, trước Chương 1 (hồi ức và hai 
 - **Ghi chú của 🎨 (gợi ý, chưa quyết):**
   - Phe địch giáp xác (tôm, cua...) khớp với phe địch toàn tôm trong roadmap cũ; người dân thân mềm khớp với sên biển là nhân vật đầu tiên. Có thể giữ đổi quái sang tôm/giáp xác cho Chương 0.
   - Quán làm tình báo là cơ chế mới (trinh sát) trên nền quán hiện có: cần spec riêng để biết khách/nhân viên tạo ra thông tin gì và nó mở màn đánh ra sao.
-  - **Nhiều chapter = Combat phải hỗ trợ nhiều chương** (hiện luật "1 chương, 7 nút", [game-design](game-design.md#màn-chơi) ghi "chưa làm nhiều chương"): cần màn chọn chapter, mỗi chapter một map, tiến độ mở theo chapter. Việc này nằm ngoài spec cốt truyện, ảnh hưởng tiến độ 31/12; 🧭 báo CEO.
+  - **Nhiều chapter = Combat phải hỗ trợ nhiều chương.** Đã có spec riêng (user chốt 2026-11-26): [spec Nhiều chương](../superpowers/specs/2026-11-26-multi-chapter-design.md). Bản bắt buộc 31/12 là **2–3 chapter**; chia nội dung từng chapter vẫn thuộc spec Cốt truyện, sửa bảng chapter trong `ProjectSetup` (mục 8 của spec đó), không sửa code. Bản đồ gộp: không có màn danh sách chapter, đổi chapter bằng banner ◀ ▶ ở góc trái dưới.
   - Cách Péo chuyển sinh: 🧭 đã mở thẻ 🎨 "Thế giới chuyển sinh" để user mô tả; chờ kết quả.
   - Chương 0 vẫn dùng hệ thống hội thoại của spec cũ (mục 3–6).
 
