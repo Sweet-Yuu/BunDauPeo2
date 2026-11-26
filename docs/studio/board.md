@@ -13,7 +13,7 @@ _Cập nhật 2026-11-26 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **🧭 Online · 🔨 O4-a** (cấp 2026-11-26; Editor của user đang mở). PR #24 Cấp nhân vật merge `4cea38c` (user duyệt 2026-11-26). Nhánh `feature/online-4` CEO cắt từ `main` `4cea38c`, checkout chung đang ở nhánh này. Hàng chờ (user chốt 2026-11-25): O4-a → O4-b (spec `cc02734`/`69f6def` trên `claude/gallant-gagarin-27d560`) → Thời tiết → Cốt truyện → Vẽ lại quán.
+Đang giữ: **🧭 Online · 🔨 O4-b** (cấp 2026-11-26). O4-a xong code Task 1–3 (EditMode 1295, dotnet 22); Task 3 Step 6 (deploy `development` + gọi thật) chờ user cho phép và tạo Custom data `gifts/list` trên Dashboard. PR #24 Cấp nhân vật merge `4cea38c` (user duyệt 2026-11-26). Nhánh `feature/online-4` CEO cắt từ `main` `4cea38c`, checkout chung đang ở nhánh này. Hàng chờ (user chốt 2026-11-25): O4-a → O4-b (spec `cc02734`/`69f6def` trên `claude/gallant-gagarin-27d560`) → Thời tiết → Cốt truyện → Vẽ lại quán.
 
 ## Luồng
 
