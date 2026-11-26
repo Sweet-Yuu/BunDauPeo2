@@ -41,7 +41,7 @@ _Cập nhật 2026-11-26 bởi 👑 CEO #1._
 - Đăng nhập Google (O3-c Task 10): user chốt 2026-11-24 dời sang sau, không vá gradle, không lên Unity 6.5 (plugin cần 6.5+). Cần trước CH Play công khai; itch.io 31/12 không cần.
 - APK Development 54,3 MB, +18% so với 2026-11-07 (vượt ngưỡng 10%; gồm Online đợt 1–3, chưa tách nguyên nhân): kiểm ở 🚀 Phát hành trước thử kín.
 - Thứ tự khoá Unity sau PR #22 (user chốt 2026-11-21): Online O3-a → O3-b → O3-c → Cấp nhân vật #1 → #2 → Thời tiết → Cốt truyện → Vẽ lại quán. Cấp nhân vật cắt nhánh từ nhánh O3 (hoặc `main` sau khi O3 merge) vì sửa cùng `CompleteStage`/`GameData`. Tab Thành tựu: luồng Online, sau 31/12 (user chốt 2026-11-21).
-- Cốt truyện mới (2026-11-26): user chia chương; `vision.md` còn ghi Cốt truyện Ch1 trong MVP, chờ user chốt bản 31/12 có cốt truyện hay không; đổi tên Zola/Y/TikTak xa thương hiệu thật.
+- Cốt truyện mới (2026-11-26): user chốt bản 31/12 giữ **chương 1 mới**; chờ user viết xong + chia chương rồi 🎨 viết lại spec, sau đó xếp lại vào hàng khoá. `vision.md` dòng Cốt truyện Ch1 (nhánh `docs/cot-truyen-spec`) còn tả cốt truyện cũ, 🎨 sửa. Đổi tên Zola/Y/TikTak xa thương hiệu thật.
 - Giá nâng cấp (quán bằng Material, nhân vật bằng Coin) mới nằm ở `ideas.md`, chưa xếp roadmap.
 
 ## Lưu ý vận hành
