@@ -47,5 +47,10 @@ namespace BunDauPeo.Core
         Task<OnlineResult<CommandResponse>> GachaFreePullAsync(string requestId, string bannerId);
         Task<OnlineResult<CommandResponse>> DevResetMissionsAsync(string requestId);
         Task<OnlineResult<CommandResponse>> DevAddStaminaAsync(string requestId, int amount);
+
+        // Quà từ server (đợt 4). ListGifts không cần requestId và không đổi state; Claim* như ClaimMission.
+        Task<OnlineResult<CommandResponse>> ListGiftsAsync(string lang);
+        Task<OnlineResult<CommandResponse>> ClaimGiftAsync(string requestId, string giftId);
+        Task<OnlineResult<CommandResponse>> ClaimAllGiftsAsync(string requestId);
     }
 }

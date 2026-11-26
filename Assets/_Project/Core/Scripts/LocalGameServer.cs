@@ -276,6 +276,64 @@ namespace BunDauPeo.Core
             Command(nameof(DevAddStaminaAsync), requestId,
                 (s, c) => RejectDev ? HandlerOutcome.Reject(CommandCode.DevOnly) : ServerHandlers.DevAddStamina(s, _data, c, amount));
 
+        // Quà thô: test gán Gifts; không thì đọc GiftsPath (gifts.json cạnh save, cùng hình Dashboard). Không có file = rỗng; file hỏng = lỗi.
+        public List<GiftData> Gifts { get; set; }
+        public string GiftsPath { get; set; }
+
+        private bool LoadGifts(out List<GiftData> gifts)
+        {
+            gifts = Gifts ?? new List<GiftData>();
+            if (Gifts != null || string.IsNullOrEmpty(GiftsPath) || !System.IO.File.Exists(GiftsPath)) return true;
+            try
+            {
+                var wrapper = JsonUtility.FromJson<GiftJsonList>("{\"items\":" + System.IO.File.ReadAllText(GiftsPath) + "}");
+                if (wrapper?.items == null) return false;
+                gifts = new List<GiftData>();
+                foreach (var j in wrapper.items) gifts.Add(j?.ToGift());
+                return true;
+            }
+            catch (Exception e) when (e is ArgumentException || e is System.IO.IOException)
+            {
+                Debug.LogWarning("gifts.json unreadable: " + e.Message);
+                return false;
+            }
+        }
+
+        [Serializable]
+        private class GiftJsonList
+        {
+            public List<GiftJson> items;
+        }
+
+        public Task<OnlineResult<CommandResponse>> ListGiftsAsync(string lang)
+        {
+            CommandCalls++;
+            if (Refuse(nameof(ListGiftsAsync), out var status)) return Task.FromResult(OnlineResult<CommandResponse>.Fail(status));
+            if (!LoadGifts(out var gifts)) return Task.FromResult(OnlineResult<CommandResponse>.Fail(OnlineStatus.ServerError));
+            var ctx = NewContext();
+            var request = new ServerRequest { ProtocolVersion = ProtocolVersion, SessionId = _sessionId };
+            try
+            {
+                var response = CommandRunner.RunReadOnly(State, request, s => ServerHandlers.ListGifts(s, gifts, ctx, lang), o => JsonUtility.ToJson(o));
+                response.ServerUtcTicks = _utcNow().Ticks;
+                return Task.FromResult(OnlineResult<CommandResponse>.Success(response));
+            }
+            catch (ClientTooOldException)
+            {
+                return Task.FromResult(OnlineResult<CommandResponse>.Fail(OnlineStatus.ClientTooOld));
+            }
+        }
+
+        public Task<OnlineResult<CommandResponse>> ClaimGiftAsync(string requestId, string giftId) =>
+            !LoadGifts(out var gifts)
+                ? Task.FromResult(OnlineResult<CommandResponse>.Fail(OnlineStatus.ServerError))
+                : Command(nameof(ClaimGiftAsync), requestId, (s, c) => ServerHandlers.ClaimGift(s, gifts, c, giftId));
+
+        public Task<OnlineResult<CommandResponse>> ClaimAllGiftsAsync(string requestId) =>
+            !LoadGifts(out var gifts)
+                ? Task.FromResult(OnlineResult<CommandResponse>.Fail(OnlineStatus.ServerError))
+                : Command(nameof(ClaimAllGiftsAsync), requestId, (s, c) => ServerHandlers.ClaimAllGifts(s, gifts, c));
+
         private async Task<OnlineResult<CommandResponse>> Command(string name, string requestId,
             Func<ServerState, ServerContext, HandlerOutcome> handler)
         {

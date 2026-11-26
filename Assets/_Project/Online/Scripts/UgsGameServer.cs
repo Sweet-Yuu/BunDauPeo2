@@ -161,6 +161,15 @@ namespace BunDauPeo.Online
         public Task<OnlineResult<CommandResponse>> DevAddStaminaAsync(string requestId, int amount) =>
             Command(ServerProtocol.DevAddStamina, requestId, ("amount", amount));
 
+        public Task<OnlineResult<CommandResponse>> ListGiftsAsync(string lang) =>
+            Command(ServerProtocol.ListGifts, null, ("lang", lang ?? "vi"));
+
+        public Task<OnlineResult<CommandResponse>> ClaimGiftAsync(string requestId, string giftId) =>
+            Command(ServerProtocol.ClaimGift, requestId, ("giftId", giftId));
+
+        public Task<OnlineResult<CommandResponse>> ClaimAllGiftsAsync(string requestId) =>
+            Command(ServerProtocol.ClaimAllGifts, requestId);
+
         private Task<OnlineResult<CommandResponse>> Command(string name, string requestId, params (string key, object value)[] args) =>
             Run(name, async () =>
             {

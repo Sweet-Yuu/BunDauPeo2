@@ -38,6 +38,20 @@ namespace BunDauPeo.Rules
             };
         }
 
+        // Lệnh chỉ đọc (ListGifts): cùng kiểm phiên bản/NoState/phiên như Run, không cần RequestId, không ghi gì.
+        public static CommandResponse RunReadOnly(ServerState stored, ServerRequest request,
+            Func<ServerState, HandlerOutcome> handler, Func<object, string> toJson)
+        {
+            if (request.ProtocolVersion < ServerProtocol.MinProtocolVersion)
+                throw new ClientTooOldException(request.ProtocolVersion);
+            if (stored == null) return Reject(CommandCode.NoState).Response;
+            if (request.SessionId != stored.ActiveSessionId) return Reject(CommandCode.OtherDevice).Response;
+
+            var outcome = handler(stored.Clone());
+            if (outcome.Code != CommandCode.Ok) return Reject(outcome.Code).Response;
+            return new CommandResponse { Code = (int)CommandCode.Ok, ResultJson = outcome.Payload == null ? "" : toJson(outcome.Payload) };
+        }
+
         static CommandRun Reject(CommandCode code) =>
             new CommandRun { Response = new CommandResponse { Code = (int)code } };
     }

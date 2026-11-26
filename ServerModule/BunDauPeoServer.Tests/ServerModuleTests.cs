@@ -250,6 +250,7 @@ public class ServerModuleTests
             ActiveSessionId = "sess",
             LastRequestId = "r",
             LastResultJson = "{}",
+            ClaimedGiftIds = { "g" },
         };
 
         Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(ServerStateJsonSample.Expected));
@@ -288,6 +289,7 @@ public class ServerModuleTests
                  {
                      ServerProtocol.ClaimMission, ServerProtocol.ClaimAllMissions, ServerProtocol.GachaFreePull,
                      ServerProtocol.DevResetMissions, ServerProtocol.DevAddStamina,
+                     ServerProtocol.ListGifts, ServerProtocol.ClaimGift, ServerProtocol.ClaimAllGifts,
                  })
             Assert.That(names, Does.Contain(expected));
         Assert.That(ServerProtocol.Version, Is.EqualTo(3));
@@ -311,6 +313,58 @@ public class ServerModuleTests
         }
     }
 
+
+    sealed class FakeGiftSource(Func<IReadOnlyList<GiftData>> load) : IGiftSource
+    {
+        public Task<IReadOnlyList<GiftData>> LoadAsync() => Task.FromResult(load());
+    }
+
+    static string GiftJson(string id, string start = "2026-11-01T00:00:00Z", string end = "2026-12-01T00:00:00Z", string type = "Gem") =>
+        $"{{\"id\":\"{id}\",\"titleVi\":\"Qua\",\"titleEn\":\"Gift\",\"rewards\":[{{\"type\":\"{type}\",\"amount\":300}}],\"startUtc\":\"{start}\",\"endUtc\":\"{end}\"}}";
+
+    [Test]
+    public void Gifts_CorruptJson_ThrowsInsteadOfEmpty()
+    {
+        var source = new FakeGiftSource(() => GiftJsonParser.Parse("[{\"id\": oops"));
+        Assert.ThrowsAsync<JsonReaderException>(() =>
+            ServerModule.ListGiftsAsync(StoreWithGem(0), source, ServerProtocol.Version, "sess", "vi", () => Now));
+        Assert.Throws<JsonException>(() => GiftJsonParser.Parse("{\"id\":\"not an array\"}"));
+    }
+
+    [Test]
+    public async Task Gifts_ValidAndBroken_ListsOnlyValid()
+    {
+        var json = "[" + GiftJson("ok") + "," + GiftJson("BAD") + "," + GiftJson("badtype", type: "Diamond") + ","
+            + GiftJson("later", start: "2026-12-05T00:00:00Z", end: "2026-12-09T00:00:00Z") + ",{\"id\":\"x\",\"rewards\":\"nope\"}]";
+        var source = new FakeGiftSource(() => GiftJsonParser.Parse(json));
+
+        var response = await ServerModule.ListGiftsAsync(StoreWithGem(0), source, ServerProtocol.Version, "sess", "vi", () => Now);
+
+        Assert.That(response.Code, Is.EqualTo((int)CommandCode.Ok));
+        var rows = JsonConvert.DeserializeObject<GiftListPayload>(response.ResultJson)!.Gifts;
+        Assert.That(rows.Select(r => r.Id), Is.EqualTo(new[] { "ok" }));
+    }
+
+    [Test]
+    public async Task ClaimGift_ThroughExecute_Once_ReplayStored_OtherSessionRefused()
+    {
+        var gifts = GiftJsonParser.Parse("[" + GiftJson("ok") + "]");
+        var store = StoreWithGem(5);
+        var ctx = ServerModule.NewContext(Now);
+        Func<ServerState, HandlerOutcome> claim = s => ServerHandlers.ClaimGift(s, gifts, ctx, "ok");
+
+        var first = await ServerModule.Execute(store, Req("r1"), claim, () => Now);
+        var replay = await ServerModule.Execute(store, Req("r1"), claim, () => Now);
+        var again = await ServerModule.Execute(store, Req("r2"), claim, () => Now);
+        var other = await ServerModule.Execute(store, Req("r3", session: "other"), claim, () => Now);
+
+        Assert.That(first.Code, Is.EqualTo((int)CommandCode.Ok));
+        Assert.That(replay.ResultJson, Is.EqualTo(first.ResultJson));
+        Assert.That(again.Code, Is.EqualTo((int)CommandCode.AlreadyClaimed));
+        Assert.That(other.Code, Is.EqualTo((int)CommandCode.OtherDevice));
+        Assert.That(store.State!.Gem, Is.EqualTo(305));
+        Assert.That(store.Saves, Is.EqualTo(1));
+    }
     [Test]
     public async Task ClaimMission_ThroughExecute_WritesOnce_ReplayReturnsStoredResult()
     {
@@ -361,5 +415,5 @@ public static class ServerStateJsonSample
         + "\"GachaHistory\":[{\"Utc\":5,\"BannerId\":\"b\",\"Count\":1,\"CharacterIds\":[\"a\"]}],"
         + "\"Stamina\":{\"Current\":40,\"AnchorUtcTicks\":638700000000000123},\"ClearedStages\":[\"s1\"],"
         + "\"Missions\":{\"DailyDay\":740000,\"DailyWins\":2,\"DailyPulls\":1,\"DailyClaimed\":[\"d\"],\"FreePullDay\":739999,\"NewbieClaimed\":[\"n\"]},"
-        + "\"PendingTicket\":\"t\",\"PendingStageId\":\"s2\",\"ActiveSessionId\":\"sess\",\"LastRequestId\":\"r\",\"LastResultJson\":\"{}\"}";
+        + "\"PendingTicket\":\"t\",\"PendingStageId\":\"s2\",\"ActiveSessionId\":\"sess\",\"LastRequestId\":\"r\",\"LastResultJson\":\"{}\",\"ClaimedGiftIds\":[\"g\"]}";
 }

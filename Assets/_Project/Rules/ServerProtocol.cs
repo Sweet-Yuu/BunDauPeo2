@@ -24,6 +24,9 @@ namespace BunDauPeo.Rules
         public const string GachaFreePull = "GachaFreePull";
         public const string DevResetMissions = "DevResetMissions";
         public const string DevAddStamina = "DevAddStamina";
+        public const string ListGifts = "ListGifts";
+        public const string ClaimGift = "ClaimGift";
+        public const string ClaimAllGifts = "ClaimAllGifts";
 
         // Máy gửi Version; server từ chối bản dưới MinProtocolVersion (hàng rào bản cũ, spec con 3.3).
         public const int Version = 3;

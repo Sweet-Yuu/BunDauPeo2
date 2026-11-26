@@ -25,6 +25,7 @@ namespace BunDauPeo.Rules
         public string ActiveSessionId = "";
         public string LastRequestId = "";
         public string LastResultJson = "";
+        public List<string> ClaimedGiftIds = new();
 
         // Sao chép sâu: thêm field List mới mà quên chép thì ServerStateTests.Clone_IsDeep_ForEveryListField đỏ.
         public ServerState Clone()
@@ -44,6 +45,7 @@ namespace BunDauPeo.Rules
             c.Stamina = new StaminaState { Current = Stamina.Current, AnchorUtcTicks = Stamina.AnchorUtcTicks };
             c.ClearedStages = new List<string>(ClearedStages);
             c.Missions = Missions.Clone();
+            c.ClaimedGiftIds = new List<string>(ClaimedGiftIds);
             return c;
         }
 
