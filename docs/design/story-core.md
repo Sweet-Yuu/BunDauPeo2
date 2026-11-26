@@ -2,7 +2,7 @@
 
 > **Đọc khi:** viết spec/lời thoại cốt truyện, đặt tên nhân vật hoặc màn, quyết hình ảnh ngụ ý trong game.
 > **Cập nhật khi:** user đổi cốt truyện. Chỉ **user** quyết nội dung. Bản đầy đủ do user viết ở Google Doc [Cốt truyện chung](https://docs.google.com/document/d/11xYNGNT-7Y0c_pZYfnsX7ocY4AjaBF3HpgQcx3hucFo/edit) (nguồn sự thật); file này là bản tóm tắt cho agent, **chép lại khi doc đổi**.
-> Trạng thái: user chốt khung 2026-11-26. **Chưa chia chương**; chưa có spec hội thoại mới. Thay hướng cũ (Péo chủ quán, Hợp chất X, địch toàn tôm) của [spec Ch1 cũ](../superpowers/specs/2026-11-21-story-ch1-design.md).
+> Trạng thái: user chốt khung 2026-11-26. **Chưa chia chương** (có Chương 0 mở đầu, mục dưới); chưa có spec hội thoại mới. Thay hướng cũ (Péo chủ quán, Hợp chất X, địch toàn tôm) của [spec Ch1 cũ](../superpowers/specs/2026-11-21-story-ch1-design.md).
 
 ## Nguyên tắc
 
@@ -29,11 +29,23 @@ Doc của user là **bản gốc đầy đủ** (có cảnh nặng). **Trong gam
 
 **Bốn vật làm mảnh ký ức:** sên biển (nhân vật đầu tiên của người chơi), bún đậu mắm tôm (quán; mỗi món mở khoá một mảnh), con bướm (hình lặp lại ở menu, sự kiện), xe đạp (mảnh cuối hoặc phần quà thành tựu). Mảnh ký ức là phần thưởng cốt truyện sau trận quan trọng (boss).
 
+## Chương 0 "Sự khởi đầu" (🧭 báo user chốt 2026-11-26; chờ user xác nhận ở kênh 🎨)
+
+Bản 31/12 **mở bằng Chương 0**, trước Chương 1 (hồi ức và hai nhánh kết).
+
+- **Nội dung:** người chơi tìm hiểu thế giới mới (Threat City), làm quen nhân vật đầu game (sên biển), hiểu lịch sử và vấn đề hiện tại: thế giới bị **sinh vật biển giáp xác** đánh hoang tàn.
+- **Mục tiêu và gameplay:** người chơi lập **quán bún đậu mắm tôm** làm chỗ **tình báo**, trinh sát vị trí kẻ địch để đánh bại chúng, giải cứu **người dân thân mềm** và bảo vật.
+- **Ghi chú của 🎨 (gợi ý, chưa quyết):**
+  - Phe địch giáp xác (tôm, cua...) khớp với phe địch toàn tôm trong roadmap cũ; người dân thân mềm khớp với sên biển là nhân vật đầu tiên. Có thể giữ đổi quái sang tôm/giáp xác cho Chương 0.
+  - Quán làm tình báo là cơ chế mới (trinh sát) trên nền quán hiện có: cần spec riêng để biết khách/nhân viên tạo ra thông tin gì và nó mở màn đánh ra sao.
+  - Cách Péo chuyển sinh: 🧭 đã mở thẻ 🎨 "Thế giới chuyển sinh" để user mô tả; chờ kết quả.
+  - Chương 0 vẫn dùng hệ thống hội thoại của spec cũ (mục 3–6).
+
 ## Còn mở (TODO(user))
 
 - Tên Hán-Việt của Péo (theo tính cách thấu tình đạt lý) và nét ngoại hình thành biệt danh "Péo" (mũm mĩm).
 - Số chương và chương nào là "chương cuối" (hồi ức dồn ở chương cuối); chia chương, rẽ nhánh.
-- Phe địch, boss, nhân vật gacha ở thế giới mới (giữ tôm hay đổi); tên phần quà thành tựu của hai nhánh.
+- Boss và nhân vật gacha ở thế giới mới; phe địch đã nghiêng về sinh vật biển giáp xác (Chương 0), cần user chốt loại và tên; tên phần quà thành tựu của hai nhánh.
 - **Hoa khôi: hold** (có cốt truyện riêng nối tiếp sau, chưa dùng ở đây).
 - Tên Zola, Y, TikTak đổi đủ xa thương hiệu thật.
 - [vision.md](../vision/vision.md) dòng Cốt truyện Chương 1 đã cập nhật khớp file này (user duyệt 2026-11-26).
