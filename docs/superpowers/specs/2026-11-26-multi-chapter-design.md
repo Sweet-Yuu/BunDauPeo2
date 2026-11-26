@@ -28,7 +28,7 @@ Combat hiện có **1 chương cố định 7 nút** ([game-design, Màn chơi](
 | 5 | **Không có màn danh sách chapter riêng.** Chọn "Chương chính" vào thẳng Bản đồ; chọn chapter bằng **banner góc trái dưới có hai mũi tên ◀ ▶**, ghi rõ "Chương X · Chapter Y" | user |
 | 6 | Mỗi chapter **không bị giới hạn 5 nút**, có thể dài hơn (map kéo ngang) | user |
 
-Quyết định của 🎨 (user chưa nói, sửa được): vào lần đầu/sau Reset mở chapter đầu, các lần sau mở chapter có màn NEXT; chapter khoá chỉ hiện "???" và không tiết lộ tên; không có thưởng clear chapter; trận thủ lĩnh là cờ trên màn, không phải loại màn mới.
+Quyết định của 🎨 (user chưa nói, sửa được): vào lần đầu/sau Reset mở chapter đầu, các lần sau mở chapter có màn NEXT; chapter khoá chỉ hiện "???" và không tiết lộ tên; không có thưởng clear chapter; trận thủ lĩnh là cờ trên màn, không phải loại màn mới; **trong bảng seed chỉ chapter cuối (0-3) có thủ lĩnh**, chapter 0-1 và 0-2 kết bằng trận thường (seed chỉ để chạy thử, Cốt truyện quyết chapter nào có thủ lĩnh, `Validate` cho phép chapter không có `IsBoss`).
 
 ## 3. Các phương án đã cân
 
@@ -49,7 +49,7 @@ Quyết định của 🎨 (user chưa nói, sửa được): vào lần đầu/
 | `ChapterDefinition : GameDefinition` (mới) | `_part` (int, "Chương", Chương 0 = 0), `_number` (int, "Chapter" trong chương, từ 1), `_title`, `_titleEn`, `_summary`, `_summaryEn` (dùng ở phần Cốt truyện sau, có thể trống), `_stages` (`StageDefinition[]`, đúng thứ tự trên map), `_mapTint` (Color, nền map hình tạm), `_mapSprite` (Sprite, **trống**, chỗ để thay art thật; view dùng nếu có), `_nodePositions` (`Vector2[]`, **tuỳ chọn**, mức đầy đủ; trống = zíc-zắc mặc định) | `DisplayName` qua `GameLanguage.Pick`, cùng kiểu `StageDefinition` |
 | `ChapterCatalog : Catalog<ChapterDefinition>` (mới) | thứ tự mảng = thứ tự chapter | cùng kiểu `StageCatalog` |
 | `StageDefinition` (sửa) | thêm **cuối** `_isBoss` (bool) + thuộc tính `IsBoss` | giá trị lưu trong asset chỉ thêm ở cuối. Spec Cốt truyện thêm `_beforeScene/_afterScene` sau field này, thứ tự cuối do 🔨 làm sau giữ nguyên "chỉ thêm ở cuối" |
-| `CombatConfig` (sửa) | thêm **cuối** `_chapters` (`ChapterCatalog`) + `Chapters` | **tuỳ chọn**: null/rỗng thì toàn bộ `StageCatalog` là một chapter ảo (không banner) để test và fixture cũ không vỡ. `// shortcut: chapter ảo cho cấu hình thiếu catalog, gỡ khi mọi fixture có chapter` |
+| `CombatConfig` (sửa) | thêm **cuối** `_chapters` (`ChapterCatalog`) + `Chapters`, và `_maxStagesPerChapter` (int, khởi điểm 12, chỉ để cảnh báo) | **tuỳ chọn**: null/rỗng thì toàn bộ `StageCatalog` là một chapter ảo (không banner) để test và fixture cũ không vỡ. `// shortcut: chapter ảo cho cấu hình thiếu catalog, gỡ khi mọi fixture có chapter` |
 
 Nhãn hiển thị: `chapter.label` = "Chương {0} · Chapter {1}" / "Part {0} · Chapter {1}" (số lấy từ `_part`, `_number`). Tên màn trên map (vd "1-1") do `StageDefinition.DisplayName` như hiện nay; cách đánh số tên màn theo chapter do spec Cốt truyện quyết.
 
@@ -79,12 +79,13 @@ Nhãn hiển thị: `chapter.label` = "Chương {0} · Chapter {1}" / "Part {0} 
 - **Chapter mặc định khi mở Bản đồ:** chapter chứa màn NEXT (`StageMapView.NextStageIndex`); nếu mọi màn đã clear thì **chapter cuối**. Về từ Trận thì mở **chapter của màn vừa chơi** (mục 6.3).
 - **Chuyển chapter** (◀ ▶ trên banner): ▶ tới chapter kế kể cả khi nó `Locked` (để người chơi thấy còn nội dung), nhưng **không đi xa hơn chapter khoá đầu tiên** (▶ mờ). ◀ mờ ở chapter đầu.
 - **Chapter khoá:** banner hiện "Chương X · Chapter Y" và tiêu đề "???"; map không dựng nút, hiện một ô giữa map "Clear chapter {trước} để mở" (không lộ tên màn hay truyện). Chapter quãng nghỉ khoá cũng "???".
+- **Mỗi lần `Open()` Bản đồ tính lại chapter** (về từ Trận thì theo `focusStageId`, còn lại theo chapter chứa NEXT); không giữ chapter vừa xem giữa hai lần mở. `NextStageIndex` trả chỉ số **phẳng toàn cục**: view quy đổi sang chỉ số trong chapter (`IndexOfStage`) khi đặt dấu NEXT.
 - **Đủ thể lực, đội, thể lực trừ khi vào, thưởng, thoại**: giữ nguyên, không thuộc spec này.
 - **Màn Story trong chapter** (kể cả chapter chỉ-truyện): đi qua `StageMapView.OnNodeClicked` như hiện nay (spec Cốt truyện thay `StoryPlaceholderPopup` bằng hội thoại).
 
 ## 6. UI
 
-Ảnh tham khảo: `quest-stage-map.jpg`, `quest-stage-map-small-en.jpg` ([ui-screens](../../references/ui-screens.md)). Bản đồ vẫn là trang kín màn con của Chọn chế độ (spec UI hub C); Quay lại → Chọn chế độ như cũ. Hình chỉ là `Image` vuông/tròn/tam giác có sẵn; object chưa có hình đặt tên `<Tên>_PH_<rộng>x<cao>`.
+Ảnh mô phỏng user đã xem (3 trạng thái: đang mở, chapter khoá, chapter đầu): [2026-11-26-multi-chapter-mockup.html](2026-11-26-multi-chapter-mockup.html). Ảnh tham khảo: `quest-stage-map.jpg`, `quest-stage-map-small-en.jpg` ([ui-screens](../../references/ui-screens.md)). Bản đồ vẫn là trang kín màn con của Chọn chế độ (spec UI hub C); Quay lại → Chọn chế độ như cũ. Hình chỉ là `Image` vuông/tròn/tam giác có sẵn; object chưa có hình đặt tên `<Tên>_PH_<rộng>x<cao>`.
 
 ### 6.1 Bố cục Bản đồ (user duyệt hướng 2026-11-26; bản có mũi tên chờ duyệt lại)
 
@@ -108,7 +109,7 @@ Nhãn hiển thị: `chapter.label` = "Chương {0} · Chapter {1}" / "Part {0} 
 | Nền map | `MapBackground_PH` | `Image` phủ panel, màu = `Chapter.MapTint`; có `MapSprite` thì dùng sprite |
 | Vùng cuộn | `MapScroll_PH` | `ScrollRect` ngang quanh `_nodesRoot`; chỉ cuộn khi bề rộng nội dung > 1920; tới NEXT khi đổi chapter, về đầu khi chapter không có NEXT |
 | Nút màn | `Node{i}` (tái dùng pool, bật `n` nút đầu) | tái dùng `StageNodeView`; bố cục `NodeCenter(i)` zíc-zắc hiện có (bước 240, y 720/400), có `NodePositions` thì dùng toạ độ đó |
-| Nút thủ lĩnh | `BossNode_PH_160x160` | `Image` tròn viền vàng (hình tròn có sẵn), chữ "BOSS" nhỏ; bấm như màn đánh thường |
+| Nút thủ lĩnh | `BossNode_PH_160x160` | **biến thể trong cùng `StageNodeView` và cùng pool** (`Bind` đổi hình tròn + viền vàng + kích thước + chữ "BOSS" khi `IsBoss`, trả lại hình vuông khi không); không có template thứ hai. Bấm như màn đánh thường |
 | Banner | `ChapterBanner_PH_620x120` | góc trái dưới, cách mép 24 px, nền tối alpha 0,85, viền vàng khi chapter đang mở |
 | Mũi tên | `ChapterPrev_PH_88x88`, `ChapterNext_PH_88x88` | hai ô vuông (chữ ◀ ▶) hai đầu banner; mờ khi không đi tiếp được |
 | Nhãn | `ChapterLabel_PH` (dòng nhỏ "CHƯƠNG 0 · CHAPTER 2"), `ChapterTitle_PH` (tiêu đề / "???"), `ChapterProgress_PH` ("1/6 màn · Truyện" nếu chapter chỉ có truyện) | |
@@ -126,7 +127,7 @@ Thẻ "Chương chính" ở Chọn chế độ: giữ dòng NEXT hiện có (m�
 
 ### 6.3 Về từ Trận
 
-`BattleView`/`BattleResultView` gọi `HubNav.OpenOnNextLoad(HubTab.Stages, menu: false, stageMap: true)` ([BattleResultView.cs](../../../Assets/_Project/UI/Scripts/BattleResultView.cs), [BattleView.cs](../../../Assets/_Project/UI/Scripts/BattleView.cs)). Thêm tham số tuỳ chọn `focusStageId`; `StageMapView` mở chapter chứa id đó, thiếu thì chapter mặc định (mục 5). Cờ này chỉ sống một lần nạp scene, không lưu.
+`BattleView`/`BattleResultView` gọi `HubNav.OpenOnNextLoad(HubTab.Stages, menu: false, stageMap: true)` ([BattleResultView.cs](../../../Assets/_Project/UI/Scripts/BattleResultView.cs), [BattleView.cs](../../../Assets/_Project/UI/Scripts/BattleView.cs)). Thêm tham số tuỳ chọn `focusStageId`; `StageMapView` mở chapter chứa id đó, thiếu thì chapter mặc định (mục 5). Cờ này chỉ sống một lần nạp scene, không lưu. Đi qua `HubPending.Set/TryTake` (nơi `HubNav` giữ `stageMap`), nên thêm `focusStageId` ở cả hai chỗ.
 
 ## 7. Cấu trúc code
 
@@ -152,6 +153,10 @@ Bảng này để hệ thống chạy và test được **trước** khi spec C�
 | `ch0_3` | 0 · 3 | Thủ lĩnh giáp xác | `st_1_5` (`IsBoss`) |
 
 3 chapter = **mức tối thiểu** của user. Mức đầy đủ (6 chapter của story-core, thêm 0-4 Vòng vây, 0-5 Thủ lĩnh, 0-6 Quãng nghỉ chỉ truyện) cần thêm màn mới do spec Cốt truyện định; hệ thống không cần đổi code, chỉ thêm dòng vào bảng và asset màn.
+
+**Thứ tự và nhánh nền (🎨 quyết, theo hàng khoá):** Nhiều chương làm **trước** Cốt truyện. `docs/cot-truyen-spec` hiện chỉ chứa docs (spec/kế hoạch), code Cốt truyện chưa làm; nhánh `feature/multi-chapter` cắt từ `origin/main` sau khi Thời tiết merge. 🔨 Cốt truyện cắt sau khi nhánh này merge và áp kế hoạch của nó lên bảng chapter (thứ tự field cuối `StageDefinition`: `_isBoss`, rồi `_beforeScene`, `_afterScene`).
+
+`ProjectSetup` **sửa tại chỗ, idempotent** như các bảng hiện có (`GetOrCreateAsset` + `Apply`, `MigrateInt`): asset `st_1_*` và `StageCatalog` đã có giữ GUID/`.meta`, chỉ gán lại `_items`; không tạo lại, không xoá.
 
 **Xung đột cần 🔨 xếp thứ tự:** hàng khoá là Thời tiết → **Nhiều chương** → Cốt truyện → Vẽ lại quán. Spec Cốt truyện (nhánh `docs/cot-truyen-spec`, kế hoạch Task 2: đổi tên quái trong `ProjectSetup`; thêm `_beforeScene/_afterScene` cuối `StageDefinition`) và spec này cùng sửa `ProjectSetup` (`StageTable`) và `StageDefinition`; làm lần lượt, không song song. Khi 🔨 Cốt truyện làm sau, nó chỉ cần: đặt thoại vào màn, sửa bảng chapter nếu chia khác, và thay `StoryPlaceholderPopup` (mục 5). Việc **chia chapter nội dung và đánh số tên màn theo chapter** thuộc 🎨 Cốt truyện (spec này không giành việc đó).
 
@@ -193,7 +198,7 @@ Chạy `unity test . --mode EditMode` / `--mode PlayMode`. Đo GC (`GcMeasureTes
 
 - **Một danh sách phẳng là điều kiện mở khoá:** chèn màn mới vào giữa danh sách vẫn an toàn với người đã qua (màn đã clear luôn mở, `StageProgressService.GetStatus`), nhưng người chưa tới đó sẽ phải qua màn mới. Chèn chapter giữa các chapter đã có cũng thế; chấp nhận.
 - **`StageMapView` đang có `shortcut: đủ cho một chương 7 nút` và `NodeCenter` tĩnh:** thay bằng pool nút theo chapter; test phụ thuộc `NodeCenter(int)` và tên `Node{i}` cần sửa theo.
-- **Bản đồ cuộn trên nền panel kín màn:** kéo ngang có thể xung đột với vuốt đổi trang khác của hub; 🔨 kiểm khi dựng (spec UI hub C). Nút chapter nằm ngoài vùng cuộn nên bấm được khi đang cuộn.
+- **Bản đồ cuộn trên nền panel kín màn:** kéo ngang có thể xung đột với vuốt đổi trang khác của hub; 🔨 kiểm khi dựng (spec UI hub C). Nút chapter nằm ngoài vùng cuộn nên bấm được khi đang cuộn. **Tiêu chí:** nếu xung đột mà không gỡ được gọn, **bỏ cuộn, giới hạn chapter ≤ 7 nút** (vừa 1920 px) và báo 🧭; 3 chapter seed (tối đa 3 nút) không bị ảnh hưởng.
 - **Chapter chỉ-truyện lệ thuộc spec Cốt truyện:** tới lúc đó các màn Story vẫn là nút giữ chỗ, chapter 0-6 chưa có nội dung thật.
 - **Hiệu chỉnh UI:** ảnh mô phỏng là bản user đã nhìn hai lần (2026-11-26); khi dựng xong người thử chụp Bản đồ ở 3 tỉ lệ để user duyệt lại hình thật trước khi coi là xong.
 

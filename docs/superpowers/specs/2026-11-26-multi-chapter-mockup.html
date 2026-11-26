@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ảnh mô phỏng: Bản đồ nhiều chapter</title>
+<style>
+body{font-family:sans-serif;background:#18181d;color:#eee;margin:0;padding:16px}
+h2{font-size:15px;margin:18px 0 6px} p{font-size:12px;opacity:.75;margin:4px 0}
+.s{aspect-ratio:16/9;max-width:900px;border:1px solid #888;border-radius:8px;position:relative;overflow:hidden}
+.top{position:absolute;top:0;left:0;right:0;height:11%;background:#1b1b22;display:flex;align-items:center;padding:0 3%;font-size:13px;gap:8px}
+.top span.b{border:1px solid #bbb;padding:3px 10px;border-radius:4px}
+.ban{position:absolute;left:2%;bottom:3%;width:36%;background:#1b1b22ee;border:2px solid #ffd23f;border-radius:8px;display:flex;align-items:center;gap:8px;padding:8px}
+.ar{width:34px;height:34px;background:#333;border:1px solid #bbb;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ar.off{opacity:.3}
+.t{flex:1;text-align:center}.t small{display:block;font-size:10px;opacity:.7}.t b{font-size:13px}
+svg{position:absolute;inset:0;width:100%;height:100%}
+</style></head><body>
+<h1 style="font-size:18px">Bản đồ nhiều chapter: ảnh mô phỏng (user xem 2026-11-26)</h1>
+<p>Hình chỉ là vuông/tròn có sẵn của Unity. Tên object ở mục 6.1 của spec. Banner góc trái dưới có ◀ ▶; không có màn danh sách riêng.</p>
+
+<h2>1. Chapter đang mở (0-2), giữa chừng</h2>
+<div class="s" style="background:#3b3326">
+ <div class="top"><span class="b">◀ Quay lại</span><span style="flex:1"></span><span>⚡ 100/100</span></div>
+ <svg viewBox="0 0 800 450">
+  <g stroke="#ccc" stroke-width="4"><line x1="90" y1="250" x2="200" y2="170"/><line x1="200" y1="170" x2="310" y2="250"/></g>
+  <g stroke="#666" stroke-width="4"><line x1="310" y1="250" x2="420" y2="170"/><line x1="420" y1="170" x2="530" y2="250"/><line x1="530" y1="250" x2="640" y2="170"/><line x1="640" y1="170" x2="750" y2="250" stroke-dasharray="6 6"/></g>
+  <rect x="62" y="222" width="56" height="56" fill="#7fb069"/><rect x="172" y="142" width="56" height="56" fill="#7fb069"/>
+  <rect x="282" y="222" width="56" height="56" fill="#ffd23f"/><text x="310" y="212" fill="#ffd23f" font-size="12" text-anchor="middle">NEXT</text>
+  <rect x="392" y="142" width="56" height="56" fill="#777"/><rect x="502" y="222" width="56" height="56" fill="#777"/><rect x="612" y="142" width="56" height="56" fill="#777"/>
+  <circle cx="750" cy="250" r="34" fill="#8a3b3b" stroke="#ffd23f" stroke-width="3"/><text x="750" y="255" fill="#fff" font-size="11" text-anchor="middle">BOSS</text>
+  <text x="400" y="110" fill="#fff" opacity=".6" font-size="12" text-anchor="middle">← kéo ngang khi chapter dài →</text>
+ </svg>
+ <div class="ban"><div class="ar">◀</div><div class="t"><small>CHƯƠNG 0 · CHAPTER 2</small><b>Kho mắm có khách lạ</b><small>2/6 màn</small></div><div class="ar">▶</div></div>
+</div>
+
+<h2>2. Chapter khoá (bấm ▶ từ chapter 2): "???", ▶ mờ</h2>
+<div class="s" style="background:#2a2a30">
+ <div class="top"><span class="b">◀ Quay lại</span><span style="flex:1"></span><span>⚡ 100/100</span></div>
+ <div style="position:absolute;left:30%;right:30%;top:35%;text-align:center;background:#1b1b22;border:1px solid #777;border-radius:8px;padding:14px;font-size:13px">🔒<br>Clear chapter 0-2 để mở</div>
+ <div class="ban" style="border-color:#777"><div class="ar">◀</div><div class="t"><small>CHƯƠNG 0 · CHAPTER 3</small><b>???</b></div><div class="ar off">▶</div></div>
+</div>
+
+<h2>3. Chapter đầu (0-1): ◀ mờ</h2>
+<div class="s" style="background:#2e3a2c">
+ <div class="top"><span class="b">◀ Quay lại</span><span style="flex:1"></span><span>⚡ 100/100</span></div>
+ <div class="ban"><div class="ar off">◀</div><div class="t"><small>CHƯƠNG 0 · CHAPTER 1</small><b>Tỉnh dậy ở Threat City</b><small>3/3 màn</small></div><div class="ar">▶</div></div>
+</div>
+</body></html>
