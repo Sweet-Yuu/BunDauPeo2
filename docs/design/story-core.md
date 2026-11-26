@@ -36,7 +36,7 @@ Doc của user là **bản gốc đầy đủ** (có cảnh nặng). **Trong gam
 - Phe địch, boss, nhân vật gacha ở thế giới mới (giữ tôm hay đổi); tên phần quà thành tựu của hai nhánh.
 - **Hoa khôi: hold** (có cốt truyện riêng nối tiếp sau, chưa dùng ở đây).
 - Tên Zola, Y, TikTak đổi đủ xa thương hiệu thật.
-- `TODO(user)`: [vision.md](../vision/vision.md) còn ghi "Cốt truyện và hội thoại (sẽ làm sau MVP)" ở mục Ngoài phạm vi; cập nhật cho khớp (agent không tự sửa).
+- [vision.md](../vision/vision.md) dòng Cốt truyện Chương 1 đã cập nhật khớp file này (user duyệt 2026-11-26).
 
 ## Ảnh hưởng tới kỹ thuật (chưa làm, chờ khung chương)
 
