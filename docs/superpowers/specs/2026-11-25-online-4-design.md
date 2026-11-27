@@ -28,7 +28,7 @@ Thành công khi:
 
 1. **Hạn:** `startUtc <= giờ server < endUtc` (`endUtc` không gồm). Giờ server, không dùng giờ máy.
 2. **Giới hạn đọc Dashboard** (chặn gõ nhầm, user chỉnh số được): tối đa **200 quà**, mỗi quà tối đa **10 dòng thưởng**, mỗi dòng `amount` từ 1 tới **1.000.000**. Quà vi phạm bị **bỏ qua riêng quà đó**, không nhận được; các quà khác vẫn chạy.
-3. **Không tỉa `ClaimedGiftIds`** (tối đa vài chục id mỗi năm). Luật cho người vận hành: **không dùng lại id**, không xoá quà đã phát khỏi Dashboard rồi tạo lại cùng id (sẽ nhận lại được). Ghi vào `unity-workflow.md`.
+3. **Không tỉa `ClaimedGiftIds`** (tối đa vài chục id mỗi năm). Luật cho người vận hành: **không dùng lại id**, không tạo quà mới trùng id quà cũ (id cũ nằm mãi trong `ClaimedGiftIds`, quà mới sẽ hiện "Đã nhận" và không ai nhận lại được). Ghi vào `unity-workflow.md`.
 4. **Thư quà đã nhận** hiện mờ tới khi quà hết hạn hoặc người chơi bấm **Xoá đã đọc** (cần `PlayerSave.MailDeleted`, mục 5.3). Thư quà **chưa nhận** không xoá được dù đã đọc.
 5. **Chấm đỏ nút Hộp thư** = có thư chưa đọc **hoặc** có quà chưa nhận.
 6. Lỗi mạng khi `ListGifts`: giữ danh sách quà lần trước, thư ghim vẫn hiện, không chặn trang. Lỗi khi **Nhận**: hộp Mất kết nối như Nhận nhiệm vụ.
