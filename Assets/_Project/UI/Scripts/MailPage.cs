@@ -285,7 +285,7 @@ namespace BunDauPeo.UI
                 case GiftClaimStatus.NotInWindow: ShowToast(UiText.Get("mail.gift_expired")); break;
                 case GiftClaimStatus.AlreadyClaimed: ShowToast(UiText.Get("mail.gift_claimed")); break;
                 case GiftClaimStatus.NothingToClaim: ShowToast(UiText.Get("mail.gift_none")); break;
-                // Offline: hộp Mất kết nối của cổng đã hiện; Invalid: không có gì để báo.
+                // Offline: hộp Mất kết nối của cổng đã hiện; Invalid: danh sách đã được làm mới trong GiftService, trang tự vẽ lại qua Changed.
             }
         }
 

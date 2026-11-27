@@ -104,7 +104,7 @@ namespace BunDauPeo.Missions
             if (status != GiftClaimStatus.Ok)
             {
                 // Server đã khác máy (hết hạn, đã nhận ở máy khác): làm mới để trang thấy đúng.
-                if (status != GiftClaimStatus.Invalid) await RefreshAsync();
+                await RefreshAsync();
                 return Fail(status);
             }
 

@@ -30,7 +30,7 @@ namespace BunDauPeo.Rules
         public string startUtc = "";
         public string endUtc = "";
 
-        // Ngày không đọc được thì để 0: GiftRules.Validate bỏ quà đó (endUtc <= startUtc).
+        // Ngày không đọc được thì để 0: GiftRules.Validate bỏ quà đó (startUtc <= 0 hoặc endUtc <= startUtc).
         public GiftData ToGift()
         {
             var g = new GiftData { Id = id, TitleVi = titleVi, TitleEn = titleEn, StartUtcTicks = Ticks(startUtc), EndUtcTicks = Ticks(endUtc) };

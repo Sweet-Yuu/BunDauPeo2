@@ -15,7 +15,12 @@ namespace BunDauPeo.UI
 
         public static string Long(long utcTicks) => Local(utcTicks).ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
 
-        private static DateTime Local(long utcTicks) => new DateTime(utcTicks, DateTimeKind.Utc).AddHours(VietnamHours);
+        // Kẹp để endUtc sát năm 9999 (hoặc ticks ngoài khoảng) không làm ném lỗi khi vẽ thư.
+        private static DateTime Local(long utcTicks)
+        {
+            var max = DateTime.MaxValue.Ticks - TimeSpan.TicksPerHour * VietnamHours;
+            return new DateTime(Math.Clamp(utcTicks, 0, max), DateTimeKind.Utc).AddHours(VietnamHours);
+        }
 
         // Số có dấu phân cách nghìn theo ngôn ngữ: "5.000" (Vi) hoặc "5,000" (En).
         public static string Amount(long amount)

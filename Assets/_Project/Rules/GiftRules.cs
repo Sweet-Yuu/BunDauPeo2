@@ -20,7 +20,7 @@ namespace BunDauPeo.Rules
         {
             if (g == null || string.IsNullOrEmpty(g.Id) || g.Id.Length > MaxIdLength) return false;
             foreach (var c in g.Id) if (!IsIdChar(c)) return false;
-            if (g.EndUtcTicks <= g.StartUtcTicks) return false;
+            if (g.StartUtcTicks <= 0 || g.EndUtcTicks <= g.StartUtcTicks) return false; // 0 = ngày hỏng/thiếu, không được phát ngay
             if (string.IsNullOrEmpty(g.TitleVi) && string.IsNullOrEmpty(g.TitleEn)) return false;
             if (g.Rewards == null || g.Rewards.Count == 0 || g.Rewards.Count > MaxRewards) return false;
             foreach (var r in g.Rewards)

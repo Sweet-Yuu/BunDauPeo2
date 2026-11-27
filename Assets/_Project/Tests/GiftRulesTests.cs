@@ -54,6 +54,9 @@ namespace BunDauPeo.Tests
             var inverted = Gift(); inverted.EndUtcTicks = inverted.StartUtcTicks;
             AssertDropped(inverted, "endUtc <= startUtc");
 
+            var noStart = Gift(); noStart.StartUtcTicks = 0;
+            AssertDropped(noStart, "startUtc hỏng (0), endUtc đúng");
+
             var many = Gift();
             for (var i = 0; i < 10; i++) many.Rewards.Add(new GiftReward { Type = "Coin", Amount = 1 });
             AssertDropped(many, "11 dòng thưởng");

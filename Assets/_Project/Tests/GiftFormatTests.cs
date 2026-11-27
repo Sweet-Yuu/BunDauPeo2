@@ -20,6 +20,14 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Time_NearYear9999_DoesNotThrow()
+        {
+            Assert.DoesNotThrow(() => GiftFormat.Short(System.DateTime.MaxValue.Ticks));
+            Assert.DoesNotThrow(() => GiftFormat.Long(long.MaxValue));
+            Assert.DoesNotThrow(() => GiftFormat.Long(-1));
+        }
+
+        [Test]
         public void Lines_MergeByType_InFixedOrder_SkipUnknown()
         {
             var lines = GiftFormat.Lines(new List<GiftReward>
