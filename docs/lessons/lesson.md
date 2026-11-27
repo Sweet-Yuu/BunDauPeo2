@@ -26,6 +26,11 @@
 
 ## Đang hiệu lực
 
+### L-049 — Công cụ chạy lệnh (ctx_execute) có thư mục làm việc là checkout chung, không phải worktree (2026-11-27)  #git #process
+- Triệu chứng: 🔨 O4-c sửa docs bằng `ctx_execute` với đường dẫn tương đối; hai file bị sửa ở `D:\Unity\BunDauPeo` (nhánh luồng khác) thay vì worktree, 📋 không thấy chúng trong worktree.
+- Nguyên nhân gốc: `Bash` và `Edit`/`Write` theo thư mục worktree, còn `ctx_execute` chạy ở thư mục dự án gốc.
+- Luật từ nay: ở worktree thì mọi lệnh ghi file qua `ctx_execute` dùng đường dẫn tuyệt đối vào worktree; sau khi sửa, `git status` trong worktree phải thấy file đó (và checkout chung không có thêm file lạ).
+
 ### L-048 — Kênh 🔨 sửa code trong checkout chung khi chưa có khoá, lúc checkout đang ở nhánh luồng khác (2026-11-25)  #git #process
 - Triệu chứng: 🔨 O3-e (Online) viết sẵn code vào `D:\Unity\BunDauPeo` trong khi khoá Unity và nhánh checkout (`feature/character-level`) đang của luồng Nhân vật; 3 file lạc suýt lọt vào commit và test của luồng kia.
 - Nguyên nhân gốc: luật khoá chỉ nói "chạy Unity", không nói "sửa file trong checkout chung".
