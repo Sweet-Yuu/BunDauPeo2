@@ -38,6 +38,7 @@ namespace BunDauPeo.Boot
         private Task<OnlineStatus> _running;
         private RestaurantRunner _runner;
         private MailService _mail;
+        private GiftService _gifts;
 
         public OnlineStartup(IGameServer server, ServerTime time, string savePath, CharacterCatalog catalog,
             NewGameConfig newGame, GachaBannerCatalog banners, RestaurantConfig restaurantConfig,
@@ -200,6 +201,8 @@ namespace BunDauPeo.Boot
                 return OnlineStatus.ServerError;
             }
 
+            // Không chặn vào game: lỗi mạng thì Hộp thư thử lại khi mở (RefreshAsync không ném lỗi).
+            _ = _gifts.RefreshAsync();
             return OnlineStatus.Ok;
         }
 
@@ -270,7 +273,11 @@ namespace BunDauPeo.Boot
             ServiceLocator.Register(new MissionService(session.Save, _data, _server, _gate, session.ApplyServerState,
                 () => _time.UtcNow, () => MissionService.ClientDoneFromSave(session.Save, _account.IsLinked)));
             _mail?.Dispose();
-            _mail = new MailService(session.Save, session.Persist, new IMailSource[] { new LinkAccountMailSource(_account) }, _account);
+            var gifts = _gifts = new GiftService(_server, _gate, session.Wallet, session.ApplyServerState,
+                () => GameLanguage.Code(GameLanguage.Current), () => _time.UtcNow.Ticks);
+            ServiceLocator.Register(gifts);
+            _mail = new MailService(session.Save, session.Persist,
+                new IMailSource[] { new LinkAccountMailSource(_account), new GiftMailSource(gifts, session.Save) }, _account, gifts);
             ServiceLocator.Register(_mail);
             var restaurant = new RestaurantService(_restaurantConfig, session.Save, session.Wallet, session.Roster,
                 new System.Random(), new ServerClock(_time), _levelConfig, session.Persist);

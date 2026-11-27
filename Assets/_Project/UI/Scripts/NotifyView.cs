@@ -3,6 +3,7 @@ using System.Linq;
 using BunDauPeo.Characters;
 using BunDauPeo.Combat;
 using BunDauPeo.Core;
+using BunDauPeo.Missions;
 using BunDauPeo.Restaurant;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,11 +26,15 @@ namespace BunDauPeo.UI
         [SerializeField] private StaffPanel _staffPanel;
         [SerializeField] private AfkPopup _afkPopup;
         [SerializeField] private CharactersView _characters;
+        [SerializeField] private MissionsPage _missionsPage;
+        [SerializeField] private MailPage _mailPage;
 
         private RestaurantService _restaurant;
         private CombatService _combat;
         private StarService _stars;
         private Roster _roster;
+        private MissionService _missions;
+        private GiftService _gifts;
         private NotifySnapshot _shown;
         private float _pollLeft;
 
@@ -43,6 +48,8 @@ namespace BunDauPeo.UI
                 _combat = ServiceLocator.Get<CombatService>();
                 _stars = ServiceLocator.Get<StarService>();
                 _roster = ServiceLocator.Get<Roster>();
+                _missions = ServiceLocator.Get<MissionService>();
+                _gifts = ServiceLocator.Get<GiftService>();
             }
             catch (InvalidOperationException e)
             {
@@ -66,7 +73,8 @@ namespace BunDauPeo.UI
         private bool HasAllReferences()
         {
             var ok = _hub != null && _button != null && _dot != null && _popup != null
-                     && _worldScroll != null && _incidentBubble != null && _staffPanel != null && _afkPopup != null && _characters != null;
+                     && _worldScroll != null && _incidentBubble != null && _staffPanel != null && _afkPopup != null && _characters != null
+                     && _missionsPage != null && _mailPage != null;
             if (!ok) Debug.LogError($"{nameof(NotifyView)}: references are not assigned.", this);
             return ok;
         }
@@ -95,7 +103,8 @@ namespace BunDauPeo.UI
             var ready = NotifyRule.StarUpReady(CharacterListRows.Build(_roster, _stars).Select(r => r.Character.Id), _stars.GetNextCost,
                 id => (int)Math.Min(int.MaxValue, _roster.GetFragments(id)));
             return new NotifySnapshot(_restaurant.Incidents.Active.HasValue, _restaurant.Estimate.MissingRole, _restaurant.Afk.PreviewCollect(),
-                stamina.Current, stamina.Max, ready);
+                stamina.Current, stamina.Max, ready, _missions.ClaimableCount(MissionService.TabDaily) > 0,
+                _missions.ClaimableCount(MissionService.TabNewbie) > 0, _gifts.ClaimableCount > 0);
         }
 
         private void OpenBox()
@@ -127,6 +136,12 @@ namespace BunDauPeo.UI
                     break;
                 case NotifyKind.StarUp:
                     if (_shown.StarUpReadyIds != null && _shown.StarUpReadyIds.Count > 0) _characters.SelectById(_shown.StarUpReadyIds[0]);
+                    break;
+                case NotifyKind.MissionReward:
+                    _missionsPage.Open(NotifyRule.MissionTab(_shown));
+                    break;
+                case NotifyKind.GiftReward:
+                    _mailPage.Open(true);
                     break;
             }
         }

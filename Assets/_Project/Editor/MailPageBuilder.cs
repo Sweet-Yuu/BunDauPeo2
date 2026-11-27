@@ -96,11 +96,42 @@ namespace BunDauPeo.EditorTools
             Place(attach, TopLeft, TopLeft, new Vector2(30, -490), new Vector2(1000, 120));
             AddImage(attach, sprite, RowColor, raycast: false);
             var attachText = NewLabel("AttachText", attach, font, "mail.attachments", 32, TextAnchor.MiddleLeft, Soft);
-            Place(attachText.rectTransform, TopLeft, TopLeft, new Vector2(20, 0), new Vector2(700, 120));
+            Place(attachText.rectTransform, TopLeft, TopLeft, new Vector2(20, 0), new Vector2(200, 120));
+            // Chip đính kèm của thư quà (spec đợt 4 mục 6): mẫu tắt + hàng chip xếp ngang.
+            var chips = NewRect("AttachChips", attach);
+            Place(chips, TopLeft, TopLeft, new Vector2(240, -25), new Vector2(740, 70));
+            var chipRow = chips.gameObject.AddComponent<HorizontalLayoutGroup>();
+            chipRow.spacing = 15;
+            chipRow.childControlWidth = false;
+            chipRow.childControlHeight = false;
+            chipRow.childForceExpandWidth = false;
+            chipRow.childForceExpandHeight = false;
+            var chipTemplate = NewRect("MailAttachChip_PH_220x70", attach);
+            Place(chipTemplate, TopLeft, TopLeft, Vector2.zero, new Vector2(220, 70));
+            AddImage(chipTemplate, sprite, new Color(0.20f, 0.24f, 0.34f), raycast: false);
+            var chipText = NewText("Label", chipTemplate, font, "", 30, TextAnchor.MiddleCenter, Gold);
+            Stretch(chipText.rectTransform);
+            chipText.resizeTextForBestFit = true;
+            chipText.resizeTextMinSize = 20;
+            chipText.resizeTextMaxSize = 30;
+            chipTemplate.gameObject.SetActive(false);
             attach.gameObject.SetActive(false);
+            var expiry = NewText("GiftExpiry", detail, font, "", 32, TextAnchor.MiddleLeft, Soft);
+            Place(expiry.rectTransform, new Vector2(0, 0), new Vector2(0, 0), new Vector2(30, 45), new Vector2(600, 60));
             var action = RestaurantSceneBuilder.LabelButton("MailBtn_PH_300x90", detail, sprite, font, "mail.link_btn", Green, BottomRight, new Vector2(-30, 30), new Vector2(300, 90));
             var empty = NewLabel("EmptyText", box, font, "mail.empty", 44, TextAnchor.MiddleCenter, Soft);
             Place(empty.rectTransform, TopLeft, TopLeft, new Vector2(720, -430), new Vector2(1100, 100));
+
+            // Toast nhận quà: tự tắt vài giây (MailPage).
+            var toast = NewRect("MailToast_PH_760x80", box);
+            Place(toast, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 40), new Vector2(760, 80));
+            AddImage(toast, sprite, new Color(0.05f, 0.06f, 0.10f, 0.92f), raycast: false);
+            var toastText = NewText("Text", toast, font, "", 32, TextAnchor.MiddleCenter, Color.white);
+            Stretch(toastText.rectTransform);
+            toastText.resizeTextForBestFit = true;
+            toastText.resizeTextMinSize = 20;
+            toastText.resizeTextMaxSize = 32;
+            toast.gameObject.SetActive(false);
 
             root.gameObject.SetActive(false);
             var pageObject = NewRect("MailPage", canvas);
@@ -123,6 +154,11 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_countText").objectReferenceValue = count;
             so.FindProperty("_claimAllButton").objectReferenceValue = claimAll;
             so.FindProperty("_deleteReadButton").objectReferenceValue = deleteRead;
+            so.FindProperty("_attachChips").objectReferenceValue = chips;
+            so.FindProperty("_chipTemplate").objectReferenceValue = chipTemplate.gameObject;
+            so.FindProperty("_expiryText").objectReferenceValue = expiry;
+            so.FindProperty("_toast").objectReferenceValue = toast.gameObject;
+            so.FindProperty("_toastText").objectReferenceValue = toastText;
             so.ApplyModifiedPropertiesWithoutUndo();
             return page;
         }

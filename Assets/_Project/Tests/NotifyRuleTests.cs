@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BunDauPeo.Core;
+using BunDauPeo.Missions;
 using BunDauPeo.UI;
 using NUnit.Framework;
 
@@ -12,7 +13,49 @@ namespace BunDauPeo.Tests
         public void ResetLanguage() => GameLanguage.Current = Language.Vi;
 
         private static NotifySnapshot Snap(bool incident = false, StaffRole? missing = null, long afk = 0, int stamina = 0, int staminaMax = 0,
-            IReadOnlyList<string> starUp = null) => new NotifySnapshot(incident, missing, afk, stamina, staminaMax, starUp);
+            IReadOnlyList<string> starUp = null, bool daily = false, bool newbie = false, bool gift = false) =>
+            new NotifySnapshot(incident, missing, afk, stamina, staminaMax, starUp, daily, newbie, gift);
+
+        [Test]
+        public void Rows_MissionRewardAndGiftReward_AppendedAtEnd_InEnumOrder()
+        {
+            var all = Snap(true, StaffRole.Server, 5, 100, 100, new[] { "a" }, daily: true, gift: true);
+            CollectionAssert.AreEqual(
+                new[] { NotifyKind.Incident, NotifyKind.StaffMissing, NotifyKind.AfkCoins, NotifyKind.StaminaFull, NotifyKind.StarUp, NotifyKind.MissionReward, NotifyKind.GiftReward },
+                NotifyRule.Rows(all));
+            Assert.AreEqual(NotifyKind.StarUp + 1, NotifyKind.MissionReward, "appended after StarUp, enum order kept");
+            Assert.AreEqual(NotifyKind.MissionReward + 1, NotifyKind.GiftReward);
+            CollectionAssert.AreEqual(new[] { NotifyKind.MissionReward }, NotifyRule.Rows(Snap(newbie: true)), "either tab lights the row");
+        }
+
+        [Test]
+        public void Rows_NoRewards_SameAsPhase3()
+        {
+            var phase3 = Snap(true, StaffRole.Server, 5, 100, 100, new[] { "a" });
+            CollectionAssert.AreEqual(
+                new[] { NotifyKind.Incident, NotifyKind.StaffMissing, NotifyKind.AfkCoins, NotifyKind.StaminaFull, NotifyKind.StarUp },
+                NotifyRule.Rows(phase3));
+            Assert.AreEqual(0, NotifyRule.Rows(Snap()).Count);
+        }
+
+        [Test]
+        public void MissionReward_TabChoice_DailyThenNewbie()
+        {
+            Assert.AreEqual(MissionService.TabDaily, NotifyRule.MissionTab(Snap(daily: true, newbie: true)));
+            Assert.AreEqual(MissionService.TabDaily, NotifyRule.MissionTab(Snap(daily: true)));
+            Assert.AreEqual(MissionService.TabNewbie, NotifyRule.MissionTab(Snap(newbie: true)));
+        }
+
+        [Test]
+        public void GiftReward_HiddenWhenAllClaimed()
+        {
+            Assert.IsTrue(NotifyRule.Rows(Snap(gift: true)).Contains(NotifyKind.GiftReward));
+            Assert.IsFalse(NotifyRule.Rows(Snap(gift: false)).Contains(NotifyKind.GiftReward));
+            Assert.AreEqual("Có quà chưa nhận", NotifyRule.Text(NotifyKind.GiftReward, Snap(gift: true)));
+            GameLanguage.Current = Language.En;
+            Assert.AreEqual("Gifts to claim", NotifyRule.Text(NotifyKind.GiftReward, Snap(gift: true)));
+            Assert.AreEqual("Mission rewards to claim", NotifyRule.Text(NotifyKind.MissionReward, Snap(daily: true)));
+        }
 
         [Test]
         public void Rows_AllFive_InEnumOrder()

@@ -151,6 +151,27 @@ namespace BunDauPeo.Tests
             finally { File.Delete(path); }
         }
 
+        // Nút DEV "Quà thử" ghi đúng hình Dashboard: quà mẫu hợp lệ, trong hạn, nhận được.
+        [Test]
+        public async Task DevSampleGift_File_IsValidAndClaimable()
+        {
+            var path = Path.Combine(Path.GetTempPath(), "bdp_gifts_dev_" + Guid.NewGuid().ToString("N") + ".json");
+            File.WriteAllText(path, BunDauPeo.UI.DevOverlay.SampleGiftJson(Now));
+            try
+            {
+                var server = await BootedAsync();
+                server.Gifts = null;
+                server.GiftsPath = path;
+                var rows = Payload(await server.ListGiftsAsync("vi")).Gifts;
+                Assert.AreEqual(1, rows.Count);
+                Assert.AreEqual(Now.AddDays(7).Ticks, rows[0].EndUtcTicks);
+                var gem = server.State.Gem;
+                Assert.AreEqual((int)CommandCode.Ok, (await server.ClaimGiftAsync("r1", rows[0].Id)).Value.Code);
+                Assert.AreEqual(gem + 300, server.State.Gem);
+            }
+            finally { File.Delete(path); }
+        }
+
         [Test]
         public async Task Local_Gifts_CorruptFile_ReturnsError_NotEmpty()
         {

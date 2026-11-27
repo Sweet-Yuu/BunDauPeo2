@@ -92,6 +92,19 @@ namespace BunDauPeo.UI
             ("mail.link_body", "Chào bạn! Hãy liên kết tài khoản để giữ tiến độ khi đổi máy hoặc cài lại game.",
                 "Hello! Link your account to keep your progress when you switch devices or reinstall."),
             ("mail.link_btn", "Liên kết", "Link"),
+            // Thư quà (đợt 4): tên quà và dòng thưởng lấy từ Dashboard, không qua đây.
+            ("mail.gift_title", "Quà tặng", "Gift"),
+            ("mail.gift_body", "Cảm ơn bạn đã chơi BunDauPeo! Hãy nhận quà từ đội ngũ nhé.",
+                "Thanks for playing BunDauPeo! Claim your gift from the team."),
+            ("mail.gift_claim", "Nhận", "Claim"),
+            ("mail.gift_claimed", "Đã nhận", "Claimed"),
+            ("mail.gift_row_expiry", "Hạn {0}", "Until {0}"),
+            ("mail.gift_expiry", "Hạn: {0}", "Expires: {0}"),
+            ("mail.gift_expired", "Quà đã hết hạn", "This gift has expired"),
+            ("mail.gift_got", "Nhận {0}", "Received {0}"),
+            ("mail.gift_none", "Chưa có quà để nhận", "No gifts to claim"),
+            ("notify.mission_reward", "Có phần thưởng nhiệm vụ chưa nhận", "Mission rewards to claim"),
+            ("notify.gift_reward", "Có quà chưa nhận", "Gifts to claim"),
         };
     }
 }

@@ -194,14 +194,31 @@ namespace BunDauPeo.UI
                 prompt.color = Color.white;
                 confirm.gameObject.SetActive(true);
             });
+            // Quà thử (đợt 4): chỉ chế độ Local (UGS lấy quà từ Dashboard). Ghi gifts.json cạnh save; mở Hộp thư là thấy.
+            var giftLabel = AddButton(box, font, "Quà thử", new Vector2(Left, 155), Width, () =>
+            {
+                if (ServiceLocator.Get<IGameServer>() is LocalGameServer local && !string.IsNullOrEmpty(local.GiftsPath))
+                    System.IO.File.WriteAllText(local.GiftsPath, SampleGiftJson(ServiceLocator.Get<ServerTime>().UtcNow));
+            });
+            var giftButton = giftLabel.transform.parent.gameObject;
+            giftButton.name = "SampleGiftButton";
             dim.gameObject.SetActive(false);
             _openPanel = () =>
             {
+                giftButton.SetActive(ServiceLocator.Get<IGameServer>() is LocalGameServer);
                 languageLabel.text = LanguageButtonLabel(GameLanguage.Current);
                 confirm.gameObject.SetActive(false);
                 dim.gameObject.SetActive(true);
             };
         }
+
+        // Một quà mẫu hạn 7 ngày (Gem + Coin), cùng hình Dashboard; id theo giờ nên bấm lại ra quà mới nhận được.
+        public static string SampleGiftJson(DateTime nowUtc) =>
+            "[{\"id\":\"dev_gift_" + nowUtc.ToString("yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture) + "\","
+            + "\"titleVi\":\"Quà thử\",\"titleEn\":\"Test gift\","
+            + "\"rewards\":[{\"type\":\"Gem\",\"amount\":300},{\"type\":\"Coin\",\"amount\":5000}],"
+            + "\"startUtc\":\"" + nowUtc.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture) + "\","
+            + "\"endUtc\":\"" + nowUtc.AddDays(7).ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture) + "\"}]";
 
         private static Text AddLabel(RectTransform parent, Font font, string text, Vector2 position, Vector2 size, int fontSize)
         {

@@ -510,13 +510,13 @@ namespace BunDauPeo.Tests
                 Assert.IsTrue(dim.GetComponent<Image>().raycastTarget);
                 Assert.AreEqual(0.45f, dim.GetComponent<Image>().color.a, 0.01f);
 
-                var box = Named(scene, "NotifyBox_PH_640x660");
+                var box = Named(scene, "NotifyBox_PH_640x880");
                 Assert.IsTrue(box.IsChildOf(root));
-                AssertRect(1260, 180, 640, 660, FromTop(scene, "NotifyBox_PH_640x660"), "NotifyBox");
+                AssertRect(1260, 180, 640, 880, FromTop(scene, "NotifyBox_PH_640x880"), "NotifyBox");
                 Assert.AreEqual(Vector2.one, box.anchorMin, "top-right anchor");
-                var boxTop = FromTop(scene, "NotifyBox_PH_640x660");
+                var boxTop = FromTop(scene, "NotifyBox_PH_640x880");
                 var rows = box.GetComponentsInChildren<Button>(true).Where(b => b.name == "NotifyRow_PH_600x100").ToArray();
-                Assert.AreEqual(5, rows.Length);
+                Assert.AreEqual(7, rows.Length);
                 for (var i = 0; i < rows.Length; i++)
                 {
                     var row = FromTop(RestaurantSceneTests.InReferenceCanvas((RectTransform)rows[i].transform));

@@ -277,7 +277,7 @@ namespace BunDauPeo.EditorTools
             viewSo.ApplyModifiedPropertiesWithoutUndo();
             MissionsPageBuilder.WireTargets(missionsPage, hub, staffPanel, upgradePanel, afkPopup, profilePopup);
             NavBarBuilder.WireNotify(notifyView, hub, notifyPopup, scroll, (RectTransform)bubble.transform, staffPanel, afkPopup,
-                charactersPanel.GetComponentInChildren<CharactersView>(true));
+                charactersPanel.GetComponentInChildren<CharactersView>(true), missionsPage, mailPage);
 
             EditorSceneManager.SaveScene(scene, scenePath);
             if (mode == NewSceneMode.Additive) EditorSceneManager.CloseScene(scene, true);

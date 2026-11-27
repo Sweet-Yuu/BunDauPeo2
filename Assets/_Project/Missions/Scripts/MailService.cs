@@ -11,8 +11,9 @@ namespace BunDauPeo.Missions
         private readonly Func<bool> _persist;
         private readonly IReadOnlyList<IMailSource> _sources;
         private readonly IAccountService _account;
+        private readonly GiftService _gifts;
 
-        public MailService(PlayerSave save, Func<bool> persist, IReadOnlyList<IMailSource> sources, IAccountService account)
+        public MailService(PlayerSave save, Func<bool> persist, IReadOnlyList<IMailSource> sources, IAccountService account, GiftService gifts = null)
         {
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _persist = persist ?? throw new ArgumentNullException(nameof(persist));
@@ -20,6 +21,9 @@ namespace BunDauPeo.Missions
             // Liên kết xong thì thư ghim mất ngay; trang đang mở vẽ lại.
             _account = account;
             if (account != null) account.Changed += OnAccountChanged;
+            // Quà đổi (làm mới, nhận) thì trang và chấm đỏ vẽ lại.
+            _gifts = gifts;
+            if (gifts != null) gifts.Changed += OnAccountChanged;
         }
 
         public event Action Changed;
@@ -28,6 +32,7 @@ namespace BunDauPeo.Missions
         public void Dispose()
         {
             if (_account != null) _account.Changed -= OnAccountChanged;
+            if (_gifts != null) _gifts.Changed -= OnAccountChanged;
         }
 
         private void OnAccountChanged() => Changed.SafeInvoke();
@@ -37,6 +42,9 @@ namespace BunDauPeo.Missions
         public int UnreadCount() => MailRule.UnreadCount(Items(), _save);
 
         public bool Unread(MailItem item) => MailRule.Unread(item, _save);
+
+        // Chấm đỏ nút Hộp thư: thư chưa đọc hoặc quà chưa nhận.
+        public bool HasRedDot() => MailRule.HasRedDot(Items(), _save, _gifts?.ClaimableCount ?? 0);
 
         public bool CanDeleteRead() => MailRule.CanDeleteRead(Items(), _save);
 

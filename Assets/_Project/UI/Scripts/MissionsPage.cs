@@ -98,10 +98,12 @@ namespace BunDauPeo.UI
             return ok;
         }
 
-        public void Open()
+        public void Open() => Open(MissionService.TabDaily);
+
+        public void Open(int tab)
         {
             if (_service == null) return;
-            _tab = MissionService.TabDaily;
+            _tab = tab;
             _restaurant.Incidents.SetSpawnBlocked(this, true);
             _root.SetActive(true);
             Refresh();

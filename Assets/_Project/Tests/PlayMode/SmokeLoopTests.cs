@@ -583,6 +583,15 @@ namespace BunDauPeo.PlayModeTests
                     var free = roster.GetOwned().Where(c => new[] { StaffRole.Cook, StaffRole.Server, StaffRole.Cashier }.All(r => restaurant.Profile.Workers(r).All(w => w.CharacterId != c.Id)));
                     Assert.IsTrue(free.Any(c => restaurant.Staffing.TryAssign(c.Id, role) == StaffAssignResult.Success), Where($"không xếp được ai vào vai {role}"));
                 }
+            // Đợt 4: thưởng nhiệm vụ chưa nhận cũng là việc (dòng MissionReward); nhận hết để bắt đầu từ trạng thái không có việc.
+            var missions = ServiceLocator.Get<BunDauPeo.Missions.MissionService>();
+            foreach (var tab in new[] { BunDauPeo.Missions.MissionService.TabDaily, BunDauPeo.Missions.MissionService.TabNewbie })
+            {
+                if (missions.ClaimableCount(tab) == 0) continue;
+                var claim = missions.ClaimAllAsync(tab);
+                while (!claim.IsCompleted) yield return null;
+            }
+
             // Game mới có thể lực đầy nên dòng "Thể lực đầy" hiện sẵn (đúng luật spec); tiêu hao 1 để bắt đầu từ trạng thái không có việc.
             ServerStamina(session, combat.Stamina.Max - 1);
             session.Save.Afk.PendingTheoretical = 0;
@@ -1491,7 +1500,8 @@ namespace BunDauPeo.PlayModeTests
             roster.AddFragments(ready.Character.Id, Math.Max(0L, ready.NextCost - ready.Fragments));
             yield return new WaitForSecondsRealtime(0.7f);
             yield return ClickWhenReady(notify);
-            Assert.AreEqual(5, UiDriver.FindButtons("NotifyRow_PH_600x100").Count, Where("hộp phải đủ 5 dòng"));
+            // 5 dòng cũ; dòng thưởng nhiệm vụ và quà (đợt 4) có thêm khi có thưởng chưa nhận.
+            Assert.GreaterOrEqual(UiDriver.FindButtons("NotifyRow_PH_600x100").Count, 5, Where("hộp phải đủ 5 dòng"));
             yield return Shot("notify-full", suffix, "hubc");
             yield return ClickWhenReady("NotifyDim");
         }
