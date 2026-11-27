@@ -3,7 +3,7 @@
 > **Đọc khi:** mở kênh 👑 CEO, hoặc cần biết ai đang giữ khoá Unity.
 > **Cập nhật khi:** mở/đóng luồng hay Leader, cấp/nhả khoá Unity, user chốt việc giữa các luồng. Chỉ 👑 CEO ghi. Giữ ngắn: chi tiết nằm trong file luồng.
 
-_Cập nhật 2026-11-26 bởi 👑 CEO #1._
+_Cập nhật 2026-11-27 bởi 👑 CEO #1._
 
 ## Nền
 
@@ -13,7 +13,7 @@ _Cập nhật 2026-11-26 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **🧭 Online · 🔨 O4-b** (cấp 2026-11-26). O4-a xong code Task 1–3 (EditMode 1295, dotnet 22); Task 3 Step 6 (deploy `development` + gọi thật) chờ user cho phép và tạo Custom data `gifts/list` trên Dashboard. PR #24 Cấp nhân vật merge `4cea38c` (user duyệt 2026-11-26). Nhánh `feature/online-4` CEO cắt từ `main` `4cea38c`, checkout chung đang ở nhánh này. Hàng chờ (user chốt 2026-11-25): O4-a → O4-b (spec `cc02734`/`69f6def` trên `claude/gallant-gagarin-27d560`) → Thời tiết → Nhiều chương → Cốt truyện → Vẽ lại quán (user chốt 2026-11-26; Vẽ lại quán cắt trước nếu trễ). Nhiều chương: spec + kế hoạch user duyệt 2026-11-26 (`docs/nhieu-chuong-spec` `e3b8b7b`; tối thiểu Task 1–4, 2 phiên 🔨, phiên 2 cần khoá; Task 5 cắt trước). Cốt truyện chờ spec 🎨 (user mô tả chuyển sinh, chia Chương 1); chưa xong khi tới lượt thì nhường việc kế.
+Đang giữ: **🧭 Nội dung game · 🔨 Thời tiết** (cấp 2026-11-27). Online đợt 4 xong O4-a + O4-b (`2ec9fb5` trên `feature/online-4`), đang review xhigh chỉ đọc rồi mở PR; review cần sửa có Unity thì Online xin lại khoá. Thời tiết cắt `feature/weather` từ `origin/feature/online-4` `2ec9fb5` (chung PlayerSave/RestaurantSceneBuilder với O4-b) rồi merge `origin/docs/thoi-tiet-spec`; PR Thời tiết mở sau khi PR đợt 4 merge. Hàng chờ sau Thời tiết: Nhiều chương → Cốt truyện → Vẽ lại quán (user chốt 2026-11-26; Vẽ lại quán cắt trước nếu trễ). Nhiều chương: spec + kế hoạch user duyệt 2026-11-26 (`docs/nhieu-chuong-spec` `e3b8b7b`; tối thiểu Task 1–4, 2 phiên 🔨, phiên 2 cần khoá; Task 5 cắt trước). Cốt truyện chờ spec 🎨 (user mô tả chuyển sinh, chia Chương 1); chưa xong khi tới lượt thì nhường việc kế.
 
 ## Luồng
 
