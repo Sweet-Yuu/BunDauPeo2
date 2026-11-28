@@ -119,6 +119,43 @@ public class ServerModule
         Command(ctx, api, protocolVersion, sessionId, requestId,
             (s, c) => ServerHandlers.DevAddStamina(s, GameDataSource.Data, c, amount), ctx.EnvironmentName);
 
+    [CloudCodeFunction(ServerProtocol.ListGifts)]
+    public async Task<CommandResponse> ListGifts(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string lang = "vi") =>
+        await ListGiftsAsync(new CloudSaveStateStore(ctx, api), new CloudSaveGiftSource(ctx, api),
+            protocolVersion, sessionId, lang ?? "vi", () => DateTime.UtcNow);
+
+    [CloudCodeFunction(ServerProtocol.ClaimGift)]
+    public async Task<CommandResponse> ClaimGift(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string requestId, string giftId)
+    {
+        var gifts = await new CloudSaveGiftSource(ctx, api).LoadAsync();
+        return await Command(ctx, api, protocolVersion, sessionId, requestId,
+            (s, c) => ServerHandlers.ClaimGift(s, gifts, c, giftId));
+    }
+
+    [CloudCodeFunction(ServerProtocol.ClaimAllGifts)]
+    public async Task<CommandResponse> ClaimAllGifts(IExecutionContext ctx, IGameApiClient api,
+        int protocolVersion, string sessionId, string requestId)
+    {
+        var gifts = await new CloudSaveGiftSource(ctx, api).LoadAsync();
+        return await Command(ctx, api, protocolVersion, sessionId, requestId,
+            (s, c) => ServerHandlers.ClaimAllGifts(s, gifts, c));
+    }
+
+    // Chỉ đọc: không ghi state, không cần requestId. Đọc quà lỗi thì lỗi nổi lên, không thành danh sách rỗng.
+    public static async Task<CommandResponse> ListGiftsAsync(IStateStore store, IGiftSource source,
+        int protocolVersion, string sessionId, string lang, Func<DateTime> now)
+    {
+        var gifts = await source.LoadAsync();
+        var (state, _) = await store.LoadAsync();
+        var request = new ServerRequest { ProtocolVersion = protocolVersion, SessionId = sessionId ?? "" };
+        var ctx = NewContext(now());
+        var response = CommandRunner.RunReadOnly(state, request, s => ServerHandlers.ListGifts(s, gifts, ctx, lang), ToJson);
+        response.ServerUtcTicks = now().Ticks;
+        return response;
+    }
+
     // ---- Phần chạy được không cần Cloud Code (dotnet test dùng kho giả) ----
 
     static Task<CommandResponse> Command(IExecutionContext ctx, IGameApiClient api,

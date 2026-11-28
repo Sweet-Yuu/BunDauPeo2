@@ -56,5 +56,7 @@ namespace BunDauPeo.Core
         public List<CharacterLevelEntry> CharacterLevels = new();
         // Coin AFK chưa đủ đổi 1 thuốc EXP, chuyển sang lần thu sau.
         public long AfkPotionRemainderCoin = 0;
+        // Id thư quà đã nhận và bị Xoá đã đọc (spec đợt 4 5.3); thư trong danh sách này không dựng lại. Reset ghi đè rỗng.
+        public List<string> MailDeleted = new();
     }
 }

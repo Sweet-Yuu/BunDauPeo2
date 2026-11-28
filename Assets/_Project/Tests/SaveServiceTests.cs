@@ -54,6 +54,20 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void MailDeleted_RoundTrips_AndOldSaveDefaultsEmpty()
+        {
+            var save = new PlayerSave();
+            save.MailDeleted.Add("gift:a");
+            Assert.IsTrue(_service.Save(save));
+            CollectionAssert.AreEqual(new[] { "gift:a" }, _service.Load().MailDeleted);
+
+            // Save cũ (đợt 3) thiếu field: JsonUtility giữ giá trị khởi tạo rỗng, không null.
+            var old = JsonUtility.FromJson<PlayerSave>("{\"Version\":1}");
+            Assert.IsNotNull(old.MailDeleted);
+            Assert.AreEqual(0, old.MailDeleted.Count);
+        }
+
+        [Test]
         public void Load_NoFile_ReturnsNull() => Assert.IsNull(_service.Load());
 
         [Test]

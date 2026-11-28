@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using BunDauPeo.Core;
+using BunDauPeo.Rules;
 
 namespace BunDauPeo.Missions
 {
-    public enum MailAction { None, LinkAccount }
+    public enum MailAction { None, LinkAccount, ClaimGift }
 
     // Một thư trong Hộp thư (spec đợt 3 8.2). Id ổn định: MailRead của save lưu các Id đã mở.
     public sealed class MailItem
@@ -14,6 +16,11 @@ namespace BunDauPeo.Missions
         public bool Pinned;
         public bool HasAttachments;
         public MailAction Action;
+        // Thư quà (đợt 4): tên từ Dashboard (Title, không qua UiText), dòng thưởng, hạn (giờ server), đã nhận.
+        public string Title = "";
+        public List<GiftReward> Rewards = new();
+        public long ExpiresUtcTicks;
+        public bool Claimed;
     }
 
     // Nguồn thư: đợt 3 chỉ có LinkAccountMailSource; đợt 4 thêm nguồn thư quà từ server mà không sửa trang.
@@ -53,7 +60,8 @@ namespace BunDauPeo.Missions
                 foreach (var item in source.Items())
                     (item.Pinned ? pinned : rest).Add(item);
 
-            pinned.AddRange(rest);
+            // Thư quà hạn gần nhất lên trước (OrderBy ổn định: thư không hạn giữ thứ tự nguồn, xếp sau).
+            pinned.AddRange(rest.OrderBy(i => i.ExpiresUtcTicks == 0 ? long.MaxValue : i.ExpiresUtcTicks));
             if (pinned.Count > Capacity) pinned.RemoveRange(Capacity, pinned.Count - Capacity);
             return pinned;
         }
@@ -68,23 +76,33 @@ namespace BunDauPeo.Missions
             return count;
         }
 
-        // Thư ghim không xoá được; chỉ thư thường đã đọc mới xoá được.
+        // Thư ghim không xoá được; thư quà chưa nhận không xoá được dù đã đọc (spec đợt 4 3.4).
+        private static bool Deletable(MailItem item, PlayerSave save) =>
+            !item.Pinned && !Unread(item, save) && (item.Action != MailAction.ClaimGift || item.Claimed);
+
         public static bool CanDeleteRead(IEnumerable<MailItem> items, PlayerSave save)
         {
             foreach (var item in items)
-                if (!item.Pinned && !Unread(item, save)) return true;
+                if (Deletable(item, save)) return true;
             return false;
         }
 
-        // Đợt 3 chưa có thư thường nào (nguồn duy nhất là thư ghim) nên không xoá gì; đợt 4 nối kho thư quà vào đây.
-        // shortcut: trả số thư xoá được chứ chưa xoá, vì chưa có kho thư; nâng khi nguồn thư quà có chỗ lưu.
+        // Ghi id thư xoá được vào MailDeleted (nguồn không dựng lại); trả số thư vừa xoá, người gọi lưu save.
         public static int DeleteRead(IEnumerable<MailItem> items, PlayerSave save)
         {
             var count = 0;
-            foreach (var item in items)
-                if (!item.Pinned && !Unread(item, save)) count++;
+            foreach (var item in items.ToList())
+            {
+                if (!Deletable(item, save) || save.MailDeleted.Contains(item.Id)) continue;
+                save.MailDeleted.Add(item.Id);
+                count++;
+            }
             return count;
         }
+
+        // Chấm đỏ nút Hộp thư: có thư chưa đọc hoặc có quà chưa nhận (spec đợt 4 3.5).
+        public static bool HasRedDot(IEnumerable<MailItem> items, PlayerSave save, int giftClaimable) =>
+            giftClaimable > 0 || UnreadCount(items, save) > 0;
 
         // Mở thư = đã đọc. Trả true khi vừa đổi (người gọi lưu save).
         public static bool MarkRead(MailItem item, PlayerSave save)

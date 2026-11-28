@@ -12,7 +12,7 @@ Mục ghi *khởi điểm* là giá trị tạm để bắt đầu cân bằng, 
 | Coin | Khách trả tiền ở quán, thu thập AFK | Mua nâng cấp quán |
 | Material | Thưởng màn chơi | Mua nâng cấp quán |
 | Thuốc EXP | Thắng màn đánh (lần đầu 10, đánh lại 3); lên cấp người chơi; khách trả tiền ở quán (3%) và AFK | Nâng cấp nhân vật (cùng Coin), xem [Cấp người chơi và cấp nhân vật](#cấp-người-chơi-và-cấp-nhân-vật) |
-| Gem | Thưởng màn chơi; [Nhiệm vụ](#nhiệm-vụ) (Online đợt 3); Hộp quà trong Hộp thư (Online đợt 4); sau 31/12: mua trong game, quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
+| Gem | Thưởng màn chơi; [Nhiệm vụ](#nhiệm-vụ) (Online đợt 3); Hộp quà trong Hộp thư (Online đợt 4; loại quà: Gem, Coin, Material); sau 31/12: mua trong game, quảng cáo thưởng ([Kiếm tiền](#kiếm-tiền)) | Quay gacha |
 
 Nâng cấp tốn cả Coin và Material, nên người chơi phải vừa để quán chạy vừa đi đánh.
 

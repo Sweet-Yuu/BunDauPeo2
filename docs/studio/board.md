@@ -3,7 +3,7 @@
 > **Đọc khi:** mở kênh 👑 CEO, hoặc cần biết ai đang giữ khoá Unity.
 > **Cập nhật khi:** mở/đóng luồng hay Leader, cấp/nhả khoá Unity, user chốt việc giữa các luồng. Chỉ 👑 CEO ghi. Giữ ngắn: chi tiết nằm trong file luồng.
 
-_Cập nhật 2026-11-21 bởi 👑 CEO #1._
+_Cập nhật 2026-11-27 bởi 👑 CEO #1._
 
 ## Nền
 
@@ -13,7 +13,7 @@ _Cập nhật 2026-11-21 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **không ai** (2026-11-25; Editor của user đang mở). PR #23 Online đợt 3 merge `fce613b`. Cấp nhân vật code + sửa review + Min protocol 3 xong (`85e36b2`), `development` đã deploy lại; chờ user playtest rồi PR vào main. Hàng chờ (user chốt 2026-11-25): sau PR Cấp nhân vật merge → Online đợt 4 Hộp quà (O4-a, O4-b; spec `cc02734` trên `claude/gallant-gagarin-27d560`) → Thời tiết → Cốt truyện → Vẽ lại quán.
+Đang giữ: **🧭 Nội dung game · 🔨 Thời tiết** (cấp 2026-11-27). Online đợt 4 xong O4-a + O4-b (`2ec9fb5` trên `feature/online-4`), đang review xhigh chỉ đọc rồi mở PR; review cần sửa có Unity thì Online xin lại khoá. Thời tiết cắt `feature/weather` từ `origin/feature/online-4` `2ec9fb5` (chung PlayerSave/RestaurantSceneBuilder với O4-b) rồi merge `origin/docs/thoi-tiet-spec`; PR Thời tiết mở sau khi PR đợt 4 merge. Hàng chờ sau Thời tiết: Nhiều chương → Cốt truyện → Vẽ lại quán (user chốt 2026-11-26; Vẽ lại quán cắt trước nếu trễ). Nhiều chương: spec + kế hoạch user duyệt 2026-11-26 (`docs/nhieu-chuong-spec` `e3b8b7b`; tối thiểu Task 1–4, 2 phiên 🔨, phiên 2 cần khoá; Task 5 cắt trước). Cốt truyện chờ spec 🎨 (user mô tả chuyển sinh, chia Chương 1); chưa xong khi tới lượt thì nhường việc kế.
 
 ## Luồng
 
@@ -21,8 +21,8 @@ _Cập nhật 2026-11-21 bởi 👑 CEO #1._
 |---|---|---|---|
 | 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | Đợt 2 merge (PR #22, `54dd0be`). Đợt 3 (Google + Nhiệm vụ): spec + kế hoạch 12 task user duyệt 2026-11-21 (nhánh `claude/fervent-brattain-b00297`); 🔨 O3-a chờ PR #22 merge + khoá Unity, đi trước Thời tiết. Còn: đo Android thật, deploy production |
 | 🚀 Phát hành | [streams/release.md](streams/release.md) | chưa mở | R2 khi có khoá upload + icon |
-| 🍜 Nội dung game | [streams/content.md](streams/content.md) | 🧭 Nội dung game #1 `local_95aae363-67d6-40fa-8849-673dbe1f854c` (mở 2026-11-21) | Ba spec user duyệt, 🔨 xếp hàng khoá Unity sau Cấp nhân vật, làm lần lượt vì chung PlayerSave/ProjectSetup/RestaurantSceneBuilder: (1) Thời tiết (`docs/thoi-tiet-spec`, 4 task, 2 phiên); (2) Cốt truyện Ch1 (`docs/cot-truyen-spec`, 7 task, 3 phiên; trễ thì cắt Task 6 → 5 → 4); (3) Vẽ lại quán tilemap + Nội thất 8×8 (`31f8ba4` trên `docs/tilemap-noi-that-spec`, 4 task tối thiểu + 2 đầy đủ, 3 phiên; cảnh cũ cất vào `Restaurant/Prefabs/_Old/`). Shipper: chưa spec; user chốt 2026-11-23 chờ O3 xong, CEO ước lượng tốc độ rồi mới quyết mở spec; cắt trước nếu trễ |
-| 🧩 Nhân vật | [streams/characters.md](streams/characters.md) | 🧭 Nhân vật #1 `local_6be8b17d-59b0-47a3-bdcd-45aeda92edc8` (mở 2026-11-21) | Cấp nhân vật vào bản 31/12 (user chốt 2026-11-21, vision đã sửa); trang bị sau 31/12. Spec + kế hoạch user duyệt (nhánh `docs/cap-nhan-vat-spec`, 8 task, 2 phiên 🔨, đều cần khoá; ảnh mô phỏng UI user đã duyệt). Server giữ `ProtocolVersion` 3 của O3, deploy cùng O3. Sẵn sàng 🔨, chờ lượt khoá sau O3-c |
+| 🍜 Nội dung game | [streams/content.md](streams/content.md) | 🧭 Nội dung game #1 `local_95aae363-67d6-40fa-8849-673dbe1f854c` (mở 2026-11-21) | Ba spec user duyệt, 🔨 xếp hàng khoá Unity sau Cấp nhân vật, làm lần lượt vì chung PlayerSave/ProjectSetup/RestaurantSceneBuilder: (1) Thời tiết (`docs/thoi-tiet-spec`, 4 task, 2 phiên); (2) Cốt truyện: **tạm dừng** (user đổi cốt truyện 2026-11-26, tóm tắt `docs/design/story-core.md`; hệ thống hội thoại spec cũ mục 3–6 còn dùng; chờ user chia chương rồi 🎨 viết lại); (3) Vẽ lại quán tilemap + Nội thất 8×8 (`31f8ba4` trên `docs/tilemap-noi-that-spec`, 4 task tối thiểu + 2 đầy đủ, 3 phiên; cảnh cũ cất vào `Restaurant/Prefabs/_Old/`). Shipper: chưa spec; user chốt 2026-11-23 chờ O3 xong, CEO ước lượng tốc độ rồi mới quyết mở spec; cắt trước nếu trễ |
+| 🧩 Nhân vật | [streams/characters.md](streams/characters.md) | 🧭 Nhân vật #1 `local_6be8b17d-59b0-47a3-bdcd-45aeda92edc8` (mở 2026-11-21) | Cấp nhân vật merge (PR #24, `4cea38c`, 2026-11-26). Chưa thử: tiếng Việt, Reset Save, tab Sao, thua trận, Android thật. Trang bị sau 31/12 |
 | 💰 Kiếm tiền | chưa có | chưa mở | sau 31/12 |
 
 ## Kênh đứng lâu
@@ -41,6 +41,7 @@ _Cập nhật 2026-11-21 bởi 👑 CEO #1._
 - Đăng nhập Google (O3-c Task 10): user chốt 2026-11-24 dời sang sau, không vá gradle, không lên Unity 6.5 (plugin cần 6.5+). Cần trước CH Play công khai; itch.io 31/12 không cần.
 - APK Development 54,3 MB, +18% so với 2026-11-07 (vượt ngưỡng 10%; gồm Online đợt 1–3, chưa tách nguyên nhân): kiểm ở 🚀 Phát hành trước thử kín.
 - Thứ tự khoá Unity sau PR #22 (user chốt 2026-11-21): Online O3-a → O3-b → O3-c → Cấp nhân vật #1 → #2 → Thời tiết → Cốt truyện → Vẽ lại quán. Cấp nhân vật cắt nhánh từ nhánh O3 (hoặc `main` sau khi O3 merge) vì sửa cùng `CompleteStage`/`GameData`. Tab Thành tựu: luồng Online, sau 31/12 (user chốt 2026-11-21).
+- Cốt truyện mới (2026-11-26): user chốt bản 31/12 giữ chương mới, Chương 0 chia nhiều chapter (khung 6), **bản 31/12 chỉ cần 2–3 chapter tối thiểu**, hệ thống nhiều chapter làm đủ, chapter sau thêm bằng dữ liệu; chờ user viết xong + chia chương rồi 🎨 viết lại spec, sau đó xếp lại vào hàng khoá. `vision.md` dòng Cốt truyện Ch1 (nhánh `docs/cot-truyen-spec`) còn tả cốt truyện cũ, 🎨 sửa. Đổi tên Zola/Y/TikTak xa thương hiệu thật.
 - Giá nâng cấp (quán bằng Material, nhân vật bằng Coin) mới nằm ở `ideas.md`, chưa xếp roadmap.
 
 ## Lưu ý vận hành

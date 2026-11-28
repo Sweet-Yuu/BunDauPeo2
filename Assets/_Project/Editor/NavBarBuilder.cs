@@ -213,7 +213,7 @@ namespace BunDauPeo.EditorTools
             return view;
         }
 
-        // Hộp thả xuống (spec 5.3): nền mờ bấm đóng, hộp 640×660 dưới nút, 5 dòng 600×100. Vẽ trên thanh qua OverBar; lúc đầu tắt.
+        // Hộp thả xuống (spec 5.3): nền mờ bấm đóng, hộp 640×880 dưới nút, 7 dòng 600×100. Vẽ trên thanh qua OverBar; lúc đầu tắt.
         public static NotifyPopup BuildNotifyPopup(RectTransform canvas, Font font, Sprite sprite)
         {
             var root = NewRect("NotifyPopup", canvas);
@@ -227,8 +227,8 @@ namespace BunDauPeo.EditorTools
             dim.targetGraphic = dimImage;
             dim.transition = Selectable.Transition.None;
 
-            var box = NewRect("NotifyBox_PH_640x660", root);
-            Place(box, TopRight, TopRight, new Vector2(-20, -180), new Vector2(640, 660));
+            var box = NewRect("NotifyBox_PH_640x880", root);
+            Place(box, TopRight, TopRight, new Vector2(-20, -180), new Vector2(640, 880));
             AddImage(box, sprite, NotifyBoxColor, raycast: true);
             var outline = box.gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(0.75f, 0.78f, 0.88f, 0.9f);
@@ -237,8 +237,8 @@ namespace BunDauPeo.EditorTools
             title.fontStyle = FontStyle.Bold;
             Place(title.rectTransform, TopCenter, TopCenter, new Vector2(0, -15), new Vector2(600, 60));
 
-            var rows = new Button[5];
-            var texts = new Text[5];
+            var rows = new Button[System.Enum.GetValues(typeof(NotifyKind)).Length];
+            var texts = new Text[rows.Length];
             for (var i = 0; i < rows.Length; i++)
             {
                 var row = NewRect("NotifyRow_PH_600x100", box);
@@ -275,7 +275,7 @@ namespace BunDauPeo.EditorTools
 
         // Nối nút Thông báo với HubNav, hộp và các đích (dựng sau cả thanh lẫn hộp AFK).
         public static void WireNotify(NotifyView view, HubNav hub, NotifyPopup popup, ScrollRect worldScroll, RectTransform incidentBubble,
-            StaffPanel staffPanel, AfkPopup afkPopup, CharactersView characters)
+            StaffPanel staffPanel, AfkPopup afkPopup, CharactersView characters, MissionsPage missionsPage, MailPage mailPage)
         {
             var so = new SerializedObject(view);
             so.FindProperty("_hub").objectReferenceValue = hub;
@@ -285,6 +285,8 @@ namespace BunDauPeo.EditorTools
             so.FindProperty("_staffPanel").objectReferenceValue = staffPanel;
             so.FindProperty("_afkPopup").objectReferenceValue = afkPopup;
             so.FindProperty("_characters").objectReferenceValue = characters;
+            so.FindProperty("_missionsPage").objectReferenceValue = missionsPage;
+            so.FindProperty("_mailPage").objectReferenceValue = mailPage;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             var hubSo = new SerializedObject(hub);

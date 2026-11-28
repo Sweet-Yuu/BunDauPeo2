@@ -279,6 +279,8 @@ User chốt danh sách và thưởng dưới đây làm số khởi điểm (đ�
 
 ### 5.11 Hộp quà và dòng Thông báo (đợt 4)
 
+> **Ghi chú (O4-b, 2026-11-26):** đã dựng theo [spec con đợt 4](2026-11-25-online-4-design.md): Hộp quà là thư trong Hộp thư, máy không đọc Custom data (server trả `ListGifts`), thêm `PlayerSave.MailDeleted`. Nội dung dưới đây là bản gốc.
+
 - Danh sách quà ở Cloud Save **Custom data**, id `gifts`, khoá `list`, user sửa trên Unity Dashboard: `[{ "id", "titleVi", "titleEn", "rewards": [{ "type": "Gem|Coin|Material", "amount" }], "startUtc", "endUtc" }]`. Máy đọc (chỉ đọc), server đọc khi nhận.
 - **Hộp quà:** nút tròn **Hộp quà** ở Lobby → trang kín màn: danh sách quà đang trong hạn chưa nhận (tên, thưởng, hạn), nút Nhận, Nhận hết. `ClaimGift(id)` / `ClaimAllGifts()`: server kiểm trong hạn và chưa nhận; Gem ghi vào `state`, Coin/Material trả cho máy cộng. Ảnh mô phỏng ở spec con đợt 4. **Cần ảnh tham khảo** `Mota/hub-presents-popup.jpg` nếu user có.
 - **Nút Thông báo:** thêm `NotifyKind.MissionReward` ("Có phần thưởng nhiệm vụ chưa nhận" → mở Nhiệm vụ, tab có thưởng) và `NotifyKind.GiftReward` ("Có quà chưa nhận" → mở Hộp quà), đứng cuối thứ tự enum.

@@ -126,6 +126,8 @@ namespace BunDauPeo.Tests
         {
             "mail.title", "mail.count", "mail.claim_all", "mail.delete_read", "mail.empty", "mail.attachments", "mail.sender",
             "mail.link_title", "mail.link_body", "mail.link_btn",
+            "mail.gift_title", "mail.gift_body", "mail.gift_claim", "mail.gift_claimed", "mail.gift_row_expiry", "mail.gift_expiry",
+            "mail.gift_expired", "mail.gift_got", "mail.gift_none", "notify.mission_reward", "notify.gift_reward",
         };
 
         [Test]
@@ -144,6 +146,13 @@ namespace BunDauPeo.Tests
             // Hộp: nội dung thư 1040×300 cỡ 34, tiêu đề dòng thư 430 cỡ 34 (co chữ), tiêu đề chi tiết 1040 cỡ 44.
             Assert.LessOrEqual(Lines("mail.link_body", 34, 1040) * 34 * 1.2f, 300f, "mail.link_body");
             Assert.LessOrEqual(Lines("mail.link_title", 44, 1040), 1, "mail.link_title");
+            Assert.LessOrEqual(Lines("mail.gift_body", 34, 1040) * 34 * 1.2f, 300f, "mail.gift_body");
+            // Nút Nhận/Đã nhận 300 cỡ 34 một dòng; chữ hạn ở dòng thư 430 cỡ 26 và ở chi tiết 600 cỡ 32 (ngày giờ dài nhất 16 ký tự).
+            Assert.LessOrEqual(Lines("mail.gift_claimed", 34, 300), 1, "mail.gift_claimed");
+            Assert.LessOrEqual(UiText.Format("mail.gift_row_expiry", "31/12 23:59").Length * 0.5f * 26, 430f, "mail.gift_row_expiry");
+            Assert.LessOrEqual(UiText.Format("mail.gift_expiry", "31/12/2026 23:59").Length * 0.5f * 32, 600f, "mail.gift_expiry");
+            // Toast 760 co chữ tới cỡ 20; tổng dài nhất.
+            Assert.LessOrEqual(UiText.Format("mail.gift_got", "Gem 1.000.000, Coin 1.000.000, Material 1.000.000").Length * 0.5f * 20, 760f, "mail.gift_got");
         }
 
         [Test]

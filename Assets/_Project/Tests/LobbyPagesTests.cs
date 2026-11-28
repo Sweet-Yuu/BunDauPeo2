@@ -168,7 +168,7 @@ namespace BunDauPeo.Tests
                              ("StaffConfirmRoot", "StaffConfirmBox", StageSelectSceneBuilder.ConfirmSize),
                              ("RollAgainPopup", "Box", GachaSceneBuilder.RollAgainSize),
                              ("HistoryPopup", "GachaHistoryBox_PH_1200x800", GachaSceneBuilder.HistoryBoxSize),
-                             ("NotifyPopup", "NotifyBox_PH_640x660", new Vector2(640, 660)),
+                             ("NotifyPopup", "NotifyBox_PH_640x880", new Vector2(640, 880)),
                          })
                 {
                     var root = Named(scene, rootName);

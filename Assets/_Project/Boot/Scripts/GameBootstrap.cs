@@ -125,6 +125,9 @@ namespace BunDauPeo.Boot
             }
 
             (server as LocalGameServer)?.UseDataIfEmpty(gameData);
+            // Quà Local đọc từ gifts.json cạnh save (spec đợt 4 mục 3.7); không có file = không có quà. Test gán Gifts thì file bị bỏ qua.
+            if (server is LocalGameServer localServer && string.IsNullOrEmpty(localServer.GiftsPath))
+                localServer.GiftsPath = Path.Combine(Path.GetDirectoryName(SavePath) ?? "", "gifts.json");
             IAccountService account = AccountFactory?.Invoke();
             // Google dời sang sau (plugin cần Unity 6.5+): chưa có nguồn ID token nên không có nút Google.
             if (account == null && server is Online.UgsGameServer ugs) account = new Online.UgsAccountService(ugs.Environment);

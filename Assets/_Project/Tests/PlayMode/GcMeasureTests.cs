@@ -114,6 +114,15 @@ namespace BunDauPeo.PlayModeTests
         public IEnumerator Measure_Idle_And_Battle()
         {
             yield return Sample("Empty scene (Editor and test runner only)", 200);
+            // Đợt 4: Hộp thư đo với 20 thư quà (kế hoạch Task 7 Step 3).
+            var now = System.DateTime.UtcNow;
+            _server.Gifts = new System.Collections.Generic.List<BunDauPeo.Rules.GiftData>();
+            for (var i = 0; i < 20; i++)
+                _server.Gifts.Add(new BunDauPeo.Rules.GiftData
+                {
+                    Id = "perf_" + i, TitleVi = "Quà " + i, TitleEn = "Gift " + i, StartUtcTicks = now.AddDays(-1).Ticks, EndUtcTicks = now.AddDays(7).Ticks,
+                    Rewards = { new BunDauPeo.Rules.GiftReward { Type = "Gem", Amount = 10 }, new BunDauPeo.Rules.GiftReward { Type = "Coin", Amount = 100 } },
+                });
             SceneManager.LoadScene("Boot");
             yield return WaitForScene(TitleView.TitleScene);
             yield return Click("TapArea");
@@ -124,7 +133,7 @@ namespace BunDauPeo.PlayModeTests
             yield return Sample("Missions page idle", 300);
             yield return Click("CloseButton");
             yield return Click("HubRoundBtnMail_PH_110x110");
-            yield return Sample("Mail page idle", 300);
+            yield return Sample("Mail page idle (20 gifts)", 300);
             yield return Click("CloseButton");
             yield return Bisect("Restaurant");
 

@@ -89,6 +89,19 @@ namespace BunDauPeo.Tests
         }
 
         [Test]
+        public void Reset_ClearsMailDeleted()
+        {
+            var session = new GameSession(_service, _catalog, _config);
+            session.Save.MailDeleted.Add("gift:a");
+            session.Save.MailRead.Add("gift:a");
+
+            Assert.IsTrue(session.ResetToDefaults());
+
+            Assert.AreEqual(0, session.Save.MailDeleted.Count, "the gift can come back after Reset (spec 4.2)");
+            Assert.AreEqual(0, session.Save.MailRead.Count);
+        }
+
+        [Test]
         public void ResetToDefaults_ClearsEveryFieldOfTheSave()
         {
             // Dữ liệu mà NewGameConfig không cấp (Gem, Id lạ, nhân viên) cũng phải biến mất: reset ghi đè cả PlayerSave chứ không xoá từng field.

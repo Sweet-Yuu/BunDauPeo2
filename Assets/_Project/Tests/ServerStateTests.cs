@@ -35,6 +35,7 @@ namespace BunDauPeo.Tests
             ActiveSessionId = "sess",
             LastRequestId = "r",
             LastResultJson = "{}",
+            ClaimedGiftIds = new List<string> { "g1" },
         };
 
         [Test]
@@ -97,7 +98,7 @@ namespace BunDauPeo.Tests
                 Assert.IsFalse(ReferenceEquals(f.GetValue(orig), f.GetValue(clone)), f.Name + " dùng chung tham chiếu");
                 checkedFields++;
             }
-            Assert.AreEqual(7, checkedFields, "đổi số field List/StaminaState thì cập nhật Clone và số này");
+            Assert.AreEqual(8, checkedFields, "đổi số field List/StaminaState thì cập nhật Clone và số này");
             Assert.IsFalse(ReferenceEquals(orig.Missions, clone.Missions));
             Assert.IsFalse(ReferenceEquals(orig.Missions.DailyClaimed, clone.Missions.DailyClaimed));
             Assert.IsFalse(ReferenceEquals(orig.Missions.NewbieClaimed, clone.Missions.NewbieClaimed));
@@ -141,6 +142,7 @@ namespace BunDauPeo.Tests
                 ActiveSessionId = "sess",
                 LastRequestId = "r",
                 LastResultJson = "{}",
+                ClaimedGiftIds = { "g" },
             };
             const string expected =
                 "{\"Version\":1,\"Revision\":2,\"Gem\":9000000000,\"OwnedCharacterIds\":[\"a\"],"
@@ -149,8 +151,22 @@ namespace BunDauPeo.Tests
                 + "\"GachaHistory\":[{\"Utc\":5,\"BannerId\":\"b\",\"Count\":1,\"CharacterIds\":[\"a\"]}],"
                 + "\"Stamina\":{\"Current\":40,\"AnchorUtcTicks\":638700000000000123},\"ClearedStages\":[\"s1\"],"
                 + "\"Missions\":{\"DailyDay\":740000,\"DailyWins\":2,\"DailyPulls\":1,\"DailyClaimed\":[\"d\"],\"FreePullDay\":739999,\"NewbieClaimed\":[\"n\"]},"
-                + "\"PendingTicket\":\"t\",\"PendingStageId\":\"s2\",\"ActiveSessionId\":\"sess\",\"LastRequestId\":\"r\",\"LastResultJson\":\"{}\"}";
+                + "\"PendingTicket\":\"t\",\"PendingStageId\":\"s2\",\"ActiveSessionId\":\"sess\",\"LastRequestId\":\"r\",\"LastResultJson\":\"{}\",\"ClaimedGiftIds\":[\"g\"]}";
             Assert.AreEqual(expected, JsonUtility.ToJson(state));
+        }
+
+        [Test]
+        public void Phase3State_DefaultsClaimedGiftIdsEmpty()
+        {
+            const string phase3 = "{\"Version\":1,\"Revision\":4,\"Gem\":50,\"OwnedCharacterIds\":[\"a\"],\"ClearedStages\":[\"s1\"],\"LastRequestId\":\"r\"}";
+            var s = JsonUtility.FromJson<ServerState>(phase3);
+            Assert.IsNotNull(s.ClaimedGiftIds);
+            Assert.AreEqual(0, s.ClaimedGiftIds.Count);
+            Assert.AreEqual(50, s.Gem);
+            CollectionAssert.AreEqual(new[] { "s1" }, s.ClearedStages);
+            Assert.AreEqual("r", s.LastRequestId);
+            var fresh = ServerState.NewGame(new GameData { Stamina = new StaminaData(), NewGame = new NewGameData() });
+            Assert.AreEqual(0, fresh.ClaimedGiftIds.Count);
         }
 
         [Test]
