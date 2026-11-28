@@ -13,7 +13,8 @@ namespace BunDauPeo.Restaurant
                 return config.BaseChance + (config.FastStartChance - config.BaseChance) * k;
             }
 
-            var steps = System.Math.Floor((minutes - config.FastStartMinutes) / config.RollIntervalMinutes);
+            // Khoảng quay hỏng (<= 0) đã bị Validate báo; ở đây chỉ tránh NaN nếu ai gọi thẳng.
+            var steps = config.RollIntervalMinutes > 0 ? System.Math.Floor((minutes - config.FastStartMinutes) / config.RollIntervalMinutes) : 0;
             return System.Math.Min(config.MaxChance, config.FastStartChance + config.FastStepChance * steps);
         }
     }

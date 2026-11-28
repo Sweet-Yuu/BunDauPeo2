@@ -50,7 +50,12 @@ namespace BunDauPeo.Restaurant
             if (Upgrades != null) Upgrades.Changed += OnRosterChanged;
 
             // Cấu hình lỗi thì Estimate = 0 và AFK đứng yên, giữ nguyên số đã có trong save.
-            if (IsRunning) Afk.CatchUp();
+            // Weather.CatchUp cũng chỉ chạy khi cấu hình đúng: AwayResetMinutes hỏng không được xoá bộ đếm hay ghi mốc (L-016).
+            if (IsRunning)
+            {
+                Afk.CatchUp();
+                Weather.CatchUp();
+            }
         }
 
         public RestaurantConfig Config => _config;

@@ -23,7 +23,6 @@ namespace BunDauPeo.Restaurant
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
             _random = random ?? throw new ArgumentNullException(nameof(random));
             _persist = persist ?? throw new ArgumentNullException(nameof(persist));
-            CatchUp();
         }
 
         public event Action Changed;
@@ -43,6 +42,7 @@ namespace BunDauPeo.Restaurant
             var state = State;
             if (state.RainEndsUtcTicks > 0)
             {
+                ClampRain(NowTicks);
                 if (NowTicks >= state.RainEndsUtcTicks) EndRain();
                 return;
             }
@@ -65,6 +65,7 @@ namespace BunDauPeo.Restaurant
             var away = state.LastActiveUtcTicks > 0 ? Math.Max(0, now - state.LastActiveUtcTicks) : 0;
             if (state.RainEndsUtcTicks > 0)
             {
+                ClampRain(now);
                 if (now >= state.RainEndsUtcTicks) EndRain();
             }
             else if (away >= (long)(_config.AwayResetMinutes * TicksPerMinute))
@@ -95,7 +96,17 @@ namespace BunDauPeo.Restaurant
 
         public void AddContinuous(double seconds) => State.ContinuousSeconds += seconds;
 
-        public void RollNow() => Roll();
+        public void RollNow()
+        {
+            if (!IsRaining) Roll();
+        }
+
+        // Lùi giờ máy giữa phiên không được kéo dài mưa quá RainMinutes tính từ bây giờ.
+        private void ClampRain(long now)
+        {
+            var latest = now + (long)(_config.RainMinutes * TicksPerMinute);
+            if (State.RainEndsUtcTicks > latest) State.RainEndsUtcTicks = latest;
+        }
 
         // Save đã bị ghi đè trước khi gọi; chỉ báo view vẽ lại.
         public void ResetRuntime() => Changed.SafeInvoke();

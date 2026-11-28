@@ -68,6 +68,8 @@ namespace BunDauPeo.Tests
                 ("_baseChance", 0.5f, "BaseChance"),
                 ("_rainMinutes", 0f, "RainMinutes"),
                 ("_rainArrivalMultiplier", 0.5f, "RainArrivalMultiplier"),
+                ("_rollIntervalMinutes", 0f, "RollIntervalMinutes"),
+                ("_slowStartMinutes", 200f, "SlowStartMinutes"),
             };
             foreach (var (field, value, name) in cases)
             {
@@ -75,6 +77,20 @@ namespace BunDauPeo.Tests
                 TestData.Edit(config, so => so.FindProperty(field).floatValue = value);
 
                 Assert.IsTrue(WeatherErrors(config).Exists(e => e.StartsWith(name)), $"{name}: {string.Join(" | ", WeatherErrors(config))}");
+            }
+        }
+
+        // Mẫu số (khoảng quay, FastStart - SlowStart) hỏng: Validate báo lỗi, và Chance không ra NaN dù ai gọi trực tiếp.
+        [Test]
+        public void Chance_InvalidDenominators_StaysFinite()
+        {
+            foreach (var (field, value) in new[] { ("_rollIntervalMinutes", 0f), ("_slowStartMinutes", 200f) })
+            {
+                var config = RestaurantTestData.Config();
+                TestData.Edit(config, so => so.FindProperty(field).floatValue = value);
+
+                foreach (var minutes in new[] { 0.0, 50.0, 100.0, 180.0, 300.0 })
+                    Assert.IsFalse(double.IsNaN(WeatherCurve.Chance(minutes, config)), $"{field} {minutes}");
             }
         }
 

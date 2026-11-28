@@ -86,7 +86,7 @@ Thẻ nằm ở Lobby, **không** hiện ở panel kín màn (chúng phủ lên 
 | B. Server (`ServerState`) | Lệnh Cloud Code để quay mưa | Loại: mỗi lần quay (5 phút) phải chặn màn bằng `WaitOverlay`, xuất lại dữ liệu cân bằng, sửa luật đợt 2, mà Coin vẫn do máy giữ. Chi phí lớn, không lợi |
 | C. Chỉ bộ nhớ | Không lưu | Loại: tắt mở app là hết mưa, trái ý "ra nền vẫn tính 10 phút" |
 
-Sửa file save để bớt mưa thì được (không ai hại ai, thời tiết chỉ làm khách ít đi). Đổi giờ máy không lách được vì `IClock` là `ServerClock` khi online (cùng cách AFK).
+Sửa file save để bớt mưa thì được (không ai hại ai, thời tiết chỉ làm khách ít đi). Đổi giờ máy không lách được vì `IClock` là `ServerClock` khi online (cùng cách AFK). Giới hạn đã biết: `ServerClock` đo lệch giờ một lần lúc bootstrap nên đổi giờ máy giữa phiên vẫn có tác dụng; `CatchUp` và `Update` kẹp `RainEndsUtcTicks` ≤ bây giờ + `RainMinutes` để lùi giờ không kéo dài mưa quá 10 phút.
 
 ### 6.2 `PlayerSave.Weather` (D-005)
 

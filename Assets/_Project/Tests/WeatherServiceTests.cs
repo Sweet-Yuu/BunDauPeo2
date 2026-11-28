@@ -1,7 +1,10 @@
 using System;
 using BunDauPeo.Core;
 using BunDauPeo.Restaurant;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace BunDauPeo.Tests
 {
@@ -13,12 +16,13 @@ namespace BunDauPeo.Tests
             public FakeClock Clock = new();
             public ScriptedRandom Random;
             public int Persists;
+            public Func<bool> PersistResult = () => true;
             public int Changes;
             public WeatherService Service;
 
             public Fixture Build()
             {
-                Service = new WeatherService(RestaurantTestData.Config(), Save, Clock, Random, () => { Persists++; return true; });
+                Service = new WeatherService(RestaurantTestData.Config(), Save, Clock, Random, () => { Persists++; return PersistResult(); });
                 Service.Changed += () => Changes++;
                 return this;
             }
@@ -175,11 +179,65 @@ namespace BunDauPeo.Tests
             f.Save.Weather.ContinuousSeconds = 600;
             f.Service.Heartbeat();
 
-            f.Clock.Advance(TimeSpan.FromMinutes(-5));
+            f.Clock.Advance(TimeSpan.FromMinutes(-15));
             f.Service.CatchUp();
 
             Assert.AreEqual(600, f.Save.Weather.ContinuousSeconds);
             Assert.AreEqual(f.Clock.UtcNow.Ticks, f.Save.Weather.LastActiveUtcTicks);
+        }
+
+        [Test]
+        public void ForceRain_PersistReturnsFalse_RainStartsAndWarns()
+        {
+            var f = Make();
+            f.PersistResult = () => false;
+
+            LogAssert.Expect(LogType.Warning, new Regex("save did not complete"));
+            Assert.DoesNotThrow(() => f.Service.ForceRain());
+
+            Assert.IsTrue(f.Service.IsRaining);
+        }
+
+        [Test]
+        public void ForceRain_PersistThrows_RainStartsAndWarns()
+        {
+            var f = Make();
+            f.PersistResult = () => throw new System.IO.IOException("disk locked");
+
+            LogAssert.Expect(LogType.Warning, new Regex("save failed"));
+            Assert.DoesNotThrow(() => f.Service.ForceRain());
+
+            Assert.IsTrue(f.Service.IsRaining);
+        }
+
+        [Test]
+        public void Rain_ClockMovedBack_UpdateAndCatchUpClampToRainMinutes()
+        {
+            var f = Make();
+            f.Service.ForceRain();
+            f.Clock.Advance(TimeSpan.FromMinutes(-30));
+
+            f.Service.Update(1f);
+            Assert.AreEqual(600, f.Service.RainRemainingSeconds, 1e-6, "Update");
+
+            f.Save.Weather.RainEndsUtcTicks = f.Clock.UtcNow.Ticks + TimeSpan.FromMinutes(25).Ticks;
+            f.Service.CatchUp();
+            Assert.AreEqual(600, f.Service.RainRemainingSeconds, 1e-6, "CatchUp");
+        }
+
+        [Test]
+        public void RollNow_WhileRaining_DoesNotRollAgain()
+        {
+            var f = Make(0.0);
+            f.Service.ForceRain();
+            var ends = f.Save.Weather.RainEndsUtcTicks;
+            f.Clock.Advance(TimeSpan.FromMinutes(3));
+            var persists = f.Persists;
+
+            f.Service.RollNow();
+
+            Assert.AreEqual(ends, f.Save.Weather.RainEndsUtcTicks, "mưa không bị kéo dài");
+            Assert.AreEqual(persists, f.Persists);
         }
 
         [Test]

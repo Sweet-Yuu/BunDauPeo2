@@ -30,7 +30,7 @@ namespace BunDauPeo.EditorTools
         private static readonly Color WeatherTintColor = new(0.25f, 0.45f, 0.80f, 0.28f);
         private static readonly Color WeatherBadgeBorder = new(0.60f, 0.80f, 1f);
         private static readonly Color WeatherBadgeFill = new(0.12f, 0.25f, 0.50f);
-        private static readonly Color Background =new(0.74f, 0.89f, 0.66f);
+        private static readonly Color Background = new(0.74f, 0.89f, 0.66f);
         private static readonly Color FloorColor = new(1f, 0.93f, 0.78f);
         // Chiều cao khối (px) theo spec UI hub B 5.6: mặt trước dời xuống đúng chừng này.
         private const float WallHeight = 90f, KitchenHeight = 44f, CounterHeight = 40f, TableHeight = 22f, BedHeight = 12f;

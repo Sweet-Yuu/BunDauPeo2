@@ -529,11 +529,11 @@ namespace BunDauPeo.Tests
             sim.Tick(3f);
 
             sim.ArrivalSlowdown = 4;
-            sim.Tick(10f);
-            Assert.AreEqual(0, Arrivals(sim));
+            sim.Tick(17.95f);
+            Assert.AreEqual(0, Arrivals(sim), "t = 20,95: chưa tới 21");
 
-            sim.Tick(8.1f);
-            Assert.AreEqual(1, Arrivals(sim));
+            sim.Tick(0.1f);
+            Assert.AreEqual(1, Arrivals(sim), "t = 21,05: khách đến lúc 21");
         }
-}
+    }
 }
