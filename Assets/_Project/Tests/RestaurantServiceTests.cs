@@ -404,5 +404,40 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0.1f, RestaurantRunner.Clamp(0.1f));
             Assert.AreEqual(0.5f, RestaurantRunner.Clamp(5f));
         }
-    }
+
+        [Test]
+        public void ResetRuntime_AfterSaveOverwritten_WeatherIsClear()
+        {
+            var f = Make();
+            f.Service.Weather.ForceRain();
+            var changes = 0;
+            f.Service.Weather.Changed += () => changes++;
+
+            // Như GameSession.ResetToDefaults: ghi đè PlayerSave tại chỗ.
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(new PlayerSave()), f.Save);
+            f.Service.ResetRuntime();
+
+            Assert.IsFalse(f.Service.Weather.IsRaining);
+            Assert.AreEqual(1, f.Service.Weather.ArrivalSlowdown);
+            Assert.AreEqual(1, changes);
+        }
+
+        [Test]
+        public void Rain_DoesNotChangeAfkOrIncomeEstimate()
+        {
+            double Afk(bool rain)
+            {
+                var f = Make();
+                var before = f.Service.Estimate.CoinsPerSecond;
+                if (rain) f.Service.Weather.ForceRain();
+                Assert.AreEqual(before, f.Service.Estimate.CoinsPerSecond);
+                f.Service.OnAppPause();
+                f.Clock.Advance(TimeSpan.FromHours(1));
+                f.Service.OnAppResume();
+                return f.Service.Afk.PendingTheoretical;
+            }
+
+            Assert.AreEqual(Afk(false), Afk(true), 1e-9);
+        }
+}
 }

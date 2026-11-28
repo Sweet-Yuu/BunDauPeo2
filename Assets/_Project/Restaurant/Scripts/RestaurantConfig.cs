@@ -45,6 +45,21 @@ namespace BunDauPeo.Restaurant
         [SerializeField] private float _afkFactorMax = 0.5f;
         [SerializeField] private float _afkPopupMinSeconds = 300f;
 
+        [Header("Thời tiết")]
+        [SerializeField] private float _rainMinutes = 10f;
+        [SerializeField] private float _awayResetMinutes = 10f;
+        [SerializeField] private float _rollIntervalMinutes = 5f;
+        // Dưới mốc này xác suất 0; từ đây tới SlowStart là BaseChance.
+        [SerializeField] private float _graceMinutes = 15f;
+        [SerializeField] private float _baseChance = 0.05f;
+        // Từ SlowStart tăng đều từ BaseChance lên FastStartChance ở phút FastStart; sau đó cộng FastStepChance mỗi lần quay.
+        [SerializeField] private float _slowStartMinutes = 90f;
+        [SerializeField] private float _fastStartMinutes = 180f;
+        [SerializeField] private float _fastStartChance = 0.15f;
+        [SerializeField] private float _fastStepChance = 0.15f;
+        [SerializeField] private float _maxChance = 0.9f;
+        [SerializeField] private float _rainArrivalMultiplier = 2f;
+
         [Header("Lưu")]
         [SerializeField] private float _autosaveSeconds = 60f;
 
@@ -73,6 +88,17 @@ namespace BunDauPeo.Restaurant
         public float AfkFactorMax => _afkFactorMax;
         public float AfkPopupMinSeconds => _afkPopupMinSeconds;
         public float AutosaveSeconds => _autosaveSeconds;
+        public float RainMinutes => _rainMinutes;
+        public float AwayResetMinutes => _awayResetMinutes;
+        public float RollIntervalMinutes => _rollIntervalMinutes;
+        public float GraceMinutes => _graceMinutes;
+        public float BaseChance => _baseChance;
+        public float SlowStartMinutes => _slowStartMinutes;
+        public float FastStartMinutes => _fastStartMinutes;
+        public float FastStartChance => _fastStartChance;
+        public float FastStepChance => _fastStepChance;
+        public float MaxChance => _maxChance;
+        public float RainArrivalMultiplier => _rainArrivalMultiplier;
 
         // Mỗi lỗi bắt đầu bằng tên field ("Dishes: ...", "BaseTables: ...").
         public List<string> Validate()
@@ -118,8 +144,22 @@ namespace BunDauPeo.Restaurant
             Positive(errors, "AfkPopupMinSeconds", _afkPopupMinSeconds);
             if (_maxWaitingLine < 1) errors.Add("MaxWaitingLine: must be >= 1");
 
+            CheckWeather(errors);
             CheckUpgrades(errors);
             return errors;
+        }
+
+        private void CheckWeather(List<string> errors)
+        {
+            Positive(errors, "RainMinutes", _rainMinutes);
+            Positive(errors, "AwayResetMinutes", _awayResetMinutes);
+            Positive(errors, "RollIntervalMinutes", _rollIntervalMinutes);
+            if (!(_graceMinutes >= 0f && _graceMinutes <= _slowStartMinutes)) errors.Add("GraceMinutes: must be >= 0 and <= SlowStartMinutes");
+            if (!(_slowStartMinutes < _fastStartMinutes)) errors.Add("SlowStartMinutes: must be < FastStartMinutes");
+            if (!(_baseChance >= 0f && _baseChance <= _fastStartChance)) errors.Add("BaseChance: must be in [0, FastStartChance]");
+            if (!(_fastStartChance <= _maxChance && _maxChance <= 1f)) errors.Add("MaxChance: must be >= FastStartChance and <= 1");
+            if (!(_fastStepChance >= 0f && _fastStepChance <= 1f)) errors.Add("FastStepChance: must be in [0, 1]");
+            if (!(_rainArrivalMultiplier >= 1f)) errors.Add("RainArrivalMultiplier: must be >= 1");
         }
 
         private static void Positive(List<string> errors, string field, float value)

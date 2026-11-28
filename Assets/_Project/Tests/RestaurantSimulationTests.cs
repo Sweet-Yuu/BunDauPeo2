@@ -503,5 +503,37 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(-1, sim.Workers.Single(w => w.Role == StaffRole.Server).CustomerId);
             Assert.AreEqual(-1, sim.Workers.Single(w => w.Role == StaffRole.Cashier).CustomerId);
         }
-    }
+
+        // Khách đến mỗi 7,5 giây (RNG trả 0,0 nên ×0,5); đếm mọi khách đã đến.
+        private static int Arrivals(RestaurantSimulation sim) => sim.Served + sim.Abandoned + sim.Customers.Count;
+
+        [Test]
+        public void ArrivalSlowdown2_HalvesArrivals()
+        {
+            var config = WithEdit(so => so.FindProperty("_maxWaitingLine").intValue = 1000);
+            var normal = Make(config, new ScriptedRandom());
+            var rainy = Make(config, new ScriptedRandom());
+            rainy.ArrivalSlowdown = 2;
+
+            Run(normal, 1200);
+            Run(rainy, 1200);
+
+            Assert.AreEqual(Arrivals(normal) / 2.0, Arrivals(rainy), 1.0);
+        }
+
+        [Test]
+        public void ArrivalSlowdown_AppliesImmediately()
+        {
+            // Khách đầu đến ở t = 7,5; sau 3 giây đổi ×4 thì còn 4,5 × 4 = 18 giây nữa.
+            var sim = Make(RestaurantTestData.Config(), new ScriptedRandom());
+            sim.Tick(3f);
+
+            sim.ArrivalSlowdown = 4;
+            sim.Tick(10f);
+            Assert.AreEqual(0, Arrivals(sim));
+
+            sim.Tick(8.1f);
+            Assert.AreEqual(1, Arrivals(sim));
+        }
+}
 }

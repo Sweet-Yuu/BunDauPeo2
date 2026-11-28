@@ -182,5 +182,18 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(321, new Wallet(save).Get(CurrencyType.Gem));
             CollectionAssert.AreEqual(new[] { "a", "b" }, save.OwnedCharacterIds);
         }
-    }
+
+        [Test]
+        public void UploadJson_KeepsWeather()
+        {
+            var save = new PlayerSave();
+            save.Weather.RainEndsUtcTicks = 5000;
+            save.Weather.ContinuousSeconds = 321;
+
+            var upload = JsonUtility.FromJson<PlayerSave>(ServerStateApplier.ToUploadJson(save));
+
+            Assert.AreEqual(5000, upload.Weather.RainEndsUtcTicks);
+            Assert.AreEqual(321, upload.Weather.ContinuousSeconds);
+        }
+}
 }

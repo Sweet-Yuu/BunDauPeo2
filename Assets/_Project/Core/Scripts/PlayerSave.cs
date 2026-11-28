@@ -58,5 +58,7 @@ namespace BunDauPeo.Core
         public long AfkPotionRemainderCoin = 0;
         // Id thư quà đã nhận và bị Xoá đã đọc (spec đợt 4 5.3); thư trong danh sách này không dựng lại. Reset ghi đè rỗng.
         public List<string> MailDeleted = new();
+        // Mưa và bộ đếm chơi liên tục (spec Thời tiết 6.2); do máy giữ, không lên ServerState. Save cũ thiếu field = trời quang.
+        public WeatherState Weather = new();
     }
 }
