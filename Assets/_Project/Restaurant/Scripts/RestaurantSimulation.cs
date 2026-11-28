@@ -98,6 +98,7 @@ namespace BunDauPeo.Restaurant
         private Customer[] _tables = Array.Empty<Customer>();
         private double _accumulated;
         private double _arrivalTimer;
+        private double _arrivalSlowdown = 1;
         // Khoảng đến đầu tiên bốc ở constructor, khi chưa có hồ sơ nên chưa biết hệ số; tính ở SetProfile đầu tiên.
         private double? _firstArrivalFraction;
         private int _nextCustomerId;
@@ -114,6 +115,13 @@ namespace BunDauPeo.Restaurant
         public IReadOnlyList<WorkerSnapshot> Workers => _workerSnapshots;
         public int Served { get; private set; }
         public int Abandoned { get; private set; }
+
+        // Thời tiết: khoảng cách giữa hai khách nhân lên ngần này (>= 1), có hiệu lực ngay giữa một khoảng chờ.
+        public double ArrivalSlowdown
+        {
+            get => _arrivalSlowdown;
+            set => _arrivalSlowdown = Math.Max(1, value);
+        }
 
         public event Action<int, long> CustomerPaid;
 
@@ -193,6 +201,7 @@ namespace BunDauPeo.Restaurant
             Served = 0;
             Abandoned = 0;
             _accumulated = 0;
+            _arrivalSlowdown = 1;
             DrawFirstArrival();
             RefreshSnapshots();
         }
@@ -315,7 +324,7 @@ namespace BunDauPeo.Restaurant
 
         private void AdvanceArrivals()
         {
-            _arrivalTimer -= Step;
+            _arrivalTimer -= Step / _arrivalSlowdown;
             while (_arrivalTimer <= Epsilon)
             {
                 if (_tableQueue.Count >= _config.MaxWaitingLine) Abandoned++;

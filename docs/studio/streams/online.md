@@ -20,8 +20,7 @@
 - **Lưu ý deploy:** `development` đang chạy module từ `feature/character-level` c58ae1d (= O3 `11ce1e4` + ExpPotion). Deploy lại từ `feature/online-3` sẽ gỡ ExpPotion: báo CEO trước. Production chưa đụng.
 - **Min protocol 3 (luồng Nhân vật, user chốt 2026-11-25, D-016):** `development` chạy `MinProtocolVersion` 3; bản đợt 2 bị từ chối (hộp Cần cập nhật), nên mục "APK đợt 2 vẫn chơi được" của playtest 1 không còn đúng. Mọi APK/Editor phải ≥ đợt 3. `ProtocolVersion` vẫn 3.
 - **Đợt 4 Hộp quà (~28/12; cắt đầu tiên nếu trễ):** spec [online-4](../../superpowers/specs/2026-11-25-online-4-design.md) + kế hoạch 7 task [online-4](../../superpowers/plans/2026-11-25-online-4.md), user duyệt 2026-11-25; nhánh docs `claude/gallant-gagarin-27d560` (từ `fce613b`, 📋 commit). Chốt: Hộp quà = thư trong Hộp thư (không cần `hub-presents-popup.jpg`), quà cho mọi người kể cả tài khoản mới, lệnh `ListGifts` (máy không đọc Custom data), `ClaimedGiftIds` + `PlayerSave.MailDeleted`, không CommandCode mới, `ProtocolVersion` giữ 3. 2 phiên 🔨: O4-a server T1–3 (Opus high), O4-b máy T4–7 (Sonnet high, dừng playtest 3). Cắt: T6 dòng Thông báo → DEV → cả đợt.
-- **Đợt 4 tiến độ (2026-11-27):** O4-a `c10df0a` (đã deploy `development`, gọi thật đạt), O4-b `2ec9fb5` (EditMode 1320, PlayMode 69, dotnet 22), review xhigh: không Critical, 1 Major (`startUtc` hỏng thì quà phát ngay) + minor → 🔨 O4-c sửa xong (`83679af` + `4bc8a47`, EditMode 19/19, dotnet 22/22), đã gộp vào `feature/online-4`. Bước kế: user duyệt mở PR đợt 4 (PR Thời tiết mở sau PR này).
-- **Lưu ý deploy đợt 4:** module dựng từ `main` thiếu `ClaimedGiftIds` sẽ làm mọi quà nhận lại được; merge đợt 4 vào `main` trước mọi deploy module khác (cùng lý do ExpPotion). Việc user: quyết nội dung quà thật cho 31/12; kiểm tay mục 5 (hai máy), 9 (JSON sai trên Dashboard), tắt mạng thật.
+- **Đợt 4 Hộp quà xong (2026-11-28):** [PR #25](https://github.com/Sweet-Yuu/BunDauPeo2/pull/25) merge `8ab0757`. O4-a `c10df0a`, O4-b `2ec9fb5`, O4-c `83679af` + `4bc8a47` (sửa review: `startUtc` hỏng không còn phát quà ngay; EditMode 19/19, dotnet 22/22). Module từ `main` đã có `ClaimedGiftIds`, deploy được; `production` vẫn cần user cho phép riêng. Việc user: quyết nội dung quà thật cho 31/12; kiểm tay mục 5 (hai máy), 9 (JSON sai trên Dashboard), tắt mạng thật. Minor review để sau: 3, 5–9, 11–13.
 - **Còn treo:** Google (dời), ảnh hộp xác nhận O3-e, tắt mạng lúc liên kết / WebGL / APK máy thật chưa thử, deploy `production` (cần user cho phép riêng), APK +18% (🚀 Phát hành).
 
 ## Đã chốt
@@ -30,6 +29,7 @@ UGS (Cloud Code .NET 8, assembly `Rules` dùng chung), phải có mạng mới c
 
 ## Nhật ký
 
+- 2026-11-28 — User merge [PR #25](https://github.com/Sweet-Yuu/BunDauPeo2/pull/25) vào `main` (`8ab0757`): đợt 4 xong (O4-a..c, review xhigh sửa xong). Bước kế: Thời tiết cắt từ `main`; việc user: nội dung quà 31/12, kiểm tay.
 - 2026-11-25 — User merge [PR #23](https://github.com/Sweet-Yuu/BunDauPeo2/pull/23) vào `main` (`fce613b`): đợt 3 xong (O3-a..e, review xhigh sửa xong, Major 2 làm hộp xác nhận). Google dời sau (Unity 6.5). Bước kế: đợt 4 Hộp quà (~28/12), mở 🎨 spec.
 - 2026-11-21 — User playtest đạt, PR #22 merge `54dd0be`. Cắt `feature/online-3` từ `main`, merge nhánh spec đợt 3 (chưa commit, 📋 commit). CEO cấp khoá Unity cho O3-a.
 - 2026-11-21 — Designer đợt 3 xong: spec + kế hoạch 12 task user duyệt. Chờ merge PR #22 rồi xin khoá Unity mở 🔨 O3-a.

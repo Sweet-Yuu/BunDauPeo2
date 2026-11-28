@@ -1,5 +1,7 @@
 using System.Linq;
+using BunDauPeo.Core;
 using BunDauPeo.EditorTools;
+using BunDauPeo.Restaurant;
 using BunDauPeo.UI;
 using NUnit.Framework;
 using UnityEditor;
@@ -742,6 +744,100 @@ namespace BunDauPeo.Tests
                 foreach (var graphic in world.GetComponentsInChildren<Graphic>(true).Where(g => g.raycastTarget))
                     Assert.IsTrue(graphic.GetComponentInParent<Button>(true)?.name == "IncidentBubble", $"{Path(graphic.transform)} raycasts");
                 Assert.AreEqual(8 + 10, Named(scene, "Garden").Cast<Transform>().Count(t => t.name.StartsWith("Plant")), "Garden: 8 old plants + 10 outside the screen");
+            });
+
+        // --- Thời tiết (spec Thời tiết 5): thẻ và lớp phủ chỉ hiện khi mưa.
+        private const string WeatherBadge = "WeatherBadge_PH_380x68";
+        private const string WeatherTint = "WeatherTint_PH";
+
+        // Scene đọc từ file không chạy OnEnable: dựng dịch vụ với đồng hồ giả rồi nối tay vào view.
+        private static (WeatherView View, WeatherService Service, FakeClock Clock) WeatherRig(Scene scene)
+        {
+            var clock = new FakeClock();
+            var service = new WeatherService(RestaurantTestData.Config(), new PlayerSave(), clock, new System.Random(1), () => true);
+            var view = RestaurantSceneTests.All<WeatherView>(scene).Single();
+            view.Init(service);
+            return (view, service, clock);
+        }
+
+        private static void WithLanguage(Language language, System.Action check)
+        {
+            var before = GameLanguage.Current;
+            GameLanguage.Current = language;
+            try
+            {
+                check();
+            }
+            finally
+            {
+                GameLanguage.Current = before;
+            }
+        }
+
+        [Test]
+        public void Weather_Clear_BadgeAndTintHidden() =>
+            WithLobby(scene =>
+            {
+                WeatherRig(scene);
+
+                Assert.IsFalse(Named(scene, WeatherBadge).gameObject.activeSelf);
+                Assert.IsFalse(Named(scene, WeatherTint).gameObject.activeSelf);
+            });
+
+        [Test]
+        public void Weather_Raining_ShowsBadgeWithRemainingTime() =>
+            WithLobby(scene => WithLanguage(Language.En, () =>
+            {
+                var (view, service, clock) = WeatherRig(scene);
+                var badge = Named(scene, WeatherBadge);
+
+                service.ForceRain();
+                view.Refresh();
+                Assert.IsTrue(badge.gameObject.activeSelf);
+                StringAssert.Contains("10:00", badge.GetComponentInChildren<Text>(true).text);
+
+                clock.Advance(System.TimeSpan.FromSeconds(65));
+                view.Refresh();
+                StringAssert.Contains("8:55", badge.GetComponentInChildren<Text>(true).text);
+            }));
+
+        [Test]
+        public void Weather_Tint_OnlyWhileRaining_DoesNotBlockRaycasts() =>
+            WithLobby(scene =>
+            {
+                var (view, service, _) = WeatherRig(scene);
+                var tint = Named(scene, WeatherTint);
+                Assert.IsFalse(tint.GetComponent<Image>().raycastTarget);
+
+                service.ForceRain();
+                view.Refresh();
+                Assert.IsTrue(tint.gameObject.activeSelf);
+
+                service.ForceClear();
+                view.Refresh();
+                Assert.IsFalse(tint.gameObject.activeSelf);
+                Assert.IsFalse(Named(scene, WeatherBadge).gameObject.activeSelf);
+            });
+
+        [Test]
+        public void Weather_BadgeText_BothLanguages() =>
+            WithLobby(scene =>
+            {
+                var (view, service, clock) = WeatherRig(scene);
+                var text = Named(scene, WeatherBadge).GetComponentInChildren<Text>(true);
+                service.ForceRain();
+                clock.Advance(System.TimeSpan.FromSeconds(78));
+
+                WithLanguage(Language.En, () =>
+                {
+                    view.Init(service);
+                    Assert.AreEqual("Rain · 8:42 left", text.text);
+                });
+                WithLanguage(Language.Vi, () =>
+                {
+                    view.Init(service);
+                    Assert.AreEqual("Mưa · còn 8:42", text.text);
+                });
             });
 
         private static string Path(Transform t) => string.Join("/", t.GetComponentsInParent<Transform>(true).Reverse().Select(x => x.name));

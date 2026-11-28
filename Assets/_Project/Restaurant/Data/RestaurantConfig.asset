@@ -45,4 +45,15 @@ MonoBehaviour:
   _afkFactorMin: 0.1
   _afkFactorMax: 0.5
   _afkPopupMinSeconds: 300
+  _rainMinutes: 10
+  _awayResetMinutes: 10
+  _rollIntervalMinutes: 5
+  _graceMinutes: 15
+  _baseChance: 0.05
+  _slowStartMinutes: 90
+  _fastStartMinutes: 180
+  _fastStartChance: 0.15
+  _fastStepChance: 0.15
+  _maxChance: 0.9
+  _rainArrivalMultiplier: 2
   _autosaveSeconds: 60

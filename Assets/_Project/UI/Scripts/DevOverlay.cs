@@ -20,6 +20,7 @@ namespace BunDauPeo.UI
         public const long GemGrant = 1000;
         public const int AfkRewindHours = 1;
         public const int StaminaGrant = 900;
+        public const int WeatherRewindSeconds = 1800;
         private const string ConfirmPrompt = "Xoá TOÀN BỘ dữ liệu đã lưu và đưa game về như mới?\nKhông thể hoàn tác.";
         private const string ResetFailedMessage = "RESET THẤT BẠI: không xoá hay ghi được file save (đang bị khoá?).\nThử lại.";
 
@@ -124,14 +125,15 @@ namespace BunDauPeo.UI
             dim.offsetMin = dim.offsetMax = Vector2.zero;
             dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
 
-            // Mười một nút xếp hai cột, từ trên xuống; hộp thấp vừa đủ mười một nút và hộp xác nhận Reset (cao 170, ở đáy).
-            var box = NewRect("Box", dim, Vector2.zero, new Vector2(1000, 720));
+            // Mười một nút xếp hai cột, từ trên xuống, rồi mục Thời tiết (bốn nút + dòng trạng thái) phía trên; hộp xác nhận Reset (cao 170) ở đáy.
+            var box = NewRect("Box", dim, Vector2.zero, new Vector2(1000, 900));
             box.anchorMin = box.anchorMax = box.pivot = new Vector2(0.5f, 0.5f);
             box.anchoredPosition = Vector2.zero;
             box.gameObject.AddComponent<Image>().color = new Color(0.12f, 0.12f, 0.16f, 1f);
 
-            AddLabel(box, font, "Cài đặt (DEV)", new Vector2(0, 645), new Vector2(1000, 60), 40);
-            AddButton(box, font, "Đóng", new Vector2(820, 645), 160, () => dim.gameObject.SetActive(false));
+            AddLabel(box, font, "Cài đặt (DEV)", new Vector2(0, 825), new Vector2(1000, 60), 40);
+            AddButton(box, font, "Đóng", new Vector2(820, 825), 160, () => dim.gameObject.SetActive(false));
+            BuildWeatherSection(box, font, () => ServiceLocator.Get<RestaurantService>().Weather);
 
             const float Left = 40, Right = 520, Width = 440;
             // Nhiệm vụ đợt 3: Reset thay cho đợi sang ngày; +Thể lực để thử hộp xác nhận vượt trần. Lệnh DevOnly chỉ log cảnh báo.
@@ -280,6 +282,46 @@ namespace BunDauPeo.UI
             afk.Heartbeat();
             afk.Rewind(TimeSpan.FromHours(AfkRewindHours));
             afk.CatchUp();
+        }
+
+        // Mục Thời tiết (spec Thời tiết 5): dòng trạng thái cập nhật khi mở panel và mỗi giây, bốn nút thử. Lấy service lúc bấm (panel sống qua Về Tiêu đề).
+        // ForceRain tự lưu; ba nút còn lại để autosave của quán lưu, như nút Tua AFK.
+        public static RectTransform BuildWeatherSection(RectTransform box, Font font, Func<WeatherService> weather)
+        {
+            var section = NewRect("WeatherSection", box, new Vector2(0, 630), new Vector2(1000, 170));
+            var status = NewRect("WeatherStatus", section, new Vector2(40, 70), new Vector2(920, 100)).gameObject.AddComponent<DevWeatherStatus>();
+            var text = status.gameObject.AddComponent<Text>();
+            text.font = font;
+            text.fontSize = 28;
+            text.alignment = TextAnchor.MiddleLeft;
+            text.color = Color.white;
+            text.raycastTarget = false;
+            status.Init(text, () => WeatherStatusText(weather()));
+            status.Refresh();
+
+            var actions = new (string Label, Action<WeatherService> Run)[]
+            {
+                ("Gọi mưa", w => w.ForceRain()), ("Hết mưa", w => w.ForceClear()),
+                ("Tua +30 phút", w => w.AddContinuous(WeatherRewindSeconds)), ("Quay ngay", w => w.RollNow()),
+            };
+            for (var i = 0; i < actions.Length; i++)
+            {
+                var run = actions[i].Run;
+                AddButton(section, font, actions[i].Label, new Vector2(40 + i * 235, 0), 215, () =>
+                {
+                    run(weather());
+                    status.Refresh();
+                });
+            }
+
+            return section;
+        }
+
+        public static string WeatherStatusText(WeatherService weather)
+        {
+            var now = weather.IsRaining ? $"Mưa, còn {CombatViewText.Clock(weather.RainRemainingSeconds)}" : "Quang";
+            var chance = (weather.CurrentChance * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+            return $"Đang: {now}\nChơi liên tục: {(int)weather.ContinuousMinutes} phút · Xác suất mỗi lần quay: {chance}% · Lần quay kế: {CombatViewText.Clock(weather.SecondsToNextRoll)}";
         }
 
         private static RectTransform NewRect(string name, Transform parent, Vector2 position, Vector2 size)

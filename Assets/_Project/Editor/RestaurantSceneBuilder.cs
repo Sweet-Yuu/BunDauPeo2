@@ -27,6 +27,9 @@ namespace BunDauPeo.EditorTools
         private const int GridColumns = 12;
         private const int GridRows = 8;
 
+        private static readonly Color WeatherTintColor = new(0.25f, 0.45f, 0.80f, 0.28f);
+        private static readonly Color WeatherBadgeBorder = new(0.60f, 0.80f, 1f);
+        private static readonly Color WeatherBadgeFill = new(0.12f, 0.25f, 0.50f);
         private static readonly Color Background = new(0.74f, 0.89f, 0.66f);
         private static readonly Color FloorColor = new(1f, 0.93f, 0.78f);
         // Chiều cao khối (px) theo spec UI hub B 5.6: mặt trước dời xuống đúng chừng này.
@@ -232,8 +235,15 @@ namespace BunDauPeo.EditorTools
             viewSo.ApplyModifiedPropertiesWithoutUndo();
 
             // HUD Lobby (spec UI hub B 5.1, 5.4): gom trong LobbyHud để HubNav bật/tắt cả nhóm. RestaurantView và RestaurantHud nằm ngoài nhóm nên quán vẫn chạy.
+            // Lớp phủ mưa vẽ ngay trên quán, dưới mọi HUD (spec Thời tiết 5).
+            var tint = NewRect("WeatherTint_PH", canvas);
+            Stretch(tint);
+            AddImage(tint, null, WeatherTintColor, raycast: false);
+            tint.gameObject.SetActive(false);
+
             var lobbyHud = NewRect("LobbyHud", canvas);
             Stretch(lobbyHud);
+            BuildWeatherBadge(canvas, lobbyHud, tint, font, knob);
             var hud = BuildHud(world, lobbyHud, font, sprite, knob, counter, out var statsButton);
             var (avatar, banner, shop) = BuildLobbyButtons(lobbyHud, font, sprite, knob);
             var restaurantBar = BuildRestaurantBar(lobbyHud, font, sprite, knob);
@@ -412,6 +422,31 @@ namespace BunDauPeo.EditorTools
             text.resizeTextMinSize = min;
             text.resizeTextMaxSize = max;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        }
+
+        // Thẻ mưa cùng hàng InfoBar (x 180..980), bên phải, cách 8 px. WeatherView nằm ngoài thẻ và LobbyHud để còn chạy khi chúng tắt.
+        private static void BuildWeatherBadge(RectTransform canvas, RectTransform lobbyHud, RectTransform tint, Font font, Sprite knob)
+        {
+            var badge = NewRect("WeatherBadge_PH_380x68", lobbyHud);
+            Place(badge, TopLeft, TopLeft, new Vector2(988, -108), new Vector2(380, 68));
+            AddImage(badge, null, WeatherBadgeBorder, raycast: false);
+            var fill = NewRect("Fill", badge);
+            Stretch(fill, 3);
+            AddImage(fill, null, WeatherBadgeFill, raycast: false);
+            var dot = NewRect("Dot", badge);
+            Place(dot, TopLeft, TopLeft, new Vector2(20, -22), new Vector2(24, 24));
+            AddImage(dot, knob, Color.white, raycast: false).type = Image.Type.Simple;
+            var text = NewText("BadgeText", badge, font, "", 30, TextAnchor.MiddleLeft, Color.white);
+            Place(text.rectTransform, TopLeft, TopLeft, new Vector2(56, -10), new Vector2(310, 48));
+            FitText(text, 16, 30);
+            badge.gameObject.SetActive(false);
+
+            var view = NewRect("WeatherView", canvas).gameObject.AddComponent<WeatherView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_badge").objectReferenceValue = badge.gameObject;
+            so.FindProperty("_badgeText").objectReferenceValue = text;
+            so.FindProperty("_tint").objectReferenceValue = tint.gameObject;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Thanh chất lượng một hàng (spec UI hub B 5.4), neo trên-trái trong LobbyHud: sao, cảnh báo + nhãn thu nhập, bộ đếm. `lobbyHud` giữ HUD cố định; chữ bay nằm trong `world` để bay đúng chỗ khi quán đã kéo.

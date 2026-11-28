@@ -3,7 +3,7 @@
 > **Đọc khi:** mở kênh 👑 CEO, hoặc cần biết ai đang giữ khoá Unity.
 > **Cập nhật khi:** mở/đóng luồng hay Leader, cấp/nhả khoá Unity, user chốt việc giữa các luồng. Chỉ 👑 CEO ghi. Giữ ngắn: chi tiết nằm trong file luồng.
 
-_Cập nhật 2026-11-27 bởi 👑 CEO #1._
+_Cập nhật 2026-11-28 bởi 👑 CEO #1._
 
 ## Nền
 
@@ -13,13 +13,13 @@ _Cập nhật 2026-11-27 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **🧭 Nội dung game · 🔨 Thời tiết** (cấp 2026-11-27). Online đợt 4 xong O4-a + O4-b (`2ec9fb5` trên `feature/online-4`), đang review xhigh chỉ đọc rồi mở PR; review cần sửa có Unity thì Online xin lại khoá. Thời tiết cắt `feature/weather` từ `origin/feature/online-4` `2ec9fb5` (chung PlayerSave/RestaurantSceneBuilder với O4-b) rồi merge `origin/docs/thoi-tiet-spec`; PR Thời tiết mở sau khi PR đợt 4 merge. Hàng chờ sau Thời tiết: Nhiều chương → Cốt truyện → Vẽ lại quán (user chốt 2026-11-26; Vẽ lại quán cắt trước nếu trễ). Nhiều chương: spec + kế hoạch user duyệt 2026-11-26 (`docs/nhieu-chuong-spec` `e3b8b7b`; tối thiểu Task 1–4, 2 phiên 🔨, phiên 2 cần khoá; Task 5 cắt trước). Cốt truyện chờ spec 🎨 (user mô tả chuyển sinh, chia Chương 1); chưa xong khi tới lượt thì nhường việc kế.
+Đang giữ: **🧭 Nội dung game · 🔨 Nhiều chương** (cấp 2026-11-28). Thời tiết xong: PR #26 (`feature/weather`, EditMode 1369, playtest Local 4/4, UGS development chưa chạy), chờ user merge. Online đợt 4 merge (PR #25, `8ab0757`). Nhiều chương (spec + kế hoạch user duyệt 2026-11-26, `origin/docs/nhieu-chuong-spec` `4756185`; tối thiểu Task 1–4, 2 phiên 🔨, Task 5 cắt trước): cắt `feature/chapters` từ `origin/feature/weather` mới nhất (chồng lên Thời tiết, không chờ merge) rồi merge `origin/docs/nhieu-chuong-spec`; PR mở sau khi PR #26 merge. Hàng chờ sau: Cốt truyện (chờ spec 🎨; user chia Chương 0) → Vẽ lại quán (cắt trước nếu trễ).
 
 ## Luồng
 
 | Luồng | File | Leader | Bước kế |
 |---|---|---|---|
-| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | Đợt 2 merge (PR #22, `54dd0be`). Đợt 3 (Google + Nhiệm vụ): spec + kế hoạch 12 task user duyệt 2026-11-21 (nhánh `claude/fervent-brattain-b00297`); 🔨 O3-a chờ PR #22 merge + khoá Unity, đi trước Thời tiết. Còn: đo Android thật, deploy production |
+| 🌐 Online | [streams/online.md](streams/online.md) | 🧭 Online #1 `local_ced3c354-9202-4fa5-a75d-2a562249beef` | Đợt 4 Hộp quà merge (PR #25, `8ab0757`, 2026-11-28; đợt 3 PR #23). Còn: kiểm tay mục 5 (hai máy), 9 (JSON sai trên Dashboard), tắt mạng thật; nội dung quà thật cho 31/12; minor review 3, 5–9, 11–13; deploy production cần user cho phép |
 | 🚀 Phát hành | [streams/release.md](streams/release.md) | chưa mở | R2 khi có khoá upload + icon |
 | 🍜 Nội dung game | [streams/content.md](streams/content.md) | 🧭 Nội dung game #1 `local_95aae363-67d6-40fa-8849-673dbe1f854c` (mở 2026-11-21) | Ba spec user duyệt, 🔨 xếp hàng khoá Unity sau Cấp nhân vật, làm lần lượt vì chung PlayerSave/ProjectSetup/RestaurantSceneBuilder: (1) Thời tiết (`docs/thoi-tiet-spec`, 4 task, 2 phiên); (2) Cốt truyện: **tạm dừng** (user đổi cốt truyện 2026-11-26, tóm tắt `docs/design/story-core.md`; hệ thống hội thoại spec cũ mục 3–6 còn dùng; chờ user chia chương rồi 🎨 viết lại); (3) Vẽ lại quán tilemap + Nội thất 8×8 (`31f8ba4` trên `docs/tilemap-noi-that-spec`, 4 task tối thiểu + 2 đầy đủ, 3 phiên; cảnh cũ cất vào `Restaurant/Prefabs/_Old/`). Shipper: chưa spec; user chốt 2026-11-23 chờ O3 xong, CEO ước lượng tốc độ rồi mới quyết mở spec; cắt trước nếu trễ |
 | 🧩 Nhân vật | [streams/characters.md](streams/characters.md) | 🧭 Nhân vật #1 `local_6be8b17d-59b0-47a3-bdcd-45aeda92edc8` (mở 2026-11-21) | Cấp nhân vật merge (PR #24, `4cea38c`, 2026-11-26). Chưa thử: tiếng Việt, Reset Save, tab Sao, thua trận, Android thật. Trang bị sau 31/12 |

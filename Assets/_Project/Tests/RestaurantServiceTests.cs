@@ -404,5 +404,100 @@ namespace BunDauPeo.Tests
             Assert.AreEqual(0.1f, RestaurantRunner.Clamp(0.1f));
             Assert.AreEqual(0.5f, RestaurantRunner.Clamp(5f));
         }
+
+        [Test]
+        public void ResetRuntime_AfterSaveOverwritten_WeatherIsClear()
+        {
+            var f = Make();
+            f.Service.Weather.ForceRain();
+            var changes = 0;
+            f.Service.Weather.Changed += () => changes++;
+
+            // Như GameSession.ResetToDefaults: ghi đè PlayerSave tại chỗ.
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(new PlayerSave()), f.Save);
+            f.Service.ResetRuntime();
+
+            Assert.IsFalse(f.Service.Weather.IsRaining);
+            Assert.AreEqual(1, f.Service.Weather.ArrivalSlowdown);
+            Assert.AreEqual(1, changes);
+        }
+
+        [Test]
+        public void Rain_DoesNotChangeAfkOrIncomeEstimate()
+        {
+            double Afk(bool rain)
+            {
+                var f = Make();
+                var before = f.Service.Estimate.CoinsPerSecond;
+                if (rain) f.Service.Weather.ForceRain();
+                Assert.AreEqual(before, f.Service.Estimate.CoinsPerSecond);
+                f.Service.OnAppPause();
+                f.Clock.Advance(TimeSpan.FromHours(1));
+                f.Service.OnAppResume();
+                return f.Service.Afk.PendingTheoretical;
+            }
+
+            Assert.AreEqual(Afk(false), Afk(true), 1e-9);
+        }
+
+        [Test]
+        public void Update_RainChangesArrivalSlowdown()
+        {
+            var f = Make();
+            f.Service.Update(0.1f);
+            Assert.AreEqual(1, f.Service.Simulation.ArrivalSlowdown);
+
+            f.Service.Weather.ForceRain();
+            f.Service.Update(0.1f);
+            Assert.AreEqual(2, f.Service.Simulation.ArrivalSlowdown);
+
+            f.Service.Weather.ForceClear();
+            f.Service.Update(0.1f);
+            Assert.AreEqual(1, f.Service.Simulation.ArrivalSlowdown);
+        }
+
+        [Test]
+        public void OnAppResume_AfterTenMinutesAway_ResetsWeatherCounters()
+        {
+            var f = Make();
+            f.Save.Weather.ContinuousSeconds = 3000;
+            f.Save.Weather.SecondsSinceRoll = 100;
+
+            f.Service.OnAppPause();
+            f.Clock.Advance(TimeSpan.FromMinutes(10));
+            f.Service.OnAppResume();
+
+            Assert.AreEqual(0, f.Save.Weather.ContinuousSeconds);
+            Assert.AreEqual(0, f.Save.Weather.SecondsSinceRoll);
+        }
+
+        [Test]
+        public void OnAppPause_StampsWeatherHeartbeat()
+        {
+            var f = Make();
+            f.Save.Weather.ContinuousSeconds = 3000;
+            f.Clock.Advance(TimeSpan.FromMinutes(9));
+
+            f.Service.OnAppPause();
+            f.Clock.Advance(TimeSpan.FromMinutes(9));
+            f.Service.OnAppResume();
+
+            Assert.AreEqual(3000, f.Save.Weather.ContinuousSeconds, "vắng 9 phút kể từ mốc nền, chưa đủ để xoá");
+        }
+
+        // L-016: cấu hình hỏng thì CatchUp thời tiết không chạy (AwayResetMinutes = 0 sẽ xoá bộ đếm và ghi mốc).
+        [Test]
+        public void InvalidConfig_DoesNotTouchWeatherSave()
+        {
+            var config = RestaurantTestData.Config();
+            TestData.Edit(config, so => so.FindProperty("_awayResetMinutes").floatValue = 0f);
+
+            LogAssert.Expect(LogType.Error, new Regex("RestaurantService: invalid config"));
+            var f = Make(config: config, seed: save => save.Weather.ContinuousSeconds = 3000);
+
+            Assert.IsFalse(f.Service.IsRunning);
+            Assert.AreEqual(3000, f.Save.Weather.ContinuousSeconds);
+            Assert.AreEqual(0, f.Save.Weather.LastActiveUtcTicks);
+        }
     }
 }

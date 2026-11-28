@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using BunDauPeo.Boot;
 using BunDauPeo.Core;
+using BunDauPeo.Restaurant;
 using BunDauPeo.Rules;
 using BunDauPeo.UI;
 using NUnit.Framework;
@@ -46,6 +48,72 @@ namespace BunDauPeo.Tests
                 return true;
             });
             return (rig, save, dev, () => applied);
+        }
+
+        // Mục Thời tiết dựng trên một hộp rỗng với dịch vụ đồng hồ giả; bấm nút bằng onClick.
+        private static (UnityEngine.GameObject Box, WeatherService Weather) WeatherRig()
+        {
+            var weather = new WeatherService(RestaurantTestData.Config(), new PlayerSave(), new FakeClock(), new ScriptedRandom(0.99), () => true);
+            var box = new UnityEngine.GameObject("Box", typeof(UnityEngine.RectTransform));
+            DevOverlay.BuildWeatherSection((UnityEngine.RectTransform)box.transform, null, () => weather);
+            return (box, weather);
+        }
+
+        private static void Click(UnityEngine.GameObject box, string label) =>
+            box.GetComponentsInChildren<UnityEngine.UI.Button>(true)
+                .Single(b => b.GetComponentInChildren<UnityEngine.UI.Text>().text == label).onClick.Invoke();
+
+        [Test]
+        public void DevPanel_HasWeatherSection()
+        {
+            var (box, _) = WeatherRig();
+            try
+            {
+                var labels = box.GetComponentsInChildren<UnityEngine.UI.Button>(true).Select(b => b.GetComponentInChildren<UnityEngine.UI.Text>().text).ToArray();
+                CollectionAssert.AreEqual(new[] { "Gọi mưa", "Hết mưa", "Tua +30 phút", "Quay ngay" }, labels);
+                StringAssert.Contains("Quang", box.GetComponentInChildren<DevWeatherStatus>(true).GetComponent<UnityEngine.UI.Text>().text);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(box);
+            }
+        }
+
+        [Test]
+        public void DevPanel_CallRain_StartsRain()
+        {
+            var (box, weather) = WeatherRig();
+            try
+            {
+                Click(box, "Gọi mưa");
+
+                Assert.IsTrue(weather.IsRaining);
+                StringAssert.Contains("Mưa, còn 10:00", box.GetComponentInChildren<DevWeatherStatus>(true).GetComponent<UnityEngine.UI.Text>().text);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(box);
+            }
+        }
+
+        [Test]
+        public void DevPanel_ClearRain_AndAddContinuous()
+        {
+            var (box, weather) = WeatherRig();
+            try
+            {
+                Click(box, "Gọi mưa");
+                Click(box, "Hết mưa");
+                Assert.IsFalse(weather.IsRaining);
+
+                Click(box, "Tua +30 phút");
+                Assert.AreEqual(30, weather.ContinuousMinutes, 1e-9);
+                Assert.IsFalse(weather.IsRaining, "Tua không quay");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(box);
+            }
         }
 
         [Test]
