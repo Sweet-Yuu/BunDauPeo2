@@ -13,7 +13,7 @@ _Cập nhật 2026-11-28 bởi 👑 CEO #1._
 
 ## Khoá Unity
 
-Đang giữ: **🧭 Nội dung game · 🔨 Thời tiết** (cấp 2026-11-27). Online đợt 4 merge (PR #25, `8ab0757`, 2026-11-28). Thời tiết cắt `feature/weather` từ `origin/feature/online-4` mới nhất (= `main` `8ab0757` + commit board này) rồi merge `origin/docs/thoi-tiet-spec`; PR Thời tiết mở thẳng vào `main`, không chờ gì. Hàng chờ sau Thời tiết: Nhiều chương → Cốt truyện → Vẽ lại quán (user chốt 2026-11-26; Vẽ lại quán cắt trước nếu trễ). Nhiều chương: spec + kế hoạch user duyệt 2026-11-26 (`docs/nhieu-chuong-spec` `e3b8b7b`; tối thiểu Task 1–4, 2 phiên 🔨, phiên 2 cần khoá; Task 5 cắt trước). Cốt truyện chờ spec 🎨 (user mô tả chuyển sinh, chia Chương 1); chưa xong khi tới lượt thì nhường việc kế.
+Đang giữ: **🧭 Nội dung game · 🔨 Nhiều chương** (cấp 2026-11-28). Thời tiết xong: PR #26 (`feature/weather`, EditMode 1369, playtest Local 4/4, UGS development chưa chạy), chờ user merge. Online đợt 4 merge (PR #25, `8ab0757`). Nhiều chương (spec + kế hoạch user duyệt 2026-11-26, `origin/docs/nhieu-chuong-spec` `4756185`; tối thiểu Task 1–4, 2 phiên 🔨, Task 5 cắt trước): cắt `feature/chapters` từ `origin/feature/weather` mới nhất (chồng lên Thời tiết, không chờ merge) rồi merge `origin/docs/nhieu-chuong-spec`; PR mở sau khi PR #26 merge. Hàng chờ sau: Cốt truyện (chờ spec 🎨; user chia Chương 0) → Vẽ lại quán (cắt trước nếu trễ).
 
 ## Luồng
 
